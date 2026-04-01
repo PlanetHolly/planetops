@@ -1982,7 +1982,8 @@ function renderJobLevel(){
           const invBg    = invQty === 0 ? '#FFF3E0' : invQty < totalOrdered ? '#FFF8E1' : '#F1F8F1';
           const invColor = invQty === 0 ? '#E65100' : invQty < totalOrdered ? '#FF8F00' : '#2E7D32';
           const invIcon  = invQty === 0 ? '🔴' : invQty < totalOrdered ? '🟡' : '🟢';
-          const invLabel = g.itemNumber.toUpperCase().includes('PL2219') ? 'Import' : g.itemNumber.toUpperCase().includes('US2119') ? 'USA Made' : '';
+          const _inum = (g.itemNumber || '').toUpperCase().trim();
+          const invLabel = /^PL/.test(_inum) ? 'Import' : /^US/.test(_inum) ? 'USA Made' : /^ORG/.test(_inum) ? 'Organic' : '';
           invStrip = `<div style="padding:6px 10px;background:${invBg};border-top:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:6px">
             <span style="font-size:11px">${invIcon}</span>
             <span style="font-size:11px;font-weight:700;color:${invColor}">${invLabel ? invLabel + ' · ' : ''}In Stock: ${invQty.toLocaleString()} pcs</span>
@@ -3890,10 +3891,11 @@ async function fetchBandanaInventory(){
 // Look up live bandana stock: returns qty or null if not a known bandana SKU / color not found
 function lookupBandanaStock(itemNumber, color){
   if(!state.inventory) return null;
-  const inum = (itemNumber || '').toUpperCase();
+  const inum = (itemNumber || '').toUpperCase().trim();
   let section;
-  if(inum.includes('PL2219')) section = state.inventory.import;
-  else if(inum.includes('US2119')) section = state.inventory.usa;
+  if(/^PL/.test(inum)) section = state.inventory.import;
+  else if(/^US/.test(inum)) section = state.inventory.usa;
+  else if(/^ORG/.test(inum)) section = state.inventory.organic;
   else return null;
   if(!section) return null;
   // Normalize: lowercase, strip non-alphanumeric for fuzzy match
