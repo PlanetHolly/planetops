@@ -3868,7 +3868,7 @@ async function syncFromPrintavo(){
 
     state.lastSyncAt = Date.now();
     // Fetch live inventory in parallel (non-blocking — renders board first, then re-renders if inventory loads)
-    fetchBandanaInventory().then(() => renderBoard());
+    fetchBandanaInventory().then(() => buildBoard());
     saveState();
     buildBoard();
     const msg = added > 0 ? `+${added} new job${added!==1?'s':''}` : updated > 0 ? `${updated} updated` : 'Up to date';
