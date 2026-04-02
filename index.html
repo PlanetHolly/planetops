@@ -3900,6 +3900,19 @@ async function syncFromPrintavo(){
       }
     }
 
+    // Backfill blanksList for any board jobs missing itemNumber (one-time migration)
+    const needsBackfill = state.jobs.filter(j =>
+      j.printavoId && j.blanksList && j.blanksList.length &&
+      j.blanksList.some(li => !li.itemNumber)
+    );
+    for(const job of needsBackfill){
+      try {
+        const d = await printavoFetch(printavoDetailQuery(job.printavoId));
+        const groups = d?.data?.invoice?.lineItemGroups?.nodes || [];
+        if(groups.length) job.blanksList = mapBlanksList(groups);
+      } catch(e){ /* ignore */ }
+    }
+
     state.lastSyncAt = Date.now();
     // Fetch live inventory in parallel (non-blocking — renders board first, then re-renders if inventory loads)
     fetchBandanaInventory().then(() => buildBoard());
