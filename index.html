@@ -1997,6 +1997,7 @@ function renderJobLevel(){
             <div style="padding:7px 10px;background:#f7f7f5;border-bottom:1px solid rgba(0,0,0,.08)">
               <div style="font-size:12px;font-weight:700;color:#232323">${g.description}</div>
               ${g.color ? `<div style="font-size:11px;color:rgba(0,0,0,.5);margin-top:1px">${g.color}</div>` : ''}
+              <div style="font-size:10px;color:#999;margin-top:1px">SKU: ${g.itemNumber||'(none)'} · inv: ${JSON.stringify(lookupBandanaStock(g.itemNumber,g.color))}</div>
             </div>
             <table style="width:100%;border-collapse:collapse">
               <thead>
