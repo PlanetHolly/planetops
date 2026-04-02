@@ -1974,22 +1974,36 @@ function renderJobLevel(){
           return `<td style="${tdStyle};background:${cellBg};vertical-align:middle">${inputEl}</td>`;
         }).join('');
 
-        // Live bandana inventory strip (PL2219 = Import, US2119 = USA Made)
+        // In-house inventory row
         const invQty = lookupBandanaStock(g.itemNumber, g.color);
+        const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
+        const _inum = (g.itemNumber || '').toUpperCase().trim();
+        const invLabel = /^PL/.test(_inum) ? 'Import' : /^US/.test(_inum) ? 'USA Made' : /^ORG/.test(_inum) ? 'Organic' : '';
+        let inHouseRow = '';
         let invStrip = '';
         if(invQty !== null){
-          const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
-          const invBg    = invQty === 0 ? '#FFF3E0' : invQty < totalOrdered ? '#FFF8E1' : '#F1F8F1';
           const invColor = invQty === 0 ? '#E65100' : invQty < totalOrdered ? '#FF8F00' : '#2E7D32';
-          const invIcon  = invQty === 0 ? '🔴' : invQty < totalOrdered ? '🟡' : '🟢';
-          const _inum = (g.itemNumber || '').toUpperCase().trim();
-          const invLabel = /^PL/.test(_inum) ? 'Import' : /^US/.test(_inum) ? 'USA Made' : /^ORG/.test(_inum) ? 'Organic' : '';
-          invStrip = `<div style="padding:6px 10px;background:${invBg};border-top:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:6px">
-            <span style="font-size:11px">${invIcon}</span>
-            <span style="font-size:11px;font-weight:700;color:${invColor}">${invLabel ? invLabel + ' · ' : ''}In Stock: ${invQty.toLocaleString()} pcs</span>
-            ${invQty < totalOrdered && invQty > 0 ? `<span style="font-size:10px;color:#FF8F00;font-weight:600">(ordered ${totalOrdered}, only ${invQty} on hand)</span>` : ''}
-            ${invQty === 0 ? `<span style="font-size:10px;color:#E65100;font-weight:600">Out of stock — verify before pulling</span>` : ''}
-          </div>`;
+          const invBg    = invQty === 0 ? '#FFF3E0' : invQty < totalOrdered ? '#FFF8E1' : '#F1F8F1';
+          const inHouseCells = g.sizes.map(s => {
+            const pulled = (job.inHouseCount||{})[s.idx] ?? '';
+            const filled = pulled !== '';
+            const over   = filled && parseInt(pulled) > invQty;
+            const inputEl = showCounts
+              ? `<input type="number" inputmode="numeric" min="0"
+                  style="width:50px;padding:4px;border:1.5px solid ${over?'#E53935':filled?'#66BB6A':'#ddd'};border-radius:5px;font-size:13px;font-family:var(--font-head);font-weight:800;text-align:center;color:${over?'#C62828':filled?'#388E3C':'#232323'};background:#fff;display:block;margin:0 auto"
+                  placeholder="—" value="${pulled}"
+                  onchange="saveInHouseCount('${job.id}','${s.idx}','${g.itemNumber}','${g.color}',this.value)"
+                  onclick="event.stopPropagation()">`
+              : `<span style="color:rgba(0,0,0,.2);font-size:12px">—</span>`;
+            return `<td style="${tdStyle};background:${filled&&!over?'#F1F8F1':over?'#FFEBEE':invBg};vertical-align:middle">${inputEl}</td>`;
+          }).join('');
+          inHouseRow = `<tr style="background:${invBg};border-top:1px solid rgba(0,0,0,.06)">
+            <td style="${thLabelStyle}">
+              <div style="color:${invColor};font-weight:700;font-size:11px">${invLabel||'In-House'}</div>
+              <div style="font-size:10px;color:${invColor};opacity:.85">${invQty.toLocaleString()} in stock</div>
+            </td>
+            ${inHouseCells}
+          </tr>`;
         }
 
         return `
@@ -1997,7 +2011,7 @@ function renderJobLevel(){
             <div style="padding:7px 10px;background:#f7f7f5;border-bottom:1px solid rgba(0,0,0,.08)">
               <div style="font-size:12px;font-weight:700;color:#232323">${g.description}</div>
               ${g.color ? `<div style="font-size:11px;color:rgba(0,0,0,.5);margin-top:1px">${g.color}</div>` : ''}
-              <div style="font-size:10px;color:#999;margin-top:1px">SKU: ${g.itemNumber||'(none)'} · inv: ${JSON.stringify(lookupBandanaStock(g.itemNumber,g.color))}</div>
+              ${g.itemNumber ? `<div style="font-size:10px;color:rgba(0,0,0,.3);margin-top:1px">${g.itemNumber}</div>` : ''}
             </div>
             <table style="width:100%;border-collapse:collapse">
               <thead>
@@ -2011,13 +2025,13 @@ function renderJobLevel(){
                   <td style="${thLabelStyle};color:rgba(0,0,0,.45)">Ordered</td>
                   ${orderedCells}
                 </tr>
-                <tr style="${invStrip ? 'border-bottom:1px solid rgba(0,0,0,.05);' : ''}background:#fff">
+                <tr style="background:#fff">
                   <td style="${thLabelStyle};color:#232323">Received</td>
                   ${receivedCells}
                 </tr>
+                ${inHouseRow}
               </tbody>
             </table>
-            ${invStrip}
           </div>`;
       }).join('');
 
@@ -2170,6 +2184,25 @@ function saveBlanksCount(jobId, key, value){
   else { job.blanksCount[key] = parseInt(value) || 0; }
   saveState();
   renderSheet(); // refresh to show match/short colors
+}
+
+function saveInHouseCount(jobId, idx, itemNumber, color, value){
+  const job = getJob(jobId);
+  if(!job) return;
+  job.inHouseCount = job.inHouseCount || {};
+  const qty = parseInt(value) || 0;
+  if(value === '' || value === null || qty === 0){ delete job.inHouseCount[idx]; }
+  else {
+    job.inHouseCount[idx] = qty;
+    // Write-back to inventory sheet via n8n
+    fetch('https://planetapparel.app.n8n.cloud/webhook/inventory-deduct', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ itemNumber, color, qty, jobId, idx })
+    }).catch(() => {}); // silent fail — will retry on next save
+  }
+  saveState();
+  renderSheet();
 }
 
 function saveQcNote(jobId, value){
@@ -3902,10 +3935,10 @@ function lookupBandanaStock(itemNumber, color){
   // Normalize: lowercase, strip non-alphanumeric for fuzzy match
   const cn = (color || '').toLowerCase().replace(/[^a-z0-9]/g,'');
   for(const [k, v] of Object.entries(section)){
-    if(k.replace(/[^a-z0-9]/g,'') === cn) return v;
+    if(k.toLowerCase().replace(/[^a-z0-9]/g,'') === cn) return v;
   }
   for(const [k, v] of Object.entries(section)){
-    const kn = k.replace(/[^a-z0-9]/g,'');
+    const kn = k.toLowerCase().replace(/[^a-z0-9]/g,'');
     if(kn.startsWith(cn) || cn.startsWith(kn)) return v;
   }
   return null;
