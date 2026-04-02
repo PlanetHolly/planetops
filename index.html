@@ -1975,7 +1975,7 @@ function renderJobLevel(){
         }).join('');
 
         // In-house inventory row
-        const invQty = lookupBandanaStock(g.itemNumber, g.color);
+        const invQty = lookupBandanaStock(g.itemNumber, g.color, g.description);
         const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
         const _inum = (g.itemNumber || '').toUpperCase().trim();
         const invLabel = /^PL/.test(_inum) ? 'Import' : /^US/.test(_inum) ? 'USA Made' : /^ORG/.test(_inum) ? 'Organic' : '';
@@ -3936,12 +3936,18 @@ async function fetchBandanaInventory(){
 }
 
 // Look up live bandana stock: returns qty or null if not a known bandana SKU / color not found
-function lookupBandanaStock(itemNumber, color){
+function lookupBandanaStock(itemNumber, color, description){
   if(!state.inventory) return null;
   const inum = (itemNumber || '').toUpperCase().trim();
+  const desc = (description || '').toLowerCase();
   let section;
   if(/^PL/.test(inum)) section = state.inventory.import;
   else if(/^US/.test(inum)) section = state.inventory.usa;
+  else if(/^ORG/.test(inum)) section = state.inventory.organic;
+  // Fallback: infer from description when itemNumber is missing
+  else if(desc.includes('usa made') || desc.includes('carolina')) section = state.inventory.usa;
+  else if(desc.includes('organic') || desc.includes('maiwa')) section = state.inventory.organic;
+  else if(desc.includes('bandana')) section = state.inventory.import;
   else if(/^ORG/.test(inum)) section = state.inventory.organic;
   else return null;
   if(!section) return null;
