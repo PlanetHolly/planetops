@@ -1985,7 +1985,8 @@ function renderJobLevel(){
           const invColor = invQty === 0 ? '#E65100' : invQty < totalOrdered ? '#FF8F00' : '#2E7D32';
           const invBg    = invQty === 0 ? '#FFF3E0' : invQty < totalOrdered ? '#FFF8E1' : '#F1F8F1';
           const inHouseCells = g.sizes.map(s => {
-            const pulled = (job.inHouseCount||{})[s.idx] ?? '';
+            const rawPulled = (job.inHouseCount||{})[s.idx];
+            const pulled = rawPulled ? (typeof rawPulled === 'object' ? rawPulled.qty : rawPulled) : '';
             const filled = pulled !== '';
             const over   = filled && parseInt(pulled) > invQty;
             const inputEl = showCounts
@@ -2191,15 +2192,13 @@ function saveInHouseCount(jobId, idx, itemNumber, color, value){
   if(!job) return;
   job.inHouseCount = job.inHouseCount || {};
   const qty = parseInt(value) || 0;
-  if(value === '' || value === null || qty === 0){ delete job.inHouseCount[idx]; }
-  else {
-    job.inHouseCount[idx] = qty;
-    // Write-back to inventory sheet via n8n
-    fetch('https://planetapparel.app.n8n.cloud/webhook/inventory-deduct', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ itemNumber, color, qty, jobId, idx })
-    }).catch(() => {}); // silent fail — will retry on next save
+  if(value === '' || value === null || qty === 0){
+    delete job.inHouseCount[idx];
+    // Also clear any pending deduction for this idx
+    if(job.inHouseDeducted) delete job.inHouseDeducted[idx];
+  } else {
+    // Store qty + metadata — deduct fires on blanks check-in confirmation, not here
+    job.inHouseCount[idx] = { qty, itemNumber, color };
   }
   saveState();
   renderSheet();
@@ -3051,6 +3050,23 @@ function confirmBlanksCheckIn(type){
     pt.elapsedMs    = 0;
     closeModal('blanks-comp-modal');
     showToast('📦 Partial check-in logged. Job stays in Blanks.');
+  }
+
+  // Fire inventory deductions for all in-house entries not yet deducted
+  const inHouseCount = job.inHouseCount || {};
+  job.inHouseDeducted = job.inHouseDeducted || {};
+  for(const [idx, entry] of Object.entries(inHouseCount)){
+    if(job.inHouseDeducted[idx]) continue; // already deducted
+    const qty        = typeof entry === 'object' ? entry.qty        : entry;
+    const itemNumber = typeof entry === 'object' ? entry.itemNumber : '';
+    const color      = typeof entry === 'object' ? entry.color      : '';
+    if(!qty || qty <= 0) continue;
+    job.inHouseDeducted[idx] = true;
+    fetch('https://planetapparel.app.n8n.cloud/webhook/inventory-deduct', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ itemNumber, color, qty, jobId, idx })
+    }).catch(() => {});
   }
 
   state.pendingBlanksJobId = null;
