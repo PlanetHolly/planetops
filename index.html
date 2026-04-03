@@ -3260,6 +3260,7 @@ function doMoveJobStation(jobId, nextStation){
   if(nextStation === 'prepress') generatePrepTasks(jobId);
   renderSheet();
   buildBoard();
+  syncStationToPrintavo(job, nextStation); // fire-and-forget
   const stn = STATIONS.find(s => s.id === nextStation);
   showToast('→ Moved to ' + (stn?.label || nextStation));
 }
@@ -3395,6 +3396,7 @@ function confirmMoveBack(){
   closeModal('back-modal');
   renderSheet();
   buildBoard();
+  syncStationToPrintavo(job, toStation); // fire-and-forget
   state.pendingBackJobId   = null;
   state.selectedBackReason = null;
 
@@ -3830,6 +3832,19 @@ const INVENTORY_PROXY = 'https://planetapparel.app.n8n.cloud/webhook/bandana-inv
 const PRINTAVO_STATUS_TRIGGER = 'Blanks To Order';
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
+// Station → Printavo status ID map.
+// Run fetchPrintavoStatuses() in the browser console to get these IDs,
+// then fill them in and redeploy. null = no Printavo equivalent, skip silently.
+const PRINTAVO_STATION_STATUS_MAP = {
+  blanks:     null,   // "🏳️ Awaiting Blanks"
+  prepress:   null,   // "🏳️ Blanks Counted In - Ready for Production"
+  production: null,   // "🏳️ In Production"
+  postprod:   null,   // "🏳️ In Post Production"
+  readyqc:    null,   // "🏳️ Production Completed - Ready to Package"
+  shipping:   { pickup: null, delivery: null }, // split by delivery method
+  done:       null,   // "🤝 Delivered / Picked up"
+};
+
 // Step 1: list query — no imprints (Printavo caps complexity at 25000)
 const PRINTAVO_LIST_QUERY = `{
   invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true) {
@@ -3862,6 +3877,50 @@ function mapBlanksList(groups){
     }
     return [];
   });
+}
+
+// One-time discovery: run fetchPrintavoStatuses() in the browser console
+// to see all Printavo status IDs for this account.
+async function fetchPrintavoStatuses(){
+  try {
+    const data = await printavoFetch('{ statuses { nodes { id name state } } }');
+    const nodes = data?.data?.statuses?.nodes || [];
+    if(!nodes.length){ console.log('No statuses returned — check proxy/auth.'); return; }
+    console.log('=== Printavo Statuses for Planet Apparel ===');
+    console.table(nodes.map(n => ({ id: n.id, name: n.name, state: n.state })));
+    console.log('Copy the id values above into PRINTAVO_STATION_STATUS_MAP in planetops_v2.html');
+  } catch(err){
+    console.error('fetchPrintavoStatuses failed:', err);
+  }
+}
+
+// Sync a station move to Printavo — fire-and-forget (never awaited).
+async function syncStationToPrintavo(job, station){
+  if(!job?.printavoId) return; // manually-added job, no Printavo record
+  const mapEntry = PRINTAVO_STATION_STATUS_MAP[station];
+  if(!mapEntry) return; // no Printavo equivalent for this station
+
+  // Shipping splits by delivery method
+  let statusId;
+  if(station === 'shipping' && typeof mapEntry === 'object'){
+    const method = (job.deliveryMethod || '').toLowerCase();
+    statusId = method.includes('pickup') ? mapEntry.pickup : mapEntry.delivery;
+  } else {
+    statusId = mapEntry;
+  }
+  if(!statusId) return;
+
+  const mutation = `mutation { statusUpdate(parentId: "${job.printavoId}", statusId: "${statusId}") { ... on Invoice { id status { name } } } }`;
+  try {
+    const result = await printavoFetch(mutation);
+    if(result?.errors?.length){
+      console.warn('Printavo sync error for #' + job.number, result.errors);
+      showToast('⚠ Printavo sync failed for #' + job.number);
+    }
+  } catch(err){
+    console.warn('Printavo sync failed for #' + job.number, err);
+    showToast('⚠ Printavo sync failed for #' + job.number);
+  }
 }
 
 async function printavoFetch(query){
