@@ -1588,7 +1588,7 @@ function buildCard(job){
   let blanksStatusHtml = '';
   if(job.station === 'blanks'){
     const sessions    = job.blanksCheckInSessions || [];
-    const partials    = sessions.filter(s => s.type === 'partial');
+    const partials    = sessions.filter(s => !s.type || s.type === 'partial');
     const lastPartial = partials.slice(-1)[0];
     const bpt         = job.projectTimers?.blanksCheckIn;
     if(bpt?.state === 'running'){
