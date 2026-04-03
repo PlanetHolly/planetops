@@ -3037,6 +3037,7 @@ function confirmBlanksCheckIn(type){
     const note = document.getElementById('blanks-partial-note').value.trim();
     job.blanksCheckInSessions = job.blanksCheckInSessions || [];
     job.blanksCheckInSessions.push({
+      type:      'partial',
       elapsedMs: elapsed,
       operator:  state.operator,
       note:      note || null,
