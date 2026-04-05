@@ -344,11 +344,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .op-avatar{width:26px;height:26px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:12px;color:var(--black);flex-shrink:0}
 
 /* ── HEADER OPERATOR CHIP ── */
-.hdr-operator{display:flex;align-items:center;gap:7px;background:var(--yellow);color:#000;border:none;border-radius:var(--radius-pill);padding:5px 11px 5px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;flex-shrink:0;max-width:150px}
-.hdr-op-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:13px;color:inherit;flex-shrink:0}
+.hdr-operator{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.045);color:rgba(0,0,0,.38);border:1.5px dashed rgba(0,0,0,.17);border-radius:var(--radius-pill);padding:5px 16px 5px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;flex-shrink:0;min-width:182px;transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease}
+.hdr-operator.op-selected{border-style:solid;border-color:transparent;box-shadow:0 2px 8px rgba(0,0,0,.14)}
+.hdr-operator:active{opacity:.85}
+.hdr-op-avatar{width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:14px;color:rgba(0,0,0,.28);flex-shrink:0;transition:background .2s,color .2s}
+.hdr-operator.op-selected .hdr-op-avatar{background:rgba(255,255,255,.25);color:inherit}
 .hdr-op-info{min-width:0}
-.hdr-op-name{font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:inherit;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr-op-sub{font-size:8px;font-weight:700;color:inherit;opacity:.6;text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
+.hdr-op-name{font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:inherit;line-height:1;white-space:nowrap}
+.hdr-op-sub{font-size:8px;font-weight:700;color:inherit;opacity:.6;text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
 .op-name{font-weight:700;font-size:13px;color:var(--tonal-black)}
 .sync-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:4px;border-radius:6px;-webkit-tap-highlight-color:transparent;transition:transform .3s}
 .sync-btn.syncing{animation:spin 1s linear infinite}
@@ -508,19 +511,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 
   <!-- HEADER -->
   <header class="app-header">
-    <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center">
       <img class="header-logo" id="header-logo"
         src="Reference_Images/Full Logo Black_PA Logo_png.png"
         alt="Planet Apparel"
         onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
       <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
-      <button class="hdr-operator" id="hdr-operator" onclick="openModal('operator-modal')">
-        <div class="hdr-op-avatar" id="hdr-op-avatar">F</div>
-        <div class="hdr-op-info">
-          <div class="hdr-op-name" id="hdr-op-name">Fernando</div>
-          <div class="hdr-op-sub">Working as ▾</div>
-        </div>
-      </button>
     </div>
     <div class="header-center">
       <div class="header-date" id="header-date"></div>
@@ -537,6 +533,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       </div>
       <button class="sync-btn" id="sync-btn" onclick="syncFromPrintavo()" title="Sync from Printavo">🔄</button>
       <div class="sync-status" id="sync-status">Not synced</div>
+      <button class="hdr-operator" id="hdr-operator" onclick="openModal('operator-modal')">
+        <div class="hdr-op-avatar" id="hdr-op-avatar">?</div>
+        <div class="hdr-op-info">
+          <div class="hdr-op-name" id="hdr-op-name">Who's Working?</div>
+          <div class="hdr-op-sub" id="hdr-op-sub">Tap to select ▾</div>
+        </div>
+      </button>
     </div>
   </header>
 
@@ -1003,7 +1006,7 @@ const PRAISE = [
    STATE
    ============================================================ */
 const state = {
-  operator: 'Fernando',
+  operator: '',
   boardFilter: 'all',
   prepView: 'film',
   sheet: { open:false, level:'job', jobId:null, wuId:null },
@@ -3930,17 +3933,35 @@ function confirmOperator(){
     name = state.selectedOpTemp;
   }
   state.operator = name;
-  const op = OPERATORS.find(o => o.name === name) || { color:'#757575', textColor:'#fff' };
-  // Update header chip
-  const chip = document.getElementById('hdr-operator');
-  if(chip){ chip.style.background = op.color; chip.style.color = op.textColor; }
-  document.getElementById('hdr-op-avatar').textContent = name[0].toUpperCase();
-  document.getElementById('hdr-op-name').textContent   = name;
-  // Keep legacy pill in sync (hidden but used elsewhere)
+  setOperatorChip(name);
   document.getElementById('op-name').textContent   = name;
   document.getElementById('op-avatar').textContent = name[0];
   closeModal('operator-modal');
   showToast('👋 Working as ' + name);
+}
+
+function setOperatorChip(name){
+  const chip    = document.getElementById('hdr-operator');
+  const avatar  = document.getElementById('hdr-op-avatar');
+  const nameEl  = document.getElementById('hdr-op-name');
+  const subEl   = document.getElementById('hdr-op-sub');
+  if(!chip) return;
+  if(!name){
+    chip.classList.remove('op-selected');
+    chip.style.background = '';
+    chip.style.color      = '';
+    avatar.textContent    = '?';
+    nameEl.textContent    = "Who's Working?";
+    subEl.textContent     = 'Tap to select ▾';
+    return;
+  }
+  const op = OPERATORS.find(o => o.name === name) || { color:'#757575', textColor:'#fff' };
+  chip.classList.add('op-selected');
+  chip.style.background = op.color;
+  chip.style.color      = op.textColor;
+  avatar.textContent    = name[0].toUpperCase();
+  nameEl.textContent    = name;
+  subEl.textContent     = 'Working as ▾';
 }
 
 /* ============================================================
@@ -4471,14 +4492,6 @@ function fmtDueLabel(dateStr){
    ============================================================ */
 document.getElementById('header-date').textContent = todayStr();
 loadState();
-// Init header operator chip to match default operator
-(function(){
-  const op = OPERATORS.find(o => o.name === state.operator) || { color:'#757575', textColor:'#fff' };
-  const chip = document.getElementById('hdr-operator');
-  if(chip){ chip.style.background = op.color; chip.style.color = op.textColor; }
-  document.getElementById('hdr-op-name').textContent   = state.operator;
-  document.getElementById('hdr-op-avatar').textContent = state.operator[0].toUpperCase();
-})();
 buildBoard();
 // Auto-sync on load, then every 6 hours
 syncFromPrintavo();
