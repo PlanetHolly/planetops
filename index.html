@@ -1984,163 +1984,178 @@ function renderJobLevel(){
   if(job.station === 'blanks'){
     body.appendChild(buildProjectTimerBlock(job, 'blanksCheckIn', 'Blanks Check-In'));
 
-    // Blanks list from Printavo — count inputs always visible
-    const showCounts = true;
     if(job.blanksList && job.blanksList.length){
-      job.blanksCount = job.blanksCount || {};
+      job.blanksReceipts = job.blanksReceipts || [];
       const bl = document.createElement('div');
       bl.style.cssText = 'margin-top:14px';
 
-      // Group by description+color — one table per SKU
+      // Group by description+color
       const garmentGroups = [];
       const garmentMap = {};
       job.blanksList.forEach((li, idx) => {
         const gKey = `${li.description}||${li.color}`;
         if(!garmentMap[gKey]){
-          garmentMap[gKey] = { description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
+          garmentMap[gKey] = { gKey, description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
           garmentGroups.push(garmentMap[gKey]);
         }
-        garmentMap[gKey].sizes.push({ size: li.size || '—', qty: li.qty, idx });
+        garmentMap[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
       });
 
-      const thStyle = 'padding:5px 8px;font-size:11px;font-weight:700;text-align:center;color:rgba(0,0,0,.5);border-right:1px solid rgba(0,0,0,.06);white-space:nowrap';
-      const thLabelStyle = 'padding:5px 8px;font-size:11px;font-weight:700;text-align:left;color:rgba(0,0,0,.4);white-space:nowrap;min-width:72px';
-      const tdStyle = 'padding:7px 8px;text-align:center;font-size:13px;font-weight:800;font-family:var(--font-head);border-right:1px solid rgba(0,0,0,.05)';
+      const garmentHtml = garmentGroups.map((g, gi) => {
+        const totalOrdered  = g.sizes.reduce((s, r) => s + r.qty, 0);
+        const receipts      = job.blanksReceipts.filter(r => r.gKey === g.gKey);
+        const totalVendor   = receipts.reduce((sum, r) => sum + Object.values(r.sizeQtys||{}).reduce((s,v)=>s+(parseInt(v)||0),0), 0);
+        const invQty        = lookupBandanaStock(g.itemNumber, g.color, g.description);
+        const totalInHouse  = g.sizes.reduce((sum, s) => {
+          const raw = (job.inHouseCount||{})[s.idx];
+          return sum + (parseInt(raw ? (typeof raw==='object'?raw.qty:raw) : 0)||0);
+        }, 0);
+        const totalReceived = totalVendor + totalInHouse;
+        const remaining     = Math.max(0, totalOrdered - totalReceived);
+        const pct           = totalOrdered > 0 ? Math.min(100, Math.round(totalReceived/totalOrdered*100)) : 0;
+        const singleSize    = g.sizes.length === 1;
+        const _inum         = (g.itemNumber||'').toUpperCase().trim();
+        const invLabel      = /^PL/.test(_inum)?'Import':/^US/.test(_inum)?'USA Made':/^ORG/.test(_inum)?'Organic':'In-House';
+        const remainColor   = remaining===0?'#2E7D32':totalReceived>0?'#E65100':'rgba(0,0,0,.4)';
+        const remainBg      = remaining===0?'rgba(67,160,71,.1)':totalReceived>0?'rgba(247,190,0,.12)':'rgba(0,0,0,.04)';
 
-      const garmentHtml = garmentGroups.map(g => {
-        const sizeHeaders = g.sizes.map(s =>
-          `<th style="${thStyle}">${s.size}</th>`
-        ).join('');
-
-        const orderedCells = g.sizes.map(s =>
-          `<td style="${tdStyle};color:#232323">${s.qty}</td>`
-        ).join('');
-
-        const receivedCells = g.sizes.map(s => {
-          const key = `${s.idx}`;
-          const counted = job.blanksCount[key] ?? '';
-          const filled = counted !== '';
-          const isMatch = filled && parseInt(counted) === s.qty;
-          const isMismatch = filled && parseInt(counted) !== s.qty;
-          const cellBg = isMatch ? '#F1F8F1' : isMismatch ? '#FFF8E1' : '';
-          const inputBorder = isMatch ? '#66BB6A' : isMismatch ? '#FF8F00' : '#ddd';
-          const inputColor = isMatch ? '#388E3C' : isMismatch ? '#E65100' : '#232323';
-          const warningIcon = isMismatch ? `<div style="font-size:9px;color:#FF8F00;font-weight:700;margin-bottom:2px">!</div>` : '';
-          const inputEl = showCounts
-            ? `${warningIcon}<input type="number" inputmode="numeric" min="0"
-                style="width:50px;padding:4px 4px;border:1.5px solid ${inputBorder};border-radius:5px;font-size:13px;font-family:var(--font-head);font-weight:800;text-align:center;color:${inputColor};background:#fff;display:block;margin:0 auto"
-                placeholder="—" value="${counted}"
-                onchange="saveBlanksCount('${job.id}','${key}',this.value)"
-                onclick="event.stopPropagation()">`
-            : `<span style="color:rgba(0,0,0,.2);font-size:12px">—</span>`;
-          return `<td style="${tdStyle};background:${cellBg};vertical-align:middle">${inputEl}</td>`;
+        // Vendor receipt entries
+        const receiptRows = receipts.map(r => {
+          const rTotal = Object.values(r.sizeQtys||{}).reduce((s,v)=>s+(parseInt(v)||0),0);
+          const dateStr = r.ts ? new Date(r.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+          const sizesDetail = !singleSize
+            ? g.sizes.map(s=>`${s.size}:${r.sizeQtys?.[s.idx]||0}`).filter(x=>!x.endsWith(':0')).join(' · ')
+            : '';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:rgba(247,190,0,.07);border:1px solid rgba(247,190,0,.22);border-radius:9px">
+            <div style="font-family:var(--font-head);font-weight:900;font-size:22px;color:#1a1a1a;min-width:44px;line-height:1">+${rTotal}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:700;color:#1a1a1a">${r.source||'<span style="color:rgba(0,0,0,.3);font-weight:500;font-style:italic">No source noted</span>'}</div>
+              <div style="font-size:10px;color:rgba(0,0,0,.38);margin-top:2px">${[sizesDetail,dateStr,r.operator].filter(Boolean).join(' · ')}</div>
+            </div>
+            <button onclick="event.stopPropagation();deleteReceipt('${job.id}','${r.id}')"
+              style="width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.9);font-size:12px;cursor:pointer;color:rgba(0,0,0,.35);flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">×</button>
+          </div>`;
         }).join('');
 
-        // In-house inventory row
-        const invQty = lookupBandanaStock(g.itemNumber, g.color, g.description);
-        const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
-        const _inum = (g.itemNumber || '').toUpperCase().trim();
-        const invLabel = /^PL/.test(_inum) ? 'Import' : /^US/.test(_inum) ? 'USA Made' : /^ORG/.test(_inum) ? 'Organic' : '';
-        let inHouseRow = '';
-        let invStrip = '';
-        if(invQty !== null){
-          const invColor = invQty === 0 ? '#E65100' : invQty < totalOrdered ? '#FF8F00' : '#2E7D32';
-          const invBg    = invQty === 0 ? '#FFF3E0' : invQty < totalOrdered ? '#FFF8E1' : '#F1F8F1';
-          const inHouseCells = g.sizes.map(s => {
-            const rawPulled = (job.inHouseCount||{})[s.idx];
-            const pulled = rawPulled ? (typeof rawPulled === 'object' ? rawPulled.qty : rawPulled) : '';
-            const filled = pulled !== '';
-            const over   = filled && parseInt(pulled) > invQty;
-            const inputEl = showCounts
-              ? `<input type="number" inputmode="numeric" min="0"
-                  style="width:50px;padding:4px;border:1.5px solid ${over?'#E53935':filled?'#66BB6A':'#ddd'};border-radius:5px;font-size:13px;font-family:var(--font-head);font-weight:800;text-align:center;color:${over?'#C62828':filled?'#388E3C':'#232323'};background:#fff;display:block;margin:0 auto"
-                  placeholder="—" value="${pulled}"
-                  onchange="saveInHouseCount('${job.id}','${s.idx}','${g.itemNumber}','${g.color}',this.value)"
-                  onclick="event.stopPropagation()">`
-              : `<span style="color:rgba(0,0,0,.2);font-size:12px">—</span>`;
-            return `<td style="${tdStyle};background:${filled&&!over?'#F1F8F1':over?'#FFEBEE':invBg};vertical-align:middle">${inputEl}</td>`;
-          }).join('');
-          inHouseRow = `<tr style="background:${invBg};border-top:1px solid rgba(0,0,0,.06)">
-            <td style="${thLabelStyle}">
-              <div style="color:${invColor};font-weight:700;font-size:11px">${invLabel||'In-House'}</div>
-              <div style="font-size:10px;color:${invColor};opacity:.85">${invQty.toLocaleString()} in stock</div>
-            </td>
-            ${inHouseCells}
-          </tr>`;
-        }
+        // Inline add-shipment form
+        const sizeInputsHtml = singleSize
+          ? `<div style="display:flex;gap:8px;align-items:center">
+               <input type="number" inputmode="numeric" min="0" id="rqty-${gi}-0"
+                 placeholder="Qty" style="width:90px;padding:11px 10px;border:1.5px solid #ddd;border-radius:9px;font-family:var(--font-head);font-weight:800;font-size:18px;text-align:center;color:#232323"
+                 onclick="event.stopPropagation()">
+               <input type="text" id="rsrc-${gi}"
+                 placeholder="Source — e.g. Tans Club, Carolina…"
+                 style="flex:1;padding:11px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:13px"
+                 onclick="event.stopPropagation()">
+             </div>`
+          : `<div style="margin-bottom:8px">
+               ${g.sizes.map((s,si)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                 <span style="font-family:var(--font-head);font-weight:700;font-size:11px;text-transform:uppercase;color:rgba(0,0,0,.4);min-width:32px">${s.size}</span>
+                 <input type="number" inputmode="numeric" min="0" id="rqty-${gi}-${si}" data-sidx="${s.idx}" placeholder="0"
+                   style="width:80px;padding:9px;border:1.5px solid #ddd;border-radius:9px;font-family:var(--font-head);font-weight:800;font-size:16px;text-align:center"
+                   onclick="event.stopPropagation()">
+                 <span style="font-size:11px;color:rgba(0,0,0,.3)">of ${s.qty}</span>
+               </div>`).join('')}
+               <input type="text" id="rsrc-${gi}"
+                 placeholder="Source — e.g. Tans Club, Carolina…"
+                 style="width:100%;padding:11px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:13px;margin-top:4px"
+                 onclick="event.stopPropagation()">
+             </div>`;
+
+        // In-house section
+        const inHouseSection = invQty !== null ? `
+          <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(0,0,0,.07)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.4)">🏭 Pull From In-House</div>
+                <div style="font-size:11px;font-weight:700;margin-top:2px;color:${invQty===0?'#E65100':invQty<totalOrdered?'#E65100':'#2E7D32'}">${invLabel} · ${invQty.toLocaleString()} in stock</div>
+              </div>
+              ${totalInHouse>0?`<div style="font-family:var(--font-head);font-weight:900;font-size:22px;color:#388E3C;line-height:1">+${totalInHouse}</div>`:''}
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${g.sizes.map(s=>{
+                const raw=(job.inHouseCount||{})[s.idx];
+                const pulled=raw?(typeof raw==='object'?raw.qty:raw):'';
+                const over=pulled!==''&&parseInt(pulled)>invQty;
+                const filled=pulled!=='';
+                return `${g.sizes.length>1?`<div style="display:flex;align-items:center;gap:5px"><span style="font-family:var(--font-head);font-size:10px;text-transform:uppercase;color:rgba(0,0,0,.35);font-weight:700">${s.size}</span>`:'<div style="display:flex;align-items:center;gap:5px">'}
+                  <input type="number" inputmode="numeric" min="0"
+                    style="width:80px;padding:9px;border:2px solid ${over?'#E53935':filled?'#66BB6A':'#ddd'};border-radius:9px;font-family:var(--font-head);font-weight:800;font-size:18px;text-align:center;color:${over?'#C62828':filled?'#388E3C':'#232323'};background:#fff"
+                    placeholder="0" value="${pulled}"
+                    onchange="saveInHouseCount('${job.id}','${s.idx}','${g.itemNumber}','${g.color}',this.value)"
+                    onclick="event.stopPropagation()">
+                </div>`;
+              }).join('')}
+            </div>
+          </div>` : '';
 
         return `
-          <div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden;margin-bottom:8px">
-            <div style="padding:7px 10px;background:#f7f7f5;border-bottom:1px solid rgba(0,0,0,.08)">
-              <div style="font-size:12px;font-weight:700;color:#232323">${g.description}</div>
-              ${g.color ? `<div style="font-size:11px;color:rgba(0,0,0,.5);margin-top:1px">${g.color}</div>` : ''}
-              ${g.itemNumber ? `<div style="font-size:10px;color:rgba(0,0,0,.3);margin-top:1px">${g.itemNumber}</div>` : ''}
+          <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;margin-bottom:12px">
+            <!-- SKU header -->
+            <div style="padding:13px 15px 11px;background:#fafaf8;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+              <div style="min-width:0;flex:1">
+                <div style="font-size:13px;font-weight:700;color:#1a1a1a;line-height:1.3">${g.description}</div>
+                <div style="font-size:11px;color:rgba(0,0,0,.42);margin-top:3px">${[g.color,g.itemNumber].filter(Boolean).join(' · ')}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(0,0,0,.32)">Ordered</div>
+                <div style="font-family:var(--font-head);font-weight:900;font-size:28px;color:#1a1a1a;line-height:1.1">${totalOrdered}</div>
+              </div>
             </div>
-            <table style="width:100%;border-collapse:collapse">
-              <thead>
-                <tr style="background:#fafafa;border-bottom:1px solid rgba(0,0,0,.08)">
-                  <th style="${thLabelStyle}"></th>
-                  ${sizeHeaders}
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom:1px solid rgba(0,0,0,.06);background:#fff">
-                  <td style="${thLabelStyle};color:rgba(0,0,0,.45)">Ordered</td>
-                  ${orderedCells}
-                </tr>
-                <tr style="background:#fff">
-                  <td style="${thLabelStyle};color:#232323">Received</td>
-                  ${receivedCells}
-                </tr>
-                ${inHouseRow}
-              </tbody>
-            </table>
+            <!-- Progress bar -->
+            <div style="height:5px;background:rgba(0,0,0,.07)">
+              <div style="height:100%;width:${pct}%;background:${remaining===0?'#43A047':'#F7BE00'};transition:width .4s ease"></div>
+            </div>
+            <!-- Body -->
+            <div style="padding:14px 15px">
+              <!-- Vendor receipts -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">📦 Received from Vendor</div>
+                ${totalVendor>0?`<div style="font-family:var(--font-head);font-weight:900;font-size:17px;color:#1a1a1a">${totalVendor} <span style="font-size:10px;font-weight:600;color:rgba(0,0,0,.35)">total</span></div>`:''}
+              </div>
+              ${receipts.length>0?`<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">${receiptRows}</div>`
+                :`<div style="font-size:12px;color:rgba(0,0,0,.22);font-style:italic;padding:4px 0 10px">No shipments logged yet — tap below to add</div>`}
+              <!-- Inline add form -->
+              <div id="rform-${gi}" style="display:none;background:rgba(0,0,0,.025);border-radius:10px;padding:13px 12px;margin-bottom:10px;border:1px solid rgba(0,0,0,.07)">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(0,0,0,.38);margin-bottom:10px">Log New Shipment</div>
+                ${sizeInputsHtml}
+                <div style="display:flex;gap:8px;margin-top:10px">
+                  <button onclick="event.stopPropagation();cancelReceiptForm(${gi})"
+                    style="flex:1;padding:11px;border-radius:9px;border:1.5px solid rgba(0,0,0,.12);background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:rgba(0,0,0,.45)">Cancel</button>
+                  <button onclick="event.stopPropagation();saveReceipt('${job.id}',${gi},'${g.gKey.replace(/'/g,"\\'")}',${JSON.stringify(g.sizes.map(s=>({idx:s.idx,size:s.size}))).replace(/"/g,"'")})"
+                    style="flex:2;padding:11px;border-radius:9px;border:none;background:#F7BE00;font-family:var(--font-head);font-size:14px;font-weight:800;cursor:pointer;color:#000;letter-spacing:.04em;text-transform:uppercase">✓ Log Shipment</button>
+                </div>
+              </div>
+              <!-- Add button -->
+              <button onclick="event.stopPropagation();openReceiptForm(${gi})" id="radd-${gi}"
+                style="width:100%;padding:11px;border-radius:9px;border:1.5px dashed rgba(0,0,0,.16);background:transparent;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;color:rgba(0,0,0,.4);letter-spacing:.05em;text-transform:uppercase;-webkit-tap-highlight-color:transparent;transition:background .15s">
+                + Add Shipment
+              </button>
+              ${inHouseSection}
+            </div>
+            <!-- Per-SKU mini summary strip -->
+            <div style="display:flex;background:${remainBg};border-top:1px solid rgba(0,0,0,.06)">
+              <div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">Vendor</div>
+                <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalVendor||'—'}</div>
+              </div>
+              ${invQty!==null?`<div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">In-House</div>
+                <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalInHouse||'—'}</div>
+              </div>`:''}
+              <div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">Received</div>
+                <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalReceived||'—'}</div>
+              </div>
+              <div style="flex:1;padding:8px 10px;text-align:center">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${remainColor}">Still Needed</div>
+                <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:${remainColor}">${remaining===0?'✓':remaining}</div>
+              </div>
+            </div>
           </div>`;
       }).join('');
 
-      // ── Totals summary ──
-      const totalOrdered = garmentGroups.reduce((sum, g) => sum + g.sizes.reduce((s, r) => s + r.qty, 0), 0);
-      const totalFromVendor = garmentGroups.reduce((sum, g) =>
-        sum + g.sizes.reduce((s, r) => {
-          const v = job.blanksCount[String(r.idx)];
-          return s + (v !== undefined && v !== '' ? parseInt(v) || 0 : 0);
-        }, 0), 0);
-      const totalFromInHouse = garmentGroups.reduce((sum, g) =>
-        sum + g.sizes.reduce((s, r) => {
-          const raw = (job.inHouseCount || {})[r.idx];
-          const q = raw ? (typeof raw === 'object' ? raw.qty : raw) : 0;
-          return s + (parseInt(q) || 0);
-        }, 0), 0);
-      const totalReceived = totalFromVendor + totalFromInHouse;
-      const totalRemaining = Math.max(0, totalOrdered - totalReceived);
-      const remainingColor = totalRemaining === 0 ? '#2E7D32' : totalRemaining < totalOrdered ? '#E65100' : 'rgba(0,0,0,.45)';
-      const remainingBg = totalRemaining === 0 ? '#F1F8F1' : totalRemaining < totalOrdered ? '#FFF3E0' : '#f7f7f5';
-      const summaryHtml = `
-        <div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden;margin-top:4px;background:${remainingBg}">
-          <div style="display:flex;align-items:stretch;border-bottom:1px solid rgba(0,0,0,.07)">
-            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
-              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Ordered</div>
-              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalOrdered}</div>
-            </div>
-            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
-              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">From Vendor</div>
-              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalFromVendor}</div>
-            </div>
-            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
-              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">In-House</div>
-              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalFromInHouse}</div>
-            </div>
-            <div style="flex:1;padding:9px 12px;text-align:center">
-              <div style="font-size:10px;font-weight:700;color:${remainingColor};text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Still Needed</div>
-              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:${remainingColor}">${totalRemaining === 0 ? '✓' : totalRemaining}</div>
-            </div>
-          </div>
-        </div>`;
-
-      bl.innerHTML = `
-        <div class="section-label" style="margin-bottom:6px">📦 Blanks to Check In</div>
-        ${garmentHtml}
-        ${summaryHtml}`;
+      bl.innerHTML = `<div class="section-label" style="margin-bottom:8px">📦 Blanks Check-In</div>${garmentHtml}`;
       body.appendChild(bl);
     }
 
@@ -2375,14 +2390,29 @@ function buildProjectTimerBlock(job, timerKey, title){
   // Show partial sessions on blanks check-in block
   const sessions = (timerKey === 'blanksCheckIn' && job.blanksCheckInSessions) ? job.blanksCheckInSessions : [];
   const partialHtml = sessions.length ? `
-    <div style="margin-top:8px">
-      ${sessions.map((s,i) => `<div class="blanks-session-row">
-        <div class="bsr-time">Session ${i+1}: ${fmtTime(s.elapsedMs)}</div>
-        <div class="bsr-by">${s.operator}</div>
-        <div class="bsr-note">${s.note||''}</div>
-      </div>`).join('')}
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
+      ${sessions.map((s,i) => {
+        // Receipts logged in this session's time window
+        const prevTs = i === 0 ? 0 : (sessions[i-1].ts||0);
+        const myTs   = s.ts || Date.now();
+        const sessionReceipts = (job.blanksReceipts||[]).filter(r => r.ts >= prevTs && r.ts <= myTs + 60000);
+        const sessionTotal    = sessionReceipts.reduce((sum,r)=>sum+Object.values(r.sizeQtys||{}).reduce((a,v)=>a+(parseInt(v)||0),0),0);
+        const sources         = [...new Set(sessionReceipts.map(r=>r.source).filter(Boolean))];
+        const receiptLine     = sessionTotal > 0
+          ? `<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-top:2px">+${sessionTotal} received${sources.length?' — '+sources.join(', '):''}</div>`
+          : '';
+        const noteLine = s.note ? `<div style="font-size:11px;color:rgba(0,0,0,.45);margin-top:2px;font-style:italic">${s.note}</div>` : '';
+        return `<div style="background:rgba(0,0,0,.03);border-radius:8px;padding:8px 10px;border-left:3px solid rgba(247,190,0,.5)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-family:var(--font-head);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:rgba(0,0,0,.45)">Session ${i+1}</div>
+            <div style="font-size:11px;font-weight:600;color:rgba(0,0,0,.38)">${fmtTime(s.elapsedMs)}</div>
+            ${s.operator?`<div style="font-size:11px;color:rgba(0,0,0,.35)">· ${s.operator}</div>`:''}
+          </div>
+          ${receiptLine}${noteLine}
+        </div>`;
+      }).join('')}
     </div>
-    <div class="partial-note-badge">⏳ Partial — more coming</div>` : '';
+    <div class="partial-note-badge" style="margin-top:8px">⏳ Partial — more shipments expected</div>` : '';
 
   // ETA / arrival note (blanks only)
   const blanksNoteHtml = timerKey === 'blanksCheckIn' ? `
@@ -3888,6 +3918,49 @@ function renderActiveTab(){
     card.onclick = () => switchTab('prepress', document.querySelector('.nav-tab:nth-child(2)'));
     grid.appendChild(card);
   });
+}
+
+/* ============================================================
+   BLANKS RECEIPTS
+   ============================================================ */
+function openReceiptForm(gi){
+  document.getElementById('rform-'+gi).style.display = 'block';
+  document.getElementById('radd-'+gi).style.display  = 'none';
+}
+function cancelReceiptForm(gi){
+  document.getElementById('rform-'+gi).style.display = 'none';
+  document.getElementById('radd-'+gi).style.display  = '';
+}
+function saveReceipt(jobId, gi, gKey, sizeDefs){
+  const job = getJob(jobId);
+  if(!job) return;
+  job.blanksReceipts = job.blanksReceipts || [];
+  const source = (document.getElementById('rsrc-'+gi)?.value||'').trim();
+  const sizeQtys = {};
+  let total = 0;
+  sizeDefs.forEach((s, si) => {
+    const v = parseInt(document.getElementById('rqty-'+gi+'-'+si)?.value||0)||0;
+    if(v > 0){ sizeQtys[s.idx] = v; total += v; }
+  });
+  if(total === 0){ showToast('⚠ Enter a quantity before logging'); return; }
+  job.blanksReceipts.push({
+    id: 'r_' + Date.now(),
+    gKey,
+    source: source || '',
+    ts: Date.now(),
+    operator: state.operator || '',
+    sizeQtys,
+  });
+  saveState();
+  renderSheet();
+  showToast('📦 +' + total + ' logged' + (source ? ' from ' + source : ''));
+}
+function deleteReceipt(jobId, receiptId){
+  const job = getJob(jobId);
+  if(!job || !job.blanksReceipts) return;
+  job.blanksReceipts = job.blanksReceipts.filter(r => r.id !== receiptId);
+  saveState();
+  renderSheet();
 }
 
 /* ============================================================
