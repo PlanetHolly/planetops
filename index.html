@@ -344,8 +344,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .toast.hiding{opacity:0;transform:translateY(-6px) scale(.94)}
 
 /* ── OPERATOR PILL ── */
-.op-pill{position:fixed;bottom:calc(var(--nav-h) + 12px);right:14px;z-index:200;background:var(--white);border:1.5px solid rgba(0,0,0,.09);border-radius:var(--radius-pill);padding:6px 13px 6px 9px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:var(--shadow-md);-webkit-tap-highlight-color:transparent;user-select:none}
+.op-pill{display:none !important}
 .op-avatar{width:26px;height:26px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:12px;color:var(--black);flex-shrink:0}
+
+/* ── HEADER OPERATOR CHIP ── */
+.hdr-operator{display:flex;align-items:center;gap:7px;background:var(--yellow);color:#000;border:none;border-radius:var(--radius-pill);padding:5px 11px 5px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;flex-shrink:0;max-width:150px}
+.hdr-op-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:900;font-size:13px;color:inherit;flex-shrink:0}
+.hdr-op-info{min-width:0}
+.hdr-op-name{font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:inherit;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-op-sub{font-size:8px;font-weight:700;color:inherit;opacity:.6;text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
 .op-name{font-weight:700;font-size:13px;color:var(--tonal-black)}
 .sync-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:4px;border-radius:6px;-webkit-tap-highlight-color:transparent;transition:transform .3s}
 .sync-btn.syncing{animation:spin 1s linear infinite}
@@ -505,12 +512,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 
   <!-- HEADER -->
   <header class="app-header">
-    <div>
+    <div style="display:flex;align-items:center;gap:10px">
       <img class="header-logo" id="header-logo"
         src="Reference_Images/Full Logo Black_PA Logo_png.png"
         alt="Planet Apparel"
         onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
       <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
+      <button class="hdr-operator" id="hdr-operator" onclick="openModal('operator-modal')">
+        <div class="hdr-op-avatar" id="hdr-op-avatar">F</div>
+        <div class="hdr-op-info">
+          <div class="hdr-op-name" id="hdr-op-name">Fernando</div>
+          <div class="hdr-op-sub">Working as ▾</div>
+        </div>
+      </button>
     </div>
     <div class="header-center">
       <div class="header-date" id="header-date"></div>
@@ -644,6 +658,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     <div class="modal-title">Who's Working?</div>
     <div class="modal-sub">Select your name to attribute time and actions.</div>
     <div class="op-grid" id="op-grid"></div>
+    <div id="temp-worker-input-row" style="display:none;margin-bottom:16px">
+      <input type="text" id="temp-worker-name"
+        placeholder="Enter temp worker name…"
+        style="width:100%;padding:13px 14px;border:1.5px solid #ddd;border-radius:10px;font-family:var(--font-head);font-size:16px;font-weight:700;color:#232323;outline:none;-webkit-tap-highlight-color:transparent"
+        oninput="this.style.borderColor=this.value.trim()?'#673AB7':'#ddd'">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('operator-modal')">Cancel</button>
       <button class="btn-confirm" onclick="confirmOperator()">Confirm</button>
@@ -934,14 +954,14 @@ const GATE_DEFS = {
   dtfPrepped:   { icon:'⚙️', label:'DTF Prepped'     },
 };
 const OPERATORS = [
-  { name:'Jean',     color:'#E91E63' },
-  { name:'Luis',     color:'#2196F3' },
-  { name:'Rosa',     color:'#9C27B0' },
-  { name:'Marisol',  color:'#FF5722' },
-  { name:'Fernando', color:'#4CAF50' },
-  { name:'Javier',   color:'#FF9800' },
-  { name:'Holly',    color:'#F7BE00' },
-  { name:'Jackie',   color:'#00ACC1' },
+  { name:'Jean',     color:'#FF9800', textColor:'#fff' },  // orange
+  { name:'Luis',     color:'#1E88E5', textColor:'#fff' },  // blue
+  { name:'Rosa',     color:'#F7BE00', textColor:'#000' },  // yellow (PA yellow)
+  { name:'Marisol',  color:'#673AB7', textColor:'#fff' },  // violet
+  { name:'Fernando', color:'#43A047', textColor:'#fff' },  // green
+  { name:'Javier',   color:'#00897B', textColor:'#fff' },  // teal
+  { name:'Holly',    color:'#9C27B0', textColor:'#fff' },  // purple
+  { name:'Jackie',   color:'#E91E63', textColor:'#fff' },  // pink
 ];
 const VARIANCE_REASONS_OVER = [
   { id:'complexity', label:'More complex than expected' },
@@ -3878,22 +3898,53 @@ function renderOperatorGrid(){
   const grid = document.getElementById('op-grid');
   grid.innerHTML = '';
   OPERATORS.forEach(op => {
+    const isSelected = op.name === state.selectedOpTemp;
     const btn = document.createElement('button');
-    btn.className = 'op-btn' + (op.name === state.selectedOpTemp ? ' selected' : '');
-    btn.textContent = op.name;
-    btn.style.borderColor = op.name === state.selectedOpTemp ? op.color : 'rgba(0,0,0,.08)';
-    btn.onclick = () => { state.selectedOpTemp = op.name; renderOperatorGrid(); };
+    btn.className = 'op-btn' + (isSelected ? ' selected' : '');
+    btn.style.borderColor = isSelected ? op.color : 'rgba(0,0,0,.08)';
+    btn.style.background  = isSelected ? op.color : '';
+    btn.style.color       = isSelected ? op.textColor : '';
+    btn.innerHTML = `<div style="width:14px;height:14px;border-radius:50%;background:${op.color};margin:0 auto 5px;display:block"></div>${op.name}`;
+    btn.onclick = () => { state.selectedOpTemp = op.name; state.tempWorkerName = ''; renderOperatorGrid(); };
     grid.appendChild(btn);
   });
+  // Guest / Temp worker option
+  const isGuest = state.selectedOpTemp === '__guest__';
+  const guestBtn = document.createElement('button');
+  guestBtn.className = 'op-btn' + (isGuest ? ' selected' : '');
+  guestBtn.style.borderColor = isGuest ? '#9E9E9E' : 'rgba(0,0,0,.08)';
+  guestBtn.style.background  = isGuest ? '#757575' : '';
+  guestBtn.style.color       = isGuest ? '#fff' : '';
+  guestBtn.innerHTML = `<div style="width:14px;height:14px;border-radius:50%;background:#9E9E9E;margin:0 auto 5px;display:block"></div>Guest / Temp`;
+  guestBtn.onclick = () => { state.selectedOpTemp = '__guest__'; renderOperatorGrid(); };
+  grid.appendChild(guestBtn);
+  // Show/hide temp name input
+  const inputRow = document.getElementById('temp-worker-input-row');
+  if(inputRow) inputRow.style.display = isGuest ? 'block' : 'none';
+  if(isGuest) setTimeout(() => document.getElementById('temp-worker-name')?.focus(), 100);
 }
 
 function confirmOperator(){
   if(!state.selectedOpTemp) return;
-  state.operator = state.selectedOpTemp;
-  document.getElementById('op-name').textContent  = state.operator;
-  document.getElementById('op-avatar').textContent = state.operator[0];
+  let name;
+  if(state.selectedOpTemp === '__guest__'){
+    name = (document.getElementById('temp-worker-name')?.value || '').trim();
+    if(!name){ showToast('⚠ Enter the temp worker\'s name'); return; }
+  } else {
+    name = state.selectedOpTemp;
+  }
+  state.operator = name;
+  const op = OPERATORS.find(o => o.name === name) || { color:'#757575', textColor:'#fff' };
+  // Update header chip
+  const chip = document.getElementById('hdr-operator');
+  if(chip){ chip.style.background = op.color; chip.style.color = op.textColor; }
+  document.getElementById('hdr-op-avatar').textContent = name[0].toUpperCase();
+  document.getElementById('hdr-op-name').textContent   = name;
+  // Keep legacy pill in sync (hidden but used elsewhere)
+  document.getElementById('op-name').textContent   = name;
+  document.getElementById('op-avatar').textContent = name[0];
   closeModal('operator-modal');
-  showToast('👋 Working as ' + state.operator);
+  showToast('👋 Working as ' + name);
 }
 
 /* ============================================================
@@ -4424,6 +4475,14 @@ function fmtDueLabel(dateStr){
    ============================================================ */
 document.getElementById('header-date').textContent = todayStr();
 loadState();
+// Init header operator chip to match default operator
+(function(){
+  const op = OPERATORS.find(o => o.name === state.operator) || { color:'#757575', textColor:'#fff' };
+  const chip = document.getElementById('hdr-operator');
+  if(chip){ chip.style.background = op.color; chip.style.color = op.textColor; }
+  document.getElementById('hdr-op-name').textContent   = state.operator;
+  document.getElementById('hdr-op-avatar').textContent = state.operator[0].toUpperCase();
+})();
 buildBoard();
 // Auto-sync on load, then every 6 hours
 syncFromPrintavo();
