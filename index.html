@@ -3883,9 +3883,27 @@ function mapBlanksList(groups){
 // to see all Printavo status IDs for this account.
 async function fetchPrintavoStatuses(){
   try {
-    const data = await printavoFetch('{ statuses { nodes { id name state } } }');
-    const nodes = data?.data?.statuses?.nodes || [];
-    if(!nodes.length){ console.log('No statuses returned — check proxy/auth.'); return; }
+    // Try nodes wrapper first, then flat array, then log raw for debugging
+    let data = await printavoFetch('{ statuses { nodes { id name state } } }');
+    let nodes = data?.data?.statuses?.nodes;
+
+    if(!nodes){
+      // Some Printavo accounts return a flat array instead of nodes
+      data = await printavoFetch('{ statuses { id name state } }');
+      const flat = data?.data?.statuses;
+      nodes = Array.isArray(flat) ? flat : null;
+    }
+
+    if(!nodes || !nodes.length){
+      console.log('=== Raw Printavo response (for debugging) ===');
+      console.log(JSON.stringify(data, null, 2));
+      // Fall back to schema introspection to find the correct field name
+      const schema = await printavoFetch('{ __schema { queryType { fields { name } } } }');
+      const fields = schema?.data?.__schema?.queryType?.fields?.map(f => f.name) || [];
+      console.log('Available root queries:', fields.filter(f => f.toLowerCase().includes('status')));
+      return;
+    }
+
     console.log('=== Printavo Statuses for Planet Apparel ===');
     console.table(nodes.map(n => ({ id: n.id, name: n.name, state: n.state })));
     console.log('Copy the id values above into PRINTAVO_STATION_STATUS_MAP in planetops_v2.html');
