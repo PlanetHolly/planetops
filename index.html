@@ -3832,18 +3832,38 @@ const INVENTORY_PROXY = 'https://planetapparel.app.n8n.cloud/webhook/bandana-inv
 const PRINTAVO_STATUS_TRIGGER = 'Blanks To Order';
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-// Station → Printavo status ID map.
-// Run fetchPrintavoStatuses() in the browser console to get these IDs,
-// then fill them in and redeploy. null = no Printavo equivalent, skip silently.
-const PRINTAVO_STATION_STATUS_MAP = {
-  blanks:     null,   // "🏳️ Awaiting Blanks"
-  prepress:   null,   // "🏳️ Blanks Counted In - Ready for Production"
-  production: null,   // "🏳️ In Production"
-  postprod:   null,   // "🏳️ In Post Production"
-  readyqc:    null,   // "🏳️ Production Completed - Ready to Package"
-  shipping:   { pickup: null, delivery: null }, // split by delivery method
-  done:       null,   // "🤝 Delivered / Picked up"
+// Station → Printavo status NAME map.
+// IDs are looked up automatically at runtime by matching these names.
+// Set a value to null to skip syncing that station silently.
+const PRINTAVO_STATION_STATUS_NAMES = {
+  blanks:           'Awaiting Blanks',
+  prepress:         'Blanks Counted In - Ready for Production',
+  production:       'In Production',
+  postprod:         'In Post Production',
+  readyqc:          'Production Completed - Ready to Package',
+  shipping_pickup:  'Order Ready for Pickup',
+  shipping_delivery:'Order Ready for Delivery',
+  done:             'Delivered / Picked up',
 };
+
+// Resolved name → ID cache, populated once by loadPrintavoStatusIds()
+let _printavoStatusCache = null;
+
+async function loadPrintavoStatusIds(){
+  if(_printavoStatusCache) return _printavoStatusCache;
+  try {
+    const data = await printavoFetch('{ statuses(first: 100) { edges { node { id name } } } }');
+    const edges = data?.data?.statuses?.edges || [];
+    _printavoStatusCache = {};
+    edges.forEach(e => {
+      if(e.node) _printavoStatusCache[e.node.name.trim()] = e.node.id;
+    });
+  } catch(e){
+    console.warn('Could not load Printavo statuses:', e);
+    _printavoStatusCache = {};
+  }
+  return _printavoStatusCache;
+}
 
 // Step 1: list query — no imprints (Printavo caps complexity at 25000)
 const PRINTAVO_LIST_QUERY = `{
@@ -3905,18 +3925,31 @@ async function fetchPrintavoStatuses(){
 // Sync a station move to Printavo — fire-and-forget (never awaited).
 async function syncStationToPrintavo(job, station){
   if(!job?.printavoId) return; // manually-added job, no Printavo record
-  const mapEntry = PRINTAVO_STATION_STATUS_MAP[station];
-  if(!mapEntry) return; // no Printavo equivalent for this station
 
-  // Shipping splits by delivery method
-  let statusId;
-  if(station === 'shipping' && typeof mapEntry === 'object'){
+  // Resolve status name for this station
+  let statusName;
+  if(station === 'shipping'){
     const method = (job.deliveryMethod || '').toLowerCase();
-    statusId = method.includes('pickup') ? mapEntry.pickup : mapEntry.delivery;
+    statusName = method.includes('pickup')
+      ? PRINTAVO_STATION_STATUS_NAMES.shipping_pickup
+      : PRINTAVO_STATION_STATUS_NAMES.shipping_delivery;
   } else {
-    statusId = mapEntry;
+    statusName = PRINTAVO_STATION_STATUS_NAMES[station];
   }
-  if(!statusId) return;
+  if(!statusName) return; // station not mapped
+
+  // Look up ID from cache (fetches once, then reuses)
+  const cache = await loadPrintavoStatusIds();
+  // Try exact match first, then partial match (handles emoji prefix variations)
+  let statusId = cache[statusName];
+  if(!statusId){
+    const key = Object.keys(cache).find(k => k.includes(statusName) || statusName.includes(k.replace(/[^\w\s]/g, '').trim()));
+    statusId = key ? cache[key] : null;
+  }
+  if(!statusId){
+    console.warn('Printavo: no status ID found for "' + statusName + '"');
+    return;
+  }
 
   const mutation = `mutation { statusUpdate(parentId: "${job.printavoId}", statusId: "${statusId}") { ... on Invoice { id status { name } } } }`;
   try {
