@@ -750,6 +750,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   </div>
 </div>
 
+<!-- DRAG MOVE MODAL -->
+<div class="modal-overlay" id="drag-move-modal" onclick="handleOverlayClick(event,'drag-move-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="drag-move-title">Move Job — Why?</div>
+    <div class="modal-sub" id="drag-move-sub"></div>
+    <div class="reason-grid" id="drag-move-reason-grid"></div>
+    <div class="comp-field hidden" id="drag-move-custom-field">
+      <label>Additional notes</label>
+      <textarea id="drag-move-custom" rows="2" placeholder="Describe the reason..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('drag-move-modal')">Cancel</button>
+      <button class="btn-confirm" id="drag-move-confirm-btn" onclick="confirmDragMove()">Move</button>
+    </div>
+  </div>
+</div>
+
 <!-- BLANKS COMPLETION MODAL (Complete vs Partial) -->
 <div class="modal-overlay" id="blanks-comp-modal" onclick="handleOverlayClick(event,'blanks-comp-modal')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -1379,6 +1397,14 @@ function buildBoard(){
     const body = col.querySelector(`#col-${stn.id}`);
     if(!jobs.length){ body.innerHTML = '<div class="col-empty">— Empty —</div>'; }
     else { jobs.forEach(j => body.appendChild(buildCard(j))); }
+    // Drop target
+    body.addEventListener('dragover', e => { e.preventDefault(); body.style.background = 'rgba(247,190,0,.12)'; });
+    body.addEventListener('dragleave', () => { body.style.background = ''; });
+    body.addEventListener('drop', e => {
+      e.preventDefault(); body.style.background = '';
+      const jobId = e.dataTransfer.getData('jobId');
+      if(jobId) openDragMoveModal(jobId, stn.id);
+    });
   });
 
   updateKpis();
@@ -1641,6 +1667,19 @@ function buildCard(job){
   // For non-blanks: show imprint count; for blanks: show imprint count only
   const imprintCount = `<div style="font-size:10px;color:rgba(0,0,0,.28);font-weight:600">${job.workUnits.length} imprint${job.workUnits.length!==1?'s':''}</div>`;
 
+  // On Hold badge (production only)
+  const onHoldBadge = job.onHold && job.station === 'production'
+    ? `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(183,28,28,.1);border:1px solid rgba(183,28,28,.2);border-radius:4px;padding:2px 7px;font-family:var(--font-head);font-weight:800;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#b71c1c;margin-bottom:4px">⏸ On Hold</div>`
+    : '';
+
+  // "Updated from Printavo" badge — shown for 30 min after inbound sync moved this job
+  const syncedRecently = job.printavoSyncedAt && (Date.now() - job.printavoSyncedAt < 30 * 60 * 1000);
+  const printavoSyncBadge = syncedRecently
+    ? `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(21,101,192,.08);border:1px solid rgba(21,101,192,.2);border-radius:4px;padding:2px 7px;font-family:var(--font-head);font-weight:700;font-size:10px;letter-spacing:.03em;color:#1565C0;margin-bottom:4px">↩ Updated from Printavo</div>`
+    : '';
+
+  if(job.onHold && job.station === 'production' && !hasUrgent) card.classList.add('b-red');
+
   card.innerHTML = `
     <div class="k-top">
       <div class="k-num">#${job.number}</div>
@@ -1652,10 +1691,18 @@ function buildCard(job){
       <div class="k-due ${ddc}">📅 ${job.dueDateLabel}</div>
       ${imprintCount}
     </div>
+    ${onHoldBadge}${printavoSyncBadge}
     ${imprintStrip}
     ${blanksStatusHtml}
     ${timerHtml}`;
 
+  card.setAttribute('draggable', 'true');
+  card.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('jobId', job.id);
+    e.dataTransfer.effectAllowed = 'move';
+    card.style.opacity = '0.5';
+  });
+  card.addEventListener('dragend', () => { card.style.opacity = ''; });
   card.onclick = () => openJobSheet(job.id);
   return card;
 }
@@ -1909,6 +1956,7 @@ function renderJobLevel(){
     <div class="ds-station-current" style="color:${stn?.color||'#232323'}">${stn?.label||job.station}</div>
     <div class="ds-station-btns">
       ${prevStn ? `<button class="ds-back-station-btn" onclick="openBackModal('${job.id}')">← Back</button>` : ''}
+      ${job.station === 'production' ? `<button class="ds-back-station-btn" style="color:${job.onHold?'#2E7D32':'#b71c1c'};border-color:${job.onHold?'rgba(46,125,50,.3)':'rgba(183,28,28,.3)'}" onclick="toggleOnHold('${job.id}')">${job.onHold ? '▶ Resume' : '⏸ Hold'}</button>` : ''}
       ${nextStn && job.station !== 'readyqc' ? `<button class="ds-move-btn" onclick="moveJobStation('${job.id}')">Move → ${nextStn.label}</button>` : ''}
       ${job.station === 'readyqc' ? `<button class="ds-move-btn" onclick="moveJobStation('${job.id}')">✓ Confirm & Send</button>` : ''}
     </div>`;
@@ -3403,6 +3451,101 @@ function confirmMoveBack(){
   const stn = STATIONS.find(s => s.id === toStation);
   showToast('← Moved back to ' + (stn?.label || toStation));
 }
+
+function openDragMoveModal(jobId, targetStation){
+  const job = getJob(jobId);
+  if(!job || job.station === targetStation) return;
+
+  state.pendingDragJobId     = jobId;
+  state.pendingDragTarget    = targetStation;
+  state.selectedDragReason   = null;
+
+  const fromStn = STATIONS.find(s => s.id === job.station);
+  const toStn   = STATIONS.find(s => s.id === targetStation);
+  const fromIdx = STATION_ORDER.indexOf(job.station);
+  const toIdx   = STATION_ORDER.indexOf(targetStation);
+  const isBack  = toIdx < fromIdx;
+
+  document.getElementById('drag-move-title').textContent = isBack ? 'Move Back — Why?' : 'Move to ' + (toStn?.label || targetStation) + ' — Why?';
+  document.getElementById('drag-move-sub').textContent   = `Moving #${job.number} from ${fromStn?.label||job.station} → ${toStn?.label||targetStation}. Select a reason.`;
+
+  const reasons = isBack
+    ? BACK_REASONS
+    : [{ id:'skip_done', label:'Stage Already Done' }, { id:'skip_error', label:'Moved by Mistake' }, { id:'other', label:'Other' }];
+
+  const grid = document.getElementById('drag-move-reason-grid');
+  grid.innerHTML = '';
+  reasons.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'reason-btn' + (state.selectedDragReason === r.id ? ' selected' : '');
+    btn.textContent = r.label;
+    btn.onclick = () => {
+      state.selectedDragReason = r.id;
+      grid.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const cf = document.getElementById('drag-move-custom-field');
+      r.id === 'other' ? cf.classList.remove('hidden') : cf.classList.add('hidden');
+    };
+    grid.appendChild(btn);
+  });
+
+  const confirmBtn = document.getElementById('drag-move-confirm-btn');
+  confirmBtn.style.background = isBack ? 'var(--orange)' : 'var(--tonal-black)';
+  confirmBtn.textContent = isBack ? '← Move Back' : '→ Move';
+
+  document.getElementById('drag-move-custom-field').classList.add('hidden');
+  openModal('drag-move-modal');
+}
+
+function confirmDragMove(){
+  if(!state.selectedDragReason){ showToast('Please select a reason'); return; }
+  const job = getJob(state.pendingDragJobId);
+  if(!job){ closeModal('drag-move-modal'); return; }
+
+  const reason = state.selectedDragReason === 'other'
+    ? (document.getElementById('drag-move-custom').value.trim() || 'Other')
+    : state.selectedDragReason;
+
+  const fromStation  = job.station;
+  const toStation    = state.pendingDragTarget;
+
+  // Run prepress-specific cleanup if moving back from prepress
+  if(fromStation === 'prepress' && STATION_ORDER.indexOf(toStation) < STATION_ORDER.indexOf(fromStation)){
+    state.prepTasks   = state.prepTasks.filter(t => t.jobId !== job.id);
+    state.prepArchive = state.prepArchive.filter(t => t.jobId !== job.id);
+    job.workUnits.forEach(w => {
+      if(Object.prototype.hasOwnProperty.call(w.gates, 'films'))         w.gates.films         = false;
+      if(Object.prototype.hasOwnProperty.call(w.gates, 'screensBurned')) w.gates.screensBurned = false;
+      if(Object.prototype.hasOwnProperty.call(w.gates, 'screensTaped'))  w.gates.screensTaped  = false;
+    });
+  }
+
+  job.station = toStation;
+  job.stationHistory.push({ from:fromStation, to:toStation, reason, operator:state.operator, ts:Date.now() });
+  if(toStation === 'prepress') generatePrepTasks(job.id);
+  syncStationToPrintavo(job, toStation); // fire-and-forget
+
+  closeModal('drag-move-modal');
+  state.pendingDragJobId   = null;
+  state.pendingDragTarget  = null;
+  state.selectedDragReason = null;
+
+  saveState();
+  renderSheet();
+  buildBoard();
+  const toStn = STATIONS.find(s => s.id === toStation);
+  showToast('→ Moved to ' + (toStn?.label || toStation));
+}
+
+function toggleOnHold(jobId){
+  const job = getJob(jobId);
+  if(!job) return;
+  job.onHold = !job.onHold;
+  saveState();
+  openJobSheet(jobId); // re-render detail sheet to flip button
+  buildBoard();
+  showToast(job.onHold ? '⏸ Job placed on hold' : '▶ Job resumed');
+}
 </script>
 
 <script>
@@ -3830,11 +3973,9 @@ function clearSavedState(){
 const PRINTAVO_PROXY = 'https://planetapparel.app.n8n.cloud/webhook/printavo-proxy';
 const INVENTORY_PROXY = 'https://planetapparel.app.n8n.cloud/webhook/bandana-inventory';
 const PRINTAVO_STATUS_TRIGGER = 'Blanks To Order';
-const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
-// Station → Printavo status NAME map.
-// IDs are looked up automatically at runtime by matching these names.
-// Set a value to null to skip syncing that station silently.
+// Outbound: PlanetOps station → Printavo status name (for statusUpdate mutation)
 const PRINTAVO_STATION_STATUS_NAMES = {
   blanks:           'Awaiting Blanks',
   prepress:         'Blanks Counted In - Ready for Production',
@@ -3845,6 +3986,40 @@ const PRINTAVO_STATION_STATUS_NAMES = {
   shipping_delivery:'Order Ready for Delivery',
   done:             'Delivered / Picked up',
 };
+
+// Inbound: Printavo status name fragment → PlanetOps station
+// First match wins. onHold:true keeps station but sets job.onHold flag.
+const PRINTAVO_INBOUND_STATUS_MAP = [
+  { match: 'Awaiting Blanks',                         station: 'blanks' },
+  { match: 'Blanks Partially Received',               station: 'blanks' },
+  { match: 'Blanks Received',                         station: 'blanks' },
+  { match: 'Blanks Counted In',                       station: 'prepress' },
+  { match: 'Awaiting Goods',                          station: 'blanks' },
+  { match: 'Goods Partially Received',                station: 'blanks' },
+  { match: 'Goods Received',                          station: 'blanks' },
+  { match: 'Goods Counted In',                        station: 'postprod' }, // outsourced return
+  { match: 'Production On Hold',                      station: 'production', onHold: true },
+  { match: 'In Production',                           station: 'production' },
+  { match: 'Ready for Post Production',               station: 'postprod' },
+  { match: 'In Post Production',                      station: 'postprod' },
+  { match: 'Production Completed - Ready to Package', station: 'readyqc' },
+  { match: 'Waiting for ShipBob',                     station: 'shipping' },
+  { match: 'Awaiting Fulfillment',                    station: 'readyqc' }, // placeholder — fulfillment board TBD
+  { match: 'Order Ready for Pickup',                  station: 'shipping' },
+  { match: 'Order Ready for Delivery',                station: 'shipping' },
+  { match: 'Order Shipped',                           station: 'done' },
+  { match: 'Delivered',                               station: 'done' },
+  { match: 'Picked up',                               station: 'done' },
+];
+
+function resolveStationFromPrintavoStatus(statusName){
+  if(!statusName) return null;
+  const lower = statusName.toLowerCase();
+  for(const entry of PRINTAVO_INBOUND_STATUS_MAP){
+    if(lower.includes(entry.match.toLowerCase())) return entry;
+  }
+  return null;
+}
 
 // Resolved name → ID cache, populated once by loadPrintavoStatusIds()
 let _printavoStatusCache = null;
@@ -3867,7 +4042,7 @@ async function loadPrintavoStatusIds(){
 
 // Step 1: list query — no imprints (Printavo caps complexity at 25000)
 const PRINTAVO_LIST_QUERY = `{
-  invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true) {
+  invoices(first: 50, sortOn: VISUAL_ID, sortDescending: true) {
     edges {
       node {
         id visualId nickname dueAt
@@ -3957,6 +4132,9 @@ async function syncStationToPrintavo(job, station){
     if(result?.errors?.length){
       console.warn('Printavo sync error for #' + job.number, result.errors);
       showToast('⚠ Printavo sync failed for #' + job.number);
+    } else {
+      // Record what we pushed so inbound sync doesn't loop back on this
+      job.lastSyncedPrintavoStatus = statusName;
     }
   } catch(err){
     console.warn('Printavo sync failed for #' + job.number, err);
@@ -3981,22 +4159,40 @@ async function syncFromPrintavo(){
     const listData = await printavoFetch(PRINTAVO_LIST_QUERY);
     const edges = listData?.data?.invoices?.edges || [];
 
-    let added = 0, updated = 0;
+    let added = 0, updated = 0, stationChanged = 0;
     for(const { node: inv } of edges){
-      if(!inv.status?.name?.includes(PRINTAVO_STATUS_TRIGGER)) continue;
       const existing = state.jobs.find(j => j.printavoId === inv.id);
+
       if(existing){
+        // ── Inbound status sync: check if Printavo changed the status ──
+        const statusName = inv.status?.name || '';
+        if(statusName && existing.lastSyncedPrintavoStatus !== statusName){
+          const resolved = resolveStationFromPrintavoStatus(statusName);
+          if(resolved){
+            if(resolved.onHold){
+              // Keep in production but flag as on hold
+              if(existing.station === 'production') existing.onHold = true;
+            } else if(resolved.station !== existing.station){
+              // Only update if this wasn't a status we just pushed ourselves
+              existing.station = resolved.station;
+              existing.onHold  = false;
+              existing.printavoSyncedAt     = Date.now();
+              existing.printavoSyncedStatus = statusName;
+              stationChanged++;
+            }
+          }
+          existing.lastSyncedPrintavoStatus = statusName;
+        }
+
         // Always re-fetch detail to refresh blanks list, URLs, placements
         const detailData = await printavoFetch(printavoDetailQuery(inv.id));
         const detail = detailData?.data?.invoice || {};
         const groups = detail?.lineItemGroups?.nodes || [];
-        // Update safe fields — never reset station/timers/check-ins
         if(inv.dueAt){ existing.dueDate = inv.dueAt.split('T')[0]; existing.dueDateLabel = fmtDueLabel(existing.dueDate); }
         existing.printavoUrl  = detail.url || existing.printavoUrl || null;
         existing.workorderUrl = detail.workorderUrl || existing.workorderUrl || null;
         existing.blanksList   = mapBlanksList(groups);
         if(inv.deliveryMethod?.name && !existing.deliveryMethod) existing.deliveryMethod = mapDeliveryMethod(inv.deliveryMethod.name);
-        // Refresh placement labels on WUs
         let impIdx = 0;
         groups.forEach(g => (g.imprints?.nodes || []).forEach(imp => {
           impIdx++;
@@ -4004,17 +4200,21 @@ async function syncFromPrintavo(){
           if(w) w.placement = extractPlacement(imp.details, impIdx);
         }));
         updated++;
-      } else {
-        // Step 2: fetch imprints + line items + URLs
-        const detailData = await printavoFetch(printavoDetailQuery(inv.id));
-        const detail = detailData?.data?.invoice || {};
-        const groups = detail?.lineItemGroups?.nodes || [];
-        inv.lineItemGroups = { nodes: groups };
-        inv.printavoUrl    = detail.url || null;
-        inv.workorderUrl   = detail.workorderUrl || null;
-        const job = mapInvoiceToJob(inv);
-        if(job){ state.jobs.push(job); added++; }
+        continue;
       }
+
+      // New job: only add if it has the trigger status
+      if(!inv.status?.name?.includes(PRINTAVO_STATUS_TRIGGER)) continue;
+
+      // Step 2: fetch imprints + line items + URLs
+      const detailData = await printavoFetch(printavoDetailQuery(inv.id));
+      const detail = detailData?.data?.invoice || {};
+      const groups = detail?.lineItemGroups?.nodes || [];
+      inv.lineItemGroups = { nodes: groups };
+      inv.printavoUrl    = detail.url || null;
+      inv.workorderUrl   = detail.workorderUrl || null;
+      const job = mapInvoiceToJob(inv);
+      if(job){ state.jobs.push(job); added++; }
     }
 
     // Backfill blanksList for any board jobs missing itemNumber (one-time migration)
@@ -4035,7 +4235,7 @@ async function syncFromPrintavo(){
     fetchBandanaInventory().then(() => buildBoard());
     saveState();
     buildBoard();
-    const msg = added > 0 ? `+${added} new job${added!==1?'s':''}` : updated > 0 ? `${updated} updated` : 'Up to date';
+    const msg = added > 0 ? `+${added} new` : stationChanged > 0 ? `↩ ${stationChanged} moved` : 'Up to date';
     updateSyncUI('ok', msg);
   } catch(err){
     console.error('Printavo sync error:', err);
