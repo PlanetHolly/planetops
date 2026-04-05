@@ -1588,9 +1588,8 @@ function buildCard(job){
   const hasUrgent = isDueSoon(job) || job.workUnits.some(w => w.needsAttention);
   const isRunning = job.workUnits.some(w => w.timer.state === 'running');
   const isPaused  = !isRunning && job.workUnits.some(w => w.timer.state === 'paused');
-  if(hasUrgent)    card.classList.add('b-red');
-  else if(isRunning) card.classList.add('b-yellow','state-running');
-  else if(isPaused)  card.classList.add('b-orange','state-paused');
+  if(isRunning) card.classList.add('state-running');
+  else if(isPaused) card.classList.add('state-paused');
 
   const ddc = dueDateClass(job.dueDate);
   const tagHtml = job.clientTag
@@ -1627,7 +1626,6 @@ function buildCard(job){
           <div style="font-size:16px">▶</div>
         </div>`;
     } else if(partials.length > 0){
-      if(!hasUrgent) card.classList.add('b-orange');
       blanksStatusHtml = `
         <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;background:rgba(255,152,0,.1);border-radius:8px;padding:8px 10px">
           <div style="font-size:16px;line-height:1.2">📦</div>
@@ -1678,7 +1676,6 @@ function buildCard(job){
     ? `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(21,101,192,.08);border:1px solid rgba(21,101,192,.2);border-radius:4px;padding:2px 7px;font-family:var(--font-head);font-weight:700;font-size:10px;letter-spacing:.03em;color:#1565C0;margin-bottom:4px">↩ Updated from Printavo</div>`
     : '';
 
-  if(job.onHold && job.station === 'production' && !hasUrgent) card.classList.add('b-red');
 
   card.innerHTML = `
     <div class="k-top">
@@ -1968,10 +1965,8 @@ function renderJobLevel(){
   if(job.station === 'blanks'){
     body.appendChild(buildProjectTimerBlock(job, 'blanksCheckIn', 'Blanks Check-In'));
 
-    // Blanks list from Printavo — count entry appears once timer is running or done
-    const bptState = job.projectTimers?.blanksCheckIn?.state;
-    const bptDone  = !!job.projectTimers?.blanksCheckIn?.completedAt;
-    const showCounts = bptState === 'running' || bptState === 'paused' || bptDone;
+    // Blanks list from Printavo — count inputs always visible
+    const showCounts = true;
     if(job.blanksList && job.blanksList.length){
       job.blanksCount = job.blanksCount || {};
       const bl = document.createElement('div');
@@ -2084,9 +2079,49 @@ function renderJobLevel(){
           </div>`;
       }).join('');
 
+      // ── Totals summary ──
+      const totalOrdered = garmentGroups.reduce((sum, g) => sum + g.sizes.reduce((s, r) => s + r.qty, 0), 0);
+      const totalFromVendor = garmentGroups.reduce((sum, g) =>
+        sum + g.sizes.reduce((s, r) => {
+          const v = job.blanksCount[String(r.idx)];
+          return s + (v !== undefined && v !== '' ? parseInt(v) || 0 : 0);
+        }, 0), 0);
+      const totalFromInHouse = garmentGroups.reduce((sum, g) =>
+        sum + g.sizes.reduce((s, r) => {
+          const raw = (job.inHouseCount || {})[r.idx];
+          const q = raw ? (typeof raw === 'object' ? raw.qty : raw) : 0;
+          return s + (parseInt(q) || 0);
+        }, 0), 0);
+      const totalReceived = totalFromVendor + totalFromInHouse;
+      const totalRemaining = Math.max(0, totalOrdered - totalReceived);
+      const remainingColor = totalRemaining === 0 ? '#2E7D32' : totalRemaining < totalOrdered ? '#E65100' : 'rgba(0,0,0,.45)';
+      const remainingBg = totalRemaining === 0 ? '#F1F8F1' : totalRemaining < totalOrdered ? '#FFF3E0' : '#f7f7f5';
+      const summaryHtml = `
+        <div style="border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden;margin-top:4px;background:${remainingBg}">
+          <div style="display:flex;align-items:stretch;border-bottom:1px solid rgba(0,0,0,.07)">
+            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
+              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Ordered</div>
+              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalOrdered}</div>
+            </div>
+            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
+              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">From Vendor</div>
+              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalFromVendor}</div>
+            </div>
+            <div style="flex:1;padding:9px 12px;text-align:center;border-right:1px solid rgba(0,0,0,.07)">
+              <div style="font-size:10px;font-weight:700;color:rgba(0,0,0,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">In-House</div>
+              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:#232323">${totalFromInHouse}</div>
+            </div>
+            <div style="flex:1;padding:9px 12px;text-align:center">
+              <div style="font-size:10px;font-weight:700;color:${remainingColor};text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Still Needed</div>
+              <div style="font-family:var(--font-head);font-weight:900;font-size:20px;color:${remainingColor}">${totalRemaining === 0 ? '✓' : totalRemaining}</div>
+            </div>
+          </div>
+        </div>`;
+
       bl.innerHTML = `
-        <div class="section-label" style="margin-bottom:6px">📦 Blanks to Check In${!showCounts ? ' <span style="font-size:10px;font-weight:600;color:rgba(0,0,0,.35);font-family:var(--font-body)">(start timer to enter counts)</span>' : ''}</div>
-        ${garmentHtml}`;
+        <div class="section-label" style="margin-bottom:6px">📦 Blanks to Check In</div>
+        ${garmentHtml}
+        ${summaryHtml}`;
       body.appendChild(bl);
     }
 
