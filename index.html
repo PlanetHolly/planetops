@@ -1714,13 +1714,16 @@ function buildCard(job){
     ${blanksStatusHtml}
     ${timerHtml}`;
 
-  card.setAttribute('draggable', 'true');
-  card.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('jobId', job.id);
-    e.dataTransfer.effectAllowed = 'move';
-    card.style.opacity = '0.5';
-  });
-  card.addEventListener('dragend', () => { card.style.opacity = ''; });
+  // Only enable HTML5 drag on non-touch devices — draggable=true blocks tap/click on iPad
+  if (!('ontouchstart' in window)) {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('jobId', job.id);
+      e.dataTransfer.effectAllowed = 'move';
+      card.style.opacity = '0.5';
+    });
+    card.addEventListener('dragend', () => { card.style.opacity = ''; });
+  }
   card.onclick = () => openJobSheet(job.id);
   return card;
 }
