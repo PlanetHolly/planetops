@@ -1972,6 +1972,11 @@ function renderJobLevel(){
 
   const stationBar = document.getElementById('ds-station-bar');
   stationBar.style.display = 'flex';
+  const otherStations = STATIONS.filter(s => s.id !== job.station);
+  const jumpOptions = otherStations.map(s =>
+    `<option value="${s.id}">${s.label}</option>`
+  ).join('');
+
   stationBar.innerHTML = `
     <div style="font-size:11px;color:rgba(0,0,0,.38);font-weight:600;flex-shrink:0">Station:</div>
     <div class="ds-station-current" style="color:${stn?.color||'#232323'}">${stn?.label||job.station}</div>
@@ -1980,6 +1985,12 @@ function renderJobLevel(){
       ${job.station === 'production' ? `<button class="ds-back-station-btn" style="color:${job.onHold?'#2E7D32':'#b71c1c'};border-color:${job.onHold?'rgba(46,125,50,.3)':'rgba(183,28,28,.3)'}" onclick="toggleOnHold('${job.id}')">${job.onHold ? '▶ Resume' : '⏸ Hold'}</button>` : ''}
       ${nextStn && job.station !== 'readyqc' ? `<button class="ds-move-btn" onclick="moveJobStation('${job.id}')">Move → ${nextStn.label}</button>` : ''}
       ${job.station === 'readyqc' ? `<button class="ds-move-btn" onclick="moveJobStation('${job.id}')">✓ Confirm & Send</button>` : ''}
+      <select onchange="jumpJobStation('${job.id}', this.value); this.value=''"
+        style="height:34px;padding:0 8px;border-radius:8px;border:1.5px solid rgba(0,0,0,.14);background:#fff;font-family:var(--font-head);font-size:12px;font-weight:700;color:rgba(0,0,0,.5);cursor:pointer;-webkit-tap-highlight-color:transparent;max-width:44px;flex-shrink:0"
+        title="Jump to any station">
+        <option value="" disabled selected>↕</option>
+        ${jumpOptions}
+      </select>
     </div>`;
 
   const body = document.getElementById('ds-body');
@@ -3402,6 +3413,16 @@ function moveJobStation(jobId){
   }
 
   doMoveJobStation(jobId, nextStn);
+}
+
+function jumpJobStation(jobId, targetStation){
+  if(!targetStation) return;
+  const job = getJob(jobId);
+  if(!job || job.station === targetStation) return;
+  requireOperator(() => {
+    doMoveJobStation(jobId, targetStation);
+    showToast('↕ Moved to ' + (STATIONS.find(s => s.id === targetStation)?.label || targetStation));
+  });
 }
 
 function doMoveJobStation(jobId, nextStation){
