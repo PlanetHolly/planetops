@@ -1945,6 +1945,111 @@ function renderSheet(){
 }
 
 /* ============================================================
+   BLANKS SUMMARY (read-only, shown on all stations after blanks)
+   ============================================================ */
+function buildBlanksSummary(job){
+  const receipts = job.blanksReceipts || [];
+  const sessions = job.blanksCheckInSessions || [];
+  const inHouse  = job.inHouseCount || {};
+  const pt       = job.projectTimers?.blanksCheckIn;
+  const hasData  = receipts.length || sessions.length || job.blanksNote || Object.keys(inHouse).length;
+  if(!hasData) return null;
+
+  // Build per-garment rows from blanksList + receipts + inHouse
+  let garmentRows = '';
+  if(job.blanksList && job.blanksList.length){
+    const garmentMap = {};
+    job.blanksList.forEach((li, idx) => {
+      const gKey = `${li.description}||${li.color}`;
+      if(!garmentMap[gKey]) garmentMap[gKey] = { description: li.description, color: li.color, sizes: [], totalOrdered: 0 };
+      garmentMap[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
+      garmentMap[gKey].totalOrdered += li.qty;
+    });
+    garmentRows = Object.values(garmentMap).map(g => {
+      const gReceipts   = receipts.filter(r => r.gKey === `${g.description}||${g.color}`);
+      const totalVendor = gReceipts.reduce((sum, r) => sum + Object.values(r.sizeQtys||{}).reduce((a,v)=>a+(parseInt(v)||0),0), 0);
+      const totalInHouse = g.sizes.reduce((sum, s) => {
+        const raw = inHouse[s.idx];
+        return sum + (parseInt(raw ? (typeof raw==='object'?raw.qty:raw) : 0)||0);
+      }, 0);
+      const totalReceived = totalVendor + totalInHouse;
+      const pct = g.totalOrdered > 0 ? Math.min(100, Math.round(totalReceived / g.totalOrdered * 100)) : 0;
+      const allIn = totalReceived >= g.totalOrdered;
+      return `
+        <div style="margin-bottom:8px;background:#fafaf8;border:1px solid rgba(0,0,0,.08);border-radius:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px 5px">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#1a1a1a">${g.description}</div>
+              <div style="font-size:11px;color:rgba(0,0,0,.4);margin-top:1px">${g.color}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:${allIn?'#2E7D32':'#1a1a1a'};line-height:1">${totalReceived}/${g.totalOrdered}</div>
+              <div style="font-size:10px;color:rgba(0,0,0,.35);margin-top:1px">${allIn?'✓ All in':'received'}</div>
+            </div>
+          </div>
+          <div style="height:4px;background:rgba(0,0,0,.07)">
+            <div style="height:100%;width:${pct}%;background:${allIn?'#43A047':'#F7BE00'};transition:width .4s ease"></div>
+          </div>
+          <div style="display:flex;gap:0;border-top:1px solid rgba(0,0,0,.06)">
+            <div style="flex:1;padding:5px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.35)">Vendor</div>
+              <div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:#1a1a1a">${totalVendor||'—'}</div>
+            </div>
+            <div style="flex:1;padding:5px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.35)">In-House</div>
+              <div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:#1a1a1a">${totalInHouse||'—'}</div>
+            </div>
+            <div style="flex:1;padding:5px 10px;text-align:center">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.35)">Ordered</div>
+              <div style="font-family:var(--font-head);font-weight:800;font-size:15px;color:#1a1a1a">${g.totalOrdered}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Sessions
+  const sessionRows = sessions.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05)">
+      <div style="font-family:var(--font-head);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:rgba(0,0,0,.4);min-width:68px">Session ${i+1}</div>
+      <div style="font-size:12px;font-weight:600;color:#1a1a1a">${fmtTime(s.elapsedMs)}</div>
+      ${s.operator?`<div style="font-size:11px;color:rgba(0,0,0,.35)">· ${s.operator}</div>`:''}
+    </div>`).join('');
+
+  const timerLine = pt?.completedAt
+    ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:700;color:#2E7D32">✓ Check-In Complete</span>
+        <span style="font-size:11px;color:rgba(0,0,0,.38)">${fmtTime(pt.elapsedMs)}</span>
+        ${pt.operator?`<span style="font-size:11px;color:rgba(0,0,0,.35)">· ${pt.operator}</span>`:''}
+      </div>`
+    : (sessions.length ? `<div style="font-size:11px;color:#E65100;font-weight:700;margin-bottom:8px">⏳ Partial check-in — ${sessions.length} session${sessions.length>1?'s':''}</div>` : '');
+
+  const el = document.createElement('div');
+  el.style.cssText = 'border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin-bottom:4px';
+  el.innerHTML = `
+    <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'; this.querySelector('.bs-chevron').style.transform=this.nextElementSibling.style.display==='none'?'rotate(0deg)':'rotate(180deg)'"
+      style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#f7f6f2;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:15px">📦</span>
+        <span style="font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.55)">Blanks Check-In Summary</span>
+        ${pt?.completedAt?`<span style="font-size:10px;font-weight:700;color:#2E7D32;background:rgba(46,125,50,.1);padding:1px 6px;border-radius:3px">✓ Complete</span>`:
+          sessions.length?`<span style="font-size:10px;font-weight:700;color:#E65100;background:rgba(230,81,0,.1);padding:1px 6px;border-radius:3px">Partial</span>`:''}
+      </div>
+      <span class="bs-chevron" style="font-size:12px;color:rgba(0,0,0,.35);transition:transform .2s ease">▼</span>
+    </div>
+    <div style="display:none;padding:12px 14px;background:#fff">
+      ${timerLine}
+      ${job.blanksNote?`<div style="display:flex;align-items:flex-start;gap:6px;background:rgba(247,190,0,.08);border:1px solid rgba(247,190,0,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px">
+        <span style="font-size:13px">📌</span>
+        <span style="font-size:12px;font-weight:600;color:#1a1a1a;line-height:1.4">${job.blanksNote}</span>
+      </div>`:''}
+      ${garmentRows}
+      ${sessionRows?`<div style="margin-top:8px">${sessionRows}</div>`:''}
+    </div>`;
+  return el;
+}
+
+/* ============================================================
    JOB LEVEL
    ============================================================ */
 function renderJobLevel(){
@@ -2231,6 +2336,12 @@ function renderJobLevel(){
         <button class="archive-btn archive-btn-delivery" onclick="archiveJob('${job.id}','delivery')">🚚 Delivered</button>
       </div>`;
     body.appendChild(sec);
+  }
+
+  // ── Blanks summary (read-only reference for stations after blanks) ──
+  if(job.station !== 'blanks'){
+    const summary = buildBlanksSummary(job);
+    if(summary) body.appendChild(summary);
   }
 
   // ── Imprint list ──
