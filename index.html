@@ -1988,6 +1988,7 @@ function renderJobLevel(){
 
     if(job.blanksList && job.blanksList.length){
       job.blanksReceipts = job.blanksReceipts || [];
+      window._receiptForms = {};   // keyed by gi — populated per-garment below
       const bl = document.createElement('div');
       bl.style.cssText = 'margin-top:14px';
 
@@ -2004,6 +2005,7 @@ function renderJobLevel(){
       });
 
       const garmentHtml = garmentGroups.map((g, gi) => {
+        window._receiptForms[gi] = { jobId: job.id, gKey: g.gKey, sizes: g.sizes.map(s=>({idx:s.idx,size:s.size})) };
         const totalOrdered  = g.sizes.reduce((s, r) => s + r.qty, 0);
         const receipts      = job.blanksReceipts.filter(r => r.gKey === g.gKey);
         const totalVendor   = receipts.reduce((sum, r) => sum + Object.values(r.sizeQtys||{}).reduce((s,v)=>s+(parseInt(v)||0),0), 0);
@@ -2065,8 +2067,12 @@ function renderJobLevel(){
              </div>`;
 
         // In-house section
+        const remaining = invQty !== null ? invQty - totalInHouse : null;
         const stockLine = invQty !== null
-          ? `<div style="font-size:11px;font-weight:700;margin-top:2px;color:${invQty===0?'#E65100':invQty<totalOrdered?'#FF8F00':'#2E7D32'}">${invLabel||'In-House'} · ${invQty.toLocaleString()} in stock</div>`
+          ? `<div style="font-size:11px;font-weight:700;margin-top:2px;color:${remaining<=0?'#E53935':remaining<totalOrdered?'#FF8F00':'#2E7D32'}">
+               ${invLabel||'In-House'} · <span style="font-size:14px">${remaining.toLocaleString()}</span> remaining
+               <span style="color:rgba(0,0,0,.3);font-weight:500"> (${invQty.toLocaleString()} total · ${totalInHouse} pulled)</span>
+             </div>`
           : (invLabel ? `<div style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · inventory not loaded yet</div>` : '');
         const inHouseSection = `
           <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(0,0,0,.07)">
@@ -2081,7 +2087,7 @@ function renderJobLevel(){
               ${g.sizes.map(s=>{
                 const raw=(job.inHouseCount||{})[s.idx];
                 const pulled=raw?(typeof raw==='object'?raw.qty:raw):'';
-                const over=invQty!==null&&pulled!==''&&parseInt(pulled)>invQty;
+                const over=remaining!==null&&pulled!==''&&parseInt(pulled)>remaining;
                 const filled=pulled!=='';
                 return `${g.sizes.length>1?`<div style="display:flex;align-items:center;gap:5px"><span style="font-family:var(--font-head);font-size:10px;text-transform:uppercase;color:rgba(0,0,0,.35);font-weight:700">${s.size}</span>`:'<div style="display:flex;align-items:center;gap:5px">'}
                   <input type="number" inputmode="numeric" min="0"
@@ -2127,7 +2133,7 @@ function renderJobLevel(){
                 <div style="display:flex;gap:8px;margin-top:10px">
                   <button onclick="event.stopPropagation();cancelReceiptForm(${gi})"
                     style="flex:1;padding:11px;border-radius:9px;border:1.5px solid rgba(0,0,0,.12);background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:rgba(0,0,0,.45)">Cancel</button>
-                  <button onclick="event.stopPropagation();saveReceipt('${job.id}',${gi},'${g.gKey.replace(/'/g,"\\'")}',${JSON.stringify(g.sizes.map(s=>({idx:s.idx,size:s.size}))).replace(/"/g,"'")})"
+                  <button onclick="event.stopPropagation();saveReceipt(${gi})"
                     style="flex:2;padding:11px;border-radius:9px;border:none;background:#F7BE00;font-family:var(--font-head);font-size:14px;font-weight:800;cursor:pointer;color:#000;letter-spacing:.04em;text-transform:uppercase">✓ Log Shipment</button>
                 </div>
               </div>
@@ -3939,10 +3945,13 @@ function cancelReceiptForm(gi){
   document.getElementById('rform-'+gi).style.display = 'none';
   document.getElementById('radd-'+gi).style.display  = '';
 }
-function saveReceipt(jobId, gi, gKey, sizeDefs){
-  requireOperator(() => _saveReceipt(jobId, gi, gKey, sizeDefs));
+function saveReceipt(gi){
+  requireOperator(() => _saveReceipt(gi));
 }
-function _saveReceipt(jobId, gi, gKey, sizeDefs){
+function _saveReceipt(gi){
+  const form = (window._receiptForms||{})[gi];
+  if(!form){ showToast('⚠ Form state lost — please reopen the job'); return; }
+  const {jobId, gKey, sizes: sizeDefs} = form;
   const job = getJob(jobId);
   if(!job) return;
   job.blanksReceipts = job.blanksReceipts || [];
