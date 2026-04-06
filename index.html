@@ -2065,12 +2065,15 @@ function renderJobLevel(){
              </div>`;
 
         // In-house section
-        const inHouseSection = invQty !== null ? `
+        const stockLine = invQty !== null
+          ? `<div style="font-size:11px;font-weight:700;margin-top:2px;color:${invQty===0?'#E65100':invQty<totalOrdered?'#FF8F00':'#2E7D32'}">${invLabel||'In-House'} · ${invQty.toLocaleString()} in stock</div>`
+          : (invLabel ? `<div style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · inventory not loaded yet</div>` : '');
+        const inHouseSection = `
           <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(0,0,0,.07)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div>
                 <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.4)">🏭 Pull From In-House</div>
-                <div style="font-size:11px;font-weight:700;margin-top:2px;color:${invQty===0?'#E65100':invQty<totalOrdered?'#E65100':'#2E7D32'}">${invLabel} · ${invQty.toLocaleString()} in stock</div>
+                ${stockLine}
               </div>
               ${totalInHouse>0?`<div style="font-family:var(--font-head);font-weight:900;font-size:22px;color:#388E3C;line-height:1">+${totalInHouse}</div>`:''}
             </div>
@@ -2078,7 +2081,7 @@ function renderJobLevel(){
               ${g.sizes.map(s=>{
                 const raw=(job.inHouseCount||{})[s.idx];
                 const pulled=raw?(typeof raw==='object'?raw.qty:raw):'';
-                const over=pulled!==''&&parseInt(pulled)>invQty;
+                const over=invQty!==null&&pulled!==''&&parseInt(pulled)>invQty;
                 const filled=pulled!=='';
                 return `${g.sizes.length>1?`<div style="display:flex;align-items:center;gap:5px"><span style="font-family:var(--font-head);font-size:10px;text-transform:uppercase;color:rgba(0,0,0,.35);font-weight:700">${s.size}</span>`:'<div style="display:flex;align-items:center;gap:5px">'}
                   <input type="number" inputmode="numeric" min="0"
@@ -2089,7 +2092,7 @@ function renderJobLevel(){
                 </div>`;
               }).join('')}
             </div>
-          </div>` : '';
+          </div>`;
 
         return `
           <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;margin-bottom:12px">
@@ -2141,10 +2144,10 @@ function renderJobLevel(){
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">Vendor</div>
                 <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalVendor||'—'}</div>
               </div>
-              ${invQty!==null?`<div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
+              <div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">In-House</div>
                 <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalInHouse||'—'}</div>
-              </div>`:''}
+              </div>
               <div style="flex:1;padding:8px 10px;text-align:center;border-right:1px solid rgba(0,0,0,.06)">
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(0,0,0,.38)">Received</div>
                 <div style="font-family:var(--font-head);font-weight:900;font-size:18px;color:#1a1a1a">${totalReceived||'—'}</div>
