@@ -806,7 +806,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     </button>
     <div class="hidden" id="blanks-partial-form">
       <div class="comp-field">
-        <label class="press-form-label">Notes (optional — e.g. "72 of 144 arrived")</label>
+        <label class="press-form-label">📌 Notes & Arrival Info</label>
         <input type="text" id="blanks-partial-note" class="press-form-input" placeholder="e.g. 72 of 144 arrived, rest due Monday">
       </div>
       <div class="modal-actions">
@@ -848,8 +848,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 <div class="modal-overlay" id="blanks-note-modal" onclick="handleOverlayClick(event,'blanks-note-modal')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title">Arrival Note</div>
-    <div class="modal-sub" id="blanks-note-modal-sub">When are the blanks coming? Add any details for the team.</div>
+    <div class="modal-title">📌 Notes & Arrival Info</div>
+    <div class="modal-sub" id="blanks-note-modal-sub">Add details for the team — arrival ETA, vendor, partial counts, etc.</div>
     <textarea id="blanks-note-textarea" rows="3"
       placeholder="e.g. Rest arriving Thursday from Alpha, order #4521…"
       style="width:100%;padding:11px 13px;border:1.5px solid rgba(0,0,0,.12);border-radius:10px;font-family:var(--font-body);font-size:14px;resize:none;line-height:1.5;margin-bottom:4px"></textarea>
@@ -2416,7 +2416,8 @@ function buildProjectTimerBlock(job, timerKey, title){
         const receiptLine     = sessionTotal > 0
           ? `<div style="font-size:11px;font-weight:700;color:#1a1a1a;margin-top:2px">+${sessionTotal} received${sources.length?' — '+sources.join(', '):''}</div>`
           : '';
-        const noteLine = s.note ? `<div style="font-size:11px;color:rgba(0,0,0,.45);margin-top:2px;font-style:italic">${s.note}</div>` : '';
+        // Session rows share the unified job.blanksNote (not a per-session note)
+        const noteLine = job.blanksNote ? `<div style="font-size:11px;color:rgba(0,0,0,.45);margin-top:2px;font-style:italic">📌 ${job.blanksNote}</div>` : '';
         return `<div style="background:rgba(0,0,0,.03);border-radius:8px;padding:8px 10px;border-left:3px solid rgba(247,190,0,.5)">
           <div style="display:flex;align-items:center;gap:8px">
             <div style="font-family:var(--font-head);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:rgba(0,0,0,.45)">Session ${i+1}</div>
@@ -2432,7 +2433,7 @@ function buildProjectTimerBlock(job, timerKey, title){
   // ETA / arrival note (blanks only)
   const blanksNoteHtml = timerKey === 'blanksCheckIn' ? `
     <div style="margin-top:10px">
-      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.38);display:block;margin-bottom:5px">📌 Arrival Note / ETA</label>
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(0,0,0,.38);display:block;margin-bottom:5px">📌 Notes & Arrival Info</label>
       <input type="text" id="blanks-note-input-${job.id}"
         value="${job.blanksNote || ''}"
         placeholder="e.g. Rest arriving Thursday, order #4521…"
@@ -3154,7 +3155,8 @@ function openBlanksCompModal(jobId){
   document.getElementById('blanks-comp-sub').textContent =
     sessions.length ? 'Additional blanks arrived — all in now?' : 'How many blanks arrived?';
   document.getElementById('blanks-session-history').innerHTML = histHtml;
-  document.getElementById('blanks-partial-note').value = '';
+  // Pre-populate with current blanks note so it acts as one unified note
+  document.getElementById('blanks-partial-note').value = job.blanksNote || '';
   document.getElementById('blanks-partial-form').classList.add('hidden');
   document.getElementById('blanks-choice-actions').classList.remove('hidden');
   openModal('blanks-comp-modal');
@@ -3185,12 +3187,13 @@ function confirmBlanksCheckIn(type){
   } else {
     // Partial — log session, reset timer, job stays in Blanks
     const note = document.getElementById('blanks-partial-note').value.trim();
+    // Sync to job.blanksNote so the note is shared with the top field
+    if(note) job.blanksNote = note;
     job.blanksCheckInSessions = job.blanksCheckInSessions || [];
     job.blanksCheckInSessions.push({
       type:      'partial',
       elapsedMs: elapsed,
       operator:  state.operator,
-      note:      note || null,
       ts:        Date.now(),
     });
     // Reset timer so next session starts fresh
