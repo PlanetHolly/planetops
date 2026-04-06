@@ -2396,7 +2396,8 @@ function toggleQcCheck(jobId, key){
 }
 
 function buildProjectTimerBlock(job, timerKey, title){
-  const pt    = job.projectTimers[timerKey];
+  if(!job.projectTimers) job.projectTimers = makeProjectTimers();
+  const pt    = job.projectTimers[timerKey] || makeProjectTimers()[timerKey];
   const block = document.createElement('div');
   block.className = 'project-timer-block' + (pt.completedAt ? ' done' : '');
   block.id = 'ptblock-' + job.id + '-' + timerKey;
@@ -4178,7 +4179,24 @@ function loadState(){
     const raw = localStorage.getItem('planetops-v2');
     if(!raw) return;
     const saved = JSON.parse(raw);
-    if(saved.jobs)        state.jobs        = saved.jobs;
+    if(saved.jobs){
+      state.jobs = saved.jobs.map(j => {
+        // Migrate jobs from older versions that may be missing fields
+        if(!j.projectTimers)          j.projectTimers = makeProjectTimers();
+        if(!j.projectTimers.blanksCheckIn) j.projectTimers.blanksCheckIn = makeProjectTimers().blanksCheckIn;
+        if(!j.projectTimers.shipping)      j.projectTimers.shipping      = makeProjectTimers().shipping;
+        if(!j.blanksCheckInSessions)  j.blanksCheckInSessions = [];
+        if(!j.blanksReceipts)         j.blanksReceipts = [];
+        if(!j.qcChecks)               j.qcChecks = { qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null };
+        if(!j.stationHistory)         j.stationHistory = [];
+        if(!j.workUnits)              j.workUnits = [];
+        j.workUnits.forEach(w => {
+          if(!w.timer) w.timer = { state:'idle', startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:0, stage:null, operator:null };
+          if(!w.gates) w.gates = { films:false, screens:false, ink:false };
+        });
+        return j;
+      });
+    }
     if(saved.prepTasks)   state.prepTasks   = saved.prepTasks;
     if(saved.prepArchive) state.prepArchive = saved.prepArchive;
     if(saved.lastSyncAt)  state.lastSyncAt  = saved.lastSyncAt;
