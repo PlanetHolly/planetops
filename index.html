@@ -558,6 +558,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
           <button class="filter-pill" onclick="setBoardFilter('blocked',this)">⚠️ Blocked</button>
         </div>
         <div class="board-job-count" id="board-job-count"></div>
+        <button onclick="document.getElementById('csv-import-input').click()"
+          style="flex-shrink:0;height:32px;padding:0 12px;border-radius:var(--radius-pill);border:1.5px solid rgba(0,0,0,.14);background:#fff;font-family:var(--font-head);font-weight:800;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:rgba(0,0,0,.5);cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:5px">
+          📥 Import CSV
+        </button>
+        <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importPrintavoCSV(this)">
       </div>
       <div class="board-legend">
         <span class="legend-label">Key</span>
@@ -4767,6 +4772,150 @@ function fmtDueLabel(dateStr){
   if(!dateStr) return '—';
   const d = new Date(dateStr + 'T12:00:00');
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+/* ============================================================
+   CSV IMPORT (Printavo Power Scheduler export)
+   ============================================================ */
+function importPrintavoCSV(input){
+  const file = input.files[0];
+  if(!file) return;
+  input.value = ''; // reset so same file can be re-imported
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const jobs = parsePrintavoCSV(e.target.result);
+      if(!jobs.length){ showToast('⚠ No importable jobs found in CSV'); return; }
+      const existing = new Set(state.jobs.map(j => j.number));
+      let added = 0, skipped = 0;
+      jobs.forEach(j => {
+        if(existing.has(j.number)){ skipped++; return; }
+        state.jobs.push(j);
+        added++;
+      });
+      saveState();
+      buildBoard();
+      showToast(`✓ Imported ${added} job${added!==1?'s':''}${skipped?' · '+skipped+' already on board':''}`);
+    } catch(err){
+      console.error('CSV import error', err);
+      showToast('⚠ CSV parse error — check console');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function parsePrintavoCSV(text){
+  // Strip BOM
+  if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if(lines.length < 2) return [];
+
+  // Parse header
+  const parseRow = line => {
+    const cols = []; let cur = ''; let inQ = false;
+    for(let i = 0; i < line.length; i++){
+      const c = line[i];
+      if(c === '"'){ inQ = !inQ; continue; }
+      if(c === ',' && !inQ){ cols.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    cols.push(cur.trim());
+    return cols;
+  };
+
+  const headers = parseRow(lines[0]);
+  const col = name => headers.indexOf(name);
+  const iImp     = col('Imprint');
+  const iNick    = col('Nickname');
+  const iQty     = col('Quantity');
+  const iCustDue = col('Cust. Due');
+  const iProdDue = col('Prod. Due');
+  const iStatus  = col('Invoice Status');
+  const iInk     = col('Ink/Application Type');
+  const iScreens = col('Screen Count');
+  const iPostProd = col('Post Production Type');
+
+  // Group rows by job number
+  const jobMap = {};
+  for(let i = 1; i < lines.length; i++){
+    const cols = parseRow(lines[i]);
+    const imp = (cols[iImp]||'').trim();
+    if(!imp) continue;
+    const parts = imp.split(' - ');
+    const jobNum = parts[0].trim();
+    const impIdx = parts[1] ? parts[1].trim() : '1';
+    if(!jobMap[jobNum]) jobMap[jobNum] = { number: jobNum, imprints: [] };
+    jobMap[jobNum].imprints.push({
+      label:    jobNum + '-' + impIdx,
+      nickname: (cols[iNick]||'').trim(),
+      qty:      parseInt(cols[iQty]||'0') || 0,
+      custDue:  (cols[iCustDue]||'').trim(),
+      prodDue:  (cols[iProdDue]||'').trim(),
+      status:   (cols[iStatus]||'').trim(),
+      inkType:  (cols[iInk]||'').trim(),
+      screens:  (cols[iScreens]||'').trim(),
+      postProd: (cols[iPostProd]||'').trim(),
+    });
+  }
+
+  // Station mapping
+  function statusToStation(s){
+    const u = s.toUpperCase();
+    if(u.includes('ORDER SHIPPED') || u.includes('DELIVERED') || u.includes('PICKED UP')) return null; // skip
+    if(u.includes('BLANKS COUNTED IN') || u.includes('READY FOR PRODUCTION')) return 'prepress';
+    if(u.includes('IN PRODUCTION'))      return 'production';
+    if(u.includes('PRODUCTION COMPLETED') || u.includes('READY TO PACKAGE')) return 'readyqc';
+    if(u.includes('AWAITING PICKUP') || u.includes('READY FOR PICKUP') || u.includes('READY FOR DELIVERY')) return 'shipping';
+    return 'blanks'; // Awaiting Blanks, Blanks To Order, Goods to Pull, Outsourced, etc.
+  }
+
+  // Category mapping
+  function inkToCategory(ink){
+    const u = (ink||'').toUpperCase();
+    if(u.includes('DTF') || u.includes('HEAT') || u.includes('SUBLIM')) return 'heat';
+    return 'screen';
+  }
+
+  // Post prod → finishing work unit?
+  function hasFinishing(pp){
+    const u = (pp||'').toUpperCase();
+    return u.includes('FOLD') || u.includes('BAG') || u.includes('PACKAG');
+  }
+
+  const jobs = [];
+  Object.values(jobMap).forEach(({ number, imprints }) => {
+    const first = imprints[0];
+    const station = statusToStation(first.status);
+    if(station === null) return; // skip shipped/done jobs
+
+    const dueDate    = first.custDue || first.prodDue || '';
+    const dueLabel   = fmtDueLabel(dueDate);
+    // Use nickname as customer/job name, strip REORDER prefix
+    const jobName    = first.nickname.replace(/^REORDER\s+/i, '').trim() || ('Job #' + number);
+    const jobId      = 'csv-' + number + '-' + Date.now();
+    const urgent     = dueDate ? (new Date(dueDate + 'T12:00:00') - new Date()) < 3 * 86400000 : false;
+
+    const workUnits = imprints.map((imp, idx) => {
+      const cat      = inkToCategory(imp.inkType);
+      const catLabel = categoryLabel(cat);
+      const inkLabel = (!imp.inkType || imp.inkType === 'Select Ink/Application Type') ? '' : imp.inkType;
+      const wuId     = jobId + '-wu-' + idx;
+      return wu(wuId, jobId, imp.label, cat, catLabel, imp.nickname, imp.nickname,
+        imp.qty, station, null, imp.screens || 'N/A', inkLabel || catLabel, null, null, null);
+    });
+
+    // Add a finishing work unit if post production type requires it
+    if(imprints.some(imp => hasFinishing(imp.postProd))){
+      const wuId = jobId + '-wu-fin';
+      workUnits.push(wu(wuId, jobId, number+'-fin', 'finishing', 'Finishing Events',
+        imprints.find(imp=>hasFinishing(imp.postProd))?.postProd || 'Finishing',
+        '', imprints[0].qty, station, null, 'N/A', '', null, null, null));
+    }
+
+    jobs.push(makeJob(jobId, number, jobName, null, dueDate, dueLabel, urgent, station, workUnits, {}));
+  });
+
+  return jobs;
 }
 
 /* ============================================================
