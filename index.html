@@ -4381,6 +4381,8 @@ const PRINTAVO_STATION_STATUS_NAMES = {
 // First match wins. onHold:true keeps station but sets job.onHold flag.
 const PRINTAVO_INBOUND_STATUS_MAP = [
   { match: 'Awaiting Blanks',                         station: 'blanks' },
+  { match: 'Blanks To Order',                         station: 'blanks' },
+  { match: 'Goods to Pull from Inventory',            station: 'blanks' },
   { match: 'Blanks Partially Received',               station: 'blanks' },
   { match: 'Blanks Received',                         station: 'blanks' },
   { match: 'Blanks Counted In',                       station: 'prepress' },
@@ -4394,7 +4396,7 @@ const PRINTAVO_INBOUND_STATUS_MAP = [
   { match: 'In Post Production',                      station: 'postprod' },
   { match: 'Production Completed - Ready to Package', station: 'readyqc' },
   { match: 'Waiting for ShipBob',                     station: 'shipping' },
-  { match: 'Awaiting Fulfillment',                    station: 'readyqc' }, // placeholder — fulfillment board TBD
+  { match: 'Awaiting Fulfillment',                    station: 'readyqc' },
   { match: 'Order Ready for Pickup',                  station: 'shipping' },
   { match: 'Order Ready for Delivery',                station: 'shipping' },
   { match: 'Order Shipped',                           station: 'done' },
@@ -4593,8 +4595,10 @@ async function syncFromPrintavo(){
         continue;
       }
 
-      // New job: only add if it has the trigger status
-      if(!inv.status?.name?.includes(PRINTAVO_STATUS_TRIGGER)) continue;
+      // New job: add if status maps to any active station (not done/shipped)
+      const newStatusName = inv.status?.name || '';
+      const newResolved   = resolveStationFromPrintavoStatus(newStatusName);
+      if(!newResolved || newResolved.station === 'done') continue;
 
       // Step 2: fetch imprints + line items + URLs
       const detailData = await printavoFetch(printavoDetailQuery(inv.id));
