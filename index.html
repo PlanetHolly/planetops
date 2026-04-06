@@ -1607,8 +1607,9 @@ function buildCard(job){
   const card = document.createElement('div');
   card.className = 'k-card';
   const hasUrgent = isDueSoon(job) || job.workUnits.some(w => w.needsAttention);
-  const isRunning = job.workUnits.some(w => w.timer.state === 'running');
-  const isPaused  = !isRunning && job.workUnits.some(w => w.timer.state === 'paused');
+  // Only show running/paused styles when in production — irrelevant in other stations
+  const isRunning = job.station === 'production' && job.workUnits.some(w => w.timer.state === 'running');
+  const isPaused  = job.station === 'production' && !isRunning && job.workUnits.some(w => w.timer.state === 'paused');
   if(isRunning) card.classList.add('state-running');
   else if(isPaused) card.classList.add('state-paused');
 
@@ -3541,6 +3542,12 @@ function doMoveJobStation(jobId, nextStation){
   if(!job) return;
   const fromStation = job.station;
   job.station       = nextStation;
+  // Clear any lingering paused work unit timers when leaving production
+  if(fromStation === 'production'){
+    job.workUnits.forEach(w => {
+      if(w.timer.state === 'paused') w.timer.state = 'idle';
+    });
+  }
   // Generate prep tasks when entering pre-press
   if(nextStation === 'prepress') generatePrepTasks(jobId);
   renderSheet();
