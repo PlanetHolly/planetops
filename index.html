@@ -506,6 +506,66 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .pill-pickup  {background:rgba(33,150,243,.1);color:#1565c0}
 .pill-delivery{background:rgba(67,160,71,.1);color:#2e7d32}
 .archive-no-jobs{display:flex;align-items:center;justify-content:center;height:80px;color:rgba(0,0,0,.2);font-family:var(--font-head);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── FULFILLMENT TAB ── */
+.ff-header{display:flex;align-items:center;gap:8px;padding:10px 12px 0;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.07);background:var(--white)}
+.ff-title{font-family:var(--font-head);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--tonal-black);flex:1}
+.ff-subnav{display:flex;gap:4px}
+.ff-subbtn{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:5px 12px;border:none;border-radius:4px;background:transparent;color:rgba(0,0,0,.35);cursor:pointer;transition:all .15s}
+.ff-subbtn.active{background:var(--yellow);color:var(--tonal-black)}
+.ff-sync-btn{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:5px 10px;border:1px solid rgba(0,0,0,.12);border-radius:4px;background:transparent;color:rgba(0,0,0,.5);cursor:pointer}
+.ff-timer-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#1a1a1a;color:#fff;flex-shrink:0}
+.ff-timer-info{display:flex;flex-direction:column;flex:1;gap:1px}
+.ff-timer-label{font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--yellow)}
+.ff-timer-order{font-size:11px;color:rgba(255,255,255,.6)}
+.ff-timer-clock{font-family:var(--font-head);font-size:22px;font-weight:900;color:var(--yellow);letter-spacing:-.02em;min-width:52px;text-align:right}
+.ff-timer-stop{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:6px 14px;border:none;border-radius:4px;background:rgba(244,67,54,.9);color:#fff;cursor:pointer}
+.ff-view{flex:1;overflow-y:auto;padding:12px}
+.ff-view.hidden{display:none!important}
+/* Order cards */
+.ff-order-card{background:var(--white);border-radius:8px;border:1px solid rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden}
+.ff-order-header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.06)}
+.ff-order-num{font-family:var(--font-head);font-size:14px;font-weight:900;color:var(--tonal-black);flex:1}
+.ff-order-recipient{font-size:11px;color:rgba(0,0,0,.5)}
+.ff-order-status{font-family:var(--font-head);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:3px;background:rgba(33,150,243,.1);color:#1565c0}
+.ff-order-status.awaiting-shipment{background:rgba(247,190,0,.15);color:#7a5c00}
+.ff-pick-list{padding:8px 12px}
+.ff-pick-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.04)}
+.ff-pick-row:last-child{border-bottom:none}
+.ff-pick-bin{font-family:var(--font-head);font-size:13px;font-weight:900;color:var(--tonal-black);min-width:32px}
+.ff-pick-sku{flex:1;font-size:11px;font-weight:600;color:rgba(0,0,0,.7)}
+.ff-pick-qty{font-family:var(--font-head);font-size:12px;font-weight:800;color:rgba(0,0,0,.5)}
+.ff-order-actions{display:flex;gap:6px;padding:8px 12px;background:rgba(0,0,0,.02)}
+.ff-btn-primary{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:7px 14px;border:none;border-radius:5px;background:var(--yellow);color:var(--tonal-black);cursor:pointer}
+.ff-btn-secondary{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:7px 14px;border:1px solid rgba(0,0,0,.12);border-radius:5px;background:transparent;color:rgba(0,0,0,.5);cursor:pointer}
+.ff-btn-green{font-family:var(--font-head);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:7px 14px;border:none;border-radius:5px;background:#43A047;color:#fff;cursor:pointer}
+.ff-empty{text-align:center;padding:40px 20px;color:rgba(0,0,0,.25);font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+/* Bin grid */
+.ff-bins-toolbar{display:flex;gap:8px;margin-bottom:10px}
+.ff-bins-search{flex:1;border:1px solid rgba(0,0,0,.12);border-radius:5px;padding:7px 10px;font-size:12px;font-family:var(--font-body)}
+.ff-bin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ff-bin-tile{background:var(--white);border:1px solid rgba(0,0,0,.08);border-radius:6px;padding:8px;cursor:pointer;transition:all .15s;position:relative}
+.ff-bin-tile:active{transform:scale(.97)}
+.ff-bin-id{font-family:var(--font-head);font-size:13px;font-weight:900;color:var(--tonal-black);margin-bottom:2px}
+.ff-bin-sku{font-size:9px;font-weight:600;color:rgba(0,0,0,.5);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ff-bin-qty{font-family:var(--font-head);font-size:16px;font-weight:900;margin-top:4px}
+.ff-bin-qty.ok{color:#2E7D32}
+.ff-bin-qty.low{color:#E65100}
+.ff-bin-qty.empty{color:rgba(0,0,0,.2)}
+.ff-bin-tile.low-stock{border-color:#FF9800;background:rgba(255,152,0,.04)}
+.ff-bin-tile.empty-bin{border-color:rgba(0,0,0,.06);background:rgba(0,0,0,.02)}
+/* Log */
+.ff-log-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ff-log-cycle{font-size:11px;font-weight:600;color:rgba(0,0,0,.5);flex:1}
+.ff-session-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--white);border:1px solid rgba(0,0,0,.07);border-radius:6px;margin-bottom:6px}
+.ff-sess-type{font-family:var(--font-head);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:3px;background:rgba(247,190,0,.15);color:#7a5c00;white-space:nowrap}
+.ff-sess-order{font-size:11px;font-weight:700;color:var(--tonal-black);flex:1}
+.ff-sess-elapsed{font-family:var(--font-head);font-size:12px;font-weight:800;color:rgba(0,0,0,.5)}
+.ff-sess-op{font-size:10px;color:rgba(0,0,0,.35)}
+.ff-billing-summary{background:var(--white);border:1px solid rgba(0,0,0,.08);border-radius:8px;padding:14px;margin-top:12px}
+.ff-billing-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:12px;font-weight:600;color:var(--tonal-black)}
+.ff-billing-row:last-child{border-bottom:none;font-weight:800;font-size:13px}
+.ff-billing-amt{font-family:var(--font-head);font-weight:800}
 </style>
 </head>
 <body>
@@ -607,6 +667,53 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       </div>
     </div>
 
+    <!-- FULFILLMENT TAB -->
+    <div class="tab-panel" id="panel-fulfillment">
+      <div class="ff-header">
+        <div class="ff-title">📦 Iron &amp; Velvet Fulfillment</div>
+        <div class="ff-subnav">
+          <button class="ff-subbtn active" id="ffbtn-orders"  onclick="setFulfillmentView('orders')">Orders</button>
+          <button class="ff-subbtn"        id="ffbtn-bins"    onclick="setFulfillmentView('bins')">Bins</button>
+          <button class="ff-subbtn"        id="ffbtn-log"     onclick="setFulfillmentView('log')">Log</button>
+        </div>
+        <button class="ff-sync-btn" id="ff-sync-btn" onclick="syncShipStationOrders()">⟳ Sync Orders</button>
+      </div>
+
+      <!-- Active Timer Banner -->
+      <div class="ff-timer-banner hidden" id="ff-timer-banner">
+        <div class="ff-timer-info">
+          <span class="ff-timer-label" id="ff-timer-label">Pick &amp; Pack</span>
+          <span class="ff-timer-order" id="ff-timer-order"></span>
+        </div>
+        <div class="ff-timer-clock" id="ff-timer-clock">0:00</div>
+        <button class="ff-timer-stop" onclick="stopFulfillmentTimer()">Stop</button>
+      </div>
+
+      <!-- ORDERS VIEW -->
+      <div class="ff-view" id="ff-view-orders">
+        <div id="ff-orders-list"></div>
+      </div>
+
+      <!-- BINS VIEW -->
+      <div class="ff-view hidden" id="ff-view-bins">
+        <div class="ff-bins-toolbar">
+          <input class="ff-bins-search" type="text" placeholder="Search bin or SKU…" oninput="filterBins(this.value)">
+          <button class="ff-btn-secondary" onclick="openFulfillmentSettings()">⚙ Settings</button>
+        </div>
+        <div id="ff-bin-grid" class="ff-bin-grid"></div>
+      </div>
+
+      <!-- LOG VIEW -->
+      <div class="ff-view hidden" id="ff-view-log">
+        <div class="ff-log-toolbar">
+          <div class="ff-log-cycle">Billing cycle: <strong id="ff-cycle-label"></strong></div>
+          <button class="ff-btn-secondary" onclick="exportBillingReport()">⬇ Export Report</button>
+        </div>
+        <div id="ff-session-log"></div>
+        <div class="ff-billing-summary" id="ff-billing-summary"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- BOTTOM NAV -->
@@ -628,6 +735,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     <button class="nav-tab" onclick="switchTab('reports',this)">
       <span class="nav-icon">📊</span>
       <span class="nav-label">Reports</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('fulfillment',this)">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Fulfillment</span>
+      <span class="nav-badge hidden" id="fulfillment-badge">0</span>
     </button>
   </nav>
 
@@ -1064,6 +1176,19 @@ const state = {
   inventory: null,
 
   jobs: [],
+
+  // Fulfillment — Iron & Velvet
+  fulfillment: {
+    bins: [],                  // { id, sku, style, color, qty, lowStock, notes }
+    orders: [],                // pulled from ShipStation
+    sessions: [],              // completed billable sessions
+    activeSession: null,       // { type, orderId, orderNumber, startTs, operator }
+    billingCycleStart: '2026-04-09',
+    lastOrderSyncAt: null,
+    subView: 'orders',         // 'orders' | 'bins' | 'log'
+    shipStationApiKey: '',
+    shipStationApiSecret: '',
+  },
 };
 
 /* ============================================================
@@ -1236,8 +1361,9 @@ function switchTab(id, btn){
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
-  if(id === 'active')   renderActiveTab();
-  if(id === 'prepress') renderPrepTab();
+  if(id === 'active')      renderActiveTab();
+  if(id === 'prepress')    renderPrepTab();
+  if(id === 'fulfillment') renderFulfillmentTab();
 }
 
 /* ============================================================
@@ -4321,6 +4447,14 @@ function saveState(){
       prepTasks:   state.prepTasks,
       prepArchive: state.prepArchive,
       lastSyncAt:  state.lastSyncAt,
+      fulfillment: {
+        bins:                 state.fulfillment.bins,
+        sessions:             state.fulfillment.sessions,
+        billingCycleStart:    state.fulfillment.billingCycleStart,
+        lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
+        shipStationApiKey:    state.fulfillment.shipStationApiKey,
+        shipStationApiSecret: state.fulfillment.shipStationApiSecret,
+      },
     }));
   } catch(e){ console.warn('PlanetOps: save failed', e); }
 }
@@ -4351,6 +4485,19 @@ function loadState(){
     if(saved.prepTasks)   state.prepTasks   = saved.prepTasks;
     if(saved.prepArchive) state.prepArchive = saved.prepArchive;
     if(saved.lastSyncAt)  state.lastSyncAt  = saved.lastSyncAt;
+    if(saved.fulfillment){
+      const ff = saved.fulfillment;
+      if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
+      if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
+      if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
+      if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
+      if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
+      if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
+      // Init bins from layout if not yet saved
+      if(!ff.bins || ff.bins.length === 0) initFulfillmentBins();
+    } else {
+      initFulfillmentBins();
+    }
   } catch(e){ console.warn('PlanetOps: load failed', e); }
 }
 
@@ -4940,6 +5087,472 @@ buildBoard();
 // Auto-sync on load, then every 6 hours
 syncFromPrintavo();
 setInterval(syncFromPrintavo, SYNC_INTERVAL_MS);
+
+/* ============================================================
+   FULFILLMENT
+   ============================================================ */
+
+// ── Bin layout ──────────────────────────────────────────────
+const FF_BIN_IDS = (() => {
+  const ids = [];
+  for(let i=1;i<=16;i++) ids.push('A'+i);
+  for(let i=1;i<=16;i++){ if(i!==9&&i!==10) ids.push('B'+i); }
+  for(let i=1;i<=8;i++)  ids.push('C'+i);
+  for(let i=2;i<=8;i++)  ids.push('D'+i);
+  return ids;
+})();
+
+function makeBin(id){
+  return { id, sku:'', style:'', color:'', qty:0, lowStock:5, notes:'' };
+}
+
+function initFulfillmentBins(){
+  if(state.fulfillment.bins.length > 0) return;
+  state.fulfillment.bins = FF_BIN_IDS.map(makeBin);
+}
+
+// ── Sub-view switcher ────────────────────────────────────────
+function setFulfillmentView(view){
+  state.fulfillment.subView = view;
+  ['orders','bins','log'].forEach(v => {
+    document.getElementById('ff-view-'+v).classList.toggle('hidden', v !== view);
+    document.getElementById('ffbtn-'+v).classList.toggle('active', v === view);
+  });
+  if(view === 'orders') renderFFOrders();
+  if(view === 'bins')   renderFFBins();
+  if(view === 'log')    renderFFLog();
+}
+
+// ── Main render ──────────────────────────────────────────────
+function renderFulfillmentTab(){
+  initFulfillmentBins();
+  const view = state.fulfillment.subView || 'orders';
+  // Sync sub-nav button state
+  ['orders','bins','log'].forEach(v => {
+    const btn = document.getElementById('ffbtn-'+v);
+    if(btn) btn.classList.toggle('active', v === view);
+    const panel = document.getElementById('ff-view-'+v);
+    if(panel) panel.classList.toggle('hidden', v !== view);
+  });
+  updateFFTimerBanner();
+  if(view === 'orders') renderFFOrders();
+  if(view === 'bins')   renderFFBins();
+  if(view === 'log')    renderFFLog();
+  // Badge = open orders count
+  const badge = document.getElementById('fulfillment-badge');
+  const openCount = state.fulfillment.orders.filter(o => !o.shipped).length;
+  if(badge){ badge.textContent = openCount; badge.classList.toggle('hidden', openCount === 0); }
+}
+
+// ── Orders view ──────────────────────────────────────────────
+function renderFFOrders(){
+  const list = document.getElementById('ff-orders-list');
+  if(!list) return;
+  const orders = state.fulfillment.orders;
+  if(orders.length === 0){
+    const lastSync = state.fulfillment.lastOrderSyncAt
+      ? 'Last synced ' + new Date(state.fulfillment.lastOrderSyncAt).toLocaleTimeString()
+      : 'Not yet synced';
+    list.innerHTML = `<div class="ff-empty">No open orders<br><span style="font-size:10px;font-weight:500;text-transform:none">${lastSync}</span></div>`;
+    return;
+  }
+  list.innerHTML = orders.filter(o => !o.shipped).map(order => {
+    const pickRows = (order.items || []).map(item => {
+      const bin = state.fulfillment.bins.find(b => b.sku && b.sku === item.sku);
+      const binId = bin ? bin.id : '?';
+      return `<div class="ff-pick-row">
+        <div class="ff-pick-bin">${binId}</div>
+        <div class="ff-pick-sku">${item.name}</div>
+        <div class="ff-pick-qty">×${item.qty}</div>
+      </div>`;
+    }).join('');
+    const totalUnits = (order.items||[]).reduce((s,i)=>s+i.qty,0);
+    const fee = (2.99 + Math.max(0,totalUnits-1)*1.00).toFixed(2);
+    const activeSession = state.fulfillment.activeSession;
+    const isActive = activeSession && activeSession.orderId === order.id && activeSession.type === 'pickpack';
+    return `<div class="ff-order-card">
+      <div class="ff-order-header">
+        <div class="ff-order-num">#${order.orderNumber}</div>
+        <div class="ff-order-recipient">${order.shipTo || ''}</div>
+        <div class="ff-order-status awaiting-shipment">Awaiting Shipment</div>
+      </div>
+      <div class="ff-pick-list">${pickRows || '<div style="padding:6px 0;font-size:11px;color:rgba(0,0,0,.35)">No items mapped to bins yet</div>'}</div>
+      <div class="ff-order-actions">
+        ${isActive
+          ? `<button class="ff-timer-stop" onclick="stopFulfillmentTimer()">⏹ Stop Timer</button>`
+          : `<button class="ff-btn-primary" onclick="startFulfillmentTimer('pickpack','${order.id}','${order.orderNumber}')">▶ Start Pick &amp; Pack</button>`
+        }
+        <button class="ff-btn-secondary" onclick="startFulfillmentTimer('shipping','${order.id}','${order.orderNumber}')">▶ Shipping</button>
+        <button class="ff-btn-green" onclick="markOrderShipped('${order.id}')">✓ Shipped</button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="ff-empty">All orders shipped!</div>`;
+}
+
+// ── Bins view ────────────────────────────────────────────────
+function renderFFBins(filter=''){
+  const grid = document.getElementById('ff-bin-grid');
+  if(!grid) return;
+  const bins = state.fulfillment.bins.filter(b =>
+    !filter || b.id.toLowerCase().includes(filter.toLowerCase()) || (b.sku||'').toLowerCase().includes(filter.toLowerCase())
+  );
+  grid.innerHTML = bins.map(bin => {
+    const isEmpty = !bin.sku;
+    const isLow   = !isEmpty && bin.qty <= bin.lowStock && bin.qty > 0;
+    const isOut   = !isEmpty && bin.qty === 0;
+    const cls = isEmpty ? 'empty-bin' : isLow ? 'low-stock' : '';
+    const qtyClass = isEmpty || isOut ? 'empty' : isLow ? 'low' : 'ok';
+    const qtyDisplay = isEmpty ? '—' : bin.qty;
+    return `<div class="ff-bin-tile ${cls}" onclick="openBinEditor('${bin.id}')">
+      <div class="ff-bin-id">${bin.id}</div>
+      <div class="ff-bin-sku">${bin.sku || 'Empty'}</div>
+      <div class="ff-bin-qty ${qtyClass}">${qtyDisplay}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterBins(val){
+  renderFFBins(val);
+}
+
+// ── Log view ─────────────────────────────────────────────────
+function renderFFLog(){
+  const logEl = document.getElementById('ff-session-log');
+  const summaryEl = document.getElementById('ff-billing-summary');
+  const cycleEl = document.getElementById('ff-cycle-label');
+  if(!logEl) return;
+
+  const cycleStart = new Date(state.fulfillment.billingCycleStart);
+  const cycleEnd = new Date(cycleStart);
+  cycleEnd.setDate(cycleEnd.getDate() + 30);
+  if(cycleEl) cycleEl.textContent = cycleStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + cycleEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  const sessions = [...state.fulfillment.sessions].reverse();
+  logEl.innerHTML = sessions.length === 0
+    ? '<div class="ff-empty">No sessions logged yet</div>'
+    : sessions.map(s => {
+        const elapsed = formatElapsed(s.elapsedMs);
+        const typeLabel = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[s.type] || s.type;
+        const date = new Date(s.endTs).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        return `<div class="ff-session-row">
+          <div class="ff-sess-type">${typeLabel}</div>
+          <div class="ff-sess-order">${s.orderNumber ? '#'+s.orderNumber : '—'}<br><span class="ff-sess-op">${s.operator} · ${date}</span></div>
+          <div class="ff-sess-elapsed">${elapsed}</div>
+        </div>`;
+      }).join('');
+
+  // Billing summary
+  renderFFBillingSummary(summaryEl);
+}
+
+function renderFFBillingSummary(el){
+  if(!el) return;
+  const sessions = state.fulfillment.sessions;
+  const orders = state.fulfillment.orders.filter(o => o.shipped);
+
+  // Pick & pack fees
+  let pickPackFee = 0;
+  orders.forEach(o => {
+    const units = (o.items||[]).reduce((s,i)=>s+i.qty,0);
+    pickPackFee += 2.99 + Math.max(0,units-1)*1.00;
+  });
+
+  // Restock time
+  const restockMs = sessions.filter(s=>s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
+  const restockHrs = restockMs / 3600000;
+  const restockFee = restockHrs * 40;
+
+  // Storage
+  const binCount = state.fulfillment.bins.filter(b=>b.sku).length;
+  const storageFee = binCount * 2.50;
+
+  const adminFee = 199;
+  const total = adminFee + storageFee + pickPackFee + restockFee;
+
+  el.innerHTML = `
+    <div class="ff-billing-row"><span>Admin fee</span><span class="ff-billing-amt">$${adminFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>Storage (${binCount} bins × $2.50)</span><span class="ff-billing-amt">$${storageFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>Pick &amp; pack (${orders.length} orders)</span><span class="ff-billing-amt">$${pickPackFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>Restock labor (${(restockHrs).toFixed(1)} hrs × $40)</span><span class="ff-billing-amt">$${restockFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>TOTAL</span><span class="ff-billing-amt">$${total.toFixed(2)}</span></div>
+  `;
+}
+
+// ── Timers ───────────────────────────────────────────────────
+let ffTimerInterval = null;
+
+function startFulfillmentTimer(type, orderId, orderNumber){
+  if(state.fulfillment.activeSession){
+    showToast('⚠ Stop the current timer first');
+    return;
+  }
+  requireOperator(() => {
+    state.fulfillment.activeSession = { type, orderId, orderNumber, startTs: Date.now(), operator: state.operator };
+    saveState();
+    updateFFTimerBanner();
+    ffTimerInterval = setInterval(updateFFTimerClock, 1000);
+    const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[type] || type;
+    showToast('▶ ' + label + ' timer started');
+    renderFFOrders();
+  });
+}
+
+function stopFulfillmentTimer(){
+  const sess = state.fulfillment.activeSession;
+  if(!sess) return;
+  clearInterval(ffTimerInterval);
+  ffTimerInterval = null;
+  const elapsedMs = Date.now() - sess.startTs;
+  state.fulfillment.sessions.push({ ...sess, elapsedMs, endTs: Date.now() });
+  state.fulfillment.activeSession = null;
+  saveState();
+  updateFFTimerBanner();
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[sess.type] || sess.type;
+  showToast('⏹ ' + label + ' logged — ' + formatElapsed(elapsedMs));
+  renderFFOrders();
+  if(state.fulfillment.subView === 'log') renderFFLog();
+}
+
+function updateFFTimerBanner(){
+  const banner = document.getElementById('ff-timer-banner');
+  const labelEl = document.getElementById('ff-timer-label');
+  const orderEl = document.getElementById('ff-timer-order');
+  if(!banner) return;
+  const sess = state.fulfillment.activeSession;
+  if(!sess){ banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[sess.type] || sess.type;
+  if(labelEl) labelEl.textContent = label;
+  if(orderEl) orderEl.textContent = sess.orderNumber ? 'Order #' + sess.orderNumber : '';
+  updateFFTimerClock();
+  if(!ffTimerInterval) ffTimerInterval = setInterval(updateFFTimerClock, 1000);
+}
+
+function updateFFTimerClock(){
+  const clockEl = document.getElementById('ff-timer-clock');
+  if(!clockEl || !state.fulfillment.activeSession) return;
+  const ms = Date.now() - state.fulfillment.activeSession.startTs;
+  clockEl.textContent = formatElapsed(ms);
+}
+
+function formatElapsed(ms){
+  const s = Math.floor(ms/1000);
+  const m = Math.floor(s/60);
+  const h = Math.floor(m/60);
+  if(h > 0) return h+'h '+('0'+(m%60)).slice(-2)+'m';
+  return m+':'+ ('0'+(s%60)).slice(-2);
+}
+
+// ── Mark order shipped ───────────────────────────────────────
+function markOrderShipped(orderId){
+  const order = state.fulfillment.orders.find(o => o.id === orderId);
+  if(!order) return;
+  order.shipped = true;
+  order.shippedAt = Date.now();
+  saveState();
+  showToast('✓ Order #' + order.orderNumber + ' marked shipped');
+  renderFFOrders();
+  const badge = document.getElementById('fulfillment-badge');
+  const openCount = state.fulfillment.orders.filter(o => !o.shipped).length;
+  if(badge){ badge.textContent = openCount; badge.classList.toggle('hidden', openCount === 0); }
+}
+
+// ── Bin editor ───────────────────────────────────────────────
+function openBinEditor(binId){
+  const bin = state.fulfillment.bins.find(b => b.id === binId);
+  if(!bin) return;
+  // Reuse the generic modal approach
+  const html = `
+    <div style="padding:16px">
+      <div style="font-family:var(--font-head);font-size:16px;font-weight:900;margin-bottom:12px">Bin ${bin.id}</div>
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">SKU / Label</label>
+      <input id="bin-edit-sku" type="text" value="${bin.sku||''}" placeholder="Style / Type / Color" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Quantity</label>
+      <input id="bin-edit-qty" type="number" value="${bin.qty}" min="0" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Low-stock alert below</label>
+      <input id="bin-edit-low" type="number" value="${bin.lowStock}" min="0" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Notes</label>
+      <input id="bin-edit-notes" type="text" value="${bin.notes||''}" placeholder="Optional notes" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <button onclick="saveBinEdit('${binId}')" style="flex:1;padding:10px;background:var(--yellow);border:none;border-radius:5px;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Save</button>
+        <button onclick="closeModal('bin-editor-modal')" style="padding:10px 16px;border:1px solid rgba(0,0,0,.12);border-radius:5px;background:transparent;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Cancel</button>
+      </div>
+    </div>`;
+  let modal = document.getElementById('bin-editor-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'bin-editor-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `<div class="modal-box" style="max-width:320px">${html}</div>`;
+    document.body.appendChild(modal);
+  } else {
+    modal.querySelector('.modal-box').innerHTML = html;
+  }
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+
+function saveBinEdit(binId){
+  const bin = state.fulfillment.bins.find(b => b.id === binId);
+  if(!bin) return;
+  bin.sku      = document.getElementById('bin-edit-sku').value.trim();
+  bin.qty      = parseInt(document.getElementById('bin-edit-qty').value)||0;
+  bin.lowStock = parseInt(document.getElementById('bin-edit-low').value)||5;
+  bin.notes    = document.getElementById('bin-edit-notes').value.trim();
+  saveState();
+  const modal = document.getElementById('bin-editor-modal');
+  if(modal) modal.style.display = 'none';
+  renderFFBins();
+  showToast('Bin ' + binId + ' updated');
+}
+
+// ── ShipStation sync ─────────────────────────────────────────
+const SS_PROXY = 'https://planetapparel.app.n8n.cloud/webhook/shipstation-proxy';
+
+async function syncShipStationOrders(){
+  const btn = document.getElementById('ff-sync-btn');
+  if(btn) btn.textContent = '⟳ Syncing…';
+  try {
+    const key    = state.fulfillment.shipStationApiKey;
+    const secret = state.fulfillment.shipStationApiSecret;
+    if(!key || !secret){
+      showToast('⚠ ShipStation API credentials not set — open Settings');
+      if(btn) btn.textContent = '⟳ Sync Orders';
+      openFulfillmentSettings();
+      return;
+    }
+    const resp = await fetch(SS_PROXY, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ apiKey: key, apiSecret: secret, orderStatus: 'awaiting_shipment' })
+    });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const incoming = (data.orders || []).map(o => ({
+      id:          String(o.orderId),
+      orderNumber: o.orderNumber,
+      shipTo:      o.shipTo ? (o.shipTo.name||'') : '',
+      items:       (o.items||[]).map(i => ({ sku: i.sku||'', name: i.name||'', qty: i.quantity||1 })),
+      shipped:     false,
+    }));
+    // Merge: add new orders, keep existing shipped status
+    incoming.forEach(inc => {
+      const existing = state.fulfillment.orders.find(o => o.id === inc.id);
+      if(!existing) state.fulfillment.orders.push(inc);
+    });
+    state.fulfillment.lastOrderSyncAt = Date.now();
+    saveState();
+    const openCount = state.fulfillment.orders.filter(o=>!o.shipped).length;
+    showToast('✓ Synced — ' + openCount + ' open order' + (openCount===1?'':'s'));
+    renderFFOrders();
+    const badge = document.getElementById('fulfillment-badge');
+    if(badge){ badge.textContent = openCount; badge.classList.toggle('hidden', openCount===0); }
+  } catch(err){
+    console.error('ShipStation sync failed', err);
+    showToast('⚠ ShipStation sync failed — check console');
+  } finally {
+    if(btn) btn.textContent = '⟳ Sync Orders';
+  }
+}
+
+// ── Settings modal ───────────────────────────────────────────
+function openFulfillmentSettings(){
+  const ff = state.fulfillment;
+  const html = `
+    <div style="padding:16px">
+      <div style="font-family:var(--font-head);font-size:15px;font-weight:900;margin-bottom:12px">Fulfillment Settings</div>
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Key</label>
+      <input id="ff-ss-key" type="text" value="${ff.shipStationApiKey||''}" placeholder="API Key" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Secret</label>
+      <input id="ff-ss-secret" type="password" value="${ff.shipStationApiSecret||''}" placeholder="API Secret" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Billing Cycle Start</label>
+      <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-09'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <button onclick="saveFulfillmentSettings()" style="flex:1;padding:10px;background:var(--yellow);border:none;border-radius:5px;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Save</button>
+        <button onclick="closeModal('ff-settings-modal')" style="padding:10px 16px;border:1px solid rgba(0,0,0,.12);border-radius:5px;background:transparent;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Cancel</button>
+      </div>
+    </div>`;
+  let modal = document.getElementById('ff-settings-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'ff-settings-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `<div class="modal-box" style="max-width:320px">${html}</div>`;
+    document.body.appendChild(modal);
+  } else {
+    modal.querySelector('.modal-box').innerHTML = html;
+  }
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+
+function saveFulfillmentSettings(){
+  state.fulfillment.shipStationApiKey    = document.getElementById('ff-ss-key').value.trim();
+  state.fulfillment.shipStationApiSecret = document.getElementById('ff-ss-secret').value.trim();
+  state.fulfillment.billingCycleStart    = document.getElementById('ff-cycle-start').value;
+  saveState();
+  const modal = document.getElementById('ff-settings-modal');
+  if(modal) modal.style.display = 'none';
+  showToast('Settings saved');
+}
+
+function closeModal(id){
+  const modal = document.getElementById(id);
+  if(modal) modal.style.display = 'none';
+}
+
+// ── Billing export ───────────────────────────────────────────
+function exportBillingReport(){
+  const ff = state.fulfillment;
+  const cycleStart = new Date(ff.billingCycleStart);
+  const cycleEnd = new Date(cycleStart); cycleEnd.setDate(cycleEnd.getDate()+30);
+  const orders = ff.orders.filter(o=>o.shipped);
+  const sessions = ff.sessions;
+
+  let pickPackFee = 0;
+  orders.forEach(o => {
+    const units = (o.items||[]).reduce((s,i)=>s+i.qty,0);
+    pickPackFee += 2.99 + Math.max(0,units-1)*1.00;
+  });
+  const restockMs  = sessions.filter(s=>s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
+  const restockFee = (restockMs/3600000)*40;
+  const binCount   = ff.bins.filter(b=>b.sku).length;
+  const storageFee = binCount*2.50;
+  const adminFee   = 199;
+  const total      = adminFee + storageFee + pickPackFee + restockFee;
+
+  const lines = [
+    'Iron & Velvet Fulfillment Billing Report',
+    `Cycle: ${cycleStart.toLocaleDateString()} – ${cycleEnd.toLocaleDateString()}`,
+    '',
+    'LINE ITEM,DETAIL,AMOUNT',
+    `Admin Fee,,${adminFee.toFixed(2)}`,
+    `Storage,${binCount} bins × $2.50,${storageFee.toFixed(2)}`,
+    `Pick & Pack,${orders.length} orders,${pickPackFee.toFixed(2)}`,
+    `Restock Labor,${(restockMs/3600000).toFixed(2)} hrs × $40,${restockFee.toFixed(2)}`,
+    `TOTAL,,${total.toFixed(2)}`,
+    '',
+    'ORDER DETAIL',
+    'Order #,Recipient,Units,Fee',
+    ...orders.map(o => {
+      const units = (o.items||[]).reduce((s,i)=>s+i.qty,0);
+      const fee   = 2.99+Math.max(0,units-1)*1.00;
+      return `${o.orderNumber},${o.shipTo},${units},${fee.toFixed(2)}`;
+    }),
+    '',
+    'SESSION LOG',
+    'Type,Order,Operator,Date,Elapsed',
+    ...sessions.map(s => {
+      const date = new Date(s.endTs).toLocaleDateString();
+      return `${s.type},${s.orderNumber||''},${s.operator},${date},${formatElapsed(s.elapsedMs)}`;
+    }),
+  ];
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `IronVelvet_Fulfillment_${cycleStart.toISOString().slice(0,7)}.csv`;
+  a.click();
+}
 </script>
 </body>
 </html>
