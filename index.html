@@ -3176,9 +3176,12 @@ function checkJobAutoAdvance(jobId){
   if(!job) return;
 
   // Press WUs all done → go to postprod (if fin/sewing exist) or readyqc (if none)
+  // Use station index check so a job stuck in prepress/blanks still advances correctly
   const pressWus     = job.workUnits.filter(w => w.category === 'screen' || w.category === 'heat');
   const allPressDone = pressWus.length > 0 && pressWus.every(w => w.activeStage === 'done');
-  if(allPressDone && job.station === 'production'){
+  const currentIdx   = STATION_ORDER.indexOf(job.station);
+  const productionIdx = STATION_ORDER.indexOf('production');
+  if(allPressDone && currentIdx <= productionIdx){
     const finWus = job.workUnits.filter(w => w.category === 'finishing' || w.category === 'sewing');
     if(finWus.length > 0){
       job.station = 'postprod';
@@ -3187,6 +3190,7 @@ function checkJobAutoAdvance(jobId){
       job.station = 'readyqc';
       showToast('📦 All imprints done → Post-Prod QC!');
     }
+    syncStationToPrintavo(job, job.station);
     buildBoard();
     return;
   }
