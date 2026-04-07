@@ -5383,13 +5383,12 @@ function openBinEditor(binId){
     modal = document.createElement('div');
     modal.id = 'bin-editor-modal';
     modal.className = 'modal-overlay';
-    modal.innerHTML = `<div class="modal-box" style="max-width:320px">${html}</div>`;
+    modal.innerHTML = `<div class="modal-sheet" style="max-width:360px">${html}</div>`;
     document.body.appendChild(modal);
   } else {
-    modal.querySelector('.modal-box').innerHTML = html;
+    modal.querySelector('.modal-sheet').innerHTML = html;
   }
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
+  modal.classList.add('open');
 }
 
 function saveBinEdit(binId){
@@ -5401,7 +5400,7 @@ function saveBinEdit(binId){
   bin.notes    = document.getElementById('bin-edit-notes').value.trim();
   saveState();
   const modal = document.getElementById('bin-editor-modal');
-  if(modal) modal.style.display = 'none';
+  if(modal) modal.classList.remove('open');
   renderFFBins();
   showToast('Bin ' + binId + ' updated');
 }
@@ -5477,13 +5476,12 @@ function openFulfillmentSettings(){
     modal = document.createElement('div');
     modal.id = 'ff-settings-modal';
     modal.className = 'modal-overlay';
-    modal.innerHTML = `<div class="modal-box" style="max-width:320px">${html}</div>`;
+    modal.innerHTML = `<div class="modal-sheet" style="max-width:360px">${html}</div>`;
     document.body.appendChild(modal);
   } else {
-    modal.querySelector('.modal-box').innerHTML = html;
+    modal.querySelector('.modal-sheet').innerHTML = html;
   }
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
+  modal.classList.add('open');
 }
 
 function saveFulfillmentSettings(){
@@ -5492,14 +5490,10 @@ function saveFulfillmentSettings(){
   state.fulfillment.billingCycleStart    = document.getElementById('ff-cycle-start').value;
   saveState();
   const modal = document.getElementById('ff-settings-modal');
-  if(modal) modal.style.display = 'none';
+  if(modal) modal.classList.remove('open');
   showToast('Settings saved');
 }
 
-function closeModal(id){
-  const modal = document.getElementById(id);
-  if(modal) modal.style.display = 'none';
-}
 
 // ── Billing export ───────────────────────────────────────────
 function exportBillingReport(){
