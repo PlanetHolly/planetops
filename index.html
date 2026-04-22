@@ -720,8 +720,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
         <div class="ff-log-toolbar">
           <div class="ff-log-cycle">Billing cycle: <strong id="ff-cycle-label"></strong></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="ff-btn-secondary" onclick="startFulfillmentTimer('restock',null,null)">▶ Restock</button>
             <button class="ff-btn-secondary" onclick="startFulfillmentTimer('inbound',null,null)">▶ Inbound Check-In</button>
+            <button class="ff-btn-secondary" onclick="startFulfillmentTimer('internal',null,null)">▶ Internal (Non-Billable)</button>
             <button class="ff-btn-secondary" onclick="exportBillingReport()">⬇ Export Report</button>
           </div>
         </div>
@@ -1199,7 +1199,7 @@ const state = {
     orders: [],                // pulled from ShipStation
     sessions: [],              // completed billable sessions
     activeSession: null,       // { type, orderId, orderNumber, startTs, operator }
-    billingCycleStart: '2026-04-09',
+    billingCycleStart: '2026-04-13',
     lastOrderSyncAt: null,
     subView: 'orders',         // 'orders' | 'bins' | 'log'
     shipStationApiKey: '',
@@ -4506,6 +4506,8 @@ function loadState(){
       if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
       if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
       if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
+      // One-time migration: shift launch cycle from Apr 9 to Apr 13
+      if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
       if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
       if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
       if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
@@ -5421,12 +5423,13 @@ function renderFFLog(){
     ? '<div class="ff-empty">No sessions logged yet</div>'
     : sessions.map(s => {
         const elapsed = formatElapsed(s.elapsedMs);
-        const typeLabel = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[s.type] || s.type;
+        const typeLabel = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Inbound Check-In', inbound:'Inbound Check-In', internal:'Internal (Non-Billable)' }[s.type] || s.type;
         const date = new Date(s.endTs).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
         return `<div class="ff-session-row">
           <div class="ff-sess-type">${typeLabel}</div>
-          <div class="ff-sess-order">${s.orderNumber ? '#'+s.orderNumber : '—'}<br><span class="ff-sess-op">${s.operator} · ${date}</span></div>
+          <div class="ff-sess-order">${s.orderNumber ? '#'+s.orderNumber : '—'}<br><span class="ff-sess-op">${s.operator} · ${date}</span>${s.notes ? '<br><span style="font-size:10px;color:rgba(0,0,0,.55);font-style:italic">📝 '+s.notes+'</span>' : ''}</div>
           <div class="ff-sess-elapsed">${elapsed}</div>
+          <button class="ff-sess-del" onclick="deleteFFSession('${s.endTs}')" title="Delete this entry" style="background:none;border:none;cursor:pointer;color:rgba(0,0,0,.35);font-size:16px;padding:4px 8px">🗑</button>
         </div>`;
       }).join('');
 
@@ -5446,31 +5449,45 @@ function renderFFBillingSummary(el){
     pickPackFee += 2.99 + Math.max(0,units-1)*1.00;
   });
 
-  // Restock time
-  const restockMs = sessions.filter(s=>s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
-  const restockHrs = restockMs / 3600000;
-  const restockFee = restockHrs * 40;
+  // Inbound (includes legacy restock sessions) — Option B: sum per-type, round up, $40/hr min
+  const inboundMs = sessions.filter(s=>s.type==='inbound' || s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
+  const inboundRawHrs = inboundMs / 3600000;
+  const inboundBilledHrs = inboundMs > 0 ? Math.max(1, Math.ceil(inboundRawHrs)) : 0;
+  const inboundFee = inboundBilledHrs * 40;
 
-  // Inbound check-in time
-  const inboundMs = sessions.filter(s=>s.type==='inbound').reduce((s,r)=>s+r.elapsedMs,0);
-  const inboundHrs = inboundMs / 3600000;
-  const inboundFee = inboundHrs * 40;
+  // Internal (non-billable) — tracked for reference only
+  const internalMs = sessions.filter(s=>s.type==='internal').reduce((s,r)=>s+r.elapsedMs,0);
+  const internalHrs = internalMs / 3600000;
 
   // Storage
   const binCount = state.fulfillment.bins.filter(b=>b.sku).length;
   const storageFee = binCount * 2.50;
 
   const adminFee = 199;
-  const total = adminFee + storageFee + pickPackFee + restockFee + inboundFee;
+  const total = adminFee + storageFee + pickPackFee + inboundFee;
 
   el.innerHTML = `
     <div class="ff-billing-row"><span>Admin fee</span><span class="ff-billing-amt">$${adminFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Storage (${binCount} bins × $2.50)</span><span class="ff-billing-amt">$${storageFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Pick &amp; pack (${orders.length} orders)</span><span class="ff-billing-amt">$${pickPackFee.toFixed(2)}</span></div>
-    <div class="ff-billing-row"><span>Restock labor (${(restockHrs).toFixed(1)} hrs × $40)</span><span class="ff-billing-amt">$${restockFee.toFixed(2)}</span></div>
-    <div class="ff-billing-row"><span>Inbound check-in (${(inboundHrs).toFixed(1)} hrs × $40)</span><span class="ff-billing-amt">$${inboundFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>Inbound check-in (${inboundRawHrs.toFixed(2)} actual hrs → ${inboundBilledHrs} hr billed × $40)</span><span class="ff-billing-amt">$${inboundFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>TOTAL</span><span class="ff-billing-amt">$${total.toFixed(2)}</span></div>
+    <div class="ff-billing-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.15);color:rgba(0,0,0,.55);font-size:12px"><span>Internal hours logged (non-billable — your reference only)</span><span class="ff-billing-amt">${internalHrs.toFixed(2)} hrs</span></div>
   `;
+}
+
+// ── Session delete ───────────────────────────────────────────
+function deleteFFSession(endTs){
+  const idx = state.fulfillment.sessions.findIndex(s => String(s.endTs) === String(endTs));
+  if(idx === -1) return;
+  const s = state.fulfillment.sessions[idx];
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Inbound Check-In', inbound:'Inbound Check-In', internal:'Internal (Non-Billable)' }[s.type] || s.type;
+  const when = new Date(s.endTs).toLocaleDateString();
+  if(!confirm(`Delete this ${label} entry from ${when} (${formatElapsed(s.elapsedMs)})? This can't be undone.`)) return;
+  state.fulfillment.sessions.splice(idx, 1);
+  saveState();
+  renderFFLog();
+  showToast('🗑 Entry deleted');
 }
 
 // ── Timers ───────────────────────────────────────────────────
@@ -5486,7 +5503,7 @@ function startFulfillmentTimer(type, orderId, orderNumber){
     saveState();
     updateFFTimerBanner();
     ffTimerInterval = setInterval(updateFFTimerClock, 1000);
-    const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[type] || type;
+    const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Inbound Check-In', inbound:'Inbound Check-In', internal:'Internal (Non-Billable)' }[type] || type;
     showToast('▶ ' + label + ' timer started');
     renderFFOrders();
   });
@@ -5497,12 +5514,21 @@ function stopFulfillmentTimer(){
   if(!sess) return;
   clearInterval(ffTimerInterval);
   ffTimerInterval = null;
-  const elapsedMs = Date.now() - sess.startTs;
-  state.fulfillment.sessions.push({ ...sess, elapsedMs, endTs: Date.now() });
+  const measuredMs = Date.now() - sess.startTs;
+  const measuredStr = formatElapsed(measuredMs);
+  const override = prompt(`Timer measured ${measuredStr}. Override with actual time as HH:MM (leave blank to accept):`, '');
+  let elapsedMs = measuredMs;
+  if(override && override.trim()){
+    const m = override.trim().match(/^(\d+):(\d{1,2})$/);
+    if(m){ elapsedMs = (parseInt(m[1])*60 + parseInt(m[2])) * 60000; }
+    else { showToast('⚠ Invalid format, used measured time'); }
+  }
+  const notes = prompt('Notes for this session (optional — what was this for?):', '') || '';
+  state.fulfillment.sessions.push({ ...sess, elapsedMs, endTs: Date.now(), notes });
   state.fulfillment.activeSession = null;
   saveState();
   updateFFTimerBanner();
-  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[sess.type] || sess.type;
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Inbound Check-In', inbound:'Inbound Check-In', internal:'Internal (Non-Billable)' }[sess.type] || sess.type;
   showToast('⏹ ' + label + ' logged — ' + formatElapsed(elapsedMs));
   renderFFOrders();
   if(state.fulfillment.subView === 'log') renderFFLog();
@@ -5516,7 +5542,7 @@ function updateFFTimerBanner(){
   const sess = state.fulfillment.activeSession;
   if(!sess){ banner.classList.add('hidden'); return; }
   banner.classList.remove('hidden');
-  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[sess.type] || sess.type;
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Inbound Check-In', inbound:'Inbound Check-In', internal:'Internal (Non-Billable)' }[sess.type] || sess.type;
   if(labelEl) labelEl.textContent = label;
   if(orderEl) orderEl.textContent = sess.orderNumber ? 'Order #' + sess.orderNumber : '';
   updateFFTimerClock();
@@ -5665,7 +5691,7 @@ function openFulfillmentSettings(){
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Secret</label>
       <input id="ff-ss-secret" type="password" value="${ff.shipStationApiSecret||''}" placeholder="API Secret" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Billing Cycle Start</label>
-      <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-09'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
+      <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-13'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
       <div style="display:flex;gap:8px">
         <button onclick="saveFulfillmentSettings()" style="flex:1;padding:10px;background:var(--yellow);border:none;border-radius:5px;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Save</button>
         <button onclick="closeModal('ff-settings-modal')" style="padding:10px 16px;border:1px solid rgba(0,0,0,.12);border-radius:5px;background:transparent;font-family:var(--font-head);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Cancel</button>
@@ -5885,14 +5911,15 @@ function exportBillingReport(){
     const units = (o.items||[]).reduce((s,i)=>s+i.qty,0);
     pickPackFee += 2.99 + Math.max(0,units-1)*1.00;
   });
-  const restockMs  = sessions.filter(s=>s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
-  const restockFee = (restockMs/3600000)*40;
-  const inboundMs  = sessions.filter(s=>s.type==='inbound').reduce((s,r)=>s+r.elapsedMs,0);
-  const inboundFee = (inboundMs/3600000)*40;
+  const inboundMs  = sessions.filter(s=>s.type==='inbound' || s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
+  const inboundRawHrs = inboundMs / 3600000;
+  const inboundBilledHrs = inboundMs > 0 ? Math.max(1, Math.ceil(inboundRawHrs)) : 0;
+  const inboundFee = inboundBilledHrs * 40;
+  const internalMs = sessions.filter(s=>s.type==='internal').reduce((s,r)=>s+r.elapsedMs,0);
   const binCount   = ff.bins.filter(b=>b.sku).length;
   const storageFee = binCount*2.50;
   const adminFee   = 199;
-  const total      = adminFee + storageFee + pickPackFee + restockFee + inboundFee;
+  const total      = adminFee + storageFee + pickPackFee + inboundFee;
 
   const lines = [
     'Iron & Velvet Fulfillment Billing Report',
@@ -5902,9 +5929,10 @@ function exportBillingReport(){
     `Admin Fee,,${adminFee.toFixed(2)}`,
     `Storage,${binCount} bins × $2.50,${storageFee.toFixed(2)}`,
     `Pick & Pack,${orders.length} orders,${pickPackFee.toFixed(2)}`,
-    `Restock Labor,${(restockMs/3600000).toFixed(2)} hrs × $40,${restockFee.toFixed(2)}`,
-    `Inbound Check-In,${(inboundMs/3600000).toFixed(2)} hrs × $40,${inboundFee.toFixed(2)}`,
+    `Inbound Check-In,${inboundRawHrs.toFixed(2)} actual hrs → ${inboundBilledHrs} hr billed × $40,${inboundFee.toFixed(2)}`,
     `TOTAL,,${total.toFixed(2)}`,
+    '',
+    `Internal hours logged (non-billable),${(internalMs/3600000).toFixed(2)} hrs,—`,
     '',
     'ORDER DETAIL',
     'Order #,Recipient,Units,Fee',
@@ -5915,10 +5943,11 @@ function exportBillingReport(){
     }),
     '',
     'SESSION LOG',
-    'Type,Order,Operator,Date,Elapsed',
+    'Type,Order,Operator,Date,Elapsed,Notes',
     ...sessions.map(s => {
       const date = new Date(s.endTs).toLocaleDateString();
-      return `${s.type},${s.orderNumber||''},${s.operator},${date},${formatElapsed(s.elapsedMs)}`;
+      const notes = (s.notes||'').replace(/"/g,'""').replace(/,/g,';');
+      return `${s.type},${s.orderNumber||''},${s.operator},${date},${formatElapsed(s.elapsedMs)},${notes}`;
     }),
   ];
   const blob = new Blob([lines.join('\n')], {type:'text/csv'});
