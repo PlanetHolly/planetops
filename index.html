@@ -5105,16 +5105,6 @@ function parsePrintavoCSV(text){
 }
 
 /* ============================================================
-   INIT
-   ============================================================ */
-document.getElementById('header-date').textContent = todayStr();
-loadState();
-buildBoard();
-// Auto-sync on load (if work hours), then every 20 min during work hours
-if(isWorkHours()) syncFromPrintavo();
-setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
-
-/* ============================================================
    FULFILLMENT
    ============================================================ */
 
@@ -5974,6 +5964,16 @@ function exportBillingReport(){
   a.download = `IronVelvet_Fulfillment_${cycleStart.toISOString().slice(0,7)}.csv`;
   a.click();
 }
+
+/* ============================================================
+   INIT — runs last so all const declarations (FF_BIN_IDS, DEFAULT_BIN_DATA, etc.)
+   have executed before loadState() calls initFulfillmentBins()
+   ============================================================ */
+document.getElementById('header-date').textContent = todayStr();
+loadState();
+buildBoard();
+if(isWorkHours()) syncFromPrintavo();
+setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
 </script>
 </body>
 </html>
