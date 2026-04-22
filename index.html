@@ -5413,9 +5413,10 @@ function renderFFLog(){
   const cycleEl = document.getElementById('ff-cycle-label');
   if(!logEl) return;
 
-  const cycleStart = new Date(state.fulfillment.billingCycleStart);
-  const cycleEnd = new Date(cycleStart);
-  cycleEnd.setDate(cycleEnd.getDate() + 30);
+  const [cy,cm,cd] = (state.fulfillment.billingCycleStart||'2026-04-13').split('-').map(Number);
+  const cycleStart = new Date(cy, cm-1, cd);
+  const cycleEnd = new Date(cy, cm-1, cd);
+  cycleEnd.setDate(cycleEnd.getDate() + 29);
   if(cycleEl) cycleEl.textContent = cycleStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + cycleEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
   const sessions = [...state.fulfillment.sessions].reverse();
@@ -5459,6 +5460,14 @@ function renderFFBillingSummary(el){
   const internalMs = sessions.filter(s=>s.type==='internal').reduce((s,r)=>s+r.elapsedMs,0);
   const internalHrs = internalMs / 3600000;
 
+  // Pick & pack time (billed by unit, but show total time for internal reference)
+  const pickPackMs = sessions.filter(s=>s.type==='pickpack').reduce((s,r)=>s+r.elapsedMs,0);
+  const pickPackHrs = pickPackMs / 3600000;
+
+  // Shipping time (similar — internal reference only)
+  const shippingMs = sessions.filter(s=>s.type==='shipping').reduce((s,r)=>s+r.elapsedMs,0);
+  const shippingHrs = shippingMs / 3600000;
+
   // Storage
   const binCount = state.fulfillment.bins.filter(b=>b.sku).length;
   const storageFee = binCount * 2.50;
@@ -5472,7 +5481,12 @@ function renderFFBillingSummary(el){
     <div class="ff-billing-row"><span>Pick &amp; pack (${orders.length} orders)</span><span class="ff-billing-amt">$${pickPackFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Inbound check-in (${inboundRawHrs.toFixed(2)} actual hrs → ${inboundBilledHrs} hr billed × $40)</span><span class="ff-billing-amt">$${inboundFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>TOTAL</span><span class="ff-billing-amt">$${total.toFixed(2)}</span></div>
-    <div class="ff-billing-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.15);color:rgba(0,0,0,.55);font-size:12px"><span>Internal hours logged (non-billable — your reference only)</span><span class="ff-billing-amt">${internalHrs.toFixed(2)} hrs</span></div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.15);color:rgba(0,0,0,.55);font-size:12px">
+      <div style="font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:10px;color:rgba(0,0,0,.4);margin-bottom:6px">Internal Reference (not billed)</div>
+      <div class="ff-billing-row" style="font-size:12px;color:rgba(0,0,0,.55)"><span>Pick &amp; pack time logged</span><span class="ff-billing-amt">${pickPackHrs.toFixed(2)} hrs</span></div>
+      <div class="ff-billing-row" style="font-size:12px;color:rgba(0,0,0,.55)"><span>Shipping time logged</span><span class="ff-billing-amt">${shippingHrs.toFixed(2)} hrs</span></div>
+      <div class="ff-billing-row" style="font-size:12px;color:rgba(0,0,0,.55)"><span>Internal (non-billable)</span><span class="ff-billing-amt">${internalHrs.toFixed(2)} hrs</span></div>
+    </div>
   `;
 }
 
@@ -5901,8 +5915,9 @@ function saveBulkInventory(){
 // ── Billing export ───────────────────────────────────────────
 function exportBillingReport(){
   const ff = state.fulfillment;
-  const cycleStart = new Date(ff.billingCycleStart);
-  const cycleEnd = new Date(cycleStart); cycleEnd.setDate(cycleEnd.getDate()+30);
+  const [cy,cm,cd] = (ff.billingCycleStart||'2026-04-13').split('-').map(Number);
+  const cycleStart = new Date(cy, cm-1, cd);
+  const cycleEnd = new Date(cy, cm-1, cd); cycleEnd.setDate(cycleEnd.getDate()+29);
   const orders = ff.orders.filter(o=>o.shipped);
   const sessions = ff.sessions;
 
@@ -5932,7 +5947,10 @@ function exportBillingReport(){
     `Inbound Check-In,${inboundRawHrs.toFixed(2)} actual hrs → ${inboundBilledHrs} hr billed × $40,${inboundFee.toFixed(2)}`,
     `TOTAL,,${total.toFixed(2)}`,
     '',
-    `Internal hours logged (non-billable),${(internalMs/3600000).toFixed(2)} hrs,—`,
+    'INTERNAL REFERENCE (NOT BILLED)',
+    `Pick & pack time logged,${(sessions.filter(s=>s.type==='pickpack').reduce((a,s)=>a+s.elapsedMs,0)/3600000).toFixed(2)} hrs,—`,
+    `Shipping time logged,${(sessions.filter(s=>s.type==='shipping').reduce((a,s)=>a+s.elapsedMs,0)/3600000).toFixed(2)} hrs,—`,
+    `Internal (non-billable),${(internalMs/3600000).toFixed(2)} hrs,—`,
     '',
     'ORDER DETAIL',
     'Order #,Recipient,Units,Fee',
