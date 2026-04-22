@@ -719,7 +719,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       <div class="ff-view hidden" id="ff-view-log">
         <div class="ff-log-toolbar">
           <div class="ff-log-cycle">Billing cycle: <strong id="ff-cycle-label"></strong></div>
-          <button class="ff-btn-secondary" onclick="exportBillingReport()">⬇ Export Report</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="ff-btn-secondary" onclick="startFulfillmentTimer('restock',null,null)">▶ Restock</button>
+            <button class="ff-btn-secondary" onclick="startFulfillmentTimer('inbound',null,null)">▶ Inbound Check-In</button>
+            <button class="ff-btn-secondary" onclick="exportBillingReport()">⬇ Export Report</button>
+          </div>
         </div>
         <div id="ff-session-log"></div>
         <div class="ff-billing-summary" id="ff-billing-summary"></div>
@@ -5417,7 +5421,7 @@ function renderFFLog(){
     ? '<div class="ff-empty">No sessions logged yet</div>'
     : sessions.map(s => {
         const elapsed = formatElapsed(s.elapsedMs);
-        const typeLabel = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[s.type] || s.type;
+        const typeLabel = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[s.type] || s.type;
         const date = new Date(s.endTs).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
         return `<div class="ff-session-row">
           <div class="ff-sess-type">${typeLabel}</div>
@@ -5447,18 +5451,24 @@ function renderFFBillingSummary(el){
   const restockHrs = restockMs / 3600000;
   const restockFee = restockHrs * 40;
 
+  // Inbound check-in time
+  const inboundMs = sessions.filter(s=>s.type==='inbound').reduce((s,r)=>s+r.elapsedMs,0);
+  const inboundHrs = inboundMs / 3600000;
+  const inboundFee = inboundHrs * 40;
+
   // Storage
   const binCount = state.fulfillment.bins.filter(b=>b.sku).length;
   const storageFee = binCount * 2.50;
 
   const adminFee = 199;
-  const total = adminFee + storageFee + pickPackFee + restockFee;
+  const total = adminFee + storageFee + pickPackFee + restockFee + inboundFee;
 
   el.innerHTML = `
     <div class="ff-billing-row"><span>Admin fee</span><span class="ff-billing-amt">$${adminFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Storage (${binCount} bins × $2.50)</span><span class="ff-billing-amt">$${storageFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Pick &amp; pack (${orders.length} orders)</span><span class="ff-billing-amt">$${pickPackFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>Restock labor (${(restockHrs).toFixed(1)} hrs × $40)</span><span class="ff-billing-amt">$${restockFee.toFixed(2)}</span></div>
+    <div class="ff-billing-row"><span>Inbound check-in (${(inboundHrs).toFixed(1)} hrs × $40)</span><span class="ff-billing-amt">$${inboundFee.toFixed(2)}</span></div>
     <div class="ff-billing-row"><span>TOTAL</span><span class="ff-billing-amt">$${total.toFixed(2)}</span></div>
   `;
 }
@@ -5476,7 +5486,7 @@ function startFulfillmentTimer(type, orderId, orderNumber){
     saveState();
     updateFFTimerBanner();
     ffTimerInterval = setInterval(updateFFTimerClock, 1000);
-    const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[type] || type;
+    const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[type] || type;
     showToast('▶ ' + label + ' timer started');
     renderFFOrders();
   });
@@ -5492,7 +5502,7 @@ function stopFulfillmentTimer(){
   state.fulfillment.activeSession = null;
   saveState();
   updateFFTimerBanner();
-  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[sess.type] || sess.type;
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[sess.type] || sess.type;
   showToast('⏹ ' + label + ' logged — ' + formatElapsed(elapsedMs));
   renderFFOrders();
   if(state.fulfillment.subView === 'log') renderFFLog();
@@ -5506,7 +5516,7 @@ function updateFFTimerBanner(){
   const sess = state.fulfillment.activeSession;
   if(!sess){ banner.classList.add('hidden'); return; }
   banner.classList.remove('hidden');
-  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock' }[sess.type] || sess.type;
+  const label = { pickpack:'Pick & Pack', shipping:'Shipping', restock:'Restock', inbound:'Inbound Check-In' }[sess.type] || sess.type;
   if(labelEl) labelEl.textContent = label;
   if(orderEl) orderEl.textContent = sess.orderNumber ? 'Order #' + sess.orderNumber : '';
   updateFFTimerClock();
@@ -5877,10 +5887,12 @@ function exportBillingReport(){
   });
   const restockMs  = sessions.filter(s=>s.type==='restock').reduce((s,r)=>s+r.elapsedMs,0);
   const restockFee = (restockMs/3600000)*40;
+  const inboundMs  = sessions.filter(s=>s.type==='inbound').reduce((s,r)=>s+r.elapsedMs,0);
+  const inboundFee = (inboundMs/3600000)*40;
   const binCount   = ff.bins.filter(b=>b.sku).length;
   const storageFee = binCount*2.50;
   const adminFee   = 199;
-  const total      = adminFee + storageFee + pickPackFee + restockFee;
+  const total      = adminFee + storageFee + pickPackFee + restockFee + inboundFee;
 
   const lines = [
     'Iron & Velvet Fulfillment Billing Report',
@@ -5891,6 +5903,7 @@ function exportBillingReport(){
     `Storage,${binCount} bins × $2.50,${storageFee.toFixed(2)}`,
     `Pick & Pack,${orders.length} orders,${pickPackFee.toFixed(2)}`,
     `Restock Labor,${(restockMs/3600000).toFixed(2)} hrs × $40,${restockFee.toFixed(2)}`,
+    `Inbound Check-In,${(inboundMs/3600000).toFixed(2)} hrs × $40,${inboundFee.toFixed(2)}`,
     `TOTAL,,${total.toFixed(2)}`,
     '',
     'ORDER DETAIL',
