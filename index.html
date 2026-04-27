@@ -4611,7 +4611,7 @@ async function loadPrintavoStatusIds(){
 
 // Step 1: list query — no imprints (Printavo caps complexity at 25000)
 const PRINTAVO_LIST_QUERY = `{
-  invoices(first: 50, sortOn: VISUAL_ID, sortDescending: true) {
+  invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true) {
     edges {
       node {
         id visualId nickname dueAt
