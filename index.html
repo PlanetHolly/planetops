@@ -4724,7 +4724,10 @@ async function printavoFetch(query){
   return res.json();
 }
 
+let _printavoSyncing = false;
 async function syncFromPrintavo(){
+  if(_printavoSyncing) return;
+  _printavoSyncing = true;
   updateSyncUI('syncing');
   try {
     // Step 1: get list of recent invoices
@@ -4819,15 +4822,29 @@ async function syncFromPrintavo(){
   } catch(err){
     console.error('Printavo sync error:', err);
     updateSyncUI('error');
+  } finally {
+    _printavoSyncing = false;
   }
 }
 
+const INVENTORY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 async function fetchBandanaInventory(){
   try {
+    const cached = localStorage.getItem('planetops_inventory_cache');
+    if(cached){
+      const { ts, data } = JSON.parse(cached);
+      if(Date.now() - ts < INVENTORY_CACHE_TTL_MS){
+        if(data.import || data.usa){ state.inventory = data; }
+        return;
+      }
+    }
     const res = await fetch(INVENTORY_PROXY);
     if(!res.ok) return;
     const data = await res.json();
-    if(data.import || data.usa){ state.inventory = data; }
+    if(data.import || data.usa){
+      state.inventory = data;
+      localStorage.setItem('planetops_inventory_cache', JSON.stringify({ ts: Date.now(), data }));
+    }
   } catch(e){ /* silent fail — inventory display is optional */ }
 }
 
