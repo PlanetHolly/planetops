@@ -4724,6 +4724,7 @@ async function printavoFetch(query){
   return res.json();
 }
 
+const _sleep = ms => new Promise(r => setTimeout(r, ms));
 let _printavoSyncing = false;
 async function syncFromPrintavo(){
   if(_printavoSyncing) return;
@@ -4765,6 +4766,7 @@ async function syncFromPrintavo(){
         }
 
         // Always re-fetch detail to refresh blanks list, URLs, placements
+        await _sleep(300);
         const detailData = await printavoFetch(printavoDetailQuery(inv.id));
         const detail = detailData?.data?.invoice || {};
         const groups = detail?.lineItemGroups?.nodes || [];
@@ -4789,6 +4791,7 @@ async function syncFromPrintavo(){
       if(!newResolved || newResolved.station === 'done') continue;
 
       // Step 2: fetch imprints + line items + URLs
+      await _sleep(300);
       const detailData = await printavoFetch(printavoDetailQuery(inv.id));
       const detail = detailData?.data?.invoice || {};
       const groups = detail?.lineItemGroups?.nodes || [];
@@ -4806,6 +4809,7 @@ async function syncFromPrintavo(){
     );
     for(const job of needsBackfill){
       try {
+        await _sleep(300);
         const d = await printavoFetch(printavoDetailQuery(job.printavoId));
         const groups = d?.data?.invoice?.lineItemGroups?.nodes || [];
         if(groups.length) job.blanksList = mapBlanksList(groups);
