@@ -3490,7 +3490,7 @@ function confirmBlanksCheckIn(type){
     const color      = typeof entry === 'object' ? entry.color      : '';
     if(!qty || qty <= 0) continue;
     job.inHouseDeducted[idx] = true;
-    fetch('https://planetapparel.app.n8n.cloud/webhook/inventory-deduct', {
+    fetch('https://primary-production-079f9.up.railway.app/webhook/inventory-deduct', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ itemNumber, color, qty, jobId, idx })
