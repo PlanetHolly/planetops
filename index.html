@@ -4877,6 +4877,15 @@ function lookupBandanaStock(itemNumber, color, description){
     const kn = k.toLowerCase().replace(/[^a-z0-9]/g,'');
     if(kn.startsWith(cn) || cn.startsWith(kn)) return v;
   }
+  // Third pass: all significant words (3+ chars) in the color must appear in the inventory key
+  // Handles cases like "Sky Blue" matching "Sky/Lt. Blue"
+  const cnWords = (color || '').toLowerCase().match(/[a-z]{3,}/g) || [];
+  if(cnWords.length > 0){
+    for(const [k, v] of Object.entries(section)){
+      const kWords = k.toLowerCase().match(/[a-z]{3,}/g) || [];
+      if(cnWords.every(w => kWords.includes(w))) return v;
+    }
+  }
   return null;
 }
 
