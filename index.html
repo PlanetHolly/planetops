@@ -5281,14 +5281,35 @@ function renderFulfillmentTab(){
   if(badge){ badge.textContent = openCount; badge.classList.toggle('hidden', openCount === 0); }
 }
 
-// ── Bin matcher (product name + size → exact bin) ───────────
-function findBinsForItem(itemName){
+// ── Bin matcher (barcode/UPC first, then product name + size) ───────────
+function findBinsForItem(item){
+  // Barcode-first: exact match against any UPC in bin.barcodes (one per size variant)
+  const code = ((item && (item.upc || item.sku)) || '').trim();
+  if(code){
+    const exact = state.fulfillment.bins.filter(b => {
+      if(!Array.isArray(b.barcodes)) return false;
+      return b.barcodes.some(entry => {
+        const upc = typeof entry === 'string' ? entry : (entry && entry.upc);
+        return upc && upc.trim() === code;
+      });
+    });
+    if(exact.length) return exact;
+  }
+  return findBinsByName(item ? item.name : '');
+}
+
+function findBinsByName(itemName){
   if(!itemName) return [];
+  // Normalize for comparison: strip apostrophes, replace other punctuation with space, lowercase, collapse whitespace
+  const normalize = s => (s||'').toLowerCase()
+    .replace(/['']/g,'')
+    .replace(/[^a-z0-9 ]+/g,' ')
+    .replace(/\s+/g,' ').trim();
   // Extract size from end: "Design Hoodie - Faded Black / M" → size "M"
   const sizeMatch = itemName.match(/\/\s*([A-Z0-9]+)\s*$/i);
   const orderedSize = sizeMatch ? sizeMatch[1].toUpperCase() : null;
-  // Strip size suffix for design/color matching
-  const name = itemName.replace(/\s*\/\s*\w+$/,'').trim().toLowerCase();
+  // Strip size suffix for design/color matching, then normalize
+  const name = normalize(itemName.replace(/\s*\/\s*\w+$/,''));
   // Style synonyms: Shopify name → bin data name
   const styleSynonyms = [
     ['hoodie','hoody'],['hoody','hoodie'],
@@ -5301,15 +5322,15 @@ function findBinsForItem(itemName){
   const productMatches = [];
   state.fulfillment.bins.forEach(b => {
     if(!b.sku) return;
-    const design = b.sku.toLowerCase();
-    const color  = b.color.toLowerCase();
-    const style  = b.style.toLowerCase();
-    if(!name.includes(design)) return;
-    if(!name.includes(color)) return;
-    let styleOk = name.includes(style);
+    const design = normalize(b.sku);
+    const color  = normalize(b.color);
+    const style  = normalize(b.style);
+    if(design && !name.includes(design)) return;
+    if(color  && !name.includes(color))  return;
+    let styleOk = !style || name.includes(style);
     if(!styleOk){
       for(const [from,to] of styleSynonyms){
-        if(style === from && name.includes(to)){ styleOk = true; break; }
+        if(style === normalize(from) && name.includes(normalize(to))){ styleOk = true; break; }
       }
     }
     if(styleOk) productMatches.push(b);
@@ -5343,7 +5364,7 @@ function renderFFOrders(){
   }
   list.innerHTML = orders.filter(o => !o.shipped).map(order => {
     const pickRows = (order.items || []).map(item => {
-      const matchedBins = findBinsForItem(item.name);
+      const matchedBins = findBinsForItem(item);
       const binId = matchedBins.length ? matchedBins.map(b=>b.id).join(', ') : '?';
       return `<div class="ff-pick-row">
         <div class="ff-pick-bin">${binId}</div>
@@ -5625,6 +5646,8 @@ function openBinEditor(binId){
       <div style="font-family:var(--font-head);font-size:16px;font-weight:900;margin-bottom:12px">Bin ${bin.id}</div>
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">SKU / Label</label>
       <input id="bin-edit-sku" type="text" value="${bin.sku||''}" placeholder="Style / Type / Color" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Barcodes / UPCs <span style="font-weight:500;color:#888">— one per line, one per size variant</span></label>
+      <textarea id="bin-edit-barcodes" rows="4" placeholder="19710948 XS&#10;19710955 S&#10;19710962 M" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;font-family:ui-monospace,monospace;box-sizing:border-box;margin-bottom:10px;resize:vertical">${(bin.barcodes||[]).map(b => typeof b === 'string' ? b : (b.upc + (b.size?' '+b.size:''))).join('\n')}</textarea>
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Quantity</label>
       <input id="bin-edit-qty" type="number" value="${bin.qty}" min="0" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Low-stock alert below</label>
@@ -5653,6 +5676,12 @@ function saveBinEdit(binId){
   const bin = state.fulfillment.bins.find(b => b.id === binId);
   if(!bin) return;
   bin.sku      = document.getElementById('bin-edit-sku').value.trim();
+  bin.barcodes = document.getElementById('bin-edit-barcodes').value
+                  .split('\n').map(l => l.trim()).filter(Boolean)
+                  .map(l => {
+                    const parts = l.split(/\s+/);
+                    return { upc: parts[0], size: parts.slice(1).join(' ') || '' };
+                  });
   bin.qty      = parseInt(document.getElementById('bin-edit-qty').value)||0;
   bin.lowStock = parseInt(document.getElementById('bin-edit-low').value)||5;
   bin.notes    = document.getElementById('bin-edit-notes').value.trim();
@@ -5690,7 +5719,7 @@ async function syncShipStationOrders(){
       id:          String(o.orderId),
       orderNumber: o.orderNumber,
       shipTo:      o.shipTo ? (o.shipTo.name||'') : '',
-      items:       (o.items||[]).map(i => ({ sku: i.sku||'', name: i.name||'', qty: i.quantity||1 })),
+      items:       (o.items||[]).map(i => ({ sku: i.sku||'', upc: i.upc||'', name: i.name||'', qty: i.quantity||1 })),
       shipped:     false,
     }));
     // Merge: add new orders, keep existing shipped status
