@@ -925,6 +925,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   </div>
 </div>
 
+<!-- PULL CONFIRMATION MODAL -->
+<div class="modal-overlay" id="pull-confirm-modal" onclick="handleOverlayClick(event,'pull-confirm-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Confirm Pull</div>
+    <div class="modal-sub">This will deduct from inventory. Verify the quantity below.</div>
+    <div id="pull-confirm-details" style="text-align:center;padding:18px 0 10px;font-size:17px;line-height:1.6;color:#1a1a1a"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('pull-confirm-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="confirmPull()">Confirm Pull</button>
+    </div>
+  </div>
+</div>
+
 <!-- BLANKS COMPLETION MODAL (Complete vs Partial) -->
 <div class="modal-overlay" id="blanks-comp-modal" onclick="handleOverlayClick(event,'blanks-comp-modal')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -2034,6 +2048,7 @@ function wuStatusPill(w){
     // No gates = post-production type — label by category, not "Pending"
     if(w.category === 'finishing') return {label:'Post Prod', cls:'pill-not-started'};
     if(w.category === 'sewing')    return {label:'Sewing',    cls:'pill-not-started'};
+    if(w.category === 'outsourced') return {label:'Outsourced', cls:'pill-not-started'};
     return {label:'Not Started', cls:'pill-not-started'};
   }
   const cleared = req.filter(g => w.gates[g]).length;
@@ -2368,6 +2383,19 @@ function renderJobLevel(){
                 </div>`;
               }).join('')}
             </div>
+            ${(()=>{
+              const deducted = job.inHouseDeducted || {};
+              const hasPending = g.sizes.some(s => {
+                const raw = (job.inHouseCount||{})[s.idx];
+                const qty = raw ? (typeof raw==='object' ? raw.qty : raw) : 0;
+                return parseInt(qty) > 0 && !deducted[s.idx];
+              });
+              return hasPending ? `<button
+                style="margin-top:8px;width:100%;padding:11px;background:#388E3C;color:#fff;border:none;border-radius:10px;font-family:var(--font-head);font-weight:800;font-size:14px;cursor:pointer;letter-spacing:.02em"
+                onclick="openPullConfirmDialog('${job.id}','${g.itemNumber}','${g.color}');event.stopPropagation()">
+                ✓ Confirm Pull
+              </button>` : '';
+            })()}
           </div>`;
 
         return `
@@ -3483,26 +3511,54 @@ function confirmBlanksCheckIn(type){
     showToast('📦 Partial check-in logged. Job stays in Blanks.');
   }
 
-  // Fire inventory deductions for all in-house entries not yet deducted
-  const inHouseCount = job.inHouseCount || {};
+  state.pendingBlanksJobId = null;
+  renderSheet();
+  buildBoard();
+}
+
+function openPullConfirmDialog(jobId, itemNumber, color) {
+  const job = getJob(jobId);
+  if (!job) return;
+  const inHouse  = job.inHouseCount  || {};
+  const deducted = job.inHouseDeducted || {};
+  const pending  = Object.entries(inHouse).filter(([idx, entry]) => {
+    if (deducted[idx]) return false;
+    const en = typeof entry === 'object' ? entry : { qty: entry, itemNumber: '', color: '' };
+    return en.itemNumber === itemNumber && en.color === color;
+  });
+  if (!pending.length) { showToast('Already confirmed for this item'); return; }
+  const totalQty = pending.reduce((sum, [, entry]) => {
+    return sum + (parseInt(typeof entry === 'object' ? entry.qty : entry) || 0);
+  }, 0);
+  state.pendingPullConfirm = { jobId, itemNumber, color, pending };
+  document.getElementById('pull-confirm-details').innerHTML =
+    `<strong style="font-family:var(--font-head);font-size:26px;font-weight:900">${totalQty}</strong> × ${color}${itemNumber ? `<br><span style="font-size:13px;color:rgba(0,0,0,.45)">${itemNumber} · Job #${job.number}</span>` : `<br><span style="font-size:13px;color:rgba(0,0,0,.45)">Job #${job.number}</span>`}`;
+  openModal('pull-confirm-modal');
+}
+
+function confirmPull() {
+  const { jobId, itemNumber, color, pending } = state.pendingPullConfirm || {};
+  if (!jobId || !pending) return;
+  const job = getJob(jobId);
+  if (!job) return;
   job.inHouseDeducted = job.inHouseDeducted || {};
-  for(const [idx, entry] of Object.entries(inHouseCount)){
-    if(job.inHouseDeducted[idx]) continue; // already deducted
-    const qty        = typeof entry === 'object' ? entry.qty        : entry;
-    const itemNumber = typeof entry === 'object' ? entry.itemNumber : '';
-    const color      = typeof entry === 'object' ? entry.color      : '';
-    if(!qty || qty <= 0) continue;
+  for (const [idx, entry] of pending) {
+    if (job.inHouseDeducted[idx]) continue;
+    const qty = parseInt(typeof entry === 'object' ? entry.qty : entry) || 0;
+    const itm = typeof entry === 'object' ? entry.itemNumber : itemNumber;
+    const clr = typeof entry === 'object' ? entry.color      : color;
+    if (qty <= 0) continue;
     job.inHouseDeducted[idx] = true;
     fetch('https://primary-production-079f9.up.railway.app/webhook/inventory-deduct', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ itemNumber, color, qty, jobId, idx })
+      body: JSON.stringify({ itemNumber: itm, color: clr, qty, jobId, idx })
     }).catch(() => {});
   }
-
-  state.pendingBlanksJobId = null;
+  saveState();
+  closeModal('pull-confirm-modal');
   renderSheet();
-  buildBoard();
+  showToast('✓ Pull confirmed — inventory deducted');
 }
 
 /* ============================================================
@@ -4169,6 +4225,21 @@ function checkGateAutoUpdate(wuId){
 
 <script>
 /* ============================================================
+   SHARED STATE BACKEND  (Railway State API)
+   Replaces per-device localStorage with one shared backend, so
+   every device and station reads and writes the same data.
+   Deployed 2026-05-19 — see "Planet Ops Master Build Brief" §2C.
+   ============================================================ */
+const STATE_API_URL = 'https://planetops-production.up.railway.app';
+const STATE_API_KEY = 'be6022c715f16a6b1bdecf74a030b852f05925fee556302d66254d00a170dd5d';
+
+/* True only after a successful loadState(). saveState() refuses to
+   write until this is set — this stops an empty board from
+   overwriting real shared data if the first load ever fails. */
+let stateLoaded = false;
+let _saveTimer  = null;
+
+/* ============================================================
    ACTIVE TAB
    ============================================================ */
 function renderActiveTab(){
@@ -4457,74 +4528,136 @@ setInterval(() => {
 }, 1000);
 
 /* ============================================================
-   PERSISTENCE (localStorage)
+   PERSISTENCE (shared State API — Railway)
    ============================================================ */
-function saveState(){
-  try {
-    localStorage.setItem('planetops-v2', JSON.stringify({
-      jobs:        state.jobs,
-      prepTasks:   state.prepTasks,
-      prepArchive: state.prepArchive,
-      lastSyncAt:  state.lastSyncAt,
-      fulfillment: {
-        bins:                 state.fulfillment.bins,
-        sessions:             state.fulfillment.sessions,
-        billingCycleStart:    state.fulfillment.billingCycleStart,
-        lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
-        shipStationApiKey:    state.fulfillment.shipStationApiKey,
-        shipStationApiSecret: state.fulfillment.shipStationApiSecret,
-      },
-    }));
-  } catch(e){ console.warn('PlanetOps: save failed', e); }
+/* Builds the state snapshot sent to the shared backend. */
+function buildStatePayload(){
+  return {
+    jobs:        state.jobs,
+    prepTasks:   state.prepTasks,
+    prepArchive: state.prepArchive,
+    lastSyncAt:  state.lastSyncAt,
+    fulfillment: {
+      bins:                 state.fulfillment.bins,
+      sessions:             state.fulfillment.sessions,
+      billingCycleStart:    state.fulfillment.billingCycleStart,
+      lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
+      shipStationApiKey:    state.fulfillment.shipStationApiKey,
+      shipStationApiSecret: state.fulfillment.shipStationApiSecret,
+    },
+  };
 }
 
-function loadState(){
+/* saveState() is called from ~24 places. It no longer writes directly —
+   it debounces, so a burst of changes collapses into a single POST. */
+function saveState(){
+  if(!stateLoaded) return;            // never write before a successful load
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(pushStateToServer, 800);
+}
+
+/* Sends the current state to the Railway backend. */
+async function pushStateToServer(){
   try {
-    const raw = localStorage.getItem('planetops-v2');
-    if(!raw) return;
-    const saved = JSON.parse(raw);
-    if(saved.jobs){
-      state.jobs = saved.jobs.map(j => {
-        // Migrate jobs from older versions that may be missing fields
-        if(!j.projectTimers)          j.projectTimers = makeProjectTimers();
-        if(!j.projectTimers.blanksCheckIn) j.projectTimers.blanksCheckIn = makeProjectTimers().blanksCheckIn;
-        if(!j.projectTimers.shipping)      j.projectTimers.shipping      = makeProjectTimers().shipping;
-        if(!j.blanksCheckInSessions)  j.blanksCheckInSessions = [];
-        if(!j.blanksReceipts)         j.blanksReceipts = [];
-        if(!j.qcChecks)               j.qcChecks = { qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null };
-        if(!j.stationHistory)         j.stationHistory = [];
-        if(!j.workUnits)              j.workUnits = [];
-        j.workUnits.forEach(w => {
-          if(!w.timer) w.timer = { state:'idle', startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:0, stage:null, operator:null };
-          if(!w.gates) w.gates = { films:false, screens:false, ink:false };
-        });
-        return j;
+    const res = await fetch(STATE_API_URL + '/api/state', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key': STATE_API_KEY },
+      body:    JSON.stringify(buildStatePayload()),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+  } catch(e){
+    console.warn('PlanetOps: save to server failed — will retry', e);
+    showToast('⚠️ Save failed — retrying…');
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(pushStateToServer, 5000);   // one delayed retry
+  }
+}
+
+/* Applies a saved state snapshot (from the server, or from a local
+   migration) onto the in-memory `state` object. */
+function applyLoadedState(saved){
+  if(saved.jobs){
+    state.jobs = saved.jobs.map(j => {
+      // Migrate jobs from older versions that may be missing fields
+      if(!j.projectTimers)          j.projectTimers = makeProjectTimers();
+      if(!j.projectTimers.blanksCheckIn) j.projectTimers.blanksCheckIn = makeProjectTimers().blanksCheckIn;
+      if(!j.projectTimers.shipping)      j.projectTimers.shipping      = makeProjectTimers().shipping;
+      if(!j.blanksCheckInSessions)  j.blanksCheckInSessions = [];
+      if(!j.blanksReceipts)         j.blanksReceipts = [];
+      if(!j.qcChecks)               j.qcChecks = { qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null };
+      if(!j.stationHistory)         j.stationHistory = [];
+      if(!j.workUnits)              j.workUnits = [];
+      j.workUnits.forEach(w => {
+        if(!w.timer) w.timer = { state:'idle', startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:0, stage:null, operator:null };
+        if(!w.gates) w.gates = { films:false, screens:false, ink:false };
       });
+      return j;
+    });
+  }
+  if(saved.prepTasks)   state.prepTasks   = saved.prepTasks;
+  if(saved.prepArchive) state.prepArchive = saved.prepArchive;
+  if(saved.lastSyncAt)  state.lastSyncAt  = saved.lastSyncAt;
+  if(saved.fulfillment){
+    const ff = saved.fulfillment;
+    if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
+    if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
+    if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
+    // One-time migration: shift launch cycle from Apr 9 to Apr 13
+    if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
+    if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
+    if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
+    if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
+    // Always re-sync bin metadata from defaults (preserves live qty)
+    initFulfillmentBins();
+  } else {
+    initFulfillmentBins();
+  }
+}
+
+/* Loads shared state from the Railway backend.
+   First run only: if the backend is empty but THIS device still has
+   old localStorage data, that data is adopted and pushed up to seed
+   the shared backend (the one-time migration — brief §2C step 7). */
+async function loadState(){
+  try {
+    const res = await fetch(STATE_API_URL + '/api/state', {
+      headers: { 'x-api-key': STATE_API_KEY },
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const saved = await res.json();          // state object, or null if empty
+
+    if(saved){
+      applyLoadedState(saved);
+      stateLoaded = true;
+      return;
     }
-    if(saved.prepTasks)   state.prepTasks   = saved.prepTasks;
-    if(saved.prepArchive) state.prepArchive = saved.prepArchive;
-    if(saved.lastSyncAt)  state.lastSyncAt  = saved.lastSyncAt;
-    if(saved.fulfillment){
-      const ff = saved.fulfillment;
-      if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
-      if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
-      if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
-      // One-time migration: shift launch cycle from Apr 9 to Apr 13
-      if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
-      if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
-      if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
-      if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
-      // Always re-sync bin metadata from defaults (preserves live qty)
-      initFulfillmentBins();
+
+    // Backend is empty — first run ever.
+    const legacy = localStorage.getItem('planetops-v2');
+    if(legacy){
+      applyLoadedState(JSON.parse(legacy));
+      stateLoaded = true;
+      await pushStateToServer();             // seed the shared backend
+      showToast('Local data migrated to the shared server');
     } else {
-      initFulfillmentBins();
+      initFulfillmentBins();                 // fresh start — nothing to load
+      stateLoaded = true;
     }
-  } catch(e){ console.warn('PlanetOps: load failed', e); }
+  } catch(e){
+    console.error('PlanetOps: could not reach the shared server', e);
+    initFulfillmentBins();
+    stateLoaded = false;   // keep saves blocked so we never overwrite the server
+    alert('PlanetOps could not reach the shared server.\n\n'
+        + 'The board is read-only until the connection is back — '
+        + 'your changes will NOT be saved.\n\n'
+        + 'Check the internet connection and reload the page.');
+  }
 }
 
 function clearSavedState(){
-  localStorage.removeItem('planetops-v2');
+  localStorage.removeItem('planetops-v2');   // drop any stale local cache
   state.jobs = []; state.prepTasks = []; state.prepArchive = [];
+  pushStateToServer();                        // clear it on the shared backend too
   buildBoard();
   showToast('Board cleared');
 }
@@ -4953,7 +5086,12 @@ function mapInvoiceToJob(inv){
 }
 
 function detectCategory(details, typeName, nickname){
-  if(!typeName || typeName === 'Outsource') return null;
+  if(!typeName) return null;
+  // Imprints typed "Outsource" in Printavo go out to a vendor. They get an
+  // 'outsourced' work unit (no timed stages — STAGE_PIPELINES has no entry) so
+  // the JOB still appears on the board instead of silently vanishing.
+  // See brief §"Outsourced holding area". Phase 3 moves these into the tray.
+  if(typeName === 'Outsource') return 'outsourced';
   const d = (details || '').toLowerCase();
   const n = (nickname || '').toLowerCase();
   if(d.includes('sew') || d.includes('stitch')) return 'sewing';
@@ -4984,7 +5122,7 @@ function mapDeliveryMethod(name){
 }
 
 function categoryLabel(cat){
-  return { screen:'Screen Print', heat:'Heat Applied / DTF', finishing:'Finishing Events', sewing:'Sewing Service' }[cat] || cat;
+  return { screen:'Screen Print', heat:'Heat Applied / DTF', finishing:'Finishing Events', sewing:'Sewing Service', outsourced:'Outsourced' }[cat] || cat;
 }
 
 function fmtDueLabel(dateStr){
@@ -5727,6 +5865,9 @@ async function syncShipStationOrders(){
       const existing = state.fulfillment.orders.find(o => o.id === inc.id);
       if(!existing) state.fulfillment.orders.push(inc);
     });
+    // Remove orders no longer in ShipStation that weren't marked shipped on this device
+    const incomingIds = new Set(incoming.map(o => o.id));
+    state.fulfillment.orders = state.fulfillment.orders.filter(o => o.shipped || incomingIds.has(o.id));
     state.fulfillment.lastOrderSyncAt = Date.now();
     saveState();
     const openCount = state.fulfillment.orders.filter(o=>!o.shipped).length;
@@ -6032,10 +6173,12 @@ function exportBillingReport(){
    have executed before loadState() calls initFulfillmentBins()
    ============================================================ */
 document.getElementById('header-date').textContent = todayStr();
-loadState();
-buildBoard();
-if(isWorkHours()) syncFromPrintavo();
-setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
+(async () => {
+  await loadState();          // shared state must finish loading before the board is built
+  buildBoard();
+  if(isWorkHours()) syncFromPrintavo();
+  setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
+})();
 </script>
 </body>
 </html>
