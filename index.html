@@ -4745,19 +4745,14 @@ async function loadPrintavoStatusIds(){
   return _printavoStatusCache;
 }
 
-// Step 1: list query — no imprints (Printavo caps complexity at 25000)
-const PRINTAVO_LIST_QUERY = `{
-  invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true) {
-    edges {
-      node {
-        id visualId nickname dueAt
-        status { name }
-        deliveryMethod { name }
-        contact { fullName customer { companyName } }
-      }
-    }
-  }
-}`;
+// Step 1: list query — paginated. Printavo caps `first` at 25 per page, so we
+// walk back through several pages to keep edge-case jobs (long-running
+// outsourced returns, etc.) in reach. Light query — no imprints, no detail.
+const PRINTAVO_LIST_PAGES = 4;   // 4 × 25 = up to 100 invoices of cushion
+function printavoListQuery(cursor){
+  const afterClause = cursor ? `, after: "${cursor}"` : '';
+  return `{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${afterClause}) { pageInfo { endCursor hasNextPage } edges { node { id visualId nickname dueAt status { name } deliveryMethod { name } contact { fullName customer { companyName } } } } } }`;
+}
 
 // Step 2: detail query — imprints + line items (with size breakdown) + URLs for a single invoice
 function printavoDetailQuery(id){
@@ -4864,9 +4859,18 @@ async function syncFromPrintavo(){
   _printavoSyncing = true;
   updateSyncUI('syncing');
   try {
-    // Step 1: get list of recent invoices
-    const listData = await printavoFetch(PRINTAVO_LIST_QUERY);
-    const edges = listData?.data?.invoices?.edges || [];
+    // Step 1: get the most recent invoices, paginated (Printavo caps first: 25)
+    let edges = [];
+    let cursor = null;
+    for(let p = 0; p < PRINTAVO_LIST_PAGES; p++){
+      if(p > 0) await _sleep(300);
+      const listData = await printavoFetch(printavoListQuery(cursor));
+      const inv = listData?.data?.invoices;
+      if(!inv) break;
+      edges = edges.concat(inv.edges || []);
+      if(!inv.pageInfo?.hasNextPage) break;
+      cursor = inv.pageInfo.endCursor;
+    }
 
     let added = 0, updated = 0, stationChanged = 0;
     for(const { node: inv } of edges){
