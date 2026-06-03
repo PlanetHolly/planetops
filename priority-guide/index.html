@@ -40,6 +40,10 @@ tbody tr:nth-child(odd) { background: #FAFAFA; }
 ul { margin: 0.4rem 0; padding-left: 1.15rem; }
 li { margin: 0.3rem 0; }
 .pa-tag { display: inline-block; background: var(--pa-black); color: var(--pa-white); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.2rem 0.5rem; border-radius: 2px; vertical-align: middle; }
+.pa-feelist { list-style: none; padding: 0; margin: 0.6rem 0 0; border: 1px solid #CCC; border-radius: 5px; overflow: hidden; }
+.pa-feelist li { margin: 0; padding: 0.6rem 0.95rem; border-bottom: 1px solid #ECECEC; font-weight: 900; font-size: 1.02rem; color: var(--pa-black); background: var(--pa-white); }
+.pa-feelist li:last-child { border-bottom: 0; }
+.pa-feelist li span { font-weight: 400; color: var(--pa-tonal); font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -80,6 +84,17 @@ li { margin: 0.3rem 0; }
     <tr><td>5 business days</td><td>Priority 5-Day</td><td class="fee">+10%</td></tr>
   </tbody>
 </table>
+
+<div class="pa-callout">
+  <p style="margin:0 0 0.2rem;"><strong>Use these exact fees in Printavo.</strong> They replaced the old "Rush" fees, so do not use those anymore:</p>
+  <ul class="pa-feelist">
+    <li>Priority 1-Day <span>+100%</span></li>
+    <li>Priority 2-Day <span>+50%</span></li>
+    <li>Priority 3-Day <span>+25%</span></li>
+    <li>Priority 4-Day <span>+15%</span></li>
+    <li>Priority 5-Day <span>+10%</span></li>
+  </ul>
+</div>
 
 <h2>3. When the clock starts</h2>
 <div class="pa-callout">
