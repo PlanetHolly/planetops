@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gauge — Press Availability — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --full:#D64545; --limited:#F7BE00; --open:#3AAE5A; --empty:#E3E8ED;
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:980px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2rem;}
+@media(min-width:820px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}body{padding:0;}}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:.9rem;margin-bottom:1rem;}
+.head .t{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+.icon{height:34px;width:auto;color:#000;}
+h1{font-size:2.1rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin:.1em 0 .05em;}
+.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
+.updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
+.jeanbar{display:none;align-items:center;gap:.6rem;background:#111;color:#fff;border-radius:7px;padding:.5rem .8rem;margin:.7rem 0 0;font-size:.78rem;}
+.jeanbar.on{display:flex;}
+.jeanbar b{letter-spacing:.05em;}
+.next{background:var(--pa-black);color:#fff;border-radius:8px;padding:.85rem 1.1rem;margin:1.05rem 0 1.15rem;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+.next .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;opacity:.8;}
+.next .day{font-size:1.5rem;font-weight:900;}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.76rem;margin:.1rem 0 1rem;}
+.legend span{display:inline-flex;align-items:center;gap:.4rem;}
+.dot{width:13px;height:13px;border-radius:3px;display:inline-block;}
+.dow{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:5px;}
+.dow div{font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;color:var(--pa-tonal);text-align:center;font-weight:700;}
+.wk{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:7px;}
+.cell{position:relative;height:86px;border-radius:8px;overflow:hidden;background:var(--empty);border:1px solid rgba(0,0,0,.08);}
+.editable .cell{cursor:pointer;}
+.editable .cell:hover{outline:2px solid #111;outline-offset:1px;}
+.cell .fill{position:absolute;left:0;right:0;bottom:0;}
+.cell .content{position:relative;z-index:2;height:100%;box-sizing:border-box;padding:.4rem .5rem;display:flex;flex-direction:column;justify-content:space-between;}
+.cell .top{display:flex;align-items:center;justify-content:space-between;}
+.cell .d{font-weight:900;font-size:1.05rem;text-shadow:0 1px 2px rgba(255,255,255,.55);}
+.cell .ot{font-size:.56rem;font-weight:900;letter-spacing:.06em;background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;}
+.cell .adj{font-size:.54rem;font-weight:900;color:#111;background:#fff;border:1px solid #111;border-radius:3px;padding:0 .25rem;margin-left:.2rem;}
+.cell .pct{font-weight:900;font-size:1.35rem;line-height:1;color:#1b1e23;}
+.cell .st{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1b1e23;}
+.cell.full .d,.cell.full .pct,.cell.full .st{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.30);}
+.cell.empty .pct,.cell.empty .st{color:#7c8590;}
+.cell.today{outline:3px solid #000;outline-offset:1px;}
+.cell.nextopen{box-shadow:0 0 0 3px var(--pa-yellow);}
+.note{margin-top:1.3rem;background:#FFFBEC;border-left:5px solid var(--pa-yellow);padding:.7rem 1rem;font-size:.85rem;}
+.foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #000;margin-top:1.7rem;padding-top:.7rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);}
+/* editor modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem;}
+.ov.on{display:flex;}
+.card{background:#fff;border-radius:12px;max-width:360px;width:100%;padding:1.2rem 1.3rem;}
+.card h3{margin:0 0 .2em;font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:1.1rem;}
+.card .ro{font-size:.82rem;color:var(--pa-tonal);margin:.2rem 0 .9rem;}
+.card label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--pa-tonal);margin:.7rem 0 .25rem;}
+.seg{display:flex;border:1px solid #111;border-radius:7px;overflow:hidden;}
+.seg button{flex:1;padding:.5rem;border:0;background:#fff;font-family:inherit;font-weight:800;cursor:pointer;font-size:.85rem;}
+.seg button.sel{background:#111;color:#fff;}
+.card input{width:100%;box-sizing:border-box;padding:.5rem .6rem;border:1px solid #111;border-radius:7px;font-family:inherit;font-size:1rem;}
+.row{display:flex;gap:.5rem;margin-top:1.1rem;}
+.row button{flex:1;padding:.6rem;border-radius:7px;border:1px solid #111;font-family:inherit;font-weight:800;cursor:pointer;font-size:.85rem;}
+.row .save{background:var(--pa-yellow);border-color:var(--pa-yellow);}
+.row .clear{background:#fff;}
+.row .cancel{background:#fff;color:var(--pa-tonal);}
+.eff{font-size:.8rem;margin-top:.6rem;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="t">Gauge · Press Availability</div>
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+  </div>
+
+  <div class="sub">Press Availability</div>
+  <h1>Gauge</h1>
+  <div class="updated" id="updated">Loading…</div>
+  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · tap any day to set OT or adjust minutes. PMs don't see this.</div>
+
+  <div class="next">
+    <span class="lbl">Next open press day</span>
+    <span class="day" id="nextday">—</span>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--full)"></i> Full 100%+</span>
+    <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+</span>
+    <span><i class="dot" style="background:var(--open)"></i> Open under 70%</span>
+    <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
+    <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (600 min)</span>
+  </div>
+
+  <div id="cal"></div>
+
+  <div class="note" id="note">
+    A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. To place or move a job, talk to Jean.
+  </div>
+
+  <div class="foot">
+    <span>Planet Apparel · Gauge</span>
+    <span id="footmode">View only</span>
+  </div>
+</div>
+
+<!-- Jean's day editor -->
+<div class="ov" id="ov">
+  <div class="card">
+    <h3 id="ed-date">—</h3>
+    <div class="ro" id="ed-load">—</div>
+    <label>Press day</label>
+    <div class="seg"><button id="seg-std">Standard · 420</button><button id="seg-ot">OT · 600</button></div>
+    <label>Adjust minutes (+ add / − remove)</label>
+    <input id="ed-adj" type="number" step="10" value="0">
+    <div class="eff" id="ed-eff">—</div>
+    <div class="row">
+      <button class="save" id="ed-save">Save</button>
+      <button class="clear" id="ed-clear">Clear</button>
+      <button class="cancel" id="ed-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── config ──
+// Data flows through an n8n webhook (NO API key in this public page).
+// n8n holds the state-api key server-side. Until the webhook is live, the page
+// falls back to sample data + localStorage, so it never looks broken.
+const GAUGE_API='https://primary-production-079f9.up.railway.app/webhook/gauge';
+const CAP={Standard:420,OT:600};
+const JEAN = new URLSearchParams(location.search).get('mode')==='jean';
+
+// ── sample fallback (used only until the n8n feed populates gauge_load) ──
+const SAMPLE={
+ asOf:'Wed, Jun 3 2026 · 8:55 PM (sample)',
+ load:{
+ '2026-06-04':{minutes:600,station:'OT'},'2026-06-05':{minutes:560,station:'OT'},'2026-06-06':{minutes:300,station:'OT'},
+ '2026-06-08':{minutes:420,station:'Standard'},'2026-06-09':{minutes:415,station:'Standard'},'2026-06-10':{minutes:600,station:'OT'},'2026-06-11':{minutes:410,station:'Standard'},'2026-06-12':{minutes:600,station:'OT'},
+ '2026-06-15':{minutes:600,station:'OT'},'2026-06-16':{minutes:390,station:'Standard'},'2026-06-17':{minutes:340,station:'Standard'},'2026-06-18':{minutes:420,station:'Standard'},'2026-06-19':{minutes:300,station:'Standard'},
+ '2026-06-22':{minutes:300,station:'Standard'},'2026-06-23':{minutes:250,station:'Standard'},'2026-06-24':{minutes:170,station:'Standard'},'2026-06-25':{minutes:120,station:'Standard'},'2026-06-26':{minutes:80,station:'Standard'},
+ '2026-06-29':{minutes:120,station:'Standard'},'2026-06-30':{minutes:50,station:'Standard'}}
+};
+const TODAY='2026-06-04';            // n8n feed includes today; sample anchor for now
+const START='2026-06-01';
+const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let LOAD={}, ASOF='', OVERRIDES={}, selected=null;
+
+function addDays(iso,n){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d+n)).toISOString().slice(0,10);}
+function fmt(iso){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
+
+async function gaugeRead(){try{const r=await fetch(GAUGE_API);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function gaugeWrite(overrides){try{const r=await fetch(GAUGE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({overrides})});return r.ok;}catch(e){return false;}}
+
+function eff(iso){
+  const base=LOAD[iso]||{minutes:0,station:'Standard'};
+  const ov=OVERRIDES[iso]||{};
+  const station=ov.mode||base.station||'Standard';
+  const minutes=Math.max(0,(base.minutes||0)+(ov.add||0));
+  const cap=CAP[station]||420;
+  const pct=minutes>0?Math.round(minutes/cap*100):0;
+  let cls='empty',st='Open';
+  if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=70){cls='limited';st='Limited';} else {cls='open';st='Open';} }
+  return {station,minutes,cap,pct,cls,st,fill:Math.min(pct,100),open:pct<70,ot:station==='OT',adj:ov.add||0,base};
+}
+
+function render(){
+  const cal=document.getElementById('cal');cal.innerHTML='';
+  const tier={full:'var(--full)',limited:'var(--limited)',open:'var(--open)',empty:'var(--empty)'};
+  const dh=document.createElement('div');dh.className='dow';DOW.forEach(d=>{const e=document.createElement('div');e.textContent=d;dh.appendChild(e);});cal.appendChild(dh);
+  let nextOpen=null;
+  for(let w=0;w<5;w++){
+    const row=document.createElement('div');row.className='wk';
+    for(let i=0;i<6;i++){
+      const iso=addDays(START,w*7+i);const f=eff(iso);
+      if(!nextOpen&&iso>=TODAY&&f.open)nextOpen=iso;
+      const c=document.createElement('div');c.className='cell '+f.cls;c.dataset.iso=iso;
+      if(iso===TODAY)c.classList.add('today');
+      const dd=Number(iso.split('-')[2]);
+      const pctTxt=f.cls==='empty'?'—':f.pct+'%';
+      const adjTag=f.adj?`<span class="adj">${f.adj>0?'+':''}${f.adj}</span>`:'';
+      c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>
+        <div class="content"><div class="top"><span class="d">${dd}</span><span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span></div>
+        <div><div class="pct">${pctTxt}</div><div class="st">${f.st}</div></div></div>`;
+      if(JEAN)c.onclick=()=>openEditor(iso);
+      row.appendChild(c);
+    }
+    cal.appendChild(row);
+  }
+  if(nextOpen){const el=[...document.querySelectorAll('.cell')].find(c=>c.dataset.iso===nextOpen);if(el)el.classList.add('nextopen');document.getElementById('nextday').textContent=fmt(nextOpen);}
+  else document.getElementById('nextday').textContent='None in range';
+  document.getElementById('updated').textContent='Updated '+ASOF;
+}
+
+// ── Jean editor ──
+function openEditor(iso){
+  selected=iso;const f=eff(iso);
+  document.getElementById('ed-date').textContent=fmt(iso);
+  document.getElementById('ed-load').textContent=`Scheduled: ${f.base.minutes||0} min (${f.base.station||'Standard'})`;
+  setSeg(f.station);
+  document.getElementById('ed-adj').value=f.adj||0;
+  updateEff();
+  document.getElementById('ov').classList.add('on');
+}
+let segMode='Standard';
+function setSeg(m){segMode=m;document.getElementById('seg-std').classList.toggle('sel',m==='Standard');document.getElementById('seg-ot').classList.toggle('sel',m==='OT');updateEff();}
+function updateEff(){
+  const base=LOAD[selected]||{minutes:0};const add=Number(document.getElementById('ed-adj').value||0);
+  const mins=Math.max(0,(base.minutes||0)+add);const cap=CAP[segMode];const pct=mins>0?Math.round(mins/cap*100):0;
+  document.getElementById('ed-eff').textContent=`Result: ${mins} min ÷ ${cap} = ${pct}%`;
+}
+document.getElementById('seg-std').onclick=()=>setSeg('Standard');
+document.getElementById('seg-ot').onclick=()=>setSeg('OT');
+document.getElementById('ed-adj').oninput=updateEff;
+document.getElementById('ed-cancel').onclick=()=>document.getElementById('ov').classList.remove('on');
+document.getElementById('ed-clear').onclick=async()=>{delete OVERRIDES[selected];await persist();document.getElementById('ov').classList.remove('on');render();};
+document.getElementById('ed-save').onclick=async()=>{
+  const base=LOAD[selected]||{minutes:0,station:'Standard'};
+  const add=Number(document.getElementById('ed-adj').value||0);
+  const o={};if(segMode!==(base.station||'Standard'))o.mode=segMode;if(add)o.add=add;
+  if(Object.keys(o).length)OVERRIDES[selected]=o;else delete OVERRIDES[selected];
+  await persist();document.getElementById('ov').classList.remove('on');render();
+};
+async function persist(){
+  localStorage.setItem('gauge_overrides',JSON.stringify(OVERRIDES));
+  const ok=await gaugeWrite(OVERRIDES);
+  if(!ok)console.warn('Override saved locally; n8n gauge webhook not live yet.');
+}
+
+// ── boot ──
+(async function(){
+  if(JEAN){document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('footmode').textContent='Jean mode';}
+  const data=await gaugeRead();
+  if(data&&data.load&&Object.keys(data.load).length){LOAD=data.load;ASOF=data.asOf||'(unknown)';OVERRIDES=(data.overrides&&typeof data.overrides==='object')?data.overrides:{};}
+  else {LOAD=SAMPLE.load;ASOF=SAMPLE.asOf;OVERRIDES=JSON.parse(localStorage.getItem('gauge_overrides')||'{}');}
+  render();
+})();
+</script>
+</body>
+</html>

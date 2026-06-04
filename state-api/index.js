@@ -96,6 +96,38 @@ app.post('/api/state', requireApiKey, async (req, res) => {
   }
 });
 
+// ── Keyed state (ADDITIVE — lets sub-apps like the Gauge keep their own blob) ──
+// Existing /api/state (id='planetops') is untouched; this adds id=:key stores.
+const KEY_RE = /^[a-z0-9_]{1,40}$/i;
+
+app.get('/api/state/:key', requireApiKey, async (req, res) => {
+  if (!KEY_RE.test(req.params.key)) return res.status(400).json({ error: 'Bad key' });
+  try {
+    const r = await pool.query('SELECT data FROM planetops_state WHERE id = $1', [req.params.key]);
+    res.json(r.rows.length ? r.rows[0].data : null);
+  } catch (err) {
+    console.error('GET /api/state/:key failed:', err.message);
+    res.status(500).json({ error: 'Failed to load state' });
+  }
+});
+
+app.post('/api/state/:key', requireApiKey, async (req, res) => {
+  if (!KEY_RE.test(req.params.key)) return res.status(400).json({ error: 'Bad key' });
+  const data = req.body;
+  if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Body must be a JSON object' });
+  try {
+    await pool.query(
+      `INSERT INTO planetops_state (id, data, updated_at) VALUES ($1, $2, NOW())
+       ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at`,
+      [req.params.key, data]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/state/:key failed:', err.message);
+    res.status(500).json({ error: 'Failed to save state' });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
