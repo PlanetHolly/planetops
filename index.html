@@ -733,6 +733,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       </div>
     </div>
 
+    <!-- PRODUCTION AVAILABILITY (embedded; single source lives at /capacity/) -->
+    <div class="tab-panel" id="panel-availability" style="padding:0;">
+      <iframe id="availability-frame" title="Production Availability"
+        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
+    </div>
+
   </div>
 
   <!-- BOTTOM NAV -->
@@ -759,6 +765,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       <span class="nav-icon">📦</span>
       <span class="nav-label">Fulfillment</span>
       <span class="nav-badge hidden" id="fulfillment-badge">0</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('availability',this)">
+      <span class="nav-icon">🔋</span>
+      <span class="nav-label">Availability</span>
     </button>
   </nav>
 
@@ -1397,6 +1407,7 @@ function switchTab(id, btn){
   if(id === 'active')      renderActiveTab();
   if(id === 'prepress')    renderPrepTab();
   if(id === 'fulfillment') renderFulfillmentTab();
+  if(id === 'availability'){ const f=document.getElementById('availability-frame'); if(f && !f.getAttribute('src')) f.src='./capacity/?mode=jean'; }
 }
 
 /* ============================================================
