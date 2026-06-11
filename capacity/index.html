@@ -141,8 +141,11 @@ const SAMPLE={
  '2026-06-22':{minutes:300,station:'Standard'},'2026-06-23':{minutes:250,station:'Standard'},'2026-06-24':{minutes:170,station:'Standard'},'2026-06-25':{minutes:120,station:'Standard'},'2026-06-26':{minutes:80,station:'Standard'},
  '2026-06-29':{minutes:120,station:'Standard'},'2026-06-30':{minutes:50,station:'Standard'}}
 };
-const TODAY='2026-06-04';            // n8n feed includes today; sample anchor for now
-const START='2026-06-01';
+// Dynamic anchors: today (Pacific) and the Monday of its week
+function isoLA(d){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);}
+function mondayOf(iso){const[y,mo,d]=iso.split('-').map(Number);const dt=new Date(Date.UTC(y,mo-1,d));const wd=dt.getUTCDay();dt.setUTCDate(dt.getUTCDate()+(wd===0?-6:1-wd));return dt.toISOString().slice(0,10);}
+const TODAY=isoLA(new Date());
+const START=mondayOf(TODAY);
 const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
 let LOAD={}, ASOF='', OVERRIDES={}, selected=null;
