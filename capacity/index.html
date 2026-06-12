@@ -177,7 +177,7 @@ function render(){
     const row=document.createElement('div');row.className='wk';
     for(let i=0;i<6;i++){
       const iso=addDays(START,w*7+i);const f=eff(iso);
-      if(!nextOpen&&iso>TODAY&&f.open)nextOpen=iso;
+      if(!nextOpen&&iso>TODAY&&f.open&&i<5)nextOpen=iso; // i<5 = Mon–Fri; weekends are never offered as next open
       const c=document.createElement('div');c.className='cell '+f.cls;c.dataset.iso=iso;
       if(iso===TODAY)c.classList.add('today');
       const dd=Number(iso.split('-')[2]);
