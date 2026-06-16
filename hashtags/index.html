@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Apparel — Printavo Hashtag Standard</title>
+<style>
+  :root{--yellow:#F7BE00;--black:#000;--tonal:#232323;--white:#fff;--gray:#E8E8E8;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Montserrat','Helvetica Neue',Arial,sans-serif;color:var(--tonal);background:#f4f4f4;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 70px;}
+  header{background:var(--black);color:var(--white);padding:38px 0 34px;margin-bottom:32px;position:relative;}
+  header .wrap{position:relative;}
+  .oicon{position:absolute;top:0;right:24px;width:46px;height:46px;border:3px solid var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:var(--yellow);}
+  .kicker{color:var(--yellow);letter-spacing:3px;font-size:12px;font-weight:700;text-transform:uppercase;}
+  h1{font-size:30px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-top:6px;}
+  .sub{color:#cfcfcf;font-size:14px;margin-top:8px;max-width:680px;}
+  .why{background:#fffaf0;border:1px solid var(--yellow);border-radius:6px;padding:16px 20px;margin-bottom:28px;font-size:13.5px;}
+  .why strong{text-transform:uppercase;letter-spacing:.5px;font-size:12px;}
+  .card{background:var(--white);border-radius:6px;margin-bottom:18px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .card .head{background:var(--black);color:var(--white);padding:11px 20px;border-bottom:3px solid var(--yellow);display:flex;justify-content:space-between;align-items:center;}
+  .card .head h2{font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;}
+  .req{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:3px;}
+  .req.yes{background:var(--yellow);color:var(--black);}
+  .req.opt{background:#444;color:var(--white);}
+  .card .body{padding:8px 20px 16px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  td{padding:10px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .tag{font-family:'SF Mono',Consolas,monospace;font-weight:700;background:var(--black);color:var(--yellow);padding:4px 10px;border-radius:4px;white-space:nowrap;font-size:14px;}
+  .means{color:#333;}
+  .rules{background:var(--white);border-radius:6px;padding:18px 22px;margin-top:26px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .rules h2{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+  .rules ul{margin-left:18px;font-size:13.5px;}
+  .rules li{margin-bottom:8px;}
+  .skip{background:var(--white);border-radius:6px;padding:18px 22px;margin-top:18px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .skip h2{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+  .skip p{font-size:13.5px;color:#444;}
+  .skip code{background:#f0f0f0;border-radius:3px;padding:1px 6px;font-size:12.5px;}
+  .ex{background:var(--tonal);color:#eee;border-radius:6px;padding:18px 22px;margin-top:18px;font-size:13.5px;}
+  .ex h2{color:var(--yellow);font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+  .ex code{font-family:'SF Mono',Consolas,monospace;color:var(--yellow);}
+  .ex .row{margin-bottom:8px;}
+  footer{text-align:center;color:#999;font-size:11px;margin-top:36px;}
+  @media print{body{background:#fff;}.card,.rules,.skip{box-shadow:none;border:1px solid #ddd;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="oicon">Ø</div>
+    <div class="kicker">Planet Apparel · Team Standard</div>
+    <h1>Printavo Hashtag Standard</h1>
+    <p class="sub">Two tags per job. That's it. Everything else our reporting now pulls or figures out on its own &mdash; so the only things you tag are the ones it genuinely can't see.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="why">
+    <strong>Why so few:</strong> &nbsp;Every extra tag is one more place to mistype or forget. So we only tag what the system can't recover from the invoice tracker, Printavo, or Streak. Apply these <strong>at quote creation</strong>, exactly as shown, all lowercase.
+  </div>
+
+  <!-- PRODUCTION MODE -->
+  <div class="card">
+    <div class="head"><h2>1 · Production Mode</h2><span class="req yes">Required · pick one</span></div>
+    <div class="body">
+      <table>
+        <tr><td><span class="tag">#in</span></td><td class="means">Made entirely <strong>in-house</strong></td></tr>
+        <tr><td><span class="tag">#out</span></td><td class="means">Fully <strong>outsourced</strong> to a vendor</td></tr>
+        <tr><td><span class="tag">#mixih</span></td><td class="means">Combination &mdash; <strong>mostly in-house</strong></td></tr>
+        <tr><td><span class="tag">#mixos</span></td><td class="means">Combination &mdash; <strong>mostly outsourced</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SALESPERSON -->
+  <div class="card">
+    <div class="head"><h2>2 · Your Name</h2><span class="req yes">Required · pick one</span></div>
+    <div class="body">
+      <table>
+        <tr><td><span class="tag">#shara</span> &nbsp;<span class="tag">#cortney</span></td><td class="means">Tag the job with <strong>your own first name</strong> so we know who owns it</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- INK TYPE -->
+  <div class="card">
+    <div class="head"><h2>3 · Ink Type</h2><span class="req opt">Only when it applies</span></div>
+    <div class="body">
+      <table>
+        <tr><td><span class="tag">#wb</span></td><td class="means"><strong>Waterbased ink</strong> &mdash; tag it even on organic, where it's included (no separate fee line, so this is the only way we see it)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="skip">
+    <h2>You no longer tag these</h2>
+    <p>The system already has them, so please <strong>stop</strong>: product type <code>(bandana/apparel/promo)</code>, decoration method, new vs.&nbsp;repeat customer, USA/organic/import, VIP, rush. All pulled from the invoice, Printavo category, SKU, or Streak automatically.</p>
+  </div>
+
+  <div class="rules">
+    <h2>The rules</h2>
+    <ul>
+      <li><strong>Two tags on every job</strong> &mdash; one production mode + your name. Add ink type only when it applies.</li>
+      <li><strong>Type them exactly, all lowercase.</strong> A typo = a job that won't classify.</li>
+      <li><strong>Tag at quote creation</strong>, not later &mdash; the automation reads them when the job hits Paid / Terms.</li>
+    </ul>
+  </div>
+
+  <div class="ex">
+    <h2>Examples</h2>
+    <div class="row">In-house bandanas, Shara's job → <code>#in&nbsp; #shara</code></div>
+    <div class="row">Outsourced promo, Cortney's job → <code>#out&nbsp; #cortney</code></div>
+    <div class="row">Mostly-in-house apparel with waterbased ink, Shara → <code>#mixih&nbsp; #shara&nbsp; #wb</code></div>
+  </div>
+
+  <footer>Planet Apparel · Printavo Hashtag Standard · v1 2026-06-16</footer>
+</div>
+</body>
+</html>
