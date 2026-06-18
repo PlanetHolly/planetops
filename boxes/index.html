@@ -197,10 +197,15 @@ function rowHTML(b){
     <td class="c">${capCell}</td>
     <td class="c">${ohCell}</td>
     <td class="c">${parCell}</td>
-    <td class="c"><span class="pill ${s.cls}">${s.txt}</span></td>
+    <td class="c"><span class="pill ${s.cls}" data-st="${b.key}">${s.txt}</span></td>
   </tr>`;
 }
 
+function updateStatus(key){
+  const b=BOXES.find(x=>x.key===key); if(!b) return;
+  const s=statusOf(b); const el=document.querySelector('[data-st="'+key+'"]');
+  if(el){el.className='pill '+s.cls; el.textContent=s.txt;}
+}
 function renderReorder(){
   const need=BOXES.map(b=>({b,s:statusOf(b)})).filter(x=>x.s.counted&&x.s.order>0);
   const uncounted=BOXES.filter(b=>!statusOf(b).counted).length;
@@ -219,8 +224,8 @@ function render(){
   document.getElementById('tb-bandana').innerHTML=BOXES.filter(b=>b.type==='bandana').map(rowHTML).join('');
   document.getElementById('tb-apparel').innerHTML=BOXES.filter(b=>b.type==='apparel').map(rowHTML).join('');
   document.querySelectorAll('input.num[data-ck]').forEach(el=>el.oninput=()=>{CAP[el.dataset.ck]=el.value===''?null:Number(el.value);});
-  document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);renderReorder();});
-  document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=el.value===''?null:Number(el.value);renderReorder();});
+  document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);updateStatus(el.dataset.k);renderReorder();});
+  document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=el.value===''?null:Number(el.value);updateStatus(el.dataset.pk);renderReorder();});
   renderReorder();
   document.getElementById('updated').textContent = ASOF ? ('Updated '+ASOF) : 'Nothing saved yet';
 }
