@@ -16,8 +16,8 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--ink);background:#F4F6F9;letter-spacing:.01em;}
-.wrap{max-width:840px;margin:0 auto;background:#fff;}
-@media(min-width:780px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.10);border-radius:12px;overflow:hidden;}body{padding:0;}}
+.wrap{max-width:860px;margin:0 auto;background:#fff;}
+@media(min-width:800px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.10);border-radius:12px;overflow:hidden;}body{padding:0;}}
 
 .band{background:var(--pa-black);padding:1.05rem 1.4rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
 .band img{height:24px;width:auto;display:block;}
@@ -29,9 +29,9 @@ html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--ink);backgro
 h1{font-size:1.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;margin:.15em 0 .1em;line-height:1.04;}
 .updated{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;}
 
-.jeanbar{display:none;align-items:center;gap:.5rem;background:#111;color:#fff;border-radius:7px;padding:.55rem .85rem;margin:.9rem 1.4rem 0;font-size:.76rem;}
+.jeanbar{display:none;align-items:center;gap:.5rem;background:#111;color:#fff;border-radius:7px;padding:.55rem .85rem;margin:.9rem 1.4rem 0;font-size:.76rem;line-height:1.4;}
 .jeanbar.on{display:flex;}
-.jeanbar b{letter-spacing:.05em;color:var(--pa-yellow);}
+.jeanbar b{letter-spacing:.05em;color:var(--pa-yellow);white-space:nowrap;}
 
 .body{padding:.4rem 1.4rem 1.6rem;}
 
@@ -55,44 +55,39 @@ h1{font-size:1.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.03e
 .sechead .nm{font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em;}
 .sechead .ct{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.7;}
 table{width:100%;border-collapse:collapse;background:#fff;}
-thead th{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800;text-align:left;padding:.5rem .55rem;border-bottom:1px solid var(--line);background:#f3f5f8;}
+thead th{font-size:.56rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800;text-align:left;padding:.5rem .45rem;border-bottom:1px solid var(--line);background:#f3f5f8;}
 thead th.c{text-align:center;}
-tbody td{padding:.55rem .55rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;}
+tbody td{padding:.5rem .45rem;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;}
 tbody tr:last-child td{border-bottom:0;}
-tbody tr:nth-child(even) td{background:#fafbfc;}
 td.c{text-align:center;}
 .box{font-weight:800;font-size:.96rem;white-space:nowrap;letter-spacing:.02em;}
-.boxsub{font-weight:600;font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.12rem;}
 .new{display:inline-block;background:#eef1f5;color:#46505c;border-radius:4px;padding:.02rem .3rem;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-right:.3rem;}
-.cap{display:inline-block;background:#FFF3CC;color:#7a5d00;border:1px solid #f0d77a;border-radius:20px;padding:.1rem .5rem;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
-.onhand{font-weight:900;font-size:1.05rem;}
-.onhand.miss{color:var(--grey);font-weight:700;}
-.par{display:inline-flex;align-items:center;justify-content:center;min-width:1.9rem;height:1.5rem;padding:0 .4rem;background:#eef1f5;color:#46505c;border-radius:6px;font-weight:800;font-size:.85rem;}
-.pill{display:inline-block;border-radius:20px;padding:.16rem .6rem;font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+.pill{display:inline-block;border-radius:20px;padding:.16rem .55rem;font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
 .pill.ok{background:#e7f6ec;color:var(--ok);}
 .pill.low{background:#fff1dc;color:var(--low);}
 .pill.out{background:#fde7e7;color:var(--out);}
 .pill.cnt{background:#eef1f5;color:var(--grey);}
-/* jean inputs */
-input.num{width:3.4rem;text-align:center;font-family:inherit;font-weight:800;font-size:1rem;padding:.3rem .2rem;border:1px solid #111;border-radius:7px;}
-input.par{width:3rem;font-size:.9rem;}
-.editrow td{background:#fffdf3 !important;}
-.saverow{display:none;gap:.6rem;align-items:center;margin-top:1rem;}
-.saverow.on{display:flex;}
-.saverow button{padding:.6rem 1.2rem;border-radius:8px;border:1px solid #111;font-family:inherit;font-weight:800;cursor:pointer;font-size:.9rem;background:var(--pa-yellow);border-color:var(--pa-yellow);}
-.saverow .st{font-size:.78rem;color:var(--muted);}
+input.num{width:3.2rem;text-align:center;font-family:inherit;font-weight:800;font-size:1rem;padding:.3rem .15rem;border:1px solid #c7ccd3;border-radius:7px;background:#fff;}
+input.num:focus{outline:2px solid var(--pa-yellow);outline-offset:0;border-color:var(--pa-yellow);}
+input.num.par{width:2.9rem;}
+.editrow td{background:#fffdf6;}
 
-.callout{margin-top:1.5rem;background:#FFFBEC;border-left:5px solid var(--pa-yellow);border-radius:0 8px 8px 0;padding:.7rem 1rem;font-size:.82rem;line-height:1.45;}
-.callout b{text-transform:uppercase;letter-spacing:.04em;font-size:.72rem;}
-.removed{margin-top:1rem;font-size:.74rem;color:var(--muted);line-height:1.5;}
+.removed{margin-top:1.4rem;font-size:.74rem;color:var(--muted);line-height:1.5;}
 .removed b{color:var(--ink);}
+.tip{margin-top:.8rem;font-size:.74rem;color:var(--muted);line-height:1.5;}
+.saverow{display:none;gap:.7rem;align-items:center;margin-top:1.2rem;}
+.saverow.on{display:flex;}
+.saverow button{padding:.6rem 1.3rem;border-radius:8px;border:1px solid #111;font-family:inherit;font-weight:800;cursor:pointer;font-size:.9rem;background:var(--pa-yellow);border-color:var(--pa-yellow);}
+.saverow .st{font-size:.78rem;color:var(--muted);}
 .foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #000;margin:1.6rem 1.4rem 0;padding:.75rem 0 1.2rem;font-size:.64rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;}
 
-@media(max-width:520px){
+@media(max-width:540px){
   h1{font-size:1.4rem;}
-  tbody td{padding:.5rem .35rem;font-size:.84rem;}
-  thead th{padding:.4rem .35rem;}
-  .box{font-size:.86rem;}
+  tbody td{padding:.45rem .25rem;font-size:.82rem;}
+  thead th{padding:.4rem .25rem;}
+  .box{font-size:.82rem;}
+  input.num{width:2.7rem;font-size:.9rem;}
+  input.num.par{width:2.5rem;}
 }
 @media print{
   body{background:#fff;}
@@ -117,7 +112,7 @@ input.par{width:3rem;font-size:.9rem;}
     <div class="updated" id="updated">—</div>
   </div>
 
-  <div class="jeanbar" id="jeanbar"><b>LIVE COUNT</b> · enter how many of each box are on hand — counts save for the whole team.</div>
+  <div class="jeanbar" id="jeanbar"><b>LIVE · EDITABLE</b> · fill in how many fit, on-hand counts, and keep levels — everything saves for the whole team.</div>
 
   <div class="body">
 
@@ -130,26 +125,23 @@ input.par{width:3rem;font-size:.9rem;}
     <div class="sec">
       <div class="sechead"><span class="nm">Bandanas</span><span class="ct">5 box sizes</span></div>
       <table><thead><tr>
-        <th>Box / capacity</th><th class="c">On hand</th><th class="c">Keep (par)</th><th class="c">Status</th>
+        <th>Box Size</th><th class="c">Fits / box</th><th class="c">On hand</th><th class="c">Keep (par)</th><th class="c">Reorder</th>
       </tr></thead><tbody id="tb-bandana"></tbody></table>
     </div>
 
     <div class="sec">
       <div class="sechead"><span class="nm">Apparel</span><span class="ct">2 box sizes</span></div>
       <table><thead><tr>
-        <th>Box / capacity</th><th class="c">On hand</th><th class="c">Keep (par)</th><th class="c">Status</th>
+        <th>Box Size</th><th class="c">Fits / box</th><th class="c">On hand</th><th class="c">Keep (par)</th><th class="c">Reorder</th>
       </tr></thead><tbody id="tb-apparel"></tbody></table>
     </div>
 
     <div class="saverow" id="saverow">
-      <button id="savebtn">Save counts</button>
+      <button id="savebtn">Save</button>
       <span class="st" id="savest"></span>
     </div>
 
-    <div class="callout">
-      <b>Capacity counts coming from Jean.</b><br>
-      The “how many fit” numbers are being recounted against the current box lineup, so they’re marked <span class="cap">TBD</span> for now. Once Jean confirms each count, this page updates.
-    </div>
+    <div class="tip"><b style="color:var(--ink)">How it works:</b> “Fits / box” = how many fit in that box. “On hand” = how many empty boxes you have. “Keep (par)” = how many to keep stocked. When on-hand drops below the keep level, the box shows up in the <b style="color:var(--ink)">Reorder list</b> up top with how many to order.</div>
 
     <div class="removed">
       <b>No longer stocked:</b> 12×6×5, 24×12×8, 24×12×12, 22×18×18. Retired and removed on purpose — use the sizes above.
@@ -159,33 +151,32 @@ input.par{width:3rem;font-size:.9rem;}
 
   <div class="foot">
     <span>Planet Apparel · Box Guide</span>
-    <span id="footmode">Live · counts save for the team</span>
+    <span id="footmode">Live · saves for the team</span>
   </div>
 
 </div>
 
 <script>
 // ── config ──
-// Live counts flow through an n8n webhook (no API key in this public page).
+// All editable numbers flow through an n8n webhook (no API key in this public page).
 // Until the webhook is live, the page falls back to localStorage so it never looks broken.
 const BOX_API='https://primary-production-079f9.up.railway.app/webhook/boxstock';
-const JEAN = true; // everyone can edit — no read-only mode
 
-// ── reference data (source of truth — edit here) ──
-// cap = bandanas/garments per box (null = pending Jean). par = keep-in-stock threshold.
+// ── box lineup (source of truth — add/remove a box here) ──
+// par = default keep-in-stock threshold. cap defaults are blank; filled in live on the page.
 const BOXES=[
-  {key:'12x8x6',  type:'bandana', dim:'12 × 8 × 6',  cap:null, par:25, isNew:false},
-  {key:'12x10x8', type:'bandana', dim:'12 × 10 × 8', cap:null, par:25, isNew:true},
-  {key:'12x12x12',type:'bandana', dim:'12 × 12 × 12',cap:null, par:25, isNew:false},
-  {key:'22x16x8', type:'bandana', dim:'22 × 16 × 8', cap:null, par:25, isNew:true},
-  {key:'22x12x12',type:'bandana', dim:'22 × 12 × 12',cap:null, par:50, isNew:false},
-  {key:'22x16x16',type:'apparel', dim:'22 × 16 × 16',cap:null, par:25, isNew:false},
-  {key:'24x18x18',type:'apparel', dim:'24 × 18 × 18',cap:null, par:25, isNew:true},
+  {key:'12x8x6',  type:'bandana', dim:'12 × 8 × 6',  par:25, isNew:false},
+  {key:'12x10x8', type:'bandana', dim:'12 × 10 × 8', par:25, isNew:true},
+  {key:'12x12x12',type:'bandana', dim:'12 × 12 × 12',par:25, isNew:false},
+  {key:'22x16x8', type:'bandana', dim:'22 × 16 × 8', par:25, isNew:true},
+  {key:'22x12x12',type:'bandana', dim:'22 × 12 × 12',par:50, isNew:false},
+  {key:'22x16x16',type:'apparel', dim:'22 × 16 × 16',par:25, isNew:false},
+  {key:'24x18x18',type:'apparel', dim:'24 × 18 × 18',par:25, isNew:true},
 ];
 
-let ONHAND={}, PAR_OV={}, ASOF='';
+let ONHAND={}, PAR_OV={}, CAP={}, ASOF='';
 
-function parOf(b){ return (PAR_OV[b.key]!=null) ? PAR_OV[b.key] : b.par; }
+function parOf(b){ const v=PAR_OV[b.key]; return (v!=null&&v!=='') ? v : b.par; }
 function statusOf(b){
   const par=parOf(b); const oh=ONHAND[b.key];
   if(oh==null||oh==='') return {cls:'cnt',txt:'Count needed',order:0,counted:false};
@@ -195,19 +186,15 @@ function statusOf(b){
   return {cls:'ok',txt:'Stocked',order:0,counted:true};
 }
 
-function capChip(b){ return b.cap!=null ? `<span class="boxsub">${b.cap}</span>` : `<span class="cap">cap TBD</span>`; }
-
 function rowHTML(b){
-  const par=parOf(b); const s=statusOf(b); const oh=ONHAND[b.key];
+  const par=parOf(b); const s=statusOf(b); const oh=ONHAND[b.key]; const cap=CAP[b.key];
   const newTag=b.isNew?'<span class="new">New</span>':'';
-  const ohCell = JEAN
-    ? `<input class="num" type="number" min="0" step="1" data-k="${b.key}" value="${oh==null?'':oh}" placeholder="—">`
-    : (oh==null||oh==='' ? `<span class="onhand miss">—</span>` : `<span class="onhand">${oh}</span>`);
-  const parCell = JEAN
-    ? `<input class="num par" type="number" min="0" step="1" data-pk="${b.key}" value="${par}">`
-    : `<span class="par">${par}</span>`;
-  return `<tr class="${JEAN?'editrow':''}">
-    <td><div class="box">${newTag}${b.dim}</div>${b.cap!=null?capChip(b):'<span class="boxsub">capacity pending Jean</span>'}</td>
+  const capCell=`<input class="num" type="number" min="0" step="1" data-ck="${b.key}" value="${cap==null||cap===''?'':cap}" placeholder="—">`;
+  const ohCell =`<input class="num" type="number" min="0" step="1" data-k="${b.key}" value="${oh==null||oh===''?'':oh}" placeholder="—">`;
+  const parCell=`<input class="num par" type="number" min="0" step="1" data-pk="${b.key}" value="${par}">`;
+  return `<tr class="editrow">
+    <td><div class="box">${newTag}${b.dim}</div></td>
+    <td class="c">${capCell}</td>
     <td class="c">${ohCell}</td>
     <td class="c">${parCell}</td>
     <td class="c"><span class="pill ${s.cls}">${s.txt}</span></td>
@@ -225,18 +212,17 @@ function renderReorder(){
     cnt.textContent='all stocked';
     area.innerHTML='<div class="allgood">✓ Every counted box is at or above its keep level.</div>';
   }
-  foot.textContent = uncounted ? `${uncounted} box${uncounted>1?'es':''} not counted yet${JEAN?' — enter a count above.':'.'}` : '';
+  foot.textContent = uncounted ? `${uncounted} box${uncounted>1?'es':''} not counted yet — enter an on-hand count above.` : '';
 }
 
 function render(){
   document.getElementById('tb-bandana').innerHTML=BOXES.filter(b=>b.type==='bandana').map(rowHTML).join('');
   document.getElementById('tb-apparel').innerHTML=BOXES.filter(b=>b.type==='apparel').map(rowHTML).join('');
-  if(JEAN){
-    document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);renderReorder();});
-    document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=Number(el.value);renderReorder();});
-  }
+  document.querySelectorAll('input.num[data-ck]').forEach(el=>el.oninput=()=>{CAP[el.dataset.ck]=el.value===''?null:Number(el.value);});
+  document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);renderReorder();});
+  document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=el.value===''?null:Number(el.value);renderReorder();});
   renderReorder();
-  document.getElementById('updated').textContent = ASOF ? ('Updated '+ASOF) : 'Counts not entered yet';
+  document.getElementById('updated').textContent = ASOF ? ('Updated '+ASOF) : 'Nothing saved yet';
 }
 
 // ── backend (n8n webhook) with localStorage fallback ──
@@ -245,7 +231,7 @@ async function load(){
     const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),4000);
     const r=await fetch(BOX_API,{signal:ctrl.signal}); clearTimeout(t);
     if(r.ok){const d=await r.json(); if(d&&typeof d==='object'){
-      ONHAND=d.onhand||{}; PAR_OV=d.par||{}; ASOF=d.asOf||''; return true;
+      ONHAND=d.onhand||{}; PAR_OV=d.par||{}; CAP=d.cap||{}; ASOF=d.asOf||''; return true;
     }}
   }catch(e){}
   return false; // backend not reachable — keep whatever localStorage gave us
@@ -253,7 +239,7 @@ async function load(){
 async function save(){
   const now=new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   ASOF=now;
-  const payload={onhand:ONHAND,par:PAR_OV,asOf:now};
+  const payload={onhand:ONHAND,par:PAR_OV,cap:CAP,asOf:now};
   localStorage.setItem('boxstock',JSON.stringify(payload));
   let ok=false;
   try{const r=await fetch(BOX_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});ok=r.ok;}catch(e){}
@@ -267,7 +253,7 @@ async function save(){
   document.getElementById('savebtn').onclick=save;
   // 1) render immediately from local data so the page is never blank
   const ls=JSON.parse(localStorage.getItem('boxstock')||'null');
-  if(ls){ONHAND=ls.onhand||{};PAR_OV=ls.par||{};ASOF=ls.asOf||'(saved on this device)';}
+  if(ls){ONHAND=ls.onhand||{};PAR_OV=ls.par||{};CAP=ls.cap||{};ASOF=ls.asOf||'(saved on this device)';}
   render();
   // 2) then refresh from the team backend if it answers
   if(await load()) render();
