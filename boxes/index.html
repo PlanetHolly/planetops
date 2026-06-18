@@ -223,9 +223,9 @@ function renderReorder(){
 function render(){
   document.getElementById('tb-bandana').innerHTML=BOXES.filter(b=>b.type==='bandana').map(rowHTML).join('');
   document.getElementById('tb-apparel').innerHTML=BOXES.filter(b=>b.type==='apparel').map(rowHTML).join('');
-  document.querySelectorAll('input.num[data-ck]').forEach(el=>el.oninput=()=>{CAP[el.dataset.ck]=el.value===''?null:Number(el.value);});
-  document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);updateStatus(el.dataset.k);renderReorder();});
-  document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=el.value===''?null:Number(el.value);updateStatus(el.dataset.pk);renderReorder();});
+  document.querySelectorAll('input.num[data-ck]').forEach(el=>el.oninput=()=>{CAP[el.dataset.ck]=el.value===''?null:Number(el.value);persistLocal();});
+  document.querySelectorAll('input.num[data-k]').forEach(el=>el.oninput=()=>{ONHAND[el.dataset.k]=el.value===''?null:Number(el.value);updateStatus(el.dataset.k);renderReorder();persistLocal();});
+  document.querySelectorAll('input.num[data-pk]').forEach(el=>el.oninput=()=>{PAR_OV[el.dataset.pk]=el.value===''?null:Number(el.value);updateStatus(el.dataset.pk);renderReorder();persistLocal();});
   renderReorder();
   document.getElementById('updated').textContent = ASOF ? ('Updated '+ASOF) : 'Nothing saved yet';
 }
@@ -241,6 +241,7 @@ async function load(){
   }catch(e){}
   return false; // backend not reachable — keep whatever localStorage gave us
 }
+function persistLocal(){ try{localStorage.setItem('boxstock',JSON.stringify({onhand:ONHAND,par:PAR_OV,cap:CAP,asOf:ASOF}));}catch(e){} }
 async function save(){
   const now=new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   ASOF=now;
