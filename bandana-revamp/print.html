@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bandana Revamp — Meeting Snapshot</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:letter;margin:0.45in 0.5in}
+html,body{font-family:'Barlow',sans-serif;color:#1a1a1a;font-size:10.5px;line-height:1.32;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+:root{--y:#F7BE00;--pa:#F7BE00;--ph:#2196F3;--jo:#00ACC1;--g:#43A047;--o:#FF9800}
+.head{background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-radius:7px}
+.brand{display:flex;align-items:center;gap:8px}
+.brand .tick{width:4px;height:20px;background:var(--y);border-radius:2px}
+.brand .wm{font-family:'Barlow Condensed';font-weight:900;font-size:17px;letter-spacing:.07em;text-transform:uppercase}
+.head .r{font-family:'Barlow Condensed';font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+h1{font-family:'Barlow Condensed';font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:.01em;margin-top:11px;line-height:1}
+.meta{font-size:10px;color:#666;margin-top:3px;font-weight:600}
+.meta b{color:#1a1a1a}
+.prog-wrap{display:flex;align-items:center;gap:11px;margin-top:9px}
+.pbar{flex:1;height:11px;background:#e7e9ee;border-radius:99px;overflow:hidden;display:flex}
+.pbar i{height:100%}
+.pct{font-family:'Barlow Condensed';font-weight:900;font-size:15px;white-space:nowrap}
+.legend{display:flex;gap:13px;margin-top:7px;font-size:9px;color:#555;font-weight:600;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:11px}
+.grp{break-inside:avoid}
+.grp h2{font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.07em;text-transform:uppercase;padding-bottom:3px;border-bottom:2px solid;margin-bottom:5px}
+.grp.pa h2{border-color:var(--pa);color:#7a5d00}
+.grp.ph h2{border-color:var(--ph);color:#0d4f86}
+.grp.jo h2{border-color:var(--jo);color:#055f6b}
+.item{display:flex;align-items:flex-start;gap:6px;padding:3px 0;border-bottom:1px solid #eee}
+.item:last-child{border-bottom:none}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.t{flex:1}
+.t .tt{font-weight:600;font-size:10px;line-height:1.25}
+.t .nt{font-size:8.5px;color:#777;line-height:1.2}
+.pill{font-family:'Barlow Condensed';font-weight:700;font-size:8px;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:99px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.p-live{background:rgba(67,160,71,.16);color:#2e7d32}
+.p-staging{background:rgba(255,152,0,.18);color:#c55e00}
+.p-progress{background:rgba(142,36,170,.14);color:#6a1b9a}
+.p-todo{background:#eee;color:#777}
+.new{background:#E53935;color:#fff;font-size:7px;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;font-family:'Barlow Condensed';letter-spacing:.05em}
+.bottom{display:grid;grid-template-columns:1.1fr 1fr;gap:13px;margin-top:11px}
+.box h3{font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.07em;text-transform:uppercase;border-bottom:2px solid var(--y);padding-bottom:3px;margin-bottom:5px}
+.li{padding:2.5px 0;font-size:9.5px;display:flex;gap:6px;border-bottom:1px solid #f0f0f0}
+.li:last-child{border-bottom:none}
+.li .tag{font-family:'Barlow Condensed';font-weight:700;font-size:8px;text-transform:uppercase;color:#999;white-space:nowrap}
+.li .mdate{font-weight:700;color:#1a1a1a;white-space:nowrap;font-size:9px}
+.foot{margin-top:12px;padding-top:7px;border-top:1px solid #ddd;font-size:8.5px;color:#888;display:flex;justify-content:space-between}
+.foot b{color:#555}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="brand"><span class="tick"></span><span class="wm">Planet Apparel</span></div>
+  <div class="r">Project Board · Meeting Snapshot</div>
+</div>
+
+<h1>2026 Bandana Revamp &amp; Optimization</h1>
+<div class="meta"><b>Start:</b> June 1, 2026 &nbsp;·&nbsp; <b>Day 18</b> &nbsp;·&nbsp; Monthly check-in with Nonstop Marketing &nbsp;·&nbsp; Printed June 18, 2026</div>
+
+<div class="prog-wrap">
+  <div class="pbar">
+    <i style="width:16.7%;background:var(--pa)"></i><i style="width:5.6%;background:var(--ph)"></i><i style="width:0%;background:var(--jo)"></i>
+  </div>
+  <span class="pct">4 / 18 · 22%</span>
+</div>
+<div class="legend">
+  <span><i class="sw" style="background:var(--pa)"></i>Planet Apparel done</span>
+  <span><i class="sw" style="background:var(--ph)"></i>Nonstop done</span>
+  <span><i class="sw" style="background:var(--jo)"></i>Joint done</span>
+  <span><i class="sw" style="background:var(--o)"></i>Staging / awaiting approval</span>
+  <span><i class="sw" style="background:#bbb"></i>Not started</span>
+  <span>&nbsp;·&nbsp; "custom bandanas" rank: <b>#10, page 1</b></span>
+</div>
+
+<div class="cols">
+  <!-- LEFT: Planet Apparel + Joint -->
+  <div>
+    <div class="grp pa">
+      <h2>Planet Apparel (Holly)</h2>
+      <div class="item"><span class="dot" style="background:var(--pa)"></span><div class="t"><div class="tt">Top bandana SKU list (5–15)</div></div><span class="pill p-live">Live</span></div>
+      <div class="item"><span class="dot" style="background:var(--pa)"></span><div class="t"><div class="tt">Search terms &amp; keywords</div></div><span class="pill p-live">Live</span></div>
+      <div class="item"><span class="dot" style="background:var(--pa)"></span><div class="t"><div class="tt">FAQ answers</div></div><span class="pill p-live">Live</span></div>
+      <div class="item"><span class="dot" style="background:var(--pa)"></span><div class="t"><div class="tt">Backlink outreach (DWC approved)</div></div><span class="pill p-live">Live</span></div>
+      <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Categorize photoshoot photos</div></div><span class="pill p-todo">Open</span></div>
+      <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Send bandana templates</div></div><span class="pill p-todo">Open</span></div>
+      <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Send Digital Bandana rename + pricing <span class="new">New</span></div></div><span class="pill p-todo">Open</span></div>
+    </div>
+    <div class="grp jo" style="margin-top:9px">
+      <h2>Joint</h2>
+      <div class="item"><span class="dot" style="background:#8E24AA"></span><div class="t"><div class="tt">Death Wish press release (backlink)</div></div><span class="pill p-progress">In prog</span></div>
+      <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Quote form QA w/ shipping times</div><div class="nt">Phelan + Jean + Holly</div></div><span class="pill p-todo">Open</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Nonstop -->
+  <div class="grp ph">
+    <h2>Nonstop / Phelan</h2>
+    <div class="item"><span class="dot" style="background:var(--ph)"></span><div class="t"><div class="tt">H1 on custom bandana page</div></div><span class="pill p-live">Live</span></div>
+    <div class="item"><span class="dot" style="background:var(--o)"></span><div class="t"><div class="tt">Bandanas WordPress plugin</div><div class="nt">v1 on staging — needs approval</div></div><span class="pill p-staging">Staging</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Per-SKU landing pages</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Rename "USA-Made Digital" → "Digital Bandana" + pricing <span class="new">New</span></div><div class="nt">Website + form; remove "USA"</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">HotJar / heatmap</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Order Samples CTA (more placements)</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">FAQ schema on product pages</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Re-enable email notifications</div></div><span class="pill p-todo">Open</span></div>
+    <div class="item"><span class="dot" style="background:#bbb"></span><div class="t"><div class="tt">Add templates to site</div><div class="nt">Blocked on Holly's templates</div></div><span class="pill p-todo">Open</span></div>
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="box">
+    <h3>Ideas &amp; Parking Lot</h3>
+    <div class="li"><span class="tag">Nice to have ·</span> CustomPrintedBandanas.com standalone site</div>
+    <div class="li"><span class="tag">Next month ·</span> Sample orders → Printavo (WooCommerce automation)</div>
+    <div class="li"><span class="tag">Decision ·</span> Spam fix: email-as-graphic vs reCAPTCHA v3</div>
+    <div class="li"><span class="tag">Watch ·</span> Phase 2 wholesale bandana e-commerce</div>
+  </div>
+  <div class="box">
+    <h3>Meeting Log</h3>
+    <div class="li"><span class="mdate">May 22</span> Strategy meeting + offer accepted</div>
+    <div class="li"><span class="mdate">May 29</span> Kickoff working session</div>
+    <div class="li"><span class="mdate">Jun 18</span> June check-in (today)</div>
+  </div>
+</div>
+
+<div class="foot">
+  <span><b>2026 Bandana Revamp &amp; Optimization</b> · Planet Apparel × Nonstop Marketing</span>
+  <span>Live board: <b>planetholly.github.io/planetops/bandana-revamp</b></span>
+</div>
+</body>
+</html>
