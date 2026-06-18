@@ -117,7 +117,7 @@ input.par{width:3rem;font-size:.9rem;}
     <div class="updated" id="updated">—</div>
   </div>
 
-  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · enter how many of each box are on hand. Counts save for the whole team. PMs see view-only.</div>
+  <div class="jeanbar" id="jeanbar"><b>LIVE COUNT</b> · enter how many of each box are on hand — counts save for the whole team.</div>
 
   <div class="body">
 
@@ -159,7 +159,7 @@ input.par{width:3rem;font-size:.9rem;}
 
   <div class="foot">
     <span>Planet Apparel · Box Guide</span>
-    <span id="footmode">View only</span>
+    <span id="footmode">Live · counts save for the team</span>
   </div>
 
 </div>
@@ -169,7 +169,7 @@ input.par{width:3rem;font-size:.9rem;}
 // Live counts flow through an n8n webhook (no API key in this public page).
 // Until the webhook is live, the page falls back to localStorage so it never looks broken.
 const BOX_API='https://primary-production-079f9.up.railway.app/webhook/boxstock';
-const JEAN = new URLSearchParams(location.search).get('mode')==='jean';
+const JEAN = true; // everyone can edit — no read-only mode
 
 // ── reference data (source of truth — edit here) ──
 // cap = bandanas/garments per box (null = pending Jean). par = keep-in-stock threshold.
@@ -262,10 +262,11 @@ async function save(){
 }
 
 (async function(){
-  if(JEAN){document.getElementById('jeanbar').classList.add('on');document.getElementById('saverow').classList.add('on');document.getElementById('footmode').textContent='Jean mode';}
+  document.getElementById('jeanbar').classList.add('on');
+  document.getElementById('saverow').classList.add('on');
   await load();
   render();
-  if(JEAN)document.getElementById('savebtn').onclick=save;
+  document.getElementById('savebtn').onclick=save;
 })();
 </script>
 </body>
