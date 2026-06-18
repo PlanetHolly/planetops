@@ -242,13 +242,13 @@ function render(){
 // ── backend (n8n webhook) with localStorage fallback ──
 async function load(){
   try{
-    const r=await fetch(BOX_API);
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),4000);
+    const r=await fetch(BOX_API,{signal:ctrl.signal}); clearTimeout(t);
     if(r.ok){const d=await r.json(); if(d&&typeof d==='object'){
-      ONHAND=d.onhand||{}; PAR_OV=d.par||{}; ASOF=d.asOf||''; return;
+      ONHAND=d.onhand||{}; PAR_OV=d.par||{}; ASOF=d.asOf||''; return true;
     }}
   }catch(e){}
-  const ls=JSON.parse(localStorage.getItem('boxstock')||'null');
-  if(ls){ONHAND=ls.onhand||{};PAR_OV=ls.par||{};ASOF=ls.asOf||'(saved on this device)';}
+  return false; // backend not reachable — keep whatever localStorage gave us
 }
 async function save(){
   const now=new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -264,9 +264,13 @@ async function save(){
 (async function(){
   document.getElementById('jeanbar').classList.add('on');
   document.getElementById('saverow').classList.add('on');
-  await load();
-  render();
   document.getElementById('savebtn').onclick=save;
+  // 1) render immediately from local data so the page is never blank
+  const ls=JSON.parse(localStorage.getItem('boxstock')||'null');
+  if(ls){ONHAND=ls.onhand||{};PAR_OV=ls.par||{};ASOF=ls.asOf||'(saved on this device)';}
+  render();
+  // 2) then refresh from the team backend if it answers
+  if(await load()) render();
 })();
 </script>
 </body>
