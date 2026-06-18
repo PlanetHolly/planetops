@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>2026 Bandana Revamp &amp; Optimization — Planet Apparel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --yellow:#F7BE00;--black:#000;--tonal-black:#1a1a1a;--white:#fff;--bg:#F2F4F8;
+  --blue:#2196F3;--purple:#8E24AA;--orange:#FF9800;--green:#43A047;--red:#E53935;--teal:#00ACC1;--gray:#9E9E9E;
+  /* owner colors */
+  --pa:#F7BE00;--pa-deep:#7a5d00;--phelan:#2196F3;--phelan-deep:#0d4f86;--joint:#00ACC1;--joint-deep:#055f6b;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.13);
+  --radius:10px;--radius-lg:18px;--radius-pill:999px;
+  --font-head:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);font-family:var(--font-body);color:var(--tonal-black);-webkit-font-smoothing:antialiased;line-height:1.45}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+
+/* ── HEADER ── */
+.topbar{background:var(--tonal-black);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.topbar-inner{max-width:1080px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand img{height:26px;width:auto;display:block}
+.brand .wm{font-family:var(--font-head);font-weight:900;font-size:19px;letter-spacing:.07em;text-transform:uppercase;color:#fff}
+.brand .accent{height:26px;width:4px;background:var(--yellow);border-radius:3px}
+.topbar-meta{text-align:right;font-family:var(--font-head);line-height:1.05;flex-shrink:0}
+.topbar-meta .big{font-weight:800;font-size:17px;letter-spacing:.03em}
+.topbar-meta .sm{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:3px}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,#fff 0%,#fff 60%,#FFFBEF 100%);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-top:22px;padding:24px 26px;border:1px solid rgba(0,0,0,.05)}
+.hero-eyebrow{font-family:var(--font-head);font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--pa-deep)}
+.hero h1{font-family:var(--font-head);font-weight:900;font-size:30px;letter-spacing:.01em;line-height:1.04;margin-top:4px;text-transform:uppercase}
+.hero-sub{font-size:13.5px;color:rgba(0,0,0,.55);margin-top:6px;max-width:640px}
+.hero-dates{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap}
+.hd{font-family:var(--font-head)}
+.hd .lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.4);font-weight:700}
+.hd .val{font-size:16px;font-weight:800;margin-top:1px}
+
+/* ── PROGRESS ── */
+.progress-block{margin-top:20px}
+.pbar-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.pbar-row .t{font-family:var(--font-head);font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:rgba(0,0,0,.55)}
+.pbar-row .pct{font-family:var(--font-head);font-weight:900;font-size:15px}
+.pbar{height:16px;background:rgba(0,0,0,.07);border-radius:var(--radius-pill);overflow:hidden;display:flex}
+.pbar-seg{height:100%;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.pbar-seg.pa{background:var(--pa)}
+.pbar-seg.phelan{background:var(--phelan)}
+.pbar-seg.joint{background:var(--joint)}
+
+/* stat tiles */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.stat{background:#fff;border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.05)}
+.stat .n{font-family:var(--font-head);font-weight:900;font-size:30px;line-height:1}
+.stat .l{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,.45);font-weight:600;margin-top:3px}
+.stat.rank{background:var(--tonal-black);color:#fff}
+.stat.rank .l{color:rgba(255,255,255,.55)}
+.stat.rank .n .sm{font-size:13px;font-weight:600;color:var(--yellow)}
+
+/* ── SECTION ── */
+.section{margin-top:34px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.sec-head h2{font-family:var(--font-head);font-weight:900;font-size:21px;letter-spacing:.04em;text-transform:uppercase}
+.sec-head .note{font-size:12px;color:rgba(0,0,0,.4)}
+.sec-rule{height:3px;background:var(--yellow);width:46px;border-radius:3px;margin-bottom:16px}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;padding:12px 15px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.05)}
+.lg{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(0,0,0,.6);font-weight:500}
+.lg .sw{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+.lg .sw.pa{background:var(--pa)}.lg .sw.phelan{background:var(--phelan)}.lg .sw.joint{background:var(--joint)}
+.lg .sw.staging{background:repeating-linear-gradient(45deg,var(--orange),var(--orange) 4px,#ffd9a3 4px,#ffd9a3 8px)}
+.lg .sw.todo{background:#fff;border:1.5px dashed rgba(0,0,0,.25)}
+
+/* filter pills */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.fp{padding:6px 14px;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:rgba(0,0,0,.5);transition:all .12s}
+.fp:hover{border-color:rgba(0,0,0,.25)}
+.fp.active{background:var(--tonal-black);color:#fff;border-color:var(--tonal-black)}
+
+/* deliverable cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:13px}
+.card{background:#fff;border-radius:var(--radius);padding:15px 16px;box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.06);border-left:5px solid var(--gray);position:relative;transition:transform .1s,box-shadow .1s}
+.card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.card.owner-holly{border-left-color:var(--pa)}
+.card.owner-phelan{border-left-color:var(--phelan)}
+.card.owner-joint{border-left-color:var(--joint)}
+/* completed = filled tint in owner color */
+.card.done.owner-holly{background:linear-gradient(180deg,#FFFCF2,#FFF8E1);border-color:rgba(247,190,0,.4)}
+.card.done.owner-phelan{background:linear-gradient(180deg,#F3F9FF,#E3F2FD);border-color:rgba(33,150,243,.35)}
+.card.done.owner-joint{background:linear-gradient(180deg,#F0FCFD,#E0F7FA);border-color:rgba(0,172,193,.35)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-title{font-weight:600;font-size:14.5px;color:var(--tonal-black);line-height:1.3}
+.card.done .card-title{font-weight:700}
+.chk{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;margin-top:1px}
+.chk.done-holly{background:var(--pa);color:var(--pa-deep)}
+.chk.done-phelan{background:var(--phelan)}
+.chk.done-joint{background:var(--joint)}
+.chk.open{background:transparent;border:2px solid rgba(0,0,0,.15)}
+.card-meta{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+.owner-tag{font-family:var(--font-head);font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:var(--radius-pill)}
+.owner-tag.holly{background:rgba(247,190,0,.22);color:var(--pa-deep)}
+.owner-tag.phelan{background:rgba(33,150,243,.16);color:var(--phelan-deep)}
+.owner-tag.joint{background:rgba(0,172,193,.16);color:var(--joint-deep)}
+.status-chip{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 9px;border-radius:var(--radius-pill)}
+.status-chip.live{background:rgba(67,160,71,.15);color:#2e7d32}
+.status-chip.staging{background:rgba(255,152,0,.16);color:#c55e00}
+.status-chip.progress{background:rgba(142,36,170,.13);color:#6a1b9a}
+.status-chip.todo{background:rgba(0,0,0,.06);color:rgba(0,0,0,.5)}
+.card-date{font-size:11px;color:rgba(0,0,0,.4);font-weight:600;margin-left:auto}
+.card-note{font-size:12px;color:rgba(0,0,0,.5);margin-top:8px;line-height:1.4}
+.new-flag{position:absolute;top:-7px;right:10px;background:var(--red);color:#fff;font-family:var(--font-head);font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:4px;text-transform:uppercase}
+
+/* ideas / parking lot */
+.idea-list{display:flex;flex-direction:column;gap:9px}
+.idea{background:#fff;border-radius:var(--radius);padding:12px 15px;box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.06);display:flex;gap:12px;align-items:flex-start;border-left:4px solid var(--purple)}
+.idea .dot{width:8px;height:8px;border-radius:50%;background:var(--purple);margin-top:6px;flex-shrink:0}
+.idea .body{flex:1}
+.idea .t{font-weight:600;font-size:14px}
+.idea .d{font-size:12px;color:rgba(0,0,0,.5);margin-top:2px}
+.idea .tag{font-family:var(--font-head);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.35);align-self:center;white-space:nowrap}
+
+/* meetings */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:rgba(0,0,0,.1)}
+.mtg{position:relative;margin-bottom:16px}
+.mtg::before{content:'';position:absolute;left:-21px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--yellow);border:2px solid #fff;box-shadow:0 0 0 1.5px var(--yellow)}
+.mtg.upcoming::before{background:#fff;border:2px solid var(--yellow)}
+.mtg-date{font-family:var(--font-head);font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--tonal-black)}
+.mtg-date .badge{font-size:9px;background:var(--yellow);color:var(--tonal-black);padding:1px 7px;border-radius:4px;margin-left:7px;letter-spacing:.06em}
+.mtg-title{font-weight:600;font-size:14px;margin-top:2px}
+.mtg-sum{font-size:12.5px;color:rgba(0,0,0,.55);margin-top:4px;line-height:1.45}
+.mtg-link{display:inline-block;font-size:12px;font-weight:700;color:var(--phelan-deep);text-decoration:none;margin-top:5px}
+.mtg-link:hover{text-decoration:underline}
+
+/* footer */
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid rgba(0,0,0,.08);font-size:11.5px;color:rgba(0,0,0,.4);text-align:center}
+.foot b{color:rgba(0,0,0,.55)}
+
+/* ── INTERACTIVE CONTROLS ── */
+.edit-banner{background:rgba(247,190,0,.18);border:1px solid rgba(247,190,0,.5);color:var(--pa-deep);border-radius:var(--radius);padding:9px 14px;margin-top:16px;font-size:12.5px;font-weight:600;display:none;align-items:center;justify-content:space-between;gap:10px}
+.edit-banner.show{display:flex}
+.eb-actions{display:flex;gap:8px}
+.mini-btn{font-family:var(--font-head);font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border-radius:var(--radius-pill);border:1.5px solid rgba(0,0,0,.18);background:#fff;color:rgba(0,0,0,.6);cursor:pointer;transition:all .12s}
+.mini-btn:hover{border-color:rgba(0,0,0,.4);color:#000}
+.mini-btn.dark{background:var(--tonal-black);color:#fff;border-color:var(--tonal-black)}
+.add-btn{font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:7px 15px;border-radius:var(--radius-pill);border:1.5px dashed rgba(0,0,0,.25);background:transparent;color:rgba(0,0,0,.55);cursor:pointer;transition:all .12s;margin-top:14px}
+.add-btn:hover{border-color:var(--yellow);color:var(--pa-deep);background:#FFFBEF}
+.card .del-x,.idea .del-x,.mtg .del-x{position:absolute;top:7px;right:8px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.06);color:rgba(0,0,0,.4);border:none;font-size:13px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center}
+.card:hover .del-x,.idea:hover .del-x,.mtg:hover .del-x{display:flex}
+.card .del-x:hover,.idea .del-x:hover,.mtg .del-x:hover{background:var(--red);color:#fff}
+.idea,.mtg{position:relative}
+.status-chip,.owner-tag{cursor:pointer;user-select:none}
+.status-chip:hover,.owner-tag:hover{filter:brightness(.95);outline:1.5px solid rgba(0,0,0,.15)}
+.chk{cursor:pointer}
+.edit-hint{font-size:11px;color:rgba(0,0,0,.35);margin-top:6px;font-style:italic}
+
+/* inline add form */
+.add-form{background:#fff;border:1.5px solid rgba(247,190,0,.5);border-radius:var(--radius);padding:14px;margin-top:12px;display:none;flex-direction:column;gap:9px;box-shadow:var(--shadow-md)}
+.add-form.show{display:flex}
+.add-form input,.add-form select,.add-form textarea{font-family:var(--font-body);font-size:13.5px;padding:8px 11px;border:1.5px solid rgba(0,0,0,.14);border-radius:8px;width:100%;color:var(--tonal-black)}
+.add-form textarea{resize:vertical;min-height:46px}
+.add-form .row{display:flex;gap:9px;flex-wrap:wrap}
+.add-form .row > *{flex:1;min-width:130px}
+.af-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* export modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);padding:22px;max-width:680px;width:100%;max-height:84vh;overflow:auto;box-shadow:var(--shadow-lg)}
+.modal h3{font-family:var(--font-head);font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:.04em}
+.modal p{font-size:13px;color:rgba(0,0,0,.55);margin:6px 0 12px}
+.modal textarea{width:100%;height:300px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;padding:12px;border:1.5px solid rgba(0,0,0,.14);border-radius:8px;line-height:1.5}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:13px}
+
+@media(max-width:620px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .hero h1{font-size:24px}
+  .cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="accent"></span>
+      <img src="../assets/pa-logo-white.png" alt="Planet Apparel" onerror="this.style.display='none';document.getElementById('wm').style.display='inline'">
+      <span class="wm" id="wm" style="display:none">Planet Apparel</span>
+    </div>
+    <div class="topbar-meta">
+      <div class="big" id="dayCount">—</div>
+      <div class="sm">Day of engagement</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Website Retainer · Nonstop Marketing</div>
+    <h1>2026 Bandana Revamp &amp; Optimization</h1>
+    <p class="hero-sub">Live project board for the bandana site rebuild — ranking recovery, per-SKU landing pages, and AI/search visibility. Source of truth for what's done, who owns it, and what's next.</p>
+    <div class="hero-dates">
+      <div class="hd"><div class="lab">Start Date</div><div class="val">June 1, 2026</div></div>
+      <div class="hd"><div class="lab">Cadence</div><div class="val">Monthly check-in</div></div>
+      <div class="hd"><div class="lab">Last Updated</div><div class="val" id="updated">June 18, 2026</div></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-block">
+      <div class="pbar-row">
+        <span class="t">Overall Progress</span>
+        <span class="pct" id="overallPct">0%</span>
+      </div>
+      <div class="pbar" id="pbar"></div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="edit-banner" id="editBanner">
+      <span id="ebText">You have unsaved local edits (saved on this device only).</span>
+      <span class="eb-actions">
+        <button class="mini-btn dark" onclick="openExport()">Export to publish</button>
+        <button class="mini-btn" onclick="resetLocal()">Reset to published</button>
+      </span>
+    </div>
+  </div>
+
+  <!-- DELIVERABLES -->
+  <div class="section">
+    <div class="sec-head"><h2>Deliverables</h2><span class="note">Color = who completed it</span></div>
+    <div class="sec-rule"></div>
+    <div class="legend">
+      <div class="lg"><span class="sw pa"></span>Planet Apparel done</div>
+      <div class="lg"><span class="sw phelan"></span>Nonstop / Phelan done</div>
+      <div class="lg"><span class="sw joint"></span>Joint done</div>
+      <div class="lg"><span class="sw staging"></span>On staging / awaiting approval</div>
+      <div class="lg"><span class="sw todo"></span>Not started</div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="cards" id="cards"></div>
+    <p class="edit-hint">Tip: click a status chip to advance it · click the owner tag to reassign · click the circle to mark done.</p>
+    <button class="add-btn" onclick="toggleForm('dForm')">+ Add deliverable</button>
+    <div class="add-form" id="dForm">
+      <input id="dTitle" placeholder="Deliverable title">
+      <div class="row">
+        <select id="dOwner"><option value="holly">Planet Apparel</option><option value="phelan">Nonstop / Phelan</option><option value="joint">Joint</option></select>
+        <select id="dStatus"><option value="todo">Not started</option><option value="progress">In progress</option><option value="staging">Staging</option><option value="live">Live / Done</option></select>
+      </div>
+      <input id="dNote" placeholder="Short note (optional)">
+      <div class="af-actions"><button class="mini-btn" onclick="toggleForm('dForm')">Cancel</button><button class="mini-btn dark" onclick="addDeliverable()">Add</button></div>
+    </div>
+  </div>
+
+  <!-- IDEAS / PARKING LOT -->
+  <div class="section">
+    <div class="sec-head"><h2>Ideas &amp; Parking Lot</h2><span class="note">Add to this in meetings</span></div>
+    <div class="sec-rule"></div>
+    <div class="idea-list" id="ideas"></div>
+    <button class="add-btn" onclick="toggleForm('iForm')">+ Add idea</button>
+    <div class="add-form" id="iForm">
+      <input id="iTitle" placeholder="Idea / parking-lot item">
+      <input id="iNote" placeholder="Detail (optional)">
+      <div class="row"><input id="iTag" placeholder="Tag — e.g. Next month, Decision, Watch"></div>
+      <div class="af-actions"><button class="mini-btn" onclick="toggleForm('iForm')">Cancel</button><button class="mini-btn dark" onclick="addIdea()">Add</button></div>
+    </div>
+  </div>
+
+  <!-- MEETINGS -->
+  <div class="section">
+    <div class="sec-head"><h2>Meeting Log</h2><span class="note">Dates · summaries · transcripts</span></div>
+    <div class="sec-rule"></div>
+    <div class="timeline" id="meetings"></div>
+    <button class="add-btn" onclick="toggleForm('mForm')">+ Add meeting</button>
+    <div class="add-form" id="mForm">
+      <div class="row"><input id="mDate" placeholder="Date — e.g. Jun 28, 2026"><input id="mTitle" placeholder="Meeting title"></div>
+      <textarea id="mSum" placeholder="Summary / items discussed"></textarea>
+      <input id="mLink" placeholder="Transcript or summary link (optional)">
+      <div class="af-actions"><button class="mini-btn" onclick="toggleForm('mForm')">Cancel</button><button class="mini-btn dark" onclick="addMeeting()">Add</button></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>2026 Bandana Revamp &amp; Optimization</b> · Planet Apparel × Nonstop Marketing · maintained by Holly<br>
+    Edit live in the browser (saved on this device). Use <b>Export to publish</b> to make changes permanent for everyone.
+  </div>
+
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Export to publish</h3>
+    <p>This is your current board data. Copy it and send it to Claude ("publish these to the board"), or paste it into the page source <code>DATA</code> block and push to GitHub — then everyone sees it (not just this device).</p>
+    <textarea id="exportText" readonly></textarea>
+    <div class="modal-actions">
+      <button class="mini-btn" onclick="closeExport()">Close</button>
+      <button class="mini-btn dark" onclick="copyExport()">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA — single source of truth.
+   To update: edit below and push to GitHub.
+   owner: 'holly' | 'phelan' | 'joint'
+   status: 'live' (done) | 'staging' | 'progress' | 'todo'
+   ============================================================ */
+const PROJECT = { start: '2026-06-01', updated: '2026-06-18' };
+
+const DELIVERABLES = [
+  // ── Planet Apparel (Holly) inputs ──
+  { title:'Top bandana SKU list (priority 5–15)', owner:'holly', status:'live', date:'Jun 5', note:'Delivered in shared drive "01 Popular SKUs & Pricing."' },
+  { title:'Search terms & keywords', owner:'holly', status:'live', date:'Jun 5', note:'Streak + GSC. Real language is custom / cotton / printing / logo — not "premium/soft."' },
+  { title:'FAQ answers ("Alternative by Holly")', owner:'holly', status:'live', date:'Jun 1', note:'Answers written into the FAQ doc for Phelan to build into schema.' },
+  { title:'Backlink outreach (press features)', owner:'holly', status:'live', date:'Jun 5', note:'Death Wish Coffee approved. JuneShine pending.' },
+  { title:'Categorize bandana photoshoot photos', owner:'holly', status:'todo', date:'', note:'Tag images by color / paisley / fabric for the SKU pages.' },
+  { title:'Send bandana templates', owner:'holly', status:'todo', date:'', note:'Needed for "Add templates to site."' },
+  { title:'Send Digital Bandana rename + new pricing', owner:'holly', status:'todo', date:'', note:'Final name + price details to Phelan after the June meeting.', isNew:true },
+
+  // ── Nonstop / Phelan deliverables ──
+  { title:'H1 on custom bandana page', owner:'phelan', status:'live', date:'Jun', note:'Title now includes "custom bandana" as H1.' },
+  { title:'Bandanas WordPress plugin', owner:'phelan', status:'staging', date:'', note:'v1 built on staging. Awaiting Holly approval before going live.' },
+  { title:'Per-SKU landing pages', owner:'phelan', status:'todo', date:'', note:'Has the SKU list since Jun 5. Next domino after plugin.' },
+  { title:'Rename "USA-Made Digital Bandana" → "Digital Bandana" + new pricing', owner:'phelan', status:'todo', date:'', note:'On website AND quote form. Remove "USA" everywhere. Details coming from Holly.', isNew:true },
+  { title:'HotJar / heatmap tracking', owner:'phelan', status:'todo', date:'', note:'Track UX on bandana + About pages.' },
+  { title:'Order Samples CTA (more placements)', owner:'phelan', status:'todo', date:'', note:'Add to additional areas of the bandana page.' },
+  { title:'FAQ schema on product pages', owner:'phelan', status:'todo', date:'', note:'Holly’s answers delivered Jun 1; schema not yet implemented.' },
+  { title:'Re-enable email notifications', owner:'phelan', status:'todo', date:'', note:'Quote/form notifications.' },
+  { title:'Add templates to site', owner:'phelan', status:'todo', date:'', note:'Blocked on Holly sending templates.' },
+
+  // ── Joint ──
+  { title:'Death Wish press release (backlink)', owner:'joint', status:'progress', date:'', note:'Holly secured approval; Phelan clear to draft.' },
+  { title:'Quote form QA with shipping times', owner:'joint', status:'todo', date:'', note:'Phelan + Jean + Holly to walk through together.' },
+];
+
+const IDEAS = [
+  { title:'CustomPrintedBandanas.com standalone site', note:'Pine-style "USA water-base, that’s all we do" landing page. Needs separate hosting/IP.', tag:'Nice to have' },
+  { title:'Sample orders → Printavo automation', note:'WooCommerce → Printavo via Zapier / Make / Integrately. Sample orders don’t currently flow into Printavo.', tag:'Next month' },
+  { title:'Spam fix: email-as-graphic vs reCAPTCHA v3', note:'Decide which approach wins for the form.', tag:'Decision' },
+  { title:'Wholesale bandana e-commerce (Phase 2)', note:'Don’t architect in a way that boxes out the 2027 West-Coast blank-bandana distribution play.', tag:'Watch' },
+];
+
+const MEETINGS = [
+  { date:'May 22, 2026', title:'Website strategy meeting + offer accepted', sum:'Retainer scoped and accepted. Bandana-first, ranking recovery + AI/LLM visibility. Holly = content engine, Phelan = implementation engine.', link:'' },
+  { date:'May 29, 2026', title:'Kickoff working session', sum:'Per-SKU WordPress plugin + filterable gallery agreed for the 35–40 unfeatured bandana SKUs. LLM strategy stays with Holly/Brian; Phelan implements. Backlinks via press releases.', link:'' },
+  { date:'Jun 18, 2026', title:'June check-in (Google Meet)', sum:'Month-1 review: plugin staging approval, deliverable status, tracking, and the Digital Bandana rename + new pricing.', link:'', upcoming:true },
+];
+
+/* ============================ STATE ============================ */
+const OWNER_LABEL = { holly:'Planet Apparel', phelan:'Nonstop', joint:'Joint' };
+const STATUS_LABEL = { live:'Live', staging:'Staging', progress:'In progress', todo:'Not started' };
+const STATUS_CYCLE = ['todo','progress','staging','live'];
+const OWNER_CYCLE = ['holly','phelan','joint'];
+const SEED = { deliverables:DELIVERABLES, ideas:IDEAS, meetings:MEETINGS };
+const LS_KEY = 'bandana-board-v1';
+
+let state = loadState();
+function loadState(){ try{ const s=localStorage.getItem(LS_KEY); if(s) return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(SEED)); }
+function isDirty(){ return localStorage.getItem(LS_KEY)!==null; }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); renderAll(); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function dayCount(){
+  const start=new Date(PROJECT.start+'T00:00:00'), now=new Date();
+  const d=Math.floor((now-start)/86400000)+1; return d>0?d:0;
+}
+
+/* ─── edits ─── */
+function cycleStatus(i){ const d=state.deliverables[i]; d.status=STATUS_CYCLE[(STATUS_CYCLE.indexOf(d.status)+1)%STATUS_CYCLE.length]; save(); }
+function cycleOwner(i){ const d=state.deliverables[i]; d.owner=OWNER_CYCLE[(OWNER_CYCLE.indexOf(d.owner)+1)%OWNER_CYCLE.length]; save(); }
+function delDeliverable(i){ if(confirm('Remove this deliverable?')){ state.deliverables.splice(i,1); save(); } }
+function delIdea(i){ if(confirm('Remove this idea?')){ state.ideas.splice(i,1); save(); } }
+function delMeeting(i){ if(confirm('Remove this meeting?')){ state.meetings.splice(i,1); save(); } }
+
+function addDeliverable(){
+  const t=document.getElementById('dTitle').value.trim(); if(!t)return;
+  state.deliverables.push({ title:t, owner:document.getElementById('dOwner').value, status:document.getElementById('dStatus').value, date:'', note:document.getElementById('dNote').value.trim(), isNew:true });
+  ['dTitle','dNote'].forEach(id=>document.getElementById(id).value=''); toggleForm('dForm'); save();
+}
+function addIdea(){
+  const t=document.getElementById('iTitle').value.trim(); if(!t)return;
+  state.ideas.push({ title:t, note:document.getElementById('iNote').value.trim(), tag:document.getElementById('iTag').value.trim()||'New' });
+  ['iTitle','iNote','iTag'].forEach(id=>document.getElementById(id).value=''); toggleForm('iForm'); save();
+}
+function addMeeting(){
+  const t=document.getElementById('mTitle').value.trim(), d=document.getElementById('mDate').value.trim(); if(!t||!d)return;
+  state.meetings.push({ date:d, title:t, sum:document.getElementById('mSum').value.trim(), link:document.getElementById('mLink').value.trim() });
+  ['mDate','mTitle','mSum','mLink'].forEach(id=>document.getElementById(id).value=''); toggleForm('mForm'); save();
+}
+function toggleForm(id){ document.getElementById(id).classList.toggle('show'); }
+function resetLocal(){ if(confirm('Discard local edits and return to the published board?')){ localStorage.removeItem(LS_KEY); state=loadState(); renderAll(); } }
+
+/* ─── export ─── */
+function jsList(arr){ return '[\n'+arr.map(o=>'  '+JSON.stringify(o)).join(',\n')+'\n]'; }
+function openExport(){
+  document.getElementById('exportText').value =
+    'const DELIVERABLES = '+jsList(state.deliverables)+';\n\n'+
+    'const IDEAS = '+jsList(state.ideas)+';\n\n'+
+    'const MEETINGS = '+jsList(state.meetings)+';';
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeExport(){ document.getElementById('modalBg').classList.remove('show'); }
+function copyExport(){ const t=document.getElementById('exportText'); t.select(); document.execCommand('copy'); }
+
+/* ─── render ─── */
+function updateBanner(){ document.getElementById('editBanner').classList.toggle('show', isDirty()); }
+
+function renderStats(){
+  const D=state.deliverables, total=D.length;
+  const done=D.filter(d=>d.status==='live').length;
+  const staging=D.filter(d=>d.status==='staging').length;
+  const open=D.filter(d=>d.status==='todo'||d.status==='progress').length;
+  document.getElementById('dayCount').textContent='Day '+dayCount();
+  document.getElementById('updated').textContent=new Date(PROJECT.updated+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const paDone=D.filter(d=>d.status==='live'&&d.owner==='holly').length;
+  const phDone=D.filter(d=>d.status==='live'&&d.owner==='phelan').length;
+  const joDone=D.filter(d=>d.status==='live'&&d.owner==='joint').length;
+  document.getElementById('overallPct').textContent=(total?Math.round(done/total*100):0)+'%';
+  document.getElementById('pbar').innerHTML=
+    `<div class="pbar-seg pa" style="width:${total?paDone/total*100:0}%"></div>`+
+    `<div class="pbar-seg phelan" style="width:${total?phDone/total*100:0}%"></div>`+
+    `<div class="pbar-seg joint" style="width:${total?joDone/total*100:0}%"></div>`;
+  document.getElementById('stats').innerHTML=
+    `<div class="stat"><div class="n">${done}<span style="font-size:15px;color:rgba(0,0,0,.3)">/${total}</span></div><div class="l">Completed</div></div>`+
+    `<div class="stat"><div class="n" style="color:var(--orange)">${staging}</div><div class="l">On staging</div></div>`+
+    `<div class="stat"><div class="n" style="color:rgba(0,0,0,.4)">${open}</div><div class="l">Open items</div></div>`+
+    `<div class="stat rank"><div class="n">#10 <span class="sm">pg 1</span></div><div class="l">"custom bandanas" rank</div></div>`;
+}
+
+let activeFilter='all';
+function renderFilters(){
+  const filters=[['all','All'],['holly','Planet Apparel'],['phelan','Nonstop'],['joint','Joint'],['open','Open only'],['done','Done']];
+  document.getElementById('filters').innerHTML=filters.map(([k,l])=>`<button class="fp ${k===activeFilter?'active':''}" data-f="${k}">${l}</button>`).join('');
+  document.querySelectorAll('.fp').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.f;renderFilters();renderCards();});
+}
+function matchFilter(d){
+  if(activeFilter==='all')return true;
+  if(activeFilter==='open')return d.status!=='live';
+  if(activeFilter==='done')return d.status==='live';
+  return d.owner===activeFilter;
+}
+function renderCards(){
+  const html=state.deliverables.map((d,i)=>({d,i})).filter(o=>matchFilter(o.d)).map(({d,i})=>{
+    const done=d.status==='live';
+    const chkClass=done?`chk done-${d.owner}`:'chk open';
+    return `<div class="card owner-${d.owner} ${done?'done':''}">
+      <button class="del-x" onclick="delDeliverable(${i})" title="Remove">×</button>
+      ${d.isNew?'<span class="new-flag">New</span>':''}
+      <div class="card-top">
+        <div class="card-title">${esc(d.title)}</div>
+        <div class="${chkClass}" onclick="cycleStatus(${i})" title="Click to advance status">${done?'✓':''}</div>
+      </div>
+      <div class="card-meta">
+        <span class="owner-tag ${d.owner}" onclick="cycleOwner(${i})" title="Click to reassign">${OWNER_LABEL[d.owner]}</span>
+        <span class="status-chip ${d.status}" onclick="cycleStatus(${i})" title="Click to advance">${STATUS_LABEL[d.status]}</span>
+        ${d.date?`<span class="card-date">${esc(d.date)}</span>`:''}
+      </div>
+      ${d.note?`<div class="card-note">${esc(d.note)}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('cards').innerHTML=html||'<p style="color:rgba(0,0,0,.4);padding:10px">No items in this view.</p>';
+}
+function renderIdeas(){
+  document.getElementById('ideas').innerHTML=state.ideas.map((i,idx)=>
+    `<div class="idea"><button class="del-x" onclick="delIdea(${idx})">×</button><span class="dot"></span><div class="body"><div class="t">${esc(i.title)}</div><div class="d">${esc(i.note)}</div></div><span class="tag">${esc(i.tag)}</span></div>`).join('')
+    ||'<p style="color:rgba(0,0,0,.4)">No ideas yet — add one below.</p>';
+}
+function renderMeetings(){
+  document.getElementById('meetings').innerHTML=state.meetings.map((m,idx)=>
+    `<div class="mtg ${m.upcoming?'upcoming':''}">
+      <button class="del-x" onclick="delMeeting(${idx})">×</button>
+      <div class="mtg-date">${esc(m.date)}${m.upcoming?'<span class="badge">Upcoming</span>':''}</div>
+      <div class="mtg-title">${esc(m.title)}</div>
+      <div class="mtg-sum">${esc(m.sum)}</div>
+      ${m.link?`<a class="mtg-link" href="${esc(m.link)}" target="_blank">View summary / transcript →</a>`:''}
+    </div>`).join('');
+}
+function renderAll(){ renderStats();renderFilters();renderCards();renderIdeas();renderMeetings();updateBanner(); }
+renderAll();
+</script>
+</body>
+</html>
