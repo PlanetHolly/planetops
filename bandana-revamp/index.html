@@ -328,21 +328,31 @@ const DELIVERABLES = [
   { title:'Backlink outreach (press features)', owner:'holly', status:'live', date:'Jun 5', note:'Death Wish Coffee approved. JuneShine pending.' },
   { title:'Categorize bandana photoshoot photos', owner:'holly', status:'todo', date:'', note:'Tag images by color / paisley / fabric for the SKU pages.' },
   { title:'Send bandana templates', owner:'holly', status:'todo', date:'', note:'Needed for "Add templates to site."' },
-  { title:'Send Digital Bandana rename + new pricing', owner:'holly', status:'todo', date:'', note:'Final name + price details to Phelan after the June meeting.', isNew:true },
+  { title:'Normalize bandana image filenames (test 10 first)', owner:'holly', status:'progress', date:'Jun 18', note:'Filename = source of truth. Adjust only the originating name, keep cadence consistent. Email Phelan for thumbs-up on a 10-image test batch before the full run. Holly’s #1 push.', isNew:true },
+  { title:'Provide real SKUs for the catalog', owner:'holly', status:'todo', date:'', note:'Phelan adds a "real SKU" column to the sheet; Holly fills it in.', isNew:true },
+  { title:'Death Wish press release brain-dump', owner:'holly', status:'progress', date:'Jun 18', note:'Voice → transcript. Two angles: bandana-only + bigger Death Wish collection. Send Phelan the exact July 4th release date for same-day publish.', isNew:true },
+  { title:'Send Digital Bandana rename + new pricing', owner:'holly', status:'todo', date:'', note:'NOT discussed Jun 18 — Holly to follow up by email. Final name + price details to Phelan.' },
 
   // ── Nonstop / Phelan deliverables ──
   { title:'H1 on custom bandana page', owner:'phelan', status:'live', date:'Jun', note:'Title now includes "custom bandana" as H1.' },
-  { title:'Bandanas WordPress plugin', owner:'phelan', status:'staging', date:'', note:'v1 built on staging. Awaiting Holly approval before going live.' },
+  { title:'Bandanas WordPress plugin', owner:'phelan', status:'staging', date:'', note:'120-SKU demo on staging, data auto-extracted from image filenames. Functional; needs an accuracy pass before go-live. Keep the structure — clean up data + bugs.' },
+  { title:'Fix filename-parse bugs', owner:'phelan', status:'todo', date:'Jun 18', note:'"Dye/tie-dye" mis-tag, color read as the product name (stops at "white"), custom-print fallback. One-off fixes as they surface.', isNew:true },
+  { title:'Fix color-filter de-select UX', owner:'phelan', status:'progress', date:'Jun 18', note:'Color filters weren’t un-clicking cleanly. Partially fixed last night — finish it.', isNew:true },
+  { title:'Add USA-made indicator + colorways', owner:'phelan', status:'todo', date:'Jun 18', note:'No USA SKUs imported yet. Needs USA tag + correct colorways (USA vs import) — refer to the bandana color guide.', isNew:true },
+  { title:'Rework single-post copy (example, not "buy")', owner:'phelan', status:'todo', date:'Jun 18', note:'Reads like the bandana is purchasable; should read as an example of past work so Shara doesn’t inherit wrong customer expectations.', isNew:true },
   { title:'Per-SKU landing pages', owner:'phelan', status:'todo', date:'', note:'Has the SKU list since Jun 5. Next domino after plugin.' },
-  { title:'Rename "USA-Made Digital Bandana" → "Digital Bandana" + new pricing', owner:'phelan', status:'todo', date:'', note:'On website AND quote form. Remove "USA" everywhere. Details coming from Holly.', isNew:true },
-  { title:'HotJar / heatmap tracking', owner:'phelan', status:'todo', date:'', note:'Track UX on bandana + About pages.' },
+  { title:'Rename "USA-Made Digital Bandana" → "Digital Bandana" + new pricing', owner:'phelan', status:'todo', date:'', note:'On website AND quote form. Remove "USA" everywhere. Details coming from Holly (not covered Jun 18).' },
+  { title:'ContentSquare heatmap tracking (trial)', owner:'phelan', status:'progress', date:'Jun 18', note:'Free 14-day trial live on the site; Holly invited. Review within trial, then decide on paying. (Replaces the HotJar option.)', isNew:true },
   { title:'Order Samples CTA (more placements)', owner:'phelan', status:'todo', date:'', note:'Add to additional areas of the bandana page.' },
   { title:'FAQ schema on product pages', owner:'phelan', status:'todo', date:'', note:'Holly’s answers delivered Jun 1; schema not yet implemented.' },
-  { title:'Re-enable email notifications', owner:'phelan', status:'todo', date:'', note:'Quote/form notifications.' },
+  { title:'Re-enable email notifications', owner:'phelan', status:'todo', date:'', note:'Quote/form notifications — confirm the new simple bandana form tracks in WhatConverts + has a named form for the CRM.' },
   { title:'Add templates to site', owner:'phelan', status:'todo', date:'', note:'Blocked on Holly sending templates.' },
+  { title:'Run first guest-post backlink', owner:'phelan', status:'progress', date:'Jun 18', note:'Start with one basic article to learn the process before a cadence. Payment routed through Kelly.', isNew:true },
 
   // ── Joint ──
-  { title:'Death Wish press release (backlink)', owner:'joint', status:'progress', date:'', note:'Holly secured approval; Phelan clear to draft.' },
+  { title:'Death Wish press release (backlink)', owner:'joint', status:'progress', date:'', note:'Approved (Death Wish previews before publish). Target Ride-or-Die bandana, July 4th release. Holly drafts brain-dump; Phelan finds distribution + strategy.' },
+  { title:'Try a few real photoshoot images', owner:'joint', status:'todo', date:'Jun 18', note:'Test 1–2 real "hands-in" lifestyle shots vs standard mockups, named correctly. Prefer square over rotated/diamond crops.', isNew:true },
+  { title:'JuneShine / Willie’s Remedy feature', owner:'joint', status:'todo', date:'Jun 18', note:'Pending JuneShine approval (Willie’s Remedy is their product). Needs behind-the-scenes images.', isNew:true },
   { title:'Quote form QA with shipping times', owner:'joint', status:'todo', date:'', note:'Phelan + Jean + Holly to walk through together.' },
 ];
 
@@ -351,12 +361,15 @@ const IDEAS = [
   { title:'Sample orders → Printavo automation', note:'WooCommerce → Printavo via Zapier / Make / Integrately. Sample orders don’t currently flow into Printavo.', tag:'Next month' },
   { title:'Spam fix: email-as-graphic vs reCAPTCHA v3', note:'Decide which approach wins for the form.', tag:'Decision' },
   { title:'Wholesale bandana e-commerce (Phase 2)', note:'Don’t architect in a way that boxes out the 2027 West-Coast blank-bandana distribution play.', tag:'Watch' },
+  { title:'Earned-media / podcast opportunities', note:'Women-in-screen-printing podcast (Holly has an annual sub) + Military-Makeover-type TV feature (200 shirts for publication). Vet audience size / ROI before committing product or spend.', tag:'Decision' },
+  { title:'Mentions vs backlinks', note:'Both feed Google + AI; social mentions weigh well for LLMs. Layer mentions on top of the paid-backlink test.', tag:'Watch' },
 ];
 
 const MEETINGS = [
   { date:'May 22, 2026', title:'Website strategy meeting + offer accepted', sum:'Retainer scoped and accepted. Bandana-first, ranking recovery + AI/LLM visibility. Holly = content engine, Phelan = implementation engine.', link:'' },
   { date:'May 29, 2026', title:'Kickoff working session', sum:'Per-SKU WordPress plugin + filterable gallery agreed for the 35–40 unfeatured bandana SKUs. LLM strategy stays with Holly/Brian; Phelan implements. Backlinks via press releases.', link:'' },
-  { date:'Jun 18, 2026', title:'June check-in (Google Meet)', sum:'Month-1 review: plugin staging approval, deliverable status, tracking, and the Digital Bandana rename + new pricing.', link:'', upcoming:true },
+  { date:'Jun 18, 2026', title:'June check-in (Google Meet)', sum:'Walked the 120-SKU bandana plugin on staging — all fields auto-extracted from image filenames. Agreed the filename = source of truth: Holly normalizes filenames + supplies real SKUs (10-image test first, then email Phelan for sign-off); Phelan re-extracts and fixes parse/UX bugs. Also: ContentSquare heatmap trial, first guest-post backlink, Death Wish press release approved. Digital Bandana rename NOT covered — Holly to email.', link:'recap-2026-06-18.html' },
+  { date:'Jul 7, 2026', title:'July check-in (in person · 11:45 AM)', sum:'Reconvene after the July 4th Death Wish release. Review filename normalization + re-import results, USA-made + colorways, plugin go-live decision, and press-release / backlink progress. Jean invited.', link:'', upcoming:true },
 ];
 
 /* ============================ STATE ============================ */

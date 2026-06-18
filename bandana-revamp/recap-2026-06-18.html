@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>June 18 Check-in Recap — 2026 Bandana Revamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --yellow:#F7BE00;--black:#000;--tonal-black:#1a1a1a;--white:#fff;--bg:#F2F4F8;
+  --pa:#F7BE00;--pa-deep:#7a5d00;--phelan:#2196F3;--phelan-deep:#0d4f86;--joint:#00ACC1;--joint-deep:#055f6b;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --radius:10px;--radius-lg:18px;--radius-pill:999px;
+  --font-head:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);font-family:var(--font-body);color:var(--tonal-black);-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding:0 18px 80px}
+
+.topbar{background:var(--tonal-black);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.topbar-inner{max-width:860px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand .accent{height:26px;width:4px;background:var(--yellow);border-radius:3px}
+.brand .wm{font-family:var(--font-head);font-weight:900;font-size:19px;letter-spacing:.07em;text-transform:uppercase;color:#fff}
+.back{font-family:var(--font-head);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow);text-decoration:none}
+.back:hover{text-decoration:underline}
+
+.hero{background:linear-gradient(135deg,#fff 0%,#fff 60%,#FFFBEF 100%);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);margin-top:22px;padding:24px 26px;border:1px solid rgba(0,0,0,.05)}
+.hero-eyebrow{font-family:var(--font-head);font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--pa-deep)}
+.hero h1{font-family:var(--font-head);font-weight:900;font-size:30px;letter-spacing:.01em;line-height:1.04;margin-top:4px;text-transform:uppercase}
+.meta-row{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap}
+.mr{font-family:var(--font-head)}
+.mr .lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.4);font-weight:700}
+.mr .val{font-size:15px;font-weight:800;margin-top:1px}
+
+.section{margin-top:32px}
+.sec-head h2{font-family:var(--font-head);font-weight:900;font-size:21px;letter-spacing:.04em;text-transform:uppercase}
+.sec-rule{height:3px;background:var(--yellow);width:46px;border-radius:3px;margin:6px 0 16px}
+
+.card{background:#fff;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.06)}
+.card p{margin-bottom:10px}
+.card p:last-child{margin-bottom:0}
+
+.tldr{border-left:5px solid var(--yellow)}
+.tldr b{color:var(--pa-deep)}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{background:#fff;border-radius:var(--radius);padding:13px 16px;box-shadow:var(--shadow-sm);border:1px solid rgba(0,0,0,.06);border-left:5px solid var(--gray);font-size:14px}
+li.holly{border-left-color:var(--pa)}
+li.phelan{border-left-color:var(--phelan)}
+li.joint{border-left-color:var(--joint)}
+.owner-tag{font-family:var(--font-head);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:var(--radius-pill);margin-right:8px;white-space:nowrap}
+.owner-tag.holly{background:rgba(247,190,0,.22);color:var(--pa-deep)}
+.owner-tag.phelan{background:rgba(33,150,243,.16);color:var(--phelan-deep)}
+.owner-tag.joint{background:rgba(0,172,193,.16);color:var(--joint-deep)}
+.item-t{font-weight:700}
+.item-d{color:rgba(0,0,0,.6);font-size:13px;margin-top:3px}
+
+.decisions li{font-size:14px}
+.callout{background:#FFFBEF;border:1px solid rgba(247,190,0,.5);border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:var(--pa-deep);margin-top:14px}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid rgba(0,0,0,.08);font-size:11.5px;color:rgba(0,0,0,.4);text-align:center}
+.foot b{color:rgba(0,0,0,.55)}
+@media(max-width:600px){.hero h1{font-size:23px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="accent"></span><span class="wm">Planet Apparel</span></div>
+    <a class="back" href="./">← Project Board</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-eyebrow">2026 Bandana Revamp · Meeting Recap</div>
+    <h1>June Check-in</h1>
+    <div class="meta-row">
+      <div class="mr"><div class="lab">Date</div><div class="val">Wed, June 18, 2026 · 11:00 AM PDT</div></div>
+      <div class="mr"><div class="lab">Attendees</div><div class="val">Holly · Phelan · Jean</div></div>
+      <div class="mr"><div class="lab">Next Meeting</div><div class="val">Mon, July 7 · 11:45 AM (in person)</div></div>
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="section">
+    <div class="sec-head"><h2>Summary</h2></div>
+    <div class="sec-rule"></div>
+    <div class="card tldr">
+      <p>Phelan walked through the <b>bandana plugin on staging</b> — 120 SKUs were seeded from the original site, with every product field (title, shape, type, material, color, print type, FAQs, content) auto-extracted from each image's filename via spreadsheet formulas. It's a functional demo; the data needs an accuracy pass.</p>
+      <p>Agreed approach: the <b>image filename is the single source of truth.</b> Holly will normalize the filenames (and supply real SKUs); Phelan re-extracts everything from there. Holly runs a <b>10-image test batch first</b> and emails Phelan for a thumbs-up before doing the full set.</p>
+      <p>Also covered: a ContentSquare heatmap trial, a first paid backlink to learn the process, and the Death Wish press release (approved). Next meeting set for <b>July 7</b>, in person.</p>
+    </div>
+  </div>
+
+  <!-- DECISIONS -->
+  <div class="section">
+    <div class="sec-head"><h2>Decisions</h2></div>
+    <div class="sec-rule"></div>
+    <ul class="clean decisions">
+      <li><span class="item-t">Filename = source of truth.</span><div class="item-d">All product data is extrapolated from the image filename. Holly only ever touches the originating name; everything else is formula-driven and should not be edited directly.</div></li>
+      <li><span class="item-t">Test small before scaling.</span><div class="item-d">Holly normalizes ~10 filenames first and emails Phelan for sign-off before doing all 120+.</div></li>
+      <li><span class="item-t">Keep the existing plugin structure.</span><div class="item-d">No re-architecture — clean up the data and fix the parsing/UX bugs on what's already built.</div></li>
+      <li><span class="item-t">Public pricing stays a goal.</span><div class="item-d">Good for Google + AI visibility, but the pricing matrix waits until Holly's pricing release is locked.</div></li>
+      <li><span class="item-t">Backlinks: start with one.</span><div class="item-d">Run a single basic guest-post backlink to learn the process before committing to a cadence. All payments routed through Kelly.</div></li>
+      <li><span class="item-t">Death Wish press release is priority #1.</span><div class="item-d">Approved by Death Wish (they preview before publish). Target the Ride-or-Die bandana, releasing July 4th.</div></li>
+    </ul>
+  </div>
+
+  <!-- ACTION ITEMS -->
+  <div class="section">
+    <div class="sec-head"><h2>Action Items</h2></div>
+    <div class="sec-rule"></div>
+    <ul class="clean">
+      <li class="holly"><span class="owner-tag holly">Holly</span><span class="item-t">Normalize bandana image filenames (test 10 first)</span><div class="item-d">Bring the file into AI, adjust only the originating name, keep cadence consistent. Email Phelan for thumbs-up on the test batch before the full run. This is Holly's #1 push.</div></li>
+      <li class="holly"><span class="owner-tag holly">Holly</span><span class="item-t">Provide real SKUs</span><div class="item-d">Phelan adds a "real SKU" column to the sheet; Holly fills it in.</div></li>
+      <li class="holly"><span class="owner-tag holly">Holly</span><span class="item-t">Death Wish brain-dump (voice → transcript)</span><div class="item-d">Two angles — bandana-focused, plus bandanas as part of the bigger Death Wish collection (e.g. numbered locker-label tanks). Send Phelan the exact July 4th release date so they can publish same-day.</div></li>
+      <li class="holly"><span class="owner-tag holly">Holly</span><span class="item-t">Check the ContentSquare heatmap invite</span><div class="item-d">Review within the 14-day trial and decide whether it's worth paying for.</div></li>
+      <li class="phelan"><span class="owner-tag phelan">Phelan</span><span class="item-t">Fix filename-parse bugs</span><div class="item-d">"Dye/tie-dye" mis-tagging, color being read as the product name (e.g. stops at "white"), and the custom-print fallback. One-off corrections as they surface.</div></li>
+      <li class="phelan"><span class="owner-tag phelan">Phelan</span><span class="item-t">Fix the filter de-select UX</span><div class="item-d">Color filters weren't un-clicking cleanly; partially fixed — finish it.</div></li>
+      <li class="phelan"><span class="owner-tag phelan">Phelan</span><span class="item-t">Add USA-made indicator + colorways</span><div class="item-d">No USA SKUs imported yet. Needs a USA tag and correct colorways (USA vs import) — refer to the bandana color guide.</div></li>
+      <li class="phelan"><span class="owner-tag phelan">Phelan</span><span class="item-t">Rework single-post copy</span><div class="item-d">Reads like the bandana is buyable; should read as an example of what Planet Apparel has printed, to avoid setting wrong customer expectations for Shara.</div></li>
+      <li class="phelan"><span class="owner-tag phelan">Phelan</span><span class="item-t">Run the first guest-post backlink</span><div class="item-d">Start with one basic article to learn the process. Payment through Kelly.</div></li>
+      <li class="joint"><span class="owner-tag joint">Joint</span><span class="item-t">Try a few real photoshoot images</span><div class="item-d">Test 1–2 real "hands-in" lifestyle shots against the standard mockups; named correctly. Preference for square over rotated/diamond crops.</div></li>
+      <li class="joint"><span class="owner-tag joint">Joint</span><span class="item-t">JuneShine / Willie's Remedy feature</span><div class="item-d">Pending JuneShine approval (Willie's Remedy is their product). Needs behind-the-scenes images.</div></li>
+    </ul>
+    <div class="callout"><b>Not covered this meeting:</b> the Digital Bandana rename + new pricing. Holly will follow up with Phelan by email.</div>
+  </div>
+
+  <div class="foot">
+    <b>2026 Bandana Revamp &amp; Optimization</b> · Planet Apparel × Nonstop Marketing<br>
+    Recap of the June 18, 2026 check-in · <a href="./" style="color:var(--phelan-deep);font-weight:700;text-decoration:none">back to the live project board</a>
+  </div>
+
+</div>
+</body>
+</html>
