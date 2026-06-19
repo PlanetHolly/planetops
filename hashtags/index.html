@@ -53,7 +53,7 @@
 </g></svg>
     <div class="kicker">Planet Apparel · Team Standard</div>
     <h1>Printavo Hashtag Standard</h1>
-    <p class="sub">Two tags per job. That's it. Everything else our reporting now pulls or figures out on its own &mdash; so the only things you tag are the ones it genuinely can't see.</p>
+    <p class="sub">Just two or three tags per job &mdash; that's it. PlanetPulse pulls or figures out everything else on its own, so you only tag the few things it genuinely can't see.</p>
   </div>
 </header>
 
@@ -67,75 +67,60 @@
   <div class="card">
     <div class="head"><h2>1 · Production Mode</h2><span class="req yes">Required · pick one</span></div>
     <div class="body">
+      <p style="font-size:12.5px;color:#666;margin:2px 0 8px;">You're choosing which <strong>revenue bucket</strong> the job counts toward.</p>
       <table>
         <tr><td><span class="tag">#in</span></td><td class="means">Made entirely <strong>in-house</strong></td></tr>
         <tr><td><span class="tag">#out</span></td><td class="means">Fully <strong>outsourced</strong> to a vendor</td></tr>
-        <tr><td><span class="tag">#mixih</span></td><td class="means">Combination &mdash; <strong>mostly in-house</strong></td></tr>
-        <tr><td><span class="tag">#mixos</span></td><td class="means">Combination &mdash; <strong>mostly outsourced</strong></td></tr>
+        <tr><td><span class="tag">#inmix</span></td><td class="means">Combination &mdash; <strong>majority in-house</strong></td></tr>
+        <tr><td><span class="tag">#outmix</span></td><td class="means">Combination &mdash; <strong>majority outsourced</strong></td></tr>
       </table>
     </div>
   </div>
 
-  <!-- SALESPERSON -->
+  <!-- INITIALS -->
   <div class="card">
-    <div class="head"><h2>2 · Your Name</h2><span class="req yes">Required · pick one</span></div>
+    <div class="head"><h2>2 · Your Initials</h2><span class="req yes">Required · pick yours</span></div>
     <div class="body">
       <table>
-        <tr><td><span class="tag">#shara</span> &nbsp;<span class="tag">#cortney</span></td><td class="means">Tag the job with <strong>your own first name</strong> so we know who owns it</td></tr>
+        <tr><td><span class="tag">#sh</span></td><td class="means"><strong>Shara</strong></td></tr>
+        <tr><td><span class="tag">#cc</span></td><td class="means"><strong>Cortney</strong></td></tr>
       </table>
     </div>
   </div>
 
-  <!-- INK TYPE -->
+
   <div class="card">
-    <div class="head"><h2>3 · Ink Type</h2><span class="req opt">Only when it applies</span></div>
+    <div class="head"><h2>3 · Rush</h2><span class="req opt">Only when a rush FEE was charged</span></div>
     <div class="body">
       <table>
-        <tr><td><span class="tag">#wb</span></td><td class="means"><strong>Waterbased ink</strong> &mdash; tag it even on organic, where it's included (no separate fee line, so this is the only way we see it)</td></tr>
+        <tr><td><span class="tag">#rush</span></td><td class="means"><strong>Only when an actual rush / expediting FEE is on the invoice</strong> &mdash; not just because the customer wanted it fast, and <strong>not</strong> shipping-expedite fees. This way a real rush never slips by unflagged.</td></tr>
       </table>
     </div>
   </div>
 
-  <div class="card">
-    <div class="head"><h2>4 · Rush</h2><span class="req opt">Only when a rush FEE was charged</span></div>
-    <div class="body">
-      <table>
-        <tr><td><span class="tag">#rush</span></td><td class="means"><strong>Only when an actual rush / priority FEE is on the invoice</strong> &mdash; not just because the customer wanted it fast. This guarantees a real rush never slips by unflagged.</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="head"><h2>5 · Free Shipping</h2><span class="req opt">Only when shipping was waived</span></div>
-    <div class="body">
-      <table>
-        <tr><td><span class="tag">#freeship</span></td><td class="means">Shipping was <strong>intentionally waived or discounted</strong> &mdash; so a $0 shipping line reads as a deliberate courtesy, not as missing data.</td></tr>
-      </table>
-    </div>
-  </div>
 
   <div class="skip">
     <h2>You no longer tag these</h2>
-    <p>The system already has them, so please <strong>stop</strong>: product type <code>(bandana/apparel/promo)</code>, decoration method, new vs.&nbsp;repeat customer, USA/organic/import, VIP. All pulled from the invoice, Printavo category, SKU, or Streak automatically.</p>
+    <p>PlanetPulse already reads them, so please <strong>stop</strong>: decoration method, <strong>water-based / specialty ink</strong> (read from the ink fee, and auto-applied to organic), <strong>DTF / Heat Applied</strong> (Heat Applied + <code>#in</code> = in-house DTF), product type <code>(bandana/apparel/promo)</code>, new vs.&nbsp;repeat customer, USA/organic/import, and VIP. All pulled from the invoice, Printavo category, SKU, fees, or Streak automatically.</p>
   </div>
 
   <div class="rules">
     <h2>The rules</h2>
     <ul>
-      <li><strong>Two tags on every job</strong> &mdash; one production mode + your name. Add ink type only when it applies.</li>
+      <li><strong>Two tags on every job</strong> &mdash; one production mode + your initials. Add <code>#rush</code> only when a rush fee is charged.</li>
       <li><strong>Type them exactly, all lowercase.</strong> A typo = a job that won't classify.</li>
-      <li><strong>Tag at quote creation</strong>, not later &mdash; the automation reads them when the job hits Paid / Terms.</li>
+      <li><strong>Tag at quote creation</strong>, not later &mdash; PlanetPulse reads them the moment the job hits <strong>Paid / Terms</strong>.</li>
     </ul>
   </div>
 
   <div class="ex">
     <h2>Examples</h2>
-    <div class="row">In-house bandanas, Shara's job → <code>#in&nbsp; #shara</code></div>
-    <div class="row">Outsourced promo, Cortney's job → <code>#out&nbsp; #cortney</code></div>
-    <div class="row">Mostly-in-house apparel with waterbased ink, Shara → <code>#mixih&nbsp; #shara&nbsp; #wb</code></div>
+    <div class="row">In-house bandanas, Shara's job → <code>#in&nbsp; #sh</code></div>
+    <div class="row">Outsourced promo, Cortney's job → <code>#out&nbsp; #cc</code></div>
+    <div class="row">Majority-in-house apparel with a rush fee, Shara → <code>#inmix&nbsp; #sh&nbsp; #rush</code></div>
   </div>
 
-  <footer>Planet Apparel · Printavo Hashtag Standard · v1 2026-06-16</footer>
+  <footer>Planet Apparel · PlanetPulse Hashtag Standard · v2 2026-06-19 · <a href="../planetpulse/" style="color:#bbb;">How PlanetPulse works</a></footer>
 </div>
 </body>
 </html>
