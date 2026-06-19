@@ -51,6 +51,14 @@
   .tag{font-family:'SF Mono',Consolas,monospace;font-weight:700;background:var(--black);color:var(--yellow);padding:3px 9px;border-radius:4px;white-space:nowrap;font-size:13.5px;}
   code{background:#f0f0f0;border-radius:3px;padding:1px 7px;font-size:13px;font-family:'SF Mono',Consolas,monospace;}
   .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .triggers{background:var(--white);border-radius:6px;margin:18px 0 8px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;border:2px solid var(--yellow);}
+  .triggers .th{background:var(--black);color:var(--yellow);padding:11px 20px;font-size:13.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+  .triggers .tb{padding:15px 20px 18px;font-size:14.5px;}
+  .triggers .tb>p{margin-bottom:14px;}
+  .triggers .trow{display:flex;gap:12px;margin-bottom:13px;align-items:flex-start;}
+  .triggers .trow:last-child{margin-bottom:0;}
+  .triggers .tn{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--yellow);color:var(--black);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .status{font-family:'SF Mono',Consolas,monospace;font-weight:700;background:var(--black);color:var(--yellow);padding:2px 8px;border-radius:4px;font-size:13px;white-space:nowrap;}
   .why{background:var(--tonal);color:#eee;border-radius:8px;padding:24px 26px;margin-top:30px;font-size:15px;}
   .why h2{color:var(--yellow);font-size:18px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
   .why p+p{margin-top:10px;}
@@ -86,15 +94,25 @@
 
   <!-- 2 -->
   <div class="sechead"><span class="num">2</span><h2>Under the hood</h2></div>
-  <div class="card" style="margin-bottom:12px;"><p>It looks like a simple summary email. Underneath, it's a genuinely sophisticated machine — several systems talking to each other on their own, every hour:</p></div>
+  <div class="card" style="margin-bottom:12px;"><p>At its heart, PlanetPulse is a <strong>Google Sheet</strong> — but a whole network of systems quietly feeds it, every hour. The engine tying them together is <strong>n8n automation</strong>, which watches your Printavo order <strong>statuses</strong> and uses them as the triggers to pull everything in:</p></div>
   <div class="stack">
     <div class="chip"><h3>Printavo API</h3><p>Reads every invoice, payment, expense, fee, and status in real time.</p></div>
     <div class="chip"><h3>Google Sheets</h3><p>The living tracker — one tab per month, formulas doing the math.</p></div>
     <div class="chip"><h3>Streak CRM</h3><p>Joins each job to the customer's retention status and tier.</p></div>
     <div class="chip"><h3>Dropbox</h3><p>Feeds production-time captures from the floor into the cost engine.</p></div>
-    <div class="chip"><h3>Automation (n8n)</h3><p>The conductor — routes, matches, calculates, and emails, hands-free.</p></div>
+    <div class="chip"><h3>Automation (n8n)</h3><p>The conductor — watches Printavo statuses as triggers, then routes, matches, and calculates, hands-free.</p></div>
     <div class="chip"><h3>Profit engine</h3><p>Turns actual press time into real, per-job production cost.</p></div>
+    <div class="chip"><h3>Gmail</h3><p>Sends each project's summary email to its owner, 7 days after it wraps.</p></div>
   </div>
+  <div class="triggers">
+    <div class="th">The two status triggers — the most important thing on this page</div>
+    <div class="tb">
+      <p>PlanetPulse only knows what's happening because of <strong>two Printavo statuses</strong>. If these aren't set on an order, the job is invisible to the system — so these two are on all of us.</p>
+      <div class="trow"><div class="tn">1</div><div>The <span class="status">Paid / Terms</span> status is what <strong>logs a job into PlanetPulse</strong> in its early stage. <strong>Apply it every time — even if the order only sits there for a moment.</strong> Never, ever skip it; it's how a job first enters the system.</div></div>
+      <div class="trow"><div class="tn">2</div><div>The three <strong>"black" final-resting stages</strong> (Ready for Pickup · Ready for Delivery · Order Shipped / Delivered) <strong>conclude the order</strong> and tell PlanetPulse to finalize and summarize it. Seven days later, Gmail sends the Project Summary.</div></div>
+    </div>
+  </div>
+
 
   <!-- 3 -->
   <div class="sechead"><span class="num">3</span><h2>The Project Summary email</h2></div>
