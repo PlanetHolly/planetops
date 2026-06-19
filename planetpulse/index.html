@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanetPulse — The Source of Truth for Every Project</title>
+<style>
+  :root{--yellow:#F7BE00;--black:#000;--tonal:#232323;--white:#fff;--gray:#E8E8E8;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Montserrat','Helvetica Neue',Arial,sans-serif;color:var(--tonal);background:#f4f4f4;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 70px;}
+  header{background:var(--black);color:var(--white);padding:46px 0 40px;margin-bottom:30px;position:relative;}
+  header .wrap{position:relative;}
+  .oicon{position:absolute;top:0;right:24px;width:46px;height:46px;border:3px solid var(--yellow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:var(--yellow);}
+  .kicker{color:var(--yellow);letter-spacing:3px;font-size:12px;font-weight:700;text-transform:uppercase;}
+  h1{font-size:42px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-top:8px;line-height:1.05;}
+  h1 .pulse{color:var(--yellow);}
+  .tagline{color:#dcdcdc;font-size:16px;margin-top:14px;max-width:680px;}
+  .lede{background:#fffaf0;border:1px solid var(--yellow);border-radius:6px;padding:18px 22px;margin-bottom:30px;font-size:15px;}
+  .lede strong{text-transform:uppercase;letter-spacing:.5px;font-size:12px;color:#7a5b00;}
+  .sechead{display:flex;align-items:baseline;gap:12px;margin:38px 0 16px;}
+  .sechead .num{font-size:13px;font-weight:800;color:var(--yellow);background:var(--black);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 30px;}
+  .sechead h2{font-size:20px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .card{background:var(--white);border-radius:6px;margin-bottom:16px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:15px;}
+  .card p+p{margin-top:10px;}
+  .stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:8px;}
+  .chip{background:var(--white);border-radius:6px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--yellow);}
+  .chip h3{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .chip p{font-size:13px;color:#555;}
+  /* sample email mockup */
+  .mock{background:var(--white);border:1px solid #e3e3e3;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.10);margin:6px 0 4px;}
+  .mock .bar{background:#f2f2f2;border-bottom:1px solid #e3e3e3;padding:9px 16px;font-size:12px;color:#666;}
+  .mock .bar b{color:#222;}
+  .mock .mbody{padding:20px 22px;}
+  .mock h3{font-size:18px;margin-bottom:10px;color:#232323;}
+  .mock .meta{font-size:13.5px;color:#444;margin-bottom:12px;}
+  .mock table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:14px;}
+  .mock td{padding:4px 14px 4px 0;}
+  .mock td.lbl{font-weight:700;width:140px;}
+  .goal{font-weight:800;color:#1a7f37;}
+  .mock ul{margin:6px 0 0 18px;font-size:13.5px;color:#444;}
+  .mock .caveat{background:#FFF8E1;border-left:4px solid var(--yellow);padding:9px 12px;margin-top:12px;font-size:13px;}
+  .anon{text-align:center;font-size:11.5px;color:#999;margin-top:6px;font-style:italic;}
+  /* inputs */
+  .inp{background:var(--white);border-radius:6px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;}
+  .inp .ih{background:var(--black);color:var(--white);padding:10px 18px;border-bottom:3px solid var(--yellow);display:flex;justify-content:space-between;align-items:center;}
+  .inp .ih h3{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;}
+  .inp .who{font-size:10.5px;font-weight:700;text-transform:uppercase;background:var(--yellow);color:var(--black);padding:3px 9px;border-radius:3px;}
+  .inp .ib{padding:14px 18px;font-size:14.5px;}
+  .tag{font-family:'SF Mono',Consolas,monospace;font-weight:700;background:var(--black);color:var(--yellow);padding:3px 9px;border-radius:4px;white-space:nowrap;font-size:13.5px;}
+  code{background:#f0f0f0;border-radius:3px;padding:1px 7px;font-size:13px;font-family:'SF Mono',Consolas,monospace;}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .why{background:var(--tonal);color:#eee;border-radius:8px;padding:24px 26px;margin-top:30px;font-size:15px;}
+  .why h2{color:var(--yellow);font-size:18px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+  .why p+p{margin-top:10px;}
+  footer{text-align:center;color:#999;font-size:11px;margin-top:40px;}
+  @media print{body{background:#fff;}.card,.inp,.chip,.mock{box-shadow:none;border:1px solid #ddd;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="oicon">Ø</div>
+    <div class="kicker">Planet Apparel · Now Live</div>
+    <h1>Planet<span class="pulse">Pulse</span></h1>
+    <p class="tagline">The lifeline of every project — how it flowed through our systems, and what we actually made. One place. One truth.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="lede">
+    <strong>The short version:</strong> &nbsp;For years we shipped great work without ever seeing the real result. PlanetPulse fixes that. It quietly pulls together Printavo, our CRM, production time, payments, and shipping, then tells us the true profit on every project — automatically. This page shows how it works, and the few things we each do to keep it honest.
+  </div>
+
+  <!-- 1 -->
+  <div class="sechead"><span class="num">1</span><h2>What it is</h2></div>
+  <div class="card">
+    <p>PlanetPulse is the <strong>source of truth for every converted project</strong> — every quote that became a real order. The moment money, materials, and time move, it records them against that job and builds the complete financial picture: revenue, real revenue, costs, margin, impressions, and how it all rolled up for the month.</p>
+    <p>It's also the <strong>pulse of the month as a whole</strong> — in-house vs. outsourced mix, collected vs. outstanding, margin health, specialty-ink load, and revenue by customer, method, and salesperson. These are the numbers that feed every decision we make.</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="sechead"><span class="num">2</span><h2>Under the hood</h2></div>
+  <div class="card" style="margin-bottom:12px;"><p>It looks like a simple summary email. Underneath, it's a genuinely sophisticated machine — several systems talking to each other on their own, every hour:</p></div>
+  <div class="stack">
+    <div class="chip"><h3>Printavo API</h3><p>Reads every invoice, payment, expense, fee, and status in real time.</p></div>
+    <div class="chip"><h3>Google Sheets</h3><p>The living tracker — one tab per month, formulas doing the math.</p></div>
+    <div class="chip"><h3>Streak CRM</h3><p>Joins each job to the customer's retention status and tier.</p></div>
+    <div class="chip"><h3>Dropbox</h3><p>Feeds production-time captures from the floor into the cost engine.</p></div>
+    <div class="chip"><h3>Automation (n8n)</h3><p>The conductor — routes, matches, calculates, and emails, hands-free.</p></div>
+    <div class="chip"><h3>Profit engine</h3><p>Turns actual press time into real, per-job production cost.</p></div>
+  </div>
+
+  <!-- 3 -->
+  <div class="sechead"><span class="num">3</span><h2>The Project Summary email</h2></div>
+  <div class="card" style="margin-bottom:12px;">
+    <p>When a project wraps, PlanetPulse emails the project's owner a summary. Here's what one looks like:</p>
+  </div>
+  <div class="mock">
+    <div class="bar"><b>King Snake Bandana — #XXXXX — Project Summary</b> &nbsp;·&nbsp; to you</div>
+    <div class="mbody">
+      <h3>Summer Trail Tee — #XXXXX</h3>
+      <div class="meta"><b>Customer:</b> Northwind Outfitters &nbsp;·&nbsp; <b>Project Manager:</b> You</div>
+      <table>
+        <tr><td class="lbl">Invoice Total</td><td>$4,200.00</td></tr>
+        <tr><td class="lbl">Real Revenue</td><td>$2,940.00</td></tr>
+        <tr><td class="lbl">Net Margin $</td><td>$1,890.00</td></tr>
+        <tr><td class="lbl">Margin %</td><td>64.3% &nbsp; <span class="goal">Above Goal</span></td></tr>
+      </table>
+      <div style="font-size:13.5px;"><b>Expenses on this order</b> (please audit):</div>
+      <ul>
+        <li>Blanks: $980 &nbsp;·&nbsp; Materials: $140 &nbsp;·&nbsp; Outsourced: $0</li>
+        <li>Shipping: $140 &nbsp;·&nbsp; Production Cost: $1,050</li>
+      </ul>
+      <div class="caveat">&#9888; If this were a term customer with a balance owed, this line would note that the figures reflect the full invoice, and the final margin firms up once the balance clears.</div>
+    </div>
+  </div>
+  <div class="anon">Illustrative example — figures and customer are made up.</div>
+
+  <div class="card" style="margin-top:16px;">
+    <p style="font-weight:800;text-transform:uppercase;letter-spacing:.5px;font-size:13px;margin-bottom:6px;">How in-house production cost is calculated</p>
+    <p>This is the number we never had before. For in-house jobs, PlanetPulse tracks the <strong>actual time</strong> each step took — screen print plus post-production, or embroidery then fold-and-bag — and applies our rate to that time.</p>
+    <p><strong>Faster than expected → lower production cost → better margin. Slower → higher cost.</strong> The margin in your summary reflects what really happened on the floor, not a guess. As more time is captured, the picture only gets sharper.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="sechead"><span class="num">4</span><h2>What we each do to keep it honest</h2></div>
+  <div class="card" style="margin-bottom:14px;"><p>It's light — most of it you already do. But every number above is only as good as what goes in.</p></div>
+
+  <div class="inp">
+    <div class="ih"><h3>1 · Expenses — within 24 hours</h3><span class="who">Everyone</span></div>
+    <div class="ib">When you order blanks, materials, or send a PO, enter the expense in Printavo <strong>within 24 hours</strong>. PlanetPulse records it toward that project's real cost. Late expenses mean wrong margins.</div>
+  </div>
+  <div class="inp">
+    <div class="ih"><h3>2 · Shipping — before the order's final status</h3><span class="who">Rosa / Jean</span></div>
+    <div class="ib">An automation captures shipping as an expense once an order hits its <strong>final (shipped / delivered) status</strong> — so the cost must be in before then. In the Text Blaze description you only need <span class="tag">[SHIPPING]</span> — no need to type FedEx, UPS, etc.</div>
+  </div>
+  <div class="inp">
+    <div class="ih"><h3>3 · Payments — use the new /pay Text Blaze</h3><span class="who">Everyone</span></div>
+    <div class="ib">For any <strong>additional</strong> payment beyond the normal project prepayment (say a customer adds 10 more bandanas), edit the payment and use <code>/pay</code> so it's added to the project. For <strong>Terms</strong> and <strong>Partial</strong> payments (first or final), put the <code>/pay</code> tag in the payment description.</div>
+  </div>
+  <div class="inp">
+    <div class="ih"><h3>4 · Hashtags — only three things</h3><span class="who">Sales</span></div>
+    <div class="ib">
+      Tag only what the system genuinely can't see:
+      <div class="tags" style="margin-top:10px;">
+        <span class="tag">#sh</span><span class="tag">#cc</span>
+        <span style="color:#888;font-size:13px;align-self:center;">your initials &nbsp;+&nbsp;</span>
+        <span class="tag">#in</span><span class="tag">#out</span><span class="tag">#inmix</span><span class="tag">#outmix</span>
+        <span style="color:#888;font-size:13px;align-self:center;">the revenue bucket &nbsp;+&nbsp;</span>
+        <span class="tag">#rush</span>
+        <span style="color:#888;font-size:13px;align-self:center;">only if there are rush fees</span>
+      </div>
+      <p style="margin-top:12px;font-size:13.5px;color:#555;">You do <strong>not</strong> tag method, ink, new vs. return, VIP, sublimation, DTF, promo, apparel, or bandana — PlanetPulse reads all of it on its own. (Heat Applied Products + <code>#in</code> already means in-house DTF; water-based ink is read straight from the fee.)</p>
+    </div>
+  </div>
+  <div class="inp">
+    <div class="ih"><h3>5 · Reprints</h3><span class="who">Everyone</span></div>
+    <div class="ib">Keep logging reprints under <strong>"Reprint for Planet Apparel."</strong> Those are handled correctly.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px;border-left:4px solid var(--yellow);">
+    <p style="font-weight:800;text-transform:uppercase;letter-spacing:.5px;font-size:13px;">See something wrong?</p>
+    <p style="margin-top:4px;">Chat Holly directly and it gets fixed. Catching an error is exactly how we keep PlanetPulse trustworthy.</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="why">
+    <h2>Why your accuracy matters</h2>
+    <p>Every number here feeds the whole company — individual revenue, refunds, in-house impression counts, specialty-ink load, T1 customer revenue, the health of the month. PlanetPulse takes the systems we've always had scattered and streamlines them into one source of truth for everything we produce.</p>
+    <p>When your input is clean, the answers are real — and real answers are how we protect margin, plan the floor, and grow. Thank you for keeping the pulse strong.</p>
+  </div>
+
+  <footer>PlanetPulse · Planet Apparel · the source of truth for every project</footer>
+
+</div>
+</body>
+</html>
