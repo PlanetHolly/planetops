@@ -41,6 +41,9 @@
   .goal{font-weight:800;color:#1a7f37;}
   .mock ul{margin:6px 0 0 18px;font-size:13.5px;color:#444;}
   .mock .caveat{background:#FFF8E1;border-left:4px solid var(--yellow);padding:9px 12px;margin-top:12px;font-size:13px;}
+  .split{display:flex;height:26px;border-radius:5px;overflow:hidden;margin:3px 0 14px;font-size:11px;font-weight:700;}
+  .split span{display:flex;align-items:center;justify-content:center;color:#fff;white-space:nowrap;}
+  .split .cogs{background:#6b7280;} .split .prod{background:#232323;} .split .marg{background:#1a7f37;}
   .anon{text-align:center;font-size:11.5px;color:#999;margin-top:6px;font-style:italic;}
   /* inputs */
   .inp{background:var(--white);border-radius:6px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;}
@@ -126,16 +129,19 @@
       <div class="meta"><b>Customer:</b> Northwind Outfitters &nbsp;·&nbsp; <b>Project Manager:</b> You</div>
       <table>
         <tr><td class="lbl">Invoice Total</td><td>$4,200.00</td></tr>
-        <tr><td class="lbl">Real Revenue</td><td>$2,940.00</td></tr>
+        <tr><td class="lbl">Real Revenue</td><td>$2,940.00 &nbsp;<span style="color:#888;font-size:11.5px;">(invoice minus all materials &amp; COGS — <b>before</b> production cost)</span></td></tr>
         <tr><td class="lbl">Net Margin $</td><td>$1,890.00</td></tr>
-        <tr><td class="lbl">Margin %</td><td>64.3% &nbsp; <span class="goal">Above Goal</span></td></tr>
+        <tr><td class="lbl">Margin %</td><td>45.0% &nbsp; <span class="goal">Above Goal</span></td></tr>
       </table>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:2px;">Where the invoice went &nbsp;(= 100%)</div>
+      <div class="split"><span class="cogs" style="width:30%">COGS 30%</span><span class="prod" style="width:25%">Production 25%</span><span class="marg" style="width:45%">Margin 45%</span></div>
       <div style="font-size:13.5px;"><b>Expenses on this order</b> (please audit):</div>
       <ul>
         <li>Blanks: $980 &nbsp;·&nbsp; Materials: $140 &nbsp;·&nbsp; Outsourced: $0</li>
-        <li>Shipping: $140 &nbsp;·&nbsp; Production Cost: $1,050</li>
+        <li>Shipping cost: $140 &nbsp;·&nbsp; Production Cost: $1,050</li>
       </ul>
-      <div class="caveat">&#9888; If this were a term customer with a balance owed, this line would note that the figures reflect the full invoice, and the final margin firms up once the balance clears.</div>
+      <div style="font-size:13.5px;margin-top:2px;"><b>Shipping +/&minus;:</b> charged $110 vs. actual $140 &rarr; <span style="color:#cf222e;font-weight:700;">&minus;$30 (&minus;21%)</span> <span style="color:#888;">— under-charged; worth a look</span></div>
+      <div class="caveat">&#9888; <b>Term customer?</b> The figures use the <b>full invoice total as a placeholder</b> while payments are still pending — so a terms job never counts against your project. The final margin firms up once the balance clears.</div>
     </div>
   </div>
   <div class="anon">Illustrative example — figures and customer are made up.</div>
