@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanetPulse — Cell-by-Cell Audit Guide</title>
+<style>
+  :root{--yellow:#F7BE00;--black:#000;--tonal:#232323;--white:#fff;--gray:#E8E8E8;
+    --auto:#2563eb;--formula:#1a7f37;--engine:#d9730d;--crm:#7c3aed;--manual:#6b7280;--system:#111;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Montserrat','Helvetica Neue',Arial,sans-serif;color:var(--tonal);background:#f4f4f4;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px 70px;}
+  header{background:var(--black);color:var(--white);padding:40px 0 34px;margin-bottom:26px;position:relative;}
+  header .wrap{position:relative;}
+  .oicon{position:absolute;top:4px;right:24px;width:60px;height:42px;color:var(--white);}
+  .ficon{width:22px;height:16px;color:#bbb;vertical-align:middle;margin-right:7px;}
+  .kicker{color:var(--yellow);letter-spacing:3px;font-size:12px;font-weight:700;text-transform:uppercase;}
+  h1{font-size:38px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-top:8px;line-height:1.05;}
+  h1 .pulse{color:var(--yellow);}
+  .tagline{color:#dcdcdc;font-size:15px;margin-top:12px;max-width:720px;}
+  .lede{background:#fffaf0;border:1px solid var(--yellow);border-radius:6px;padding:16px 20px;margin-bottom:22px;font-size:14.5px;}
+  .lede strong{text-transform:uppercase;letter-spacing:.5px;font-size:12px;color:#7a5b00;}
+  .view{animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 18px;font-size:12px;}
+  .lg{display:flex;align-items:center;gap:6px;background:#fff;border-radius:20px;padding:5px 12px 5px 8px;box-shadow:0 1px 2px rgba(0,0,0,.07);}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 11px;}
+  /* grid replica */
+  .gridwrap{overflow-x:auto;border:1px solid #d6d6d6;border-radius:8px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;}
+  table.grid{border-collapse:collapse;font-size:12px;min-width:100%;}
+  table.grid th,table.grid td{border:1px solid #e3e3e3;padding:0;white-space:nowrap;}
+  .rownum{background:#f5f5f5;color:#888;font-weight:700;text-align:center;width:34px;min-width:34px;position:sticky;left:0;z-index:2;}
+  .corner{background:#eee;position:sticky;left:0;z-index:3;}
+  .secband{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#fff;text-align:center;padding:5px 4px;}
+  .colbtn{display:block;width:100%;border:none;background:#f1f3f4;color:#333;font-weight:800;font-size:12px;padding:7px 10px;cursor:pointer;text-align:center;border-bottom:3px solid var(--manual);font-family:inherit;}
+  .colbtn:hover{background:var(--yellow);color:#000;}
+  td.title{font-weight:700;padding:7px 10px;color:#222;cursor:pointer;background:#fafafa;}
+  td.title:hover{background:#fff7df;}
+  td.samp{padding:7px 10px;color:#444;font-family:'SF Mono',Consolas,monospace;font-size:11.5px;cursor:pointer;max-width:230px;overflow:hidden;text-overflow:ellipsis;}
+  td.samp:hover{background:#fff7df;}
+  td.samp.blank{color:#bbb;font-style:italic;}
+  .hint{font-size:12.5px;color:#777;margin:4px 0 26px;}
+  .hint b{color:#555;}
+  /* summary chips */
+  .sumtitle{font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:26px 0 4px;}
+  .sumsub{font-size:13px;color:#777;margin-bottom:14px;}
+  .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+  .chip{background:#fff;border-radius:7px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:4px solid var(--formula);cursor:pointer;transition:transform .1s;}
+  .chip:hover{transform:translateY(-2px);box-shadow:0 3px 10px rgba(0,0,0,.12);}
+  .chip h3{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .chip .rng{font-family:'SF Mono',Consolas,monospace;font-size:11px;color:#999;}
+  .chip p{font-size:12.5px;color:#555;margin-top:5px;}
+  /* detail page */
+  .back{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px;font-family:inherit;color:#333;}
+  .back:hover{background:var(--black);color:var(--yellow);border-color:var(--black);}
+  .dhead{background:#fff;border-radius:10px;padding:22px 26px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;border-top:6px solid var(--manual);}
+  .dhead .cellref{font-family:'SF Mono',Consolas,monospace;font-size:13px;color:#999;font-weight:700;}
+  .dhead h2{font-size:28px;font-weight:800;margin:2px 0 10px;}
+  .badge{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#fff;padding:4px 11px;border-radius:20px;}
+  .sampbox{margin-top:14px;background:#f7f7f7;border-radius:6px;padding:10px 14px;font-size:13.5px;}
+  .sampbox .lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;}
+  .sampbox .v{font-family:'SF Mono',Consolas,monospace;font-weight:700;color:#222;font-size:15px;}
+  .sec{background:#fff;border-radius:9px;padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:13px;}
+  .sec h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#7a5b00;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .sec h4 .ic{font-size:15px;}
+  .sec p{font-size:14.5px;}
+  .sec p+p{margin-top:8px;}
+  .formula{font-family:'SF Mono',Consolas,monospace;background:#0d1117;color:#79c0ff;padding:11px 14px;border-radius:6px;font-size:13.5px;display:block;overflow-x:auto;white-space:pre;}
+  .feeds{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .feedlink{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;border:1px solid #cfe0ff;color:#1d4ed8;border-radius:6px;padding:5px 10px;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:none;}
+  .feedlink:hover{background:#1d4ed8;color:#fff;}
+  .feedlink .l{font-family:'SF Mono',Consolas,monospace;background:rgba(0,0,0,.08);border-radius:3px;padding:0 5px;}
+  .nofeed{color:#999;font-style:italic;font-size:13.5px;}
+  .warn{border-left:4px solid #cf222e;background:#fff5f5;}
+  .warn h4{color:#a40e26;}
+  .fix{border:2px solid var(--yellow);background:#fffdf5;}
+  .fix h4{color:#7a5b00;}
+  .prompt{position:relative;background:#111;color:#eaeaea;border-radius:8px;padding:14px 16px;font-size:13px;font-family:'SF Mono',Consolas,monospace;line-height:1.5;margin-top:6px;white-space:pre-wrap;}
+  .copy{position:absolute;top:9px;right:9px;background:var(--yellow);color:#000;border:none;border-radius:5px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;}
+  .copy:hover{background:#fff;}
+  .flagnote{background:#FFF8E1;border-left:4px solid var(--yellow);border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;margin-top:10px;}
+  footer{text-align:center;color:#999;font-size:11px;margin-top:40px;}
+  @media print{body{background:#fff;}.chip,.sec,.dhead{box-shadow:none;border:1px solid #ddd;}.copy{display:none;}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pa-icon" viewBox="-270 -185 3237 2226"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+<path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+</g></symbol></svg>
+
+<header>
+  <div class="wrap">
+    <svg class="oicon" role="img" aria-label="Planet Apparel"><use href="#pa-icon"/></svg>
+    <div class="kicker">Planet Apparel · Audit Reference</div>
+    <h1>Planet<span class="pulse">Pulse</span> — Cell Guide</h1>
+    <p class="tagline">Click any column to learn exactly what it is, where it comes from, what it feeds, how to audit it, and how to fix it. The sample below is the live <b>June 2026</b> sheet, <b>row 3</b> — Chris Laine, invoice 26814.</p>
+  </div>
+</header>
+
+<!-- ====================== PAGE 1: MAP ====================== -->
+<div id="map" class="view wrap">
+  <div class="lede">
+    <strong>How to use this page:</strong> &nbsp;The grid below mirrors the top of the tracker — column letters, the title in row 2, and the real row-3 value. <b>Click any cell</b> (letter, title, or value) to open its full breakdown: how it is filled, its goal, what it feeds, what happens if it is changed by hand, how to audit it, and a ready-to-paste message for Holly/Claude if it needs fixing. Scroll down for the bottom-of-sheet summary blocks.
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="gridwrap"><table class="grid" id="grid"></table></div>
+  <p class="hint"><b>Tip:</b> the color under each letter tells you who fills it. Green = a formula (never type in it). Blue = pulled from Printavo automatically. Orange = the production engine. Purple = Streak. Gray = a person types it.</p>
+
+  <div class="sumtitle">Bottom-of-sheet summary blocks</div>
+  <div class="sumsub">These live below the order rows (starting around row 109). They roll up the rows above — every one is built by formula or by the automation. Click for what each block means and how to audit it.</div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<!-- ====================== DETAIL ====================== -->
+<div id="detail" class="view wrap" hidden>
+  <button class="back" onclick="location.hash='#map'">&larr; Back to the cell map</button>
+  <div id="detailbody"></div>
+  <footer><svg class="ficon" aria-hidden="true"><use href="#pa-icon"/></svg>PlanetPulse Audit Guide · Planet Apparel</footer>
+</div>
+
+<script>
+/* ---------- type metadata ---------- */
+const T={
+  auto:{c:'var(--auto)',label:'Auto · from Printavo'},
+  formula:{c:'var(--formula)',label:'Formula · sheet calculates'},
+  engine:{c:'var(--engine)',label:'Production engine · measured'},
+  crm:{c:'var(--crm)',label:'CRM · from Streak'},
+  manual:{c:'var(--manual)',label:'Manual · a person types it'},
+  system:{c:'var(--system)',label:'System marker · set by automation'}
+};
+
+/* ---------- section bands (mirror the sheet's row-1 banners) ---------- */
+const SECONDS=['AUDIT','IDENTITY','PROFIT','PAYMENT','COGS','REVENUE','PRODUCTION','PRODUCT','VOLUME','FEES','SYSTEM','LINK'];
+const SECCOLOR={AUDIT:'#6b7280',IDENTITY:'#334155',PROFIT:'#1a7f37',PAYMENT:'#0e7490',COGS:'#6b7280',REVENUE:'#1a7f37',PRODUCTION:'#d9730d',PRODUCT:'#7c3aed',VOLUME:'#475569',FEES:'#b45309',SYSTEM:'#111',LINK:'#334155'};
+
+/* ---------- COLUMN DATA ---------- */
+const COLS=[
+{l:'A',t:'Audit',sec:'AUDIT',val:'Pass',type:'manual',
+ how:`A dropdown you set by hand: Pass (green) or Issue (red). This is Kelly's temporary 30-day audit column — it auto-tick was removed so every row is a deliberate human check.`,
+ goal:`A visible record that a human eyeballed the row and agreed (or flagged it). It is the scaffolding for this whole audit, not a permanent part of the tracker.`,
+ src:`Manual. You choose Pass or Issue from the dropdown as you work down the rows.`,
+ feeds:[],
+ edit:`Nothing downstream depends on it — no formula or summary reads column A. Changing it only changes the colored flag. When the 30-day audit is trusted and done, this entire column gets removed.`,
+ audit:`This IS the audit control. Mark Pass when the row's numbers check out against Printavo; mark Issue when something looks off, then open the suspect cell's page here for how to fix it.`,
+ fix:`Claude, PlanetPulse — the audit is finished and the numbers are trusted. Please remove the temporary Audit column (A) from the template and the live month.`},
+
+{l:'B',t:'Pmt Date',sec:'IDENTITY',val:'06/01/2026',type:'auto',
+ how:`Pulled automatically. The poll reads every payment transaction on the invoice from Printavo and writes the EARLIEST one's date here.`,
+ goal:`Anchors the order to the month it belongs to (the month routing and the sort both key off this) and shows when money first moved.`,
+ src:`Printavo → invoice.transactions. The LIVE POLL workflow ("Map to tracker row" node) sorts transactions oldest-first and takes the first date.`,
+ feeds:['P'],
+ edit:`If you hand-edit it, the row can sort into the wrong place and the month-routing logic may disagree with Printavo. Don't type here — fix the payment date in Printavo and let the poll re-pull.`,
+ audit:`Open the invoice in Printavo, look at its payments, confirm the first payment date matches. If it is a carry-in (paid in a prior month), it belongs in the carry-in ledger, not as a fresh order row.`,
+ fix:`Claude, PlanetPulse — invoice [#] Pmt Date (col B) doesn't match Printavo's first payment date. Please re-pull it from Printavo.`},
+
+{l:'C',t:'Customer',sec:'IDENTITY',val:'Chris Laine',type:'auto',
+ how:`Pulled automatically — the customer name on the Printavo invoice.`,
+ goal:`Identifies whose order this is; used in the per-salesperson and per-customer rollups and in the Project Summary email.`,
+ src:`Printavo → invoice customer. Written by the LIVE POLL.`,
+ feeds:[],
+ edit:`Cosmetic on the row, but if you rename it the customer-type and salesperson rollups still work (they key off other fields). Best practice: fix the name in Printavo.`,
+ audit:`Match against the invoice in Printavo. If a name looks wrong or duplicated, it is almost always a Printavo data issue.`,
+ fix:`Claude, PlanetPulse — invoice [#] Customer (col C) is wrong/misspelled. Please re-pull from Printavo.`},
+
+{l:'D',t:'Project Name',sec:'IDENTITY',val:'Philly Flag Football Sublimated Bandana',type:'auto',
+ how:`Pulled automatically — the invoice nickname in Printavo.`,
+ goal:`Human-readable label for the job; shows in the Project Summary email subject.`,
+ src:`Printavo → invoice nickname. Written by the LIVE POLL.`,
+ feeds:[],
+ edit:`Cosmetic. To change it properly, rename the invoice nickname in Printavo.`,
+ audit:`Compare to the Printavo invoice nickname. Blank usually means the invoice has no nickname set.`,
+ fix:`Claude, PlanetPulse — invoice [#] Project Name (col D) is blank/wrong. Please re-pull the nickname from Printavo.`},
+
+{l:'E',t:'Customer Status',sec:'IDENTITY',val:'New',type:'crm',
+ how:`Pulled from Streak — the customer's relationship/retention status (New, Repeat, At-Risk, etc.).`,
+ goal:`Drives the New vs Repeat revenue split at the bottom of the sheet and ties each job to the retention system.`,
+ src:`Streak CRM. The LIVE POLL has a "Pull Streak retention" step that matches the customer and writes status + tier.`,
+ feeds:[],
+ edit:`The New/Repeat summary counts off this. Hand-editing one row won't break formulas, but it will mislead the rollup. Fix the status in Streak instead so it stays the source of truth.`,
+ audit:`Open the customer's box in Streak and confirm the status. If a brand-new customer shows "Repeat" (or vice-versa), the Streak match is the thing to correct.`,
+ fix:`Claude, PlanetPulse — invoice [#] Customer Status (col E) doesn't match Streak. Please re-pull the retention status from Streak.`},
+
+{l:'F',t:'Tier',sec:'IDENTITY',val:'(blank on this row)',type:'crm',
+ how:`Pulled from Streak — the customer's tier (T1 / T2 / T3). Blank here because this customer has no tier set in Streak yet.`,
+ goal:`Powers the "Repeat by Tier" line (T1 / T2 / T3 revenue) and tier-based retention work.`,
+ src:`Streak CRM, via the LIVE POLL "Pull Streak retention" step.`,
+ feeds:[],
+ edit:`The tier totals read this column. Set the tier in Streak rather than typing here, so every report agrees.`,
+ audit:`If the tier totals look light, scan for blank F cells — those are customers not yet tiered in Streak. Fix in Streak.`,
+ fix:`Claude, PlanetPulse — invoice [#] Tier (col F) is blank/wrong vs Streak. Please re-pull the tier from Streak.`},
+
+{l:'G',t:'Production Mode',sec:'IDENTITY',val:'Outsourced',type:'auto',
+ how:`Auto. Read from the order's hashtags: #in/#inhouse → In-House, #out/#outsource → Outsourced, #inmix → Both - Majority In-House, #outmix → Both - Majority Outsourced.`,
+ goal:`Splits the whole month into In-House vs Outsourced revenue and order mix — one of the most important business numbers PlanetPulse produces.`,
+ src:`Printavo tags → LIVE POLL ("Map to tracker row"). This is one of the few things the team must tag.`,
+ feeds:[],
+ edit:`The In-House vs Outsourced block and the Daily In-House Revenue block both depend on this. If it is wrong, fix the hashtag in Printavo (not the cell) so the next poll keeps it right.`,
+ audit:`Does the mode match how the job was actually run? If an in-house job reads Outsourced, the #in/#out tag is missing or wrong in Printavo.`,
+ fix:`Claude, PlanetPulse — invoice [#] Production Mode (col G) is wrong. The Printavo tag should be #in / #out / #inmix / #outmix — please re-pull after I fix the tag, or override it.`},
+
+{l:'H',t:'Invoice Number',sec:'IDENTITY',val:'26814',type:'auto',
+ how:`Auto — the Printavo invoice (visual) number. This is the KEY of the row.`,
+ goal:`The anchor everything hangs off. Every formula in the row starts with IF($H="","",...) — so if H is blank, the whole row's math goes blank on purpose. It is also how the poll and the production engine find the right row to update.`,
+ src:`Printavo → invoice visualId. Written by the LIVE POLL; also the lookup key used by the Production engine's "Find tracker row+col" step.`,
+ feeds:['J','K','N','P','U','V','W','X','AW'],
+ edit:`Do not touch. Changing or clearing H makes the row's formulas blank and makes the automations write to the wrong row (or miss it entirely). If a row has the wrong invoice number, that is a serious sync issue — flag it.`,
+ audit:`Confirm it matches the real Printavo invoice. Duplicate H values are a red flag (two rows for one invoice).`,
+ fix:`Claude, PlanetPulse — row for [customer] has a wrong/duplicate Invoice Number (col H). Please investigate the sync and correct it.`},
+
+{l:'I',t:'Invoice Total',sec:'PROFIT',val:'$405.89',type:'auto',
+ how:`Auto — the invoice grand total from Printavo.`,
+ goal:`The top line. Drives margin %, real revenue, COGS %, and almost every revenue rollup.`,
+ src:`Printavo → invoice.total. Written by the LIVE POLL.`,
+ feeds:['K','N','V','W','X'],
+ edit:`Never type here — it is the denominator of Margin %, % Goods, % Services, and feeds Real Revenue. Change the invoice in Printavo and let the poll re-pull.`,
+ audit:`Match to the Printavo invoice total exactly. If it is off, the invoice changed in Printavo after the last poll — the next poll will catch up, or ask for a re-pull.`,
+ fix:`Claude, PlanetPulse — invoice [#] Invoice Total (col I) doesn't match Printavo. Please re-pull it.`},
+
+{l:'J',t:'Net Margin $',sec:'PROFIT',val:'$178.58',type:'formula',
+ how:`Formula. The real dollars left after the true cost of producing the job.`,
+ goal:`The single number that says how much this job actually made. Rolls into the monthly totals and the per-salesperson margin block.`,
+ formula:`=IF($H3="","",IFERROR(X3-Y3,""))`,
+ src:`Calculated in-sheet: Invoice Real Rev (X) minus Production Cost (Y).`,
+ feeds:['K','AD'],
+ edit:`Don't type here — it will overwrite the formula and silently break the margin rollups. If it looks wrong, the cause is in X (Real Rev) or Y (Production Cost), not here.`,
+ audit:`Check the inputs: does X minus Y equal what you see? If not, restore the formula. If the value is implausible, audit Real Rev (X) and Production Cost (Y).`,
+ fix:`Claude, PlanetPulse — invoice [#] Net Margin $ (col J) looks wrong or the formula was overwritten. Please restore =X-Y and check Real Rev and Production Cost.`},
+
+{l:'K',t:'Margin %',sec:'PROFIT',val:'44.0%',type:'formula',
+ how:`Formula. Net margin as a percent of the invoice total.`,
+ goal:`The health gauge. Drives the Margin-vs-Goal block (Above/On/Below goal) and the per-salesperson margin %.`,
+ formula:`=IFERROR((X3-Y3)/I3,"")`,
+ src:`In-sheet: (Real Rev − Production Cost) ÷ Invoice Total.`,
+ feeds:[],
+ edit:`Don't type here. A wrong % almost always traces to Production Cost (Y), Real Rev (X), or Invoice Total (I).`,
+ audit:`Sanity check against the goal bands (>=25% strong). A surprisingly low % usually means a production cost or COGS figure is too high, or revenue too low.`,
+ fix:`Claude, PlanetPulse — invoice [#] Margin % (col K) looks off. Please check Real Rev, Production Cost, and Invoice Total, and restore the formula if needed.`},
+
+{l:'L',t:'Payment',sec:'PAYMENT',val:'$405.89',type:'auto',
+ how:`Auto — how much has been paid. For Terms jobs that aren't paid yet, the system uses the invoice total as a placeholder so a pending job never drags the month down.`,
+ goal:`Drives Outstanding and the Collection / Payments Summary blocks.`,
+ src:`Printavo → invoice.amountPaid (with the Terms placeholder rule). Written by the LIVE POLL.`,
+ feeds:['N'],
+ edit:`Don't type here — fix the payment in Printavo. The /pay tag in a payment description is how extra or partial/terms payments get attributed correctly.`,
+ audit:`Compare to payments in Printavo. If a partial/terms payment is missing, check that it carried the /pay tag.`,
+ fix:`Claude, PlanetPulse — invoice [#] Payment (col L) doesn't match Printavo's collected amount. Please re-pull payments.`},
+
+{l:'M',t:'Payment Status',sec:'PAYMENT',val:'Paid in Full',type:'auto',
+ how:`Auto. Derived: Paid in Full, Partial, Terms, or Overpaid — based on amount paid vs invoice total.`,
+ goal:`Tells you collection state at a glance and feeds the carry-in / payments logic.`,
+ src:`Printavo amounts → LIVE POLL ("Map to tracker row").`,
+ feeds:[],
+ edit:`Don't type here. It recomputes from payment data each poll. A wrong status means the payment data in Printavo is off.`,
+ audit:`Does the status match reality in Printavo? Overpaid or stuck-on-Terms rows are worth a look.`,
+ fix:`Claude, PlanetPulse — invoice [#] Payment Status (col M) is wrong. Please re-pull payment data from Printavo.`},
+
+{l:'N',t:'Outstanding',sec:'PAYMENT',val:'$0.00',type:'formula',
+ how:`Formula — payment minus invoice total (so $0.00 means fully paid; a negative means a balance is still owed).`,
+ goal:`Shows what's still uncollected; feeds the Collection block and carry-in handling.`,
+ formula:`=IF($H3="","",IFERROR(L3-I3,""))`,
+ src:`In-sheet: Payment (L) − Invoice Total (I).`,
+ feeds:[],
+ edit:`Don't type here. If Outstanding looks wrong, the fix is in Payment (L) or Invoice Total (I).`,
+ audit:`Confirm L − I equals what's shown. A balance that should be zero usually means a payment hasn't been pulled yet.`,
+ fix:`Claude, PlanetPulse — invoice [#] Outstanding (col N) looks wrong. Please check Payment and Invoice Total and restore the formula.`},
+
+{l:'O',t:'Refunds',sec:'PAYMENT',val:'(blank on this row)',type:'auto',
+ how:`Auto — any refund recorded on the invoice in Printavo. Blank when there are none.`,
+ goal:`Keeps refunds visible so revenue and collection numbers stay honest.`,
+ src:`Printavo → refunds. Written by the LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — record the refund in Printavo.`,
+ audit:`If a customer was refunded but this is blank, the refund isn't in Printavo (or hasn't been pulled).`,
+ fix:`Claude, PlanetPulse — invoice [#] had a refund that isn't showing in col O. Please re-pull from Printavo.`},
+
+{l:'P',t:'Target Date (Day 15)',sec:'PAYMENT',val:'-$94,821.42',type:'formula',
+ how:`Formula — a running cumulative total of Real Revenue down the column, minus the monthly target (95,000). Negative means the month hasn't hit target yet.`,
+ goal:`A pace-to-goal tracker: how far above or below the monthly real-revenue target the month is, row by row.`,
+ formula:`=IF($H3="","",SUM($X$3:X3)-95000)`,
+ src:`In-sheet running sum of Real Rev (X).`,
+ feeds:[],
+ edit:`Don't type here. Note: the header label "Target Date (Day 15)" is a leftover name — the cell is actually the cumulative real-revenue-vs-target pace number. Worth a rename.`,
+ audit:`The last row's value = total month Real Rev − 95,000. Confirm it matches the Monthly Totals. If the label confuses the team, ask to rename it.`,
+ fix:`Claude, PlanetPulse — the "Target Date (Day 15)" header (col P) is misleading; it's really a real-revenue-vs-95k pace number. Please rename the header (and confirm the 95k target).`},
+
+{l:'Q',t:'Blanks',sec:'COGS',val:'(blank on this row)',type:'auto',
+ how:`Auto — the cost of blank garments/goods, pulled from a Printavo expense tagged [BLANKS]. Blank here because this outsourced bandana job has no in-house blanks expense.`,
+ goal:`Part of Total COGS and the % Goods calculation.`,
+ src:`Printavo expenses parsed by their [TAG] prefix → LIVE POLL.`,
+ feeds:['U','V'],
+ edit:`Don't type here — enter the expense in Printavo (tagged [BLANKS]) within 24 hours. Late expenses = wrong margins.`,
+ audit:`Compare to the blanks PO/expense in Printavo. Missing blanks cost inflates margin falsely.`,
+ fix:`Claude, PlanetPulse — invoice [#] is missing its Blanks cost (col Q) that exists in Printavo. Please re-pull expenses.`},
+
+{l:'R',t:'Materials',sec:'COGS',val:'$227.31',type:'auto',
+ how:`Auto — materials cost from a Printavo expense tagged [MATERIALS].`,
+ goal:`Part of Total COGS and % Goods.`,
+ src:`Printavo expenses → LIVE POLL.`,
+ feeds:['U','V'],
+ edit:`Don't type here — log the materials expense in Printavo within 24 hours.`,
+ audit:`Match to the materials expense(s) in Printavo. On this row $227.31 is the only COGS, which is why Real Rev = $178.58.`,
+ fix:`Claude, PlanetPulse — invoice [#] Materials (col R) doesn't match Printavo expenses. Please re-pull.`},
+
+{l:'S',t:'Outsourced',sec:'COGS',val:'(blank on this row)',type:'auto',
+ how:`Auto — money paid to an outside vendor (POs / outside services) from Printavo expenses tagged as outsourced.`,
+ goal:`Part of Total COGS and the % Services calculation; central to outsourced-job profitability.`,
+ src:`Printavo expenses → LIVE POLL.`,
+ feeds:['U','W'],
+ edit:`Don't type here — enter the vendor PO/expense in Printavo.`,
+ audit:`For an outsourced job, this should reflect the vendor bill. If blank on an outsourced job, the PO isn't logged.`,
+ fix:`Claude, PlanetPulse — invoice [#] Outsourced cost (col S) is missing/wrong vs the Printavo PO. Please re-pull expenses.`},
+
+{l:'T',t:'Shipping',sec:'COGS',val:'(blank on this row)',type:'auto',
+ how:`Auto — actual shipping cost, from a Printavo expense tagged [SHIPPING]. Captured when the order hits its final (shipped/delivered) status.`,
+ goal:`Part of Total COGS; compared against Shipping Charged to give Ship +/-.`,
+ src:`Printavo expenses → LIVE POLL.`,
+ feeds:['U','AW'],
+ edit:`Don't type here — enter shipping in Printavo BEFORE the order reaches its final status (you only need [SHIPPING] in the description).`,
+ audit:`Match to the shipping expense in Printavo. If blank after shipping, the cost was entered too late or not tagged.`,
+ fix:`Claude, PlanetPulse — invoice [#] Shipping cost (col T) is missing/wrong. Please re-pull from Printavo.`},
+
+{l:'U',t:'Total COGS',sec:'COGS',val:'$227.31',type:'formula',
+ how:`Formula — the sum of Blanks + Materials + Outsourced + Shipping.`,
+ goal:`The full cost of goods for the job; subtracted from the invoice to get Real Revenue.`,
+ formula:`=IF($H3="","",SUM(Q3:T3))`,
+ src:`In-sheet sum of Q:T.`,
+ feeds:['X'],
+ edit:`Don't type here. If Total COGS is wrong, one of Q/R/S/T is wrong — fix the expense in Printavo.`,
+ audit:`Confirm it equals Q+R+S+T and that those match Printavo expenses.`,
+ fix:`Claude, PlanetPulse — invoice [#] Total COGS (col U) looks wrong. Please check the Blanks/Materials/Outsourced/Shipping inputs and restore the formula.`},
+
+{l:'V',t:'% Goods',sec:'COGS',val:'56.0%',type:'formula',
+ how:`Formula — goods cost (Blanks + Materials) as a percent of the invoice.`,
+ goal:`Shows how much of the price went to physical goods.`,
+ formula:`=IFERROR((Q3+R3)/I3,"")`,
+ src:`In-sheet: (Blanks + Materials) ÷ Invoice Total.`,
+ feeds:[],
+ edit:`Don't type here. Driven by Q, R, and I.`,
+ audit:`Sanity check: high % Goods on a simple job may mean a mis-tagged expense.`,
+ fix:`Claude, PlanetPulse — invoice [#] % Goods (col V) looks off. Please check Blanks, Materials, and Invoice Total.`},
+
+{l:'W',t:'% Services',sec:'COGS',val:'0.0%',type:'formula',
+ how:`Formula — services cost (Outsourced + Production Cost) as a percent of the invoice.`,
+ goal:`Shows how much of the price went to labor/outside services. 0.0% here because there's no outsourced spend or production cost recorded on this row yet.`,
+ formula:`=IFERROR((S3+Y3)/I3,"")`,
+ src:`In-sheet: (Outsourced + Production Cost) ÷ Invoice Total.`,
+ feeds:[],
+ edit:`Don't type here. Driven by S, Y, and I.`,
+ audit:`If an in-house job shows 0.0% services, its Production Cost (Y) probably hasn't been captured yet.`,
+ fix:`Claude, PlanetPulse — invoice [#] % Services (col W) looks wrong. Please check Outsourced and Production Cost.`},
+
+{l:'X',t:'Invoice Real Rev',sec:'REVENUE',val:'$178.58',type:'formula',
+ how:`Formula — Invoice Total minus Total COGS. This is "Real Revenue": revenue after the cost of goods (including outside services), BEFORE in-house production cost.`,
+ goal:`Planet Apparel's core revenue measure (Revenue − COGS). It feeds margin, the pace-to-goal tracker, and many rollups.`,
+ formula:`=IF($H3="","",I3-U3)`,
+ src:`In-sheet: Invoice Total (I) − Total COGS (U).`,
+ feeds:['J','K','P'],
+ edit:`Don't type here. If Real Rev is wrong, the cause is Invoice Total (I) or Total COGS (U).`,
+ audit:`Confirm I − U equals the value. On row 3: 405.89 − 227.31 = 178.58. ✔`,
+ fix:`Claude, PlanetPulse — invoice [#] Real Rev (col X) looks wrong. Please check Invoice Total and Total COGS and restore the formula.`},
+
+{l:'Y',t:'Production Cost',sec:'PRODUCTION',val:'(blank on this row — outsourced job, no in-house press time)',type:'engine',
+ how:`The most involved number in PlanetPulse. For IN-HOUSE jobs it is the real labor cost of producing the order. It is NOT a formula and NOT from Printavo — it is measured from the production floor.`,
+ goal:`Turn actual time on the floor into a true per-job production cost, so margin reflects what really happened (faster = cheaper = better margin).`,
+ src:`Two sources, in order of trust:
+1) ESTIMATE (current June values): during backfill, the cost was seeded from the Press Calculator's estimated times × rate. You can spot these because Cost Date (Z) and Cost Source (AA) are blank.
+2) ACTUAL (going forward): the "Production Time Capture v2" workflow runs daily — it downloads the press-schedule board from Dropbox, sends the tiles to Claude vision to read each station's start/end times and invoice numbers, subtracts the standard break windows, then applies the hourly rate by station type (Auto Press → screen-print rate; Heat/Manual Press → DTF rate; Post Production → post-prod rate, pulled live from the Rates sheet). It sums every press line for the invoice, finds this row by Invoice Number, and writes the cost here — stamping Cost Date (Z), Cost Source (AA), and Press Min (AC).`,
+ feeds:['J','K','W','AD'],
+ edit:`You can override it by hand, but the next capture run may overwrite it. If you do override, Net Margin (J), Margin % (K), % Services (W), and MPH (AD) all move with it, and so do the monthly margin rollups. Prefer fixing the source (the press schedule / rate) and re-running the capture.`,
+ audit:`Is it plausible for the work done? Cross-check: an in-house screen-print job around $60–$500 is normal; $0 or blank on an in-house job means no time was captured yet. If Press Min (AC) is blank, this is still an ESTIMATE, not measured actuals. To verify actuals, look at the press-schedule board in Dropbox for that invoice's run, or the Press Calculator. Example of a real in-house value: invoice 27008 (Our Friends Inc, Screen Print) = $161.00.`,
+ fix:`Claude, PlanetPulse — invoice [#] Production Cost (col Y) looks wrong. Please re-run the Production Time Capture for it (or show me the press minutes and rate used) and update the cost.`},
+
+{l:'Z',t:'Cost Date',sec:'PRODUCTION',val:'(blank on this row)',type:'engine',
+ how:`The date the production cost was actually captured from the floor. Blank means the cost is still the estimate, not measured actuals.`,
+ goal:`Tells you whether Production Cost is a real measurement (date present) or a seeded estimate (blank).`,
+ src:`Set by the "Production Time Capture v2" workflow when it writes the measured cost.`,
+ feeds:[],
+ edit:`Don't type here — it is the engine's stamp. A date you typed would falsely imply the cost was measured.`,
+ audit:`Blank Cost Date + a Production Cost present = estimate. Use it to know how much to trust Y.`,
+ fix:`Claude, PlanetPulse — invoice [#] has a Production Cost but no Cost Date (col Z). Please run the time capture so it reflects measured actuals.`},
+
+{l:'AA',t:'Cost Source',sec:'PRODUCTION',val:'(blank on this row)',type:'engine',
+ how:`Where the production cost came from — which calculator/station type produced it (e.g. screen_print, dtf, post_prod) or "estimate".`,
+ goal:`Audit trail for the cost number, so you can trace how it was derived.`,
+ src:`Set by "Production Time Capture v2" alongside the cost.`,
+ feeds:[],
+ edit:`Don't type here — it is the engine's note.`,
+ audit:`Tells you which rate/station drove the cost. Blank = estimate seeded at backfill.`,
+ fix:`Claude, PlanetPulse — invoice [#] Cost Source (col AA) is blank/unclear. Please re-run the capture and confirm how the cost was derived.`},
+
+{l:'AB',t:'Completion Date',sec:'PRODUCTION',val:'06/19/2026',type:'auto',
+ how:`Auto, set once — the date the order reached one of the three final "black" statuses (Ready for Pickup / Delivery / Shipped). It is set a single time and not overwritten.`,
+ goal:`Marks the job as concluded, drives the Daily In-House Revenue block, and starts the 7-day clock for the Project Summary email.`,
+ src:`Printavo status → the LIVE POLL's end-sync (set-once logic).`,
+ feeds:[],
+ edit:`Don't type here. If it is wrong, the order's status timing in Printavo is the cause; the Daily Revenue credit lands on this date.`,
+ audit:`Confirm it matches when the order actually completed/shipped in Printavo. A missing date on a clearly finished job means the final status wasn't applied.`,
+ fix:`Claude, PlanetPulse — invoice [#] Completion Date (col AB) is missing/wrong vs Printavo's final status. Please re-check the end-sync.`},
+
+{l:'AC',t:'Press Min',sec:'PRODUCTION',val:'(blank on this row)',type:'engine',
+ how:`Measured minutes on the press for this job, captured from the floor schedule. Blank means no actual time captured yet.`,
+ goal:`The raw input behind real Production Cost and the driver of MPH (margin per hour).`,
+ src:`"Production Time Capture v2" — minutes read from the press-schedule board (via Claude vision), minus standard breaks.`,
+ feeds:['AD'],
+ edit:`Don't type here — it is a measurement. Overwriting it skews MPH.`,
+ audit:`If present, MPH should compute. If blank on an in-house job, the time hasn't been captured (Production Cost is still an estimate).`,
+ fix:`Claude, PlanetPulse — invoice [#] Press Min (col AC) is blank/wrong. Please run the time capture for it.`},
+
+{l:'AD',t:'MPH (margin per hour)',sec:'PRODUCTION',val:'(blank on this row)',type:'formula',
+ how:`Formula — Net Margin dollars divided by press hours (Press Min ÷ 60). Blank here because there are no captured press minutes.`,
+ goal:`The efficiency metric: how much margin each hour of press time earns. Feeds the Avg MPH efficiency block.`,
+ formula:`=IF($AC3="","",IFERROR(($X3-$Y3)/($AC3/60),""))`,
+ src:`In-sheet: (Real Rev − Production Cost) ÷ (Press Min ÷ 60).`,
+ feeds:[],
+ edit:`Don't type here. Needs Press Min (AC) and the margin inputs (X, Y).`,
+ audit:`Only computes once Press Min exists. A very low MPH flags a slow or under-priced job.`,
+ fix:`Claude, PlanetPulse — invoice [#] MPH (col AD) looks wrong or won't compute. Please check Press Min and the margin inputs.`},
+
+{l:'AE',t:'Product Type',sec:'PRODUCT',val:'Bandana',type:'auto',
+ how:`Auto — Bandana, Apparel, or Promo. Read from tags first (#bandana/#apparel/#promo), otherwise inferred from the line-item category and SKUs (e.g. embroidery → Apparel; a bandana SKU → Bandana).`,
+ goal:`Splits revenue by product type in several rollups (In-House vs Outsourced sub-lines, etc.).`,
+ src:`Printavo tags + categories/SKUs → LIVE POLL ("Map to tracker row").`,
+ feeds:[],
+ edit:`Don't type here. If wrong, add the right #bandana/#apparel/#promo tag in Printavo, or it follows the category. (This is the field we corrected on invoice 27011, where embroidery now maps to Apparel.)`,
+ audit:`Does the type match the actual product? Blank/odd values usually mean an unusual category with no tag.`,
+ fix:`Claude, PlanetPulse — invoice [#] Product Type (col AE) is wrong. Please re-derive it (or I'll add the #apparel/#bandana/#promo tag in Printavo).`},
+
+{l:'AF',t:'Method',sec:'PRODUCT',val:'Sublimation',type:'auto',
+ how:`Auto — the decoration method: Embroidery, Screen Print, Sublimation, Digital / DTF, Mix - Screen Print & DTF, or Promo. Derived from the Printavo line-item categories. Rule: if any embroidery is present, Embroidery wins; screen + DTF together → Mix.`,
+ goal:`Drives the Revenue by Decoration Method block and which production rate applies.`,
+ src:`Printavo line-item categories → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it reads the categories. If wrong, the category on the Printavo line item is the thing to fix. (Embroidery-wins is the rule we added for invoice 27011.)`,
+ audit:`Match to how the job was actually decorated. A hang-tag-only "Screen Printing" line on an embroidery job is why embroidery-wins exists.`,
+ fix:`Claude, PlanetPulse — invoice [#] Method (col AF) is wrong. Please re-derive from the Printavo categories (or tell me which category is mis-set).`},
+
+{l:'AG',t:'Ink Type',sec:'PRODUCT',val:'(blank on this row)',type:'auto',
+ how:`Auto — the ink: specialty inks (Water-Based/Discharge, Metallic, Algae, Glow, Neon, Poly) are auto-detected from Printavo FEES; organic jobs map to Water-based; in-house screen print with no specialty detected defaults to Plastisol. Blank here because this is a sublimated bandana (no screen ink).`,
+ goal:`Feeds the In-House Specialty Ink Impressions block and the in-house water-based impression metric.`,
+ src:`Printavo fees + product logic → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here. Specialty ink is read from the fee; if a specialty ink was used but isn't showing, the fee may be missing in Printavo. Plastisol is the default for in-house screen print.`,
+ audit:`If a water-based/discharge job isn't counting in the specialty block, check that the ink fee exists in Printavo.`,
+ fix:`Claude, PlanetPulse — invoice [#] Ink Type (col AG) is wrong/blank. Please re-derive it (the specialty ink should come from the Printavo fee).`},
+
+{l:'AH',t:'SKU(s)',sec:'PRODUCT',val:'SUB1',type:'auto',
+ how:`Auto — the bandana SKU(s) on the order (only populated for bandana products). Pulled from the Printavo line-item item numbers.`,
+ goal:`Identifies the exact bandana product and drives Bandana Type and the Bandana SKU Revenue block.`,
+ src:`Printavo line items → LIVE POLL (filtered to bandana SKU prefixes PL/US/ORG/SUB/DIG).`,
+ feeds:[],
+ edit:`Don't type here — fix the item number on the Printavo line.`,
+ audit:`Confirm the SKU matches the product ordered. Wrong prefix → wrong Bandana Type.`,
+ fix:`Claude, PlanetPulse — invoice [#] SKU(s) (col AH) is wrong. Please re-pull the item numbers from Printavo.`},
+
+{l:'AI',t:'Bandana Type',sec:'PRODUCT',val:'Sublimated',type:'auto',
+ how:`Auto — derived from the SKU prefix: ORG → Organic, US → USA-Made, SUB → Sublimated, DIG → Digital, PL → Import.`,
+ goal:`Drives the Bandana SKU Revenue block (revenue by bandana type).`,
+ src:`Derived from SKU(s) (AH) → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it follows the SKU. Fix the SKU on the Printavo line instead.`,
+ audit:`Should match the SKU prefix. SUB1 → Sublimated ✔ on this row.`,
+ fix:`Claude, PlanetPulse — invoice [#] Bandana Type (col AI) doesn't match the SKU. Please re-derive it.`},
+
+{l:'AJ',t:'# Imprints',sec:'PRODUCT',val:'0',type:'auto',
+ how:`Auto — how many decoration imprints are on the order, counted from the Printavo imprint columns that look like "n/c" (n colors). 0 here because a sublimated bandana has no screen imprints counted this way.`,
+ goal:`Multiplied by Total Quantity to get Impressions.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:['AK'],
+ edit:`Don't type here — it counts the imprint lines in Printavo.`,
+ audit:`Compare to the imprint setup in Printavo. If Impressions look low, check this count.`,
+ fix:`Claude, PlanetPulse — invoice [#] # Imprints (col AJ) looks wrong. Please re-pull the imprints from Printavo.`},
+
+{l:'AK',t:'Impressions',sec:'PRODUCT',val:'0',type:'formula',
+ how:`Formula — # Imprints × Total Quantity. The total number of decoration impressions on the order.`,
+ goal:`Feeds the Total In-House Impressions metric (production volume).`,
+ formula:`=IFERROR($AJ3*$AZ3,"")`,
+ src:`In-sheet: # Imprints (AJ) × Total Quantity (AZ).`,
+ feeds:[],
+ edit:`Don't type here. Driven by AJ and AZ.`,
+ audit:`Confirm AJ × AZ. If impressions seem off, the cause is the imprint count or the quantity.`,
+ fix:`Claude, PlanetPulse — invoice [#] Impressions (col AK) looks wrong. Please check # Imprints and Total Quantity and restore the formula.`},
+
+{l:'AL',t:'Imp1 Colors',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — the number of colors in the 1st imprint, parsed from the Printavo imprint column "n/c".`,
+ goal:`Feeds the Avg Colors / Imprint efficiency metric and shows decoration complexity.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it reads the imprint column.`,
+ audit:`Match to the imprint's color count in Printavo.`,
+ fix:`Claude, PlanetPulse — invoice [#] Imp1 Colors (col AL) is wrong. Please re-pull the imprint colors.`},
+
+{l:'AM',t:'Imp2 Colors',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — colors in the 2nd imprint (if any), from Printavo.`,
+ goal:`Same as Imp1 Colors — decoration complexity / color averages.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here.`,
+ audit:`Match to the 2nd imprint in Printavo; blank if there's only one imprint.`,
+ fix:`Claude, PlanetPulse — invoice [#] Imp2 Colors (col AM) is wrong. Please re-pull the imprint colors.`},
+
+{l:'AN',t:'Imp3 Colors',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — colors in the 3rd imprint (if any), from Printavo.`,
+ goal:`Decoration complexity / color averages.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here.`,
+ audit:`Match to the 3rd imprint in Printavo; usually blank.`,
+ fix:`Claude, PlanetPulse — invoice [#] Imp3 Colors (col AN) is wrong. Please re-pull the imprint colors.`},
+
+{l:'AO',t:'Imp4 Colors',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — colors in the 4th imprint (if any), from Printavo.`,
+ goal:`Decoration complexity / color averages.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here.`,
+ audit:`Match to the 4th imprint in Printavo; usually blank.`,
+ fix:`Claude, PlanetPulse — invoice [#] Imp4 Colors (col AO) is wrong. Please re-pull the imprint colors.`},
+
+{l:'AP',t:'Finishing 1',sec:'VOLUME',val:'Packaging (Bandana)',type:'auto',
+ how:`Auto — a finishing/packaging service on the order (folding, bagging, belly bands, hang tags, sewn labels, barcodes). Read from the Printavo imprint columns that name packaging-type work.`,
+ goal:`Captures value-add finishing steps that aren't decoration imprints.`,
+ src:`Printavo imprints (packaging-type columns) → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it reads the Printavo line. On this row it correctly picked up "Packaging (Bandana)".`,
+ audit:`Match to the finishing/packaging line in Printavo.`,
+ fix:`Claude, PlanetPulse — invoice [#] Finishing 1 (col AP) is wrong/missing. Please re-pull the packaging lines from Printavo.`},
+
+{l:'AQ',t:'Finishing 2',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — a second finishing/packaging service, if any.`,
+ goal:`Same as Finishing 1.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here.`,
+ audit:`Match to the 2nd finishing line in Printavo; blank if only one.`,
+ fix:`Claude, PlanetPulse — invoice [#] Finishing 2 (col AQ) is wrong. Please re-pull from Printavo.`},
+
+{l:'AR',t:'Finishing 3',sec:'VOLUME',val:'(blank on this row)',type:'auto',
+ how:`Auto — a third finishing/packaging service, if any.`,
+ goal:`Same as Finishing 1.`,
+ src:`Printavo imprints → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here.`,
+ audit:`Match to the 3rd finishing line in Printavo; usually blank.`,
+ fix:`Claude, PlanetPulse — invoice [#] Finishing 3 (col AR) is wrong. Please re-pull from Printavo.`},
+
+{l:'AS',t:'Finishing Qty',sec:'VOLUME',val:'48',type:'auto',
+ how:`Auto — the quantity associated with the finishing/packaging work (here 48, matching the order quantity).`,
+ goal:`Sizes the finishing effort for production planning.`,
+ src:`Printavo → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it follows the Printavo packaging line.`,
+ audit:`Should align with Total Quantity when finishing covers the whole order.`,
+ fix:`Claude, PlanetPulse — invoice [#] Finishing Qty (col AS) looks wrong. Please re-pull from Printavo.`},
+
+{l:'AT',t:'Rush Fees',sec:'FEES',val:'(blank on this row)',type:'auto',
+ how:`Auto — rush/priority fees collected on the order. Detected from Printavo fees whose wording matches rush / priority / "Less than 5 (or 10) Business Days for Production".`,
+ goal:`Feeds the "Rush / Priority Fees Collected" total and keeps rush revenue visible.`,
+ src:`Printavo fees → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here. (This is the field whose detection wording we widened so it stopped dropping ~$463 of June rush fees.)`,
+ audit:`If a job was rushed but shows no fee, check the fee wording in Printavo against the rush/priority/"less than N business days" pattern.`,
+ fix:`Claude, PlanetPulse — invoice [#] Rush Fees (col AT) is missing/wrong. Please re-check the rush-fee detection against the Printavo fee.`},
+
+{l:'AU',t:'Auto-Fill Marker',sec:'SYSTEM',val:'PMsent 6/19/2026 (backfill)',type:'system',
+ how:`A breadcrumb the automation leaves about what it did to the row — e.g. that the Project Summary email was sent, and that the row came from the backfill.`,
+ goal:`Lets the automation avoid double-acting (e.g. not re-sending a PM email) and gives you an audit trail of what fired.`,
+ src:`Stamped by the LIVE POLL / backfill.`,
+ feeds:[],
+ edit:`Don't type here — it controls automation behavior. Clearing "PMsent" could cause a duplicate Project Summary email.`,
+ audit:`Read it to see what the system already did for this row. "(backfill)" means the row was loaded at cutover, not by the live poll.`,
+ fix:`Claude, PlanetPulse — invoice [#] Auto-Fill Marker (col AU) looks wrong and I'm worried about a duplicate email/action. Please check before anything re-fires.`},
+
+{l:'AV',t:'Shipping Charged',sec:'SYSTEM',val:'(blank on this row)',type:'auto',
+ how:`Auto — what the customer was charged for shipping (from the invoice).`,
+ goal:`Compared against the actual Shipping cost (T) to reveal over/under-charging via Ship +/-.`,
+ src:`Printavo invoice → LIVE POLL.`,
+ feeds:['AW'],
+ edit:`Don't type here — fix the shipping charge on the Printavo invoice.`,
+ audit:`Match to what the invoice charged for shipping. Blank with a shipping cost present means we may not have billed shipping.`,
+ fix:`Claude, PlanetPulse — invoice [#] Shipping Charged (col AV) is wrong/missing. Please re-pull from Printavo.`},
+
+{l:'AW',t:'Ship +/-',sec:'SYSTEM',val:'(blank on this row)',type:'formula',
+ how:`Formula — Shipping Charged minus actual Shipping cost. Positive = we made money on shipping; negative = we under-charged.`,
+ goal:`Flags shipping over/under-recovery per order.`,
+ formula:`=IF($T3="","",N($AV3)-$T3)`,
+ src:`In-sheet: Shipping Charged (AV) − Shipping (T).`,
+ feeds:[],
+ edit:`Don't type here. Driven by AV and T; blank until a shipping cost (T) exists.`,
+ audit:`Big negatives are worth a look — we under-charged shipping. Check AV and T.`,
+ fix:`Claude, PlanetPulse — invoice [#] Ship +/- (col AW) looks wrong. Please check Shipping Charged and Shipping cost and restore the formula.`},
+
+{l:'AX',t:'Review Flag',sec:'SYSTEM',val:'Pass',type:'system',
+ how:`A flag the automation sets when something about the row needs a human look (e.g. a partial payment or a missing tag). "Pass" means nothing was flagged.`,
+ goal:`Surfaces rows the system isn't fully confident about, separate from Kelly's manual Audit column (A).`,
+ src:`Set by the LIVE POLL based on its checks.`,
+ feeds:[],
+ edit:`You can clear a flag after reviewing, but don't hide a real issue — resolve the underlying cause first.`,
+ audit:`Anything not "Pass" is the system asking for a human check — start there.`,
+ fix:`Claude, PlanetPulse — invoice [#] has a Review Flag (col AX) I don't understand. Please explain what triggered it.`},
+
+{l:'AY',t:'Customer ID',sec:'LINK',val:'10732575',type:'auto',
+ how:`Auto — the Printavo customer ID. A stable link back to the customer record.`,
+ goal:`Lets the system (and you) tie the row to the exact Printavo/Streak customer, independent of name spelling.`,
+ src:`Printavo → customer id. Written by the LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — it is a system key.`,
+ audit:`Rarely needs auditing; useful when a customer name looks duplicated to confirm whether it's truly the same customer.`,
+ fix:`Claude, PlanetPulse — invoice [#] Customer ID (col AY) looks wrong. Please re-pull from Printavo.`},
+
+{l:'AZ',t:'Total Quantity',sec:'LINK',val:'48',type:'auto',
+ how:`Auto — total pieces on the order, summed across every line item's sizes in Printavo.`,
+ goal:`Drives Impressions (with # Imprints) and is a core volume number.`,
+ src:`Printavo line-item sizes → LIVE POLL.`,
+ feeds:['AK'],
+ edit:`Don't type here — it sums the Printavo sizes. Fix the quantities on the invoice instead.`,
+ audit:`Confirm it equals the total pieces on the Printavo invoice.`,
+ fix:`Claude, PlanetPulse — invoice [#] Total Quantity (col AZ) doesn't match Printavo. Please re-pull the line-item quantities.`},
+
+{l:'BA',t:'Project Manager',sec:'LINK',val:'Shara',type:'auto',
+ how:`Auto — who owns the job, read from the initials tag (#sh → Shara, #cc → Cortney, or #name).`,
+ goal:`Routes the Project Summary email and drives the per-salesperson margin and payments rollups.`,
+ src:`Printavo tags → LIVE POLL.`,
+ feeds:[],
+ edit:`Don't type here — fix the #sh/#cc/#name tag in Printavo so the rollups and emails go to the right person.`,
+ audit:`Does the PM match who actually ran the deal? A wrong/blank PM means the initials tag is missing in Printavo.`,
+ fix:`Claude, PlanetPulse — invoice [#] Project Manager (col BA) is wrong. Please re-derive from the initials tag (or I'll fix the tag in Printavo).`},
+
+{l:'BB',t:'(system helper)',sec:'LINK',val:'FALSE',type:'system',
+ how:`A hidden TRUE/FALSE helper the automation uses internally (e.g. carry-in / new-payment handling). Not a reporting field.`,
+ goal:`Lets the poll track internal state per row without cluttering the visible report.`,
+ src:`Set by the automation.`,
+ feeds:[],
+ edit:`Leave it alone — it is plumbing. Changing it can confuse the poll's logic.`,
+ audit:`No audit needed; ignore it during the line-by-line review.`,
+ fix:`Claude, PlanetPulse — the hidden helper in col BB looks odd for invoice [#]. Please check the poll's internal flags.`}
+];
+
+/* ---------- SUMMARY BLOCKS ---------- */
+const SUM=[
+{id:'monthly-totals',t:'Monthly Totals',rng:'A109:K110',
+ what:`The headline roll-up of every order row above: order count (H110), total invoiced (I110), total Net Margin (J110), and blended Margin % (K110).`,
+ build:`Formulas that sum/average the order rows. Everything here is downstream of the rows — it is only as right as the rows are.`,
+ audit:`Order count should equal the number of real order rows. Invoiced total should match the Payments/Collection block's "Invoiced (total)". If a row's I or J is wrong, it shows up here first.`,
+ fix:`Claude, PlanetPulse — the Monthly Totals (A109:K110) don't reconcile. Please check the order rows feeding them.`},
+
+{id:'carry-in',t:'Additional / Terms Payments (carried in)',rng:'A111:E121',
+ what:`Payments that landed THIS month against invoices from PRIOR months (final or partial balances). They are listed as ledger lines — not counted as new orders — so no month's cash is double-counted. Subtotal at C121 is added into the month's Payments and PM totals.`,
+ build:`Built by the automation when a payment's first-payment-month is earlier than this tab's month. Each line: Invoice, Pmt Date, Amount, Type (FINAL/PARTIAL), Project Manager.`,
+ audit:`This is the heart of the locked 3-line carry-in model. Each line should tie to a real prior-month invoice now paying its balance. The DWC cross-month invoices live here — confirm the amount is the balance, not the full order. Subtotal (C121) must flow into the Payments Summary "From Prev. Months".`,
+ fix:`Claude, PlanetPulse — a carry-in line (A111:E121) looks wrong (amount or invoice). Please re-check the carry-in ledger for [invoice #].`},
+
+{id:'inhouse-outsourced',t:'In-House vs Outsourced (Revenue & Order Mix)',rng:'A124:F134',
+ what:`The month split by where the work was done — In-House vs Outsourced — each broken into Bandanas / Apparel / Promo, with revenue, revenue %, order count, and order %.`,
+ build:`Formulas that group the rows by Production Mode (G) and Product Type (AE).`,
+ audit:`Drag-driven by column G (Production Mode) and AE (Product Type). If the split looks off, the cause is a mis-tagged #in/#out or wrong product type on a row. Totals (row 134) should reconcile to the order rows.`,
+ fix:`Claude, PlanetPulse — the In-House vs Outsourced mix (A124:F134) looks wrong. Please check Production Mode and Product Type on the rows.`},
+
+{id:'collection',t:'Collection & 15-Day Rule',rng:'A136:E141',
+ what:`Month money health: Invoiced total, Collected (payments), Outstanding, Collected %, plus Rush/Priority Fees Collected (E141).`,
+ build:`Formulas over the rows' Invoice Total, Payment, and Rush Fees, plus the carry-in subtotal.`,
+ audit:`Collected % = Collected ÷ Invoiced. Outstanding should equal Invoiced − Collected. Rush fees (E141) should equal the sum of column AT plus any carried rush. (E141 was ~$462.98 for June after the rush-detection fix.)`,
+ fix:`Claude, PlanetPulse — the Collection block (A136:E141) doesn't reconcile. Please check payments, invoiced totals, and rush fees.`},
+
+{id:'payments-summary',t:'Payments Summary (per Project Manager)',rng:'H136:K140',
+ what:`Total payments collected this month, split into "Month Ending" (orders this month) + "From Prev. Months" (carry-in) = Total, shown for All Managers and per PM (Cortney, Shara).`,
+ build:`Formulas combining the month's payments with the carry-in subtotal, grouped by Project Manager (BA).`,
+ audit:`All-Managers Total (K138) should equal Collected in the Collection block plus carry-in. Per-PM rows should sum to the All-Managers row. "From Prev. Months" should equal the carry-in subtotal (C121).`,
+ fix:`Claude, PlanetPulse — the Payments Summary (H136:K140) doesn't tie out per manager or to the carry-in. Please re-check.`},
+
+{id:'month-summary',t:'Month Summary (AI narrative)',rng:'A142:A143',
+ what:`A short written narrative generated at month close — the Strong/Standard/Watch/Loss mix, In-House %, MPH, and collection health, in plain English.`,
+ build:`Written by AI at close, reading the blocks above. It is a summary, not a source — it never feeds anything.`,
+ audit:`Read it for an honest gut-check. If it contradicts the numbers above, trust the numbers and regenerate the narrative.`,
+ fix:`Claude, PlanetPulse — please regenerate the Month Summary narrative (A142:A143) from the current numbers.`},
+
+{id:'bandana-sku',t:'Bandana SKU Revenue',rng:'A145:F153',
+ what:`Revenue and order counts by bandana type — Import, USA-Made, Organic, Sublimated, Digital, USA Digital — with % of bandana revenue.`,
+ build:`Formulas grouping rows by Bandana Type (AI).`,
+ audit:`Driven by column AI. Total (row 153) should match total bandana revenue in the In-House/Outsourced block. A type reading $0 unexpectedly means SKUs aren't mapping (check AH/AI on the rows).`,
+ fix:`Claude, PlanetPulse — the Bandana SKU Revenue block (A145:F153) looks wrong. Please check Bandana Type on the rows.`},
+
+{id:'production-efficiency',t:'Production & Efficiency',rng:'A155:C162',
+ what:`Total Press Hours, Total In-House Impressions, Avg MPH (blended), Real Revenue / Press Hour, Available & Capacity Utilization, and Avg Colors / Imprint.`,
+ build:`Formulas over Press Min (AC), Impressions (AK), MPH (AD), and the imprint color columns.`,
+ audit:`Total Press Hours and Avg MPH will read low/zero until the production time capture fills Press Min on the rows — expected early in the month. Total In-House Impressions (C157) should equal the sum of Impressions (AK) for in-house jobs. "Available Press Hours" is a manual entry that drives Capacity Utilization.`,
+ fix:`Claude, PlanetPulse — the Production & Efficiency block (A155:C162) looks wrong or empty. Please check Press Min capture and impressions.`},
+
+{id:'margin-goal',t:'Margin vs Goal',rng:'A163:C168',
+ what:`How many jobs are Above Goal (>=25%), On Goal (20–25%), Below Goal (<20%), the % at/above goal, and the dollars sitting in below-goal jobs.`,
+ build:`Formulas counting rows by Margin % (K) bands.`,
+ audit:`Counts should sum to the order count. A job in "Below Goal" is a real margin to investigate — open that row's Margin %, then its Production Cost and COGS.`,
+ fix:`Claude, PlanetPulse — the Margin vs Goal block (A163:C168) looks wrong. Please check the Margin % values on the rows.`},
+
+{id:'customer-type',t:'Revenue by Customer Type (New / Repeat + Tiers)',rng:'A170:C176',
+ what:`Revenue, % of total, and orders for New vs Repeat customers, plus Repeat Revenue % and the Repeat-by-Tier line (T1 / T2 / T3) at C176.`,
+ build:`Formulas grouping rows by Customer Status (E) and Tier (F).`,
+ audit:`New + Repeat revenue should equal the month total. The T1/T2/T3 line is driven by column F — if a tier looks light, scan for blank Tier cells (customers not tiered in Streak). June: T1 ~$77,471 · T2 ~$16,782 · T3 ~$13,510.`,
+ fix:`Claude, PlanetPulse — the New/Repeat or tier totals (A170:C176) look wrong. Please check Customer Status and Tier on the rows.`},
+
+{id:'salesperson',t:'Margin by Salesperson',rng:'A178:E183',
+ what:`Revenue, Net Margin, Margin %, and order count for each Project Manager (Shara, Cortney, Other/Unassigned).`,
+ build:`Formulas grouping rows by Project Manager (BA).`,
+ audit:`Per-PM revenue and orders should sum to the totals (row 183). "Other / Unassigned" with revenue in it means some rows are missing a #sh/#cc/#name tag — fix those in Printavo.`,
+ fix:`Claude, PlanetPulse — the Margin by Salesperson block (A178:E183) looks wrong, or there's unexpected Unassigned revenue. Please check Project Manager tags.`},
+
+{id:'method',t:'Revenue by Decoration Method',rng:'A185:E193',
+ what:`Revenue, % of total, and orders by method — Screen Print, Sublimation, DTF, Embroidery, Vinyl, Other/Unspecified.`,
+ build:`Formulas grouping rows by Method (AF).`,
+ audit:`Driven by column AF. A large "Other / Unspecified" bucket means methods aren't deriving cleanly — check the categories on those Printavo invoices. Total (row 193) should match the month total.`,
+ fix:`Claude, PlanetPulse — the Revenue by Decoration Method block (A185:E193) has too much in Other/Unspecified. Please check Method derivation on the rows.`},
+
+{id:'daily-revenue',t:'Daily In-House Revenue Shipped',rng:'A195:D230',
+ what:`A day-by-day log of in-house revenue that shipped/completed, with orders and a running cumulative — credit lands on the completion/ship date, In-House (and Majority-In-House) only, using Invoice $ (not Real Rev).`,
+ build:`Formulas keyed off Completion Date (AB) and Production Mode (G), anchored to the month start at B197.`,
+ audit:`A day shows revenue only once orders hit a final status that day. The cumulative (col D) should end at the total in-house shipped revenue. If a clearly-shipped in-house job isn't here, check its Completion Date (AB) and Production Mode (G).`,
+ fix:`Claude, PlanetPulse — the Daily In-House Revenue block (A195:D230) is missing a shipped job or a day looks wrong. Please check Completion Date and Production Mode.`},
+
+{id:'specialty-ink',t:'In-House Specialty Ink Impressions',rng:'A232:E239',
+ what:`Impression counts by specialty ink used in-house — Water-Based/Discharge, Metallic, Algae, Glow-in-the-Dark, Neon, Poly Ink — plus Total Specialty (E239).`,
+ build:`Formulas summing Impressions (AK) for rows whose Ink Type (AG) is a specialty ink.`,
+ audit:`Driven by Ink Type (AG) and Impressions (AK). If a known specialty job isn't counted, its Ink Type didn't derive (the specialty ink fee may be missing in Printavo). June Water-Based/Discharge = 48; Total Specialty = 48.`,
+ fix:`Claude, PlanetPulse — the Specialty Ink Impressions block (A232:E239) is missing a specialty job. Please check the Ink Type derivation (it comes from the Printavo fee).`}
+];
+
+/* ---------- RENDER: legend ---------- */
+const byL={}; COLS.forEach(c=>byL[c.l]=c);
+document.getElementById('legend').innerHTML=Object.keys(T).map(k=>
+  `<span class="lg"><span class="dot" style="background:${T[k].c}"></span>${T[k].label}</span>`).join('');
+
+/* ---------- RENDER: grid replica ---------- */
+(function(){
+  // section bands with colspans
+  let bands='<tr><td class="corner"></td>';
+  let i=0;
+  while(i<COLS.length){
+    let j=i; while(j+1<COLS.length && COLS[j+1].sec===COLS[i].sec) j++;
+    const span=j-i+1; const s=COLS[i].sec;
+    bands+=`<td class="secband" colspan="${span}" style="background:${SECCOLOR[s]||'#555'}">${s}</td>`;
+    i=j+1;
+  }
+  bands+='</tr>';
+  // letters
+  let letters='<tr><td class="corner"></td>';
+  COLS.forEach(c=>{letters+=`<td><button class="colbtn" style="border-bottom-color:${T[c.type].c}" onclick="go('${c.l}')">${c.l}</button></td>`;});
+  letters+='</tr>';
+  // titles (row 2)
+  let titles='<tr><td class="rownum">2</td>';
+  COLS.forEach(c=>{titles+=`<td class="title" onclick="go('${c.l}')">${c.t}</td>`;});
+  titles+='</tr>';
+  // sample (row 3)
+  let samp='<tr><td class="rownum">3</td>';
+  COLS.forEach(c=>{const blank=/blank|system helper/i.test(c.val)&&c.val.indexOf('$')<0;samp+=`<td class="samp${blank?' blank':''}" onclick="go('${c.l}')">${c.val}</td>`;});
+  samp+='</tr>';
+  document.getElementById('grid').innerHTML=bands+letters+titles+samp;
+})();
+
+/* ---------- RENDER: summary chips ---------- */
+document.getElementById('chips').innerHTML=SUM.map(s=>
+  `<div class="chip" onclick="goSum('${s.id}')"><h3>${s.t}</h3><span class="rng">${s.rng}</span><p>${s.what.slice(0,95)}…</p></div>`).join('');
+
+/* ---------- navigation ---------- */
+function go(l){location.hash='#col-'+l;}
+function goSum(id){location.hash='#sum-'+id;}
+
+function feedHTML(arr){
+  if(!arr||!arr.length) return `<span class="nofeed">Nothing downstream reads this cell directly.</span>`;
+  return `<div class="feeds">`+arr.map(l=>{const c=byL[l];return `<a class="feedlink" onclick="go('${l}')"><span class="l">${l}</span>${c?c.t:l}</a>`;}).join('')+`</div>`;
+}
+
+function renderCol(c){
+  const tm=T[c.type];
+  return `
+  <div class="dhead" style="border-top-color:${tm.c}">
+    <span class="cellref">Column ${c.l} · ${c.sec} &nbsp;·&nbsp; example cell ${c.l}3</span>
+    <h2>${c.t}</h2>
+    <span class="badge" style="background:${tm.c}">${tm.label}</span>
+    <div class="sampbox"><span class="lbl">Row 3 value (live June 2026 — invoice 26814)</span><br><span class="v">${c.val}</span></div>
+  </div>
+  <div class="sec"><h4><span class="ic">✍️</span>How it's filled</h4><p>${c.how}</p></div>
+  <div class="sec"><h4><span class="ic">🎯</span>What it's for</h4><p>${c.goal}</p></div>
+  ${c.formula?`<div class="sec"><h4><span class="ic">🟰</span>The formula</h4><span class="formula">${c.formula.replace(/</g,'&lt;')}</span></div>`:''}
+  <div class="sec"><h4><span class="ic">🔌</span>Where it comes from</h4><p>${c.src.replace(/\n/g,'<br>')}</p></div>
+  <div class="sec"><h4><span class="ic">➡️</span>What it feeds</h4>${feedHTML(c.feeds)}</div>
+  <div class="sec warn"><h4><span class="ic">⚠️</span>If it's changed by hand</h4><p>${c.edit}</p></div>
+  <div class="sec"><h4><span class="ic">🔍</span>How to audit it</h4><p>${c.audit}</p></div>
+  <div class="sec fix"><h4><span class="ic">🛠️</span>If it needs fixing — paste this to Holly / Claude</h4>
+    <div class="prompt"><button class="copy" onclick="copyP(this)">Copy</button>${c.fix.replace(/</g,'&lt;')}</div>
+    <div class="flagnote">Replace <b>[#]</b> with the real invoice number. Or just chat Holly — catching an error is how PlanetPulse stays trustworthy.</div>
+  </div>`;
+}
+
+function renderSum(s){
+  return `
+  <div class="dhead" style="border-top-color:var(--formula)">
+    <span class="cellref">Summary block · ${s.rng}</span>
+    <h2>${s.t}</h2>
+    <span class="badge" style="background:var(--formula)">Roll-up · built from the rows above</span>
+  </div>
+  <div class="sec"><h4><span class="ic">📊</span>What it shows</h4><p>${s.what}</p></div>
+  <div class="sec"><h4><span class="ic">🔧</span>How it's built</h4><p>${s.build}</p></div>
+  <div class="sec"><h4><span class="ic">🔍</span>How to audit it</h4><p>${s.audit}</p></div>
+  <div class="sec fix"><h4><span class="ic">🛠️</span>If it needs fixing — paste this to Holly / Claude</h4>
+    <div class="prompt"><button class="copy" onclick="copyP(this)">Copy</button>${s.fix.replace(/</g,'&lt;')}</div>
+    <div class="flagnote">Summary blocks are formulas — the fix is almost always in the order rows that feed them.</div>
+  </div>`;
+}
+
+function copyP(btn){
+  const txt=btn.parentNode.innerText.replace(/^Copy\s*/,'');
+  navigator.clipboard.writeText(txt).then(()=>{btn.textContent='Copied ✓';setTimeout(()=>btn.textContent='Copy',1400);});
+}
+
+/* ---------- router ---------- */
+function route(){
+  const h=location.hash;
+  const map=document.getElementById('map'), det=document.getElementById('detail'), body=document.getElementById('detailbody');
+  if(h.indexOf('#col-')===0){
+    const c=byL[h.slice(5)];
+    if(c){body.innerHTML=renderCol(c);map.hidden=true;det.hidden=false;window.scrollTo(0,0);return;}
+  }
+  if(h.indexOf('#sum-')===0){
+    const s=SUM.find(x=>x.id===h.slice(5));
+    if(s){body.innerHTML=renderSum(s);map.hidden=true;det.hidden=false;window.scrollTo(0,0);return;}
+  }
+  map.hidden=false;det.hidden=true;
+}
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>
