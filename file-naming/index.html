@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>File Naming &amp; Folder Guide — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323; --pa-white:#fff;
+  --pa-font-stack:"Mr Eaves Mod OT","Montserrat","Proxima Nova","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --pa-line-height:1.6; --pa-icon-size:36px; --pa-icon-color:var(--pa-black);
+  --ok:#1f7a3d; --no:#b3261e; --mono:"SF Mono",Menlo,Consolas,monospace;
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font-stack);font-weight:400;color:var(--pa-black);background:var(--pa-white);line-height:var(--pa-line-height);letter-spacing:.01em;}
+body{padding:.4in .7in;font-size:14px;}
+h1,h2,h3,h4{font-family:var(--pa-font-stack);text-transform:uppercase;letter-spacing:.04em;line-height:1.2;margin:1.4em 0 .4em;color:var(--pa-black);}
+h1{font-size:2.0rem;font-weight:900;margin-top:.2em;}
+h2{font-size:1.35rem;font-weight:700;border-bottom:3px solid var(--pa-yellow);padding-bottom:.25rem;}
+h3{font-size:1.02rem;font-weight:700;letter-spacing:.06em;}
+p{margin:.5em 0;}
+strong,b{font-weight:700;}
+.lead{font-size:.95rem;}
+.pa-accent{color:var(--pa-yellow);}
+.step{font-weight:900;color:var(--pa-yellow);}
+code,.mono{font-family:var(--mono);font-size:.86em;background:#f2f2f2;padding:1px 6px;border-radius:4px;}
+.pat{font-family:var(--mono);font-size:.84em;background:var(--pa-black);color:#fff;padding:2px 8px;border-radius:4px;display:inline-block;}
+.pat .pa-accent{color:var(--pa-yellow);}
+.ex{font-family:var(--mono);font-size:.84em;}
+.ok::before{content:"\2713  ";color:var(--ok);font-weight:900;}
+.no::before{content:"\2715  ";color:var(--no);font-weight:900;}
+.ok,.no{display:block;margin:2px 0;font-family:var(--mono);font-size:.83em;}
+ul,ol{margin:.4em 0 .8em;padding-left:1.4em;}
+li{margin:.25em 0;}
+table{border-collapse:collapse;width:100%;margin:.8rem 0;}
+th,td{border:1px solid #ddd;padding:.45rem .6rem;text-align:left;vertical-align:top;font-size:.84rem;}
+th{background:#E8E8E8;font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:.76rem;}
+td.l{font-weight:700;white-space:nowrap;width:24%;}
+td .ex{font-family:var(--mono);}
+.pa-callout{border-left:4px solid var(--pa-yellow);background:#FFFBEC;padding:.6rem .9rem;margin:.9rem 0;font-size:.9rem;}
+.pa-callout .h{font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:.78rem;display:block;margin-bottom:.2rem;}
+.pa-header{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0 .8rem;border-bottom:1px solid var(--pa-black);margin-bottom:1rem;}
+.pa-header .pa-header-title{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+.pa-icon{height:var(--pa-icon-size);width:auto;color:var(--pa-icon-color);flex-shrink:0;}
+.pa-footer{display:flex;align-items:center;justify-content:space-between;margin-top:2rem;padding-top:.6rem;border-top:1px solid var(--pa-black);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;}
+.pa-footer .pa-icon{--pa-icon-size:20px;}
+.pa-footer .pa-footer-meta{color:var(--pa-tonal);}
+.retired{color:var(--no);font-weight:700;}
+.grid2{display:flex;gap:1.2rem;}.grid2>div{flex:1;}
+.sec{page-break-inside:avoid;}
+@page{size:letter;margin:.55in .65in;}
+@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:0;}table,.pa-callout,.sec{page-break-inside:avoid;}h2{page-break-after:avoid;}}
+</style>
+</head>
+<body>
+
+<header class="pa-header">
+  <div class="pa-header-title">File Naming &amp; Folder Guide</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+</header>
+
+<main>
+<h1>File Naming &amp; Folder Guide</h1>
+<p class="lead">How we name every folder, design, and file at Planet Apparel — so anyone on the team can find a project, pull a reorder, and send it to production without guessing. Learn this once and you will never lose a file again.</p>
+
+<div class="pa-callout">
+<span class="h">The one rule behind all of it</span>
+A name is only useful if the <strong>most important word comes first</strong> and it reads the <strong>same way everywhere</strong> — Dropbox, the mockup, the invoice, the PO. Consistent names are how the whole shop stays in sync. Inconsistent names are how things get printed wrong.
+</div>
+
+<p><strong>Example client used throughout:</strong> <span class="ex">The Crack Shack</span> &nbsp;·&nbsp; <strong>nickname:</strong> <span class="ex">Egg Icon</span></p>
+
+<!-- 1 FOLDERS -->
+<h2 class="sec">1 · Folders</h2>
+
+<h3>Setting up a customer folder</h3>
+<ol>
+<li>Open <strong>Dropbox → ART</strong>. Search to confirm the client doesn't already have a folder.</li>
+<li>If new, make a <strong>Company Folder</strong> named after the company (or First + Last name if there's no company).
+  <div class="ok">The Crack Shack</div></li>
+<li>Inside it, make one <strong>Project Folder</strong> per project.</li>
+</ol>
+
+<h3>Project folder name</h3>
+<p class="pat">Garment<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Month Year</p>
+<div class="ok">T-Shirt_Egg Icon Ladies Tank Top Print_Aug 2026</div>
+<ul>
+<li><strong>Garment</strong> is specific — <span class="ex">T-Shirt</span>, <span class="ex">Bandana</span>, <span class="ex">Hoodie</span>.</li>
+<li>If one design runs across <strong>multiple</strong> apparel types (hoodie + tee + tank), set the garment to <span class="ex">Apparel</span>.</li>
+<li><span class="retired">Dropped:</span> the old <span class="ex">_Item</span> code at the end (e.g. <span class="ex">_DM414</span>). We no longer use it.</li>
+</ul>
+
+<h3>Inside the project folder</h3>
+<ul>
+<li><strong>No type-based subfolders.</strong> The old <span class="ex">Inner DST</span>, <span class="ex">Inner Art</span>, <span class="ex">Vendor Zip</span>, and <span class="ex">POs</span> folders are gone — those are just <strong>files saved directly</strong> in the project folder.</li>
+<li><strong>Collection folders are allowed.</strong> You may group a client's projects under one inner folder when it helps you navigate (e.g. all of Iron &amp; Velvet's projects together). Just keep naming each file properly so a single reorder is still findable.</li>
+</ul>
+
+<!-- 2 DESIGN NAMING -->
+<h2 class="sec">2 · Design Naming (the nickname)</h2>
+<p>The design nickname describes <em>what the art is</em>. It stays identical across Dropbox, the mockup, and the invoice.</p>
+
+<table>
+<tr><th>Type</th><th>Pattern</th><th>Example</th></tr>
+<tr><td class="l">Apparel &amp; Promo</td><td>Name/Logo + Garment + <strong>Service at end</strong></td><td class="ex">Egg Icon Ladies Tank Top Print<br>Egg Icon Ladies Tank Top Embroidery</td></tr>
+<tr><td class="l">DTF</td><td>Name/Logo + Garment + DTF</td><td class="ex">Egg Icon Ladies Tank Top DTF</td></tr>
+<tr><td class="l">Bandana</td><td>Drop "Print" (it's the default). Only add the method when it's not standard print.</td><td class="ex">Egg Icon Bandana<br>Egg Icon Sublimated Bandana<br>Egg Icon Digital Bandana<br>Egg Icon USA Made Bandana</td></tr>
+<tr><td class="l">Paper / Swag</td><td>Name/Logo + Product</td><td class="ex">Egg Icon Brochure · Egg Icon Button</td></tr>
+</table>
+
+<div class="pa-callout">
+<span class="h">Reorders</span>
+The word <strong>Reorder</strong> goes <strong>FIRST and in bold</strong> — it's the signal for the team to pull the previous job and match it.
+<div class="ok" style="margin-top:.4rem;"><strong>Reorder</strong> Egg Icon Ladies Tank Top Print</div>
+</div>
+
+<!-- 3 FILE NAMING -->
+<h2 class="sec">3 · File Naming</h2>
+<p>For files, <strong>the descriptor goes in the first position</strong> so the file type is obvious at a glance.</p>
+
+<table>
+<tr><th>File</th><th>Name it</th></tr>
+<tr><td class="l">Provided Art<br><span style="font-weight:400;font-size:.92em;">anything the customer sends, any resolution</span></td><td><span class="pat">Provided Art<span class="pa-accent">_</span>Project Name</span><br><span class="ex">2nd version → Provided Art V2_Project Name</span><br><span class="ex">A customer logo/vector also goes here → Provided Art_[logo name]</span></td></tr>
+<tr><td class="l">Provided Mockup</td><td><span class="ex">Provided Mockup_Project Name</span> &nbsp;(+ V2…)</td></tr>
+<tr><td class="l">Mockup (ours)</td><td><span class="ex">Mockup_Project Name</span> &nbsp;(+ V2…)</td></tr>
+<tr><td class="l">Vendor Mockup<br><span style="font-weight:400;font-size:.92em;">the vendor's mockup we approve — save these</span></td><td><span class="ex">Vendor Mockup_Project Name</span> &nbsp;(+ version)</td></tr>
+</table>
+
+<h3>The production file</h3>
+<p><strong>Production File</strong> is the universal name. Use the type-specific name below when the decoration calls for it.</p>
+<p class="pat">Production File<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Location</p>
+<table>
+<tr><th>Decoration</th><th>Name it</th></tr>
+<tr><td class="l">Screen print</td><td><span class="pat">Seps<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Location</span><br><span class="ex">Seps_Egg Icon Ladies Tank Top Print_Front</span></td></tr>
+<tr><td class="l">DTF (vendor-bound)</td><td><span class="ex">Vector_Project Name</span> &nbsp;— if the file is vector<br><span class="ex">High-Res_Project Name</span> &nbsp;— if it's raster (e.g. a high-res PNG)</td></tr>
+<tr><td class="l">Embroidery (DST)</td><td><span class="ex">Design_Width (w or h)_Flat or Curved_Stitch count_Source</span><br><span class="ex">Egg Icon_3in wide_Flat_2255_Steps IO</span><br>Call out the logo name (front/back can be separate DSTs). Curved = hats; flat = everything else.</td></tr>
+</table>
+
+<div class="pa-callout">
+<span class="h">"High-Res" vs "Provided Art" — don't mix them up</span>
+<strong>High-Res</strong> and <strong>Vector</strong> mean a file going <strong>OUT to a vendor</strong> (the DTF transfer you prepped). Anything the <strong>customer</strong> gave us stays <span class="ex">Provided Art_…</span> — even when it's a high-resolution file.
+</div>
+
+<div class="sec">
+<h3>Retired — do not use these anymore</h3>
+<p><span class="retired">✗ Proof</span> &nbsp; (we don't do proofs) &nbsp;·&nbsp; <span class="retired">✗ CDR</span> (CorelDraw) &nbsp;·&nbsp; <span class="retired">✗ Master (AI)</span> &nbsp;·&nbsp; <span class="retired">✗ Master Art</span></p>
+</div>
+
+<!-- 4 NOTES -->
+<h2 class="sec">4 · Memos &amp; Notes (QuickBooks / Printavo)</h2>
+<table>
+<tr><th>Where</th><th>Pattern</th><th>Example</th></tr>
+<tr><td class="l">Memo</td><td>Qty_Design_Item(s)</td><td class="ex">100 Egg Icon Ladies Tank Top Print (#3413)</td></tr>
+<tr><td class="l">Memo — Bandana</td><td>Qty_Design_# color (imprint size)</td><td class="ex">100 Bandana Design_2/color (20x20)</td></tr>
+<tr><td class="l">Invoice / Est.</td><td>#_Design</td><td class="ex">Invoice 2323_Bandana Design</td></tr>
+<tr><td class="l">PO</td><td>#_Company_Design</td><td class="ex">1555 The Crack Shack_Egg Icon Ladies Tank Top Print</td></tr>
+<tr><td class="l">Memo — Payment</td><td>Initials of person entering it</td><td class="ex">HY</td></tr>
+</table>
+<p style="font-size:.85rem;color:var(--pa-tonal);">Design name goes on the <strong>first line</strong> of Estimates and Invoices — never on POs. In every Memo, always include quantity, design name, and the item SKU in parentheses when there is one.</p>
+
+<!-- 5 OTHER FOLDERS -->
+<h2 class="sec">5 · Supporting Folders (unchanged)</h2>
+<table>
+<tr><th>Folder</th><th>Pattern</th><th>Example</th></tr>
+<tr><td class="l">Vendor files<br><span style="font-weight:400;">ALL DOCS → VENDORS</span></td><td>Company Name_What the file is</td><td class="ex">PPH_Pricelist · PPH_Pallet Template</td></tr>
+<tr><td class="l">Accounting files<br><span style="font-weight:400;">Bills → Year_Month</span></td><td>Vendor_Reference #_Type (Invoice/Receipt)</td><td class="ex">AS Colour_44821_Invoice</td></tr>
+<tr><td class="l">Archiving</td><td>Archived_year start-year end</td><td class="ex">Archived_2019-2021</td></tr>
+<tr><td class="l">Vendor subject line</td><td>####_Design Name</td><td class="ex">1501_Egg Icon Tank Top Print</td></tr>
+<tr><td class="l">Vendor subject — Rush</td><td>RUSH (# Days)_####_Design Name</td><td class="ex">RUSH (6 Day)_1501_Egg Icon Tank Top Print</td></tr>
+</table>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · File Naming &amp; Folder Guide · Revised June 23, 2026 (orig. 2019)</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+</footer>
+
+</body>
+</html>
