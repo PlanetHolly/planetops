@@ -73,7 +73,7 @@ tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fc
   </div>
 
   <div class="banner">
-    <strong>One calculator for all three work types.</strong> Estimates compute instantly in your browser. <span class="prov">Heat Press is provisional</span> — built from the Heat reference but not yet validated against logged actuals. “Save to Calculator” (Auto Press rows) posts to the n8n <code>/estimate</code> endpoint once that workflow is activated.
+    <strong>One calculator for all three work types.</strong> Estimates compute instantly in your browser. <span class="prov">Heat Press is provisional</span> — built from the Heat reference, pending data-driven refit. “Save to Calculator” posts each job to the n8n <code>/estimate</code> endpoint, routed to its own tab (Auto Press / Heat Press / Post Production).
   </div>
 
   <h2>1 · Import Power Scheduler Export</h2>
@@ -95,7 +95,7 @@ tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fc
       <span style="flex:1;"></span>
       <label style="font-size:.8rem;display:flex;align-items:center;gap:.35rem;cursor:pointer;"><input type="checkbox" id="hideInc" checked /> Hide incomplete</label>
       <button class="btn ghost" id="copyBtn">Copy table</button>
-      <button class="btn" id="saveAllBtn" title="Posts Auto Press rows to the /estimate endpoint">Save Auto Press rows</button>
+      <button class="btn" id="saveAllBtn" title="Posts every complete row to the /estimate endpoint, routed to its tab by work type">Save all to Calculator</button>
     </div>
     <div class="dragscroll" id="tblScroll" style="overflow:auto;max-height:72vh;"><table id="tbl"></table></div>
     <div id="saveLog" class="muted" style="font-size:.82rem;"></div>
@@ -297,17 +297,17 @@ document.getElementById('copyBtn').addEventListener('click',()=>{
   const b=document.getElementById('copyBtn');b.textContent='Copied';setTimeout(()=>b.textContent='Copy table',1200);
 });
 
-/* ---------- Save (Auto Press rows only — n8n save node maps the Auto Press tab) ---------- */
+/* ---------- Save — all work types; webhook routes each to its own tab (Auto/Heat/Post) ---------- */
 const WEBHOOK_URL="https://primary-production-079f9.up.railway.app/webhook/estimate";
 document.getElementById('saveAllBtn').addEventListener('click',async()=>{
-  const rows=lastResults.filter(r=>r.status==='OK'&&r.workType==='screen_print');
+  const rows=lastResults.filter(r=>r.status==='OK');
   const log=document.getElementById('saveLog');
-  if(!rows.length){log.textContent='No Auto Press rows to save. (Heat/Post saving is Phase 2 — different sheet tabs.)';return;}
-  log.textContent='Saving '+rows.length+' Auto Press rows…';let done=0,fail=0;
+  if(!rows.length){log.textContent='No complete rows to save.';return;}
+  log.textContent='Saving '+rows.length+' rows…';let done=0,fail=0;
   for(const r of rows){try{const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,jobName:r.jobName,imprintId:r.imprintId})});
+    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,jobName:r.jobName,imprintId:r.imprintId})});
     res.ok?done++:fail++;}catch(e){fail++;}}
-  log.textContent='Saved '+done+' · failed '+fail+(fail?' (is the /estimate workflow active?)':'')+'  ·  Heat/Post save = Phase 2.';
+  log.textContent='Saved '+done+' · failed '+fail+(fail?' (check connection)':'')+' — routed to Auto / Heat / Post tabs by type.';
 });
 
 /* ---------- Quick Estimate (work-type aware, live) ---------- */
