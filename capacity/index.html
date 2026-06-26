@@ -172,7 +172,7 @@ const TODAY=isoLA(new Date());
 const START=mondayOf(TODAY);
 const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
-let LOAD={}, ASOF='', OVERRIDES={}, selected=null;
+let LOAD={}, ASOF='', PULLEDAT='', OVERRIDES={}, selected=null;
 let MANUAL_NEXT=null, AUTO_NEXT=null, VISIBLE=[];
 
 function addDays(iso,n){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d+n)).toISOString().slice(0,10);}
@@ -224,7 +224,24 @@ function render(){
   if(nextOpen){const el=[...document.querySelectorAll('.cell')].find(c=>c.dataset.iso===nextOpen);if(el)el.classList.add('nextopen');document.getElementById('nextday').textContent=fmt(nextOpen);}
   else document.getElementById('nextday').textContent='None in range';
   document.getElementById('nextpin').classList.toggle('on',!!manual&&JEAN);
-  document.getElementById('updated').textContent='Updated '+ASOF;
+  renderStamp();
+}
+
+// Render the freshness stamp from the TRUE pull time (pulledAt). Shows the real
+// pull date/time + a green/red cue computed against the current view time, so a
+// stalled pull is obvious (date flips to a prior day + goes red).
+function renderStamp(){
+  const el=document.getElementById('updated');
+  const t=PULLEDAT?Date.parse(PULLEDAT):NaN;
+  if(isNaN(t)){el.textContent='Updated '+(ASOF||'(unknown)');return;}
+  const FRESH_HOURS=8; // tune to the refresh cadence; older than this since the real pull = stale
+  const hrs=(Date.now()-t)/3600000, d=new Date(t);
+  const fresh=hrs<=FRESH_HOURS;
+  const day=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric'}).format(d);
+  const tm=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit'}).format(d);
+  const mins=Math.round(hrs*60);
+  const rel=mins<60?mins+'m ago':(hrs<24?(Math.round(hrs*10)/10)+'h ago':Math.floor(hrs/24)+'d ago');
+  el.innerHTML='Data pulled · '+day+' · '+tm+'  '+(fresh?'🟢 Fresh':'🔴 Stale')+' ('+rel+')';
 }
 
 // ── Jean editor ──
@@ -284,12 +301,13 @@ async function persist(){
 (async function(){
   if(JEAN){document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('footmode').textContent='Jean mode';document.getElementById('nextbar').onclick=openNextEditor;}
   const data=await gaugeRead();
-  if(data&&data.load&&Object.keys(data.load).length){LOAD=data.load;ASOF=data.asOf||'(unknown)';OVERRIDES=(data.overrides&&typeof data.overrides==='object')?data.overrides:{};}
-  else {LOAD=SAMPLE.load;ASOF=SAMPLE.asOf;OVERRIDES=JSON.parse(localStorage.getItem('gauge_overrides')||'{}');}
+  if(data&&data.load&&Object.keys(data.load).length){LOAD=data.load;ASOF=data.asOf||'(unknown)';PULLEDAT=data.pulledAt||'';OVERRIDES=(data.overrides&&typeof data.overrides==='object')?data.overrides:{};}
+  else {LOAD=SAMPLE.load;ASOF=SAMPLE.asOf;PULLEDAT='';OVERRIDES=JSON.parse(localStorage.getItem('gauge_overrides')||'{}');}
   MANUAL_NEXT=(typeof OVERRIDES.__nextOpen==='string'?OVERRIDES.__nextOpen:'')||localStorage.getItem('gauge_nextopen')||null;
   delete OVERRIDES.__nextOpen;
   if(MANUAL_NEXT&&MANUAL_NEXT<=TODAY)MANUAL_NEXT=null;
   render();
+  setInterval(renderStamp,60000); // keep "X ago" + fresh/stale current if the page stays open
 })();
 </script>
 </body>
