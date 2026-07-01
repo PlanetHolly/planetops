@@ -46,8 +46,13 @@ td .ex{font-family:var(--mono);}
 .retired{color:var(--no);font-weight:700;}
 .grid2{display:flex;gap:1.2rem;}.grid2>div{flex:1;}
 .sec{page-break-inside:avoid;}
+main [id]{scroll-margin-top:1rem;}
+.jump{margin:1.1rem 0 1.3rem;padding:.75rem .85rem;border:1px solid #ddd;border-left:4px solid var(--pa-yellow);border-radius:8px;background:#fafafa;}
+.jump .jl{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:var(--pa-tonal);display:block;margin-bottom:.45rem;}
+.jump a{display:inline-block;font-size:.8rem;font-weight:700;text-decoration:none;color:var(--pa-black);background:var(--pa-white);border:1.5px solid var(--pa-black);border-radius:999px;padding:.26rem .72rem;margin:.2rem .32rem .2rem 0;transition:background .12s,color .12s,border-color .12s;}
+.jump a:hover{background:var(--pa-yellow);border-color:var(--pa-yellow);}
 @page{size:letter;margin:.55in .65in;}
-@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:0;}table,.pa-callout,.sec{page-break-inside:avoid;}h2{page-break-after:avoid;}}
+@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:0;}table,.pa-callout,.sec{page-break-inside:avoid;}h2{page-break-after:avoid;}.jump{display:none;}}
 </style>
 </head>
 <body>
@@ -61,6 +66,20 @@ td .ex{font-family:var(--mono);}
 <h1>File Naming &amp; Folder Guide</h1>
 <p class="lead">How we name every folder, design, and file at Planet Apparel — so anyone on the team can find a project, pull a reorder, and send it to production without guessing. Learn this once and you will never lose a file again.</p>
 
+<nav class="jump" aria-label="Quick jump">
+  <span class="jl">Jump to what you need</span>
+  <a href="#folders">Set up a folder</a>
+  <a href="#project-folder">Project folder name</a>
+  <a href="#design">Design nickname</a>
+  <a href="#reorders">Reorders</a>
+  <a href="#files">File naming</a>
+  <a href="#seps">Screen print (Seps)</a>
+  <a href="#dtf">DTF file</a>
+  <a href="#dst">Embroidery (DST)</a>
+  <a href="#memos">Memos &amp; POs</a>
+  <a href="#supporting">Vendor / accounting files</a>
+</nav>
+
 <div class="pa-callout">
 <span class="h">The one rule behind all of it</span>
 A name is only useful if the <strong>most important word comes first</strong> and it reads the <strong>same way everywhere</strong> — Dropbox, the mockup, the invoice, the PO. Consistent names are how the whole shop stays in sync. Inconsistent names are how things get printed wrong.
@@ -69,7 +88,7 @@ A name is only useful if the <strong>most important word comes first</strong> an
 <p><strong>Example client used throughout:</strong> <span class="ex">The Crack Shack</span> &nbsp;·&nbsp; <strong>nickname:</strong> <span class="ex">Egg Icon</span></p>
 
 <!-- 1 FOLDERS -->
-<h2 class="sec">1 · Folders</h2>
+<h2 class="sec" id="folders">1 · Folders</h2>
 
 <h3>Setting up a customer folder</h3>
 <ol>
@@ -79,7 +98,7 @@ A name is only useful if the <strong>most important word comes first</strong> an
 <li>Inside it, make one <strong>Project Folder</strong> per project.</li>
 </ol>
 
-<h3>Project folder name</h3>
+<h3 id="project-folder">Project folder name</h3>
 <p class="pat">Garment<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Month Year</p>
 <div class="ok">T-Shirt_Egg Icon Ladies Tank Top Print_Aug 2026</div>
 <ul>
@@ -95,7 +114,7 @@ A name is only useful if the <strong>most important word comes first</strong> an
 </ul>
 
 <!-- 2 DESIGN NAMING -->
-<h2 class="sec">2 · Design Naming (the nickname)</h2>
+<h2 class="sec" id="design">2 · Design Naming (the nickname)</h2>
 <p>The design nickname describes <em>what the art is</em>. It stays identical across Dropbox, the mockup, and the invoice.</p>
 
 <table>
@@ -106,14 +125,14 @@ A name is only useful if the <strong>most important word comes first</strong> an
 <tr><td class="l">Paper / Swag</td><td>Name/Logo + Product</td><td class="ex">Egg Icon Brochure · Egg Icon Button</td></tr>
 </table>
 
-<div class="pa-callout">
+<div class="pa-callout" id="reorders">
 <span class="h">Reorders</span>
 The word <strong>Reorder</strong> goes <strong>FIRST and in bold</strong> — it's the signal for the team to pull the previous job and match it.
 <div class="ok" style="margin-top:.4rem;"><strong>Reorder</strong> Egg Icon Ladies Tank Top Print</div>
 </div>
 
 <!-- 3 FILE NAMING -->
-<h2 class="sec">3 · File Naming</h2>
+<h2 class="sec" id="files">3 · File Naming</h2>
 <p>For files, <strong>the descriptor goes in the first position</strong> so the file type is obvious at a glance.</p>
 
 <table>
@@ -129,9 +148,9 @@ The word <strong>Reorder</strong> goes <strong>FIRST and in bold</strong> — it
 <p class="pat">Production File<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Location</p>
 <table>
 <tr><th>Decoration</th><th>Name it</th></tr>
-<tr><td class="l">Screen print</td><td><span class="pat">Seps<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Location</span><br><span class="ex">Seps_Egg Icon Ladies Tank Top Print_Front</span></td></tr>
-<tr><td class="l">DTF (vendor-bound)</td><td><span class="ex">Vector_Project Name</span> &nbsp;— if the file is vector<br><span class="ex">High-Res_Project Name</span> &nbsp;— if it's raster (e.g. a high-res PNG)</td></tr>
-<tr><td class="l">Embroidery (DST)</td><td><span class="ex">Design_Width (w or h)_Flat or Curved_Stitch count_Source</span><br><span class="ex">Egg Icon_3in wide_Flat_2255_Steps IO</span><br>Call out the logo name (front/back can be separate DSTs). Curved = hats; flat = everything else.</td></tr>
+<tr id="seps"><td class="l">Screen print</td><td><span class="pat">Seps<span class="pa-accent">_</span>Project Name<span class="pa-accent">_</span>Location</span><br><span class="ex">Seps_Egg Icon Ladies Tank Top Print_Front</span></td></tr>
+<tr id="dtf"><td class="l">DTF (vendor-bound)</td><td><span class="ex">Vector_Project Name</span> &nbsp;— if the file is vector<br><span class="ex">High-Res_Project Name</span> &nbsp;— if it's raster (e.g. a high-res PNG)</td></tr>
+<tr id="dst"><td class="l">Embroidery (DST)</td><td><span class="ex">Design_Width (w or h)_Flat or Curved_Stitch count_Source</span><br><span class="ex">Egg Icon_3in wide_Flat_2255_Steps IO</span><br>Call out the logo name (front/back can be separate DSTs). Curved = hats; flat = everything else.</td></tr>
 </table>
 
 <div class="pa-callout">
@@ -145,7 +164,7 @@ The word <strong>Reorder</strong> goes <strong>FIRST and in bold</strong> — it
 </div>
 
 <!-- 4 NOTES -->
-<h2 class="sec">4 · Memos &amp; Notes (QuickBooks / Printavo)</h2>
+<h2 class="sec" id="memos">4 · Memos &amp; Notes (QuickBooks / Printavo)</h2>
 <table>
 <tr><th>Where</th><th>Pattern</th><th>Example</th></tr>
 <tr><td class="l">Memo</td><td>Qty_Design_Item(s)</td><td class="ex">100 Egg Icon Ladies Tank Top Print (#3413)</td></tr>
@@ -157,7 +176,7 @@ The word <strong>Reorder</strong> goes <strong>FIRST and in bold</strong> — it
 <p style="font-size:.85rem;color:var(--pa-tonal);">Design name goes on the <strong>first line</strong> of Estimates and Invoices — never on POs. In every Memo, always include quantity, design name, and the item SKU in parentheses when there is one.</p>
 
 <!-- 5 OTHER FOLDERS -->
-<h2 class="sec">5 · Supporting Folders (unchanged)</h2>
+<h2 class="sec" id="supporting">5 · Supporting Folders (unchanged)</h2>
 <table>
 <tr><th>Folder</th><th>Pattern</th><th>Example</th></tr>
 <tr><td class="l">Vendor files<br><span style="font-weight:400;">ALL DOCS → VENDORS</span></td><td>Company Name_What the file is</td><td class="ex">PPH_Pricelist · PPH_Pallet Template</td></tr>
