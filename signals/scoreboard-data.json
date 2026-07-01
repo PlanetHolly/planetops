@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-07-01 (live pull: Sale Pipeline W25–W27)",
+  "weeks": [
+    {"iso_week":25,"year":2026,"week_start":"2026-06-15","week_end":"2026-06-21","rows":[
+      {"rep":"Shara","new_boxes":75,"new_cust":60,"return_cust":5,"quotes_dollar":80524.53,"converted_num":19,"converted_dollar":20344.69,"lost_num":27,"lost_dollar":35541.12,"bandana_dollar":80524.53,"apparel_dollar":0,"promo_dollar":0,"t1_num":7,"t2_num":5,"t3_num":22,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Cortney","new_boxes":10,"new_cust":1,"return_cust":9,"quotes_dollar":31830.44,"converted_num":0,"converted_dollar":0,"lost_num":0,"lost_dollar":0,"bandana_dollar":0,"apparel_dollar":28277.38,"promo_dollar":3553.06,"t1_num":8,"t2_num":1,"t3_num":1,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Company","new_boxes":91,"new_cust":61,"return_cust":14,"quotes_dollar":112354.97,"converted_num":19,"converted_dollar":20344.69,"lost_num":28,"lost_dollar":35541.12,"bandana_dollar":80524.53,"apparel_dollar":28277.38,"promo_dollar":3553.06,"t1_num":15,"t2_num":6,"t3_num":23,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null}
+    ]},
+    {"iso_week":26,"year":2026,"week_start":"2026-06-22","week_end":"2026-06-28","rows":[
+      {"rep":"Shara","new_boxes":71,"new_cust":53,"return_cust":11,"quotes_dollar":85169.72,"converted_num":11,"converted_dollar":17661.31,"lost_num":31,"lost_dollar":49216.39,"bandana_dollar":85169.72,"apparel_dollar":0,"promo_dollar":0,"t1_num":3,"t2_num":3,"t3_num":40,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Cortney","new_boxes":8,"new_cust":1,"return_cust":6,"quotes_dollar":12061.73,"converted_num":0,"converted_dollar":0,"lost_num":0,"lost_dollar":0,"bandana_dollar":0,"apparel_dollar":4309.23,"promo_dollar":7752.5,"t1_num":7,"t2_num":0,"t3_num":0,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Company","new_boxes":86,"new_cust":56,"return_cust":19,"quotes_dollar":99149.23,"converted_num":11,"converted_dollar":17661.31,"lost_num":31,"lost_dollar":49216.39,"bandana_dollar":85169.72,"apparel_dollar":4309.23,"promo_dollar":7752.5,"t1_num":10,"t2_num":3,"t3_num":40,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null}
+    ]},
+    {"iso_week":27,"year":2026,"week_start":"2026-06-29","week_end":"2026-07-05","partial":true,"rows":[
+      {"rep":"Shara","new_boxes":16,"new_cust":12,"return_cust":1,"quotes_dollar":8587.48,"converted_num":6,"converted_dollar":15490.91,"lost_num":18,"lost_dollar":14580.87,"bandana_dollar":8587.48,"apparel_dollar":0,"promo_dollar":0,"t1_num":0,"t2_num":1,"t3_num":8,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Cortney","new_boxes":1,"new_cust":0,"return_cust":1,"quotes_dollar":651.88,"converted_num":0,"converted_dollar":0,"lost_num":0,"lost_dollar":0,"bandana_dollar":0,"apparel_dollar":651.88,"promo_dollar":0,"t1_num":1,"t2_num":0,"t3_num":0,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null},
+      {"rep":"Company","new_boxes":20,"new_cust":13,"return_cust":4,"quotes_dollar":12212.65,"converted_num":6,"converted_dollar":15490.91,"lost_num":19,"lost_dollar":14580.87,"bandana_dollar":8587.48,"apparel_dollar":651.88,"promo_dollar":0,"t1_num":1,"t2_num":1,"t3_num":8,"quotes_num":null,"connects":null,"checkins_sent":null,"speed_to_lead_hrs":null,"top_why_lost":null}
+    ]}
+  ],
+  "monthly_ad_roi": [
+    {"month":"Jan 2026","platform":"Google","ad_spend":3918.00,"sales_from_ads":58699.75,"roi":14.98,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
+    {"month":"Feb 2026","platform":"Google","ad_spend":3997.00,"sales_from_ads":27104.47,"roi":6.78,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
+    {"month":"Mar 2026","platform":"Google","ad_spend":3997.00,"sales_from_ads":38375.06,"roi":9.64,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
+    {"month":"Apr 2026","platform":"Google","ad_spend":4899.94,"sales_from_ads":52570.49,"roi":10.73,"quotes":81,"converted":16,"lost":65,"conversion_rate":0.20,"status":"final","pct_pending":0},
+    {"month":"Feb 2026","platform":"Bing","ad_spend":400.00,"sales_from_ads":1751.20,"roi":4.38,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
+    {"month":"Apr 2026","platform":"Bing","ad_spend":400.00,"sales_from_ads":0.00,"roi":0.00,"quotes":2,"converted":0,"lost":2,"conversion_rate":0.00,"status":"final","pct_pending":0}
+  ],
+  "targets": {},
+  "data_notes": "Cortney (Apparel/Promo) converted counts are UNDERCOUNTED — apparel/promo won deals often have a blank Close Date (Streak field 1017), so they fail the close-date-in-week rule. Data-hygiene fix needed. Stage-history metrics (quotes#, connects, check-ins, speed-to-lead, why-lost) pending build pass 2."
+}

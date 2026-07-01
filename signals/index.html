@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Sales Signals — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --up:#3AAE5A; --down:#D64545; --flat:#8A93A0; --line:rgba(0,0,0,.09);
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:1040px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:860px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}body{padding:0;}}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:.9rem;margin-bottom:1rem;}
+.head .t{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+.brandlogo{height:26px;width:auto;display:block;}
+h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0 .05em;line-height:1.05;}
+.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
+.updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
+.tabs{display:flex;gap:.4rem;margin:1.1rem 0 1.2rem;flex-wrap:wrap;}
+.tab{font:inherit;font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:.5rem .95rem;border:1px solid #000;background:#fff;border-radius:7px;cursor:pointer;}
+.tab.on{background:#000;color:#fff;}
+.ctrls{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;}
+select{font:inherit;font-weight:700;padding:.45rem .7rem;border:1px solid #000;border-radius:7px;background:#fff;}
+.pill{font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:.18rem .5rem;}
+.pill.prov{background:#FFF3CC;color:#7a5c00;border:1px solid var(--pa-yellow);}
+.pill.final{background:#DFF3E6;color:#1b6b39;border:1px solid var(--up);}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th,td{padding:.55rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+th:first-child,td:first-child{text-align:left;}
+thead th{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+tbody tr.rep{cursor:pointer;}
+tbody tr.rep:hover{background:#FCFAF0;}
+tbody tr.company{font-weight:900;background:#FAFBFC;}
+.rep .name{display:flex;align-items:center;gap:.45rem;}
+.chev{font-size:.6rem;opacity:.5;transition:transform .15s;}
+tr.open .chev{transform:rotate(90deg);}
+.delta{font-size:.68rem;font-weight:800;margin-left:.35rem;}
+.delta.up{color:var(--up);}.delta.down{color:var(--down);}.delta.flat{color:var(--flat);}
+.drill{background:#FCFCFD;}
+.drill td{padding:0;border-bottom:1px solid var(--line);}
+.drill .inner{padding:.7rem 1rem .9rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem .9rem;font-size:.74rem;}
+.drill .kv{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:.15rem 0;}
+.drill .kv b{font-weight:800;}
+.muted{color:var(--flat);}
+.tgt{height:7px;border-radius:4px;background:#EEF1F5;overflow:hidden;margin-top:.25rem;}
+.tgt>span{display:block;height:100%;background:var(--pa-yellow);}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem;}
+.card{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;}
+.card h3{margin:.1rem 0 .7rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:.5rem;}
+.card .roi{font-size:2.1rem;font-weight:900;line-height:1;}
+.card .roi small{font-size:.8rem;font-weight:700;color:var(--pa-tonal);}
+.card .row{display:flex;justify-content:space-between;font-size:.78rem;padding:.28rem 0;border-bottom:1px dotted var(--line);}
+.note{font-size:.72rem;color:var(--pa-tonal);background:#FBFBF4;border-left:3px solid var(--pa-yellow);padding:.6rem .8rem;border-radius:5px;margin:1rem 0;}
+.empty{padding:2rem;text-align:center;color:var(--flat);font-size:.85rem;}
+.alert{background:#FDECEC;border:1px solid var(--down);color:#8c1d1d;border-radius:8px;padding:.6rem .9rem;font-size:.78rem;font-weight:700;margin:.8rem 0;display:none;}
+.alert.on{display:block;}
+footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.68rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <img class="brandlogo" src="../assets/pa-logo-black.png" alt="Planet Apparel">
+    <span class="t">Sales Ops</span>
+  </div>
+  <div class="sub">Sales Ops · Signal Panel</div>
+  <h1>Planet Sales Signals</h1>
+  <div class="updated" id="updated">Loading…</div>
+
+  <div class="tabs">
+    <button class="tab on" data-view="weekly">Weekly</button>
+    <button class="tab" data-view="monthly">Monthly Summary</button>
+    <button class="tab" data-view="roi">Marketing ROI</button>
+  </div>
+
+  <div id="panel"></div>
+
+  <footer>
+    Retrospective stats — live project status lives in Streak &amp; Planet Pulse.
+    Data source: Sales Scoreboard sheet (snapshot). Base target auto-derived from each rep's real close rate.
+  </footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt$ = n => (n==null)?'—':'$'+Math.round(n).toLocaleString();
+const fmtN = n => (n==null)?'—':Number(n).toLocaleString();
+const pct  = n => (n==null)?'—':(Math.round(n*1000)/10)+'%';
+let DATA=null, view='weekly', weekIdx=0;
+
+function delta(cur, prev){
+  if(cur==null||prev==null) return '';
+  const d=cur-prev; if(prev===0&&d===0) return '';
+  const cls=d>0?'up':(d<0?'down':'flat'), arrow=d>0?'▲':(d<0?'▼':'–');
+  const pctv = prev!==0 ? Math.abs(Math.round(d/prev*100)) : '';
+  return `<span class="delta ${cls}">${arrow}${pctv!==''?pctv+'%':''}</span>`;
+}
+
+function repRow(r, prev){
+  const conv = r.converted_num!=null&&(r.converted_num+r.lost_num)>0 ? r.converted_num/(r.converted_num+r.lost_num) : null;
+  return `<tr class="rep ${r.rep==='Company'?'company':''}" data-rep="${r.rep}">
+    <td><span class="name"><span class="chev">▶</span>${r.rep}</span></td>
+    <td>${fmtN(r.new_boxes)}${prev?delta(r.new_boxes,prev.new_boxes):''}</td>
+    <td>${fmtN(r.new_cust)} / ${fmtN(r.return_cust)}</td>
+    <td>${fmt$(r.quotes_dollar)}</td>
+    <td>${fmtN(r.converted_num)} · ${fmt$(r.converted_dollar)}</td>
+    <td>${fmtN(r.lost_num)} · ${fmt$(r.lost_dollar)}</td>
+    <td>${conv==null?'<span class="muted">—</span>':pct(conv)}</td>
+  </tr>
+  <tr class="drill" data-rep="${r.rep}" style="display:none"><td colspan="7"><div class="inner">
+    <div class="kv"><span>Bandana $</span><b>${fmt$(r.bandana_dollar)}</b></div>
+    <div class="kv"><span>Apparel $</span><b>${fmt$(r.apparel_dollar)}</b></div>
+    <div class="kv"><span>Promo $</span><b>${fmt$(r.promo_dollar)}</b></div>
+    <div class="kv"><span>Tier T1 / T2 / T3</span><b>${fmtN(r.t1_num)} / ${fmtN(r.t2_num)} / ${fmtN(r.t3_num)}</b></div>
+    <div class="kv"><span>Quotes #</span><b>${r.quotes_num==null?'<span class="muted">v2</span>':fmtN(r.quotes_num)}</b></div>
+    <div class="kv"><span>Connects</span><b>${r.connects==null?'<span class="muted">v2</span>':fmtN(r.connects)}</b></div>
+    <div class="kv"><span>Check-ins sent</span><b>${r.checkins_sent==null?'<span class="muted">v2</span>':fmtN(r.checkins_sent)}</b></div>
+    <div class="kv"><span>Speed-to-lead</span><b>${r.speed_to_lead_hrs==null?'<span class="muted">v2</span>':r.speed_to_lead_hrs+'h'}</b></div>
+    <div class="kv"><span>Top why-lost</span><b>${r.top_why_lost||'<span class="muted">v2</span>'}</b></div>
+  </div></td></tr>`;
+}
+
+function renderWeekly(){
+  if(!DATA.weeks||!DATA.weeks.length){$('#panel').innerHTML='<div class="empty">No weekly data yet.</div>';return;}
+  const opts=DATA.weeks.map((w,i)=>`<option value="${i}" ${i===weekIdx?'selected':''}>W${w.iso_week} · ${w.week_start} → ${w.week_end}${i===DATA.weeks.length-1?' (current)':''}</option>`).join('');
+  const w=DATA.weeks[weekIdx], prevW=DATA.weeks[weekIdx-1];
+  const prevRows={}; if(prevW) prevW.rows.forEach(r=>prevRows[r.rep]=r);
+  const body=w.rows.map(r=>repRow(r, prevRows[r.rep])).join('');
+  $('#panel').innerHTML=`
+    <div class="ctrls"><label style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em">Week</label>
+      <select id="wsel">${opts}</select>
+      <span class="muted" style="font-size:.72rem">▲▼ = vs prior week · click a rep to drill in</span></div>
+    <table><thead><tr>
+      <th>Rep</th><th>New Boxes</th><th>New / Return</th><th>Quote $</th><th>Converted</th><th>Lost</th><th>Win Rate</th>
+    </tr></thead><tbody>${body}</tbody></table>
+    <div class="note"><b>Ranking pair:</b> Quote Volume × Conversion Rate (Won $ = outcome). <b>Win-rate note:</b> weekly is noisy — trust it at the monthly view. Metrics marked <span class="muted">v2</span> need stage-history (next build pass).</div>`;
+  $('#wsel').onchange=e=>{weekIdx=+e.target.value;renderWeekly();};
+  document.querySelectorAll('#panel tr.rep').forEach(tr=>tr.onclick=()=>{
+    tr.classList.toggle('open');
+    const d=tr.nextElementSibling; d.style.display=d.style.display==='none'?'table-row':'none';
+  });
+}
+
+function renderMonthly(){
+  if(!DATA.weeks||!DATA.weeks.length){$('#panel').innerHTML='<div class="empty">No data yet.</div>';return;}
+  // aggregate all loaded weeks by rep as a rolling summary
+  const agg={};
+  DATA.weeks.forEach(w=>w.rows.forEach(r=>{
+    const a=agg[r.rep]||(agg[r.rep]={rep:r.rep,new_boxes:0,converted_num:0,converted_dollar:0,lost_num:0,lost_dollar:0,quotes_dollar:0});
+    ['new_boxes','converted_num','converted_dollar','lost_num','lost_dollar','quotes_dollar'].forEach(k=>a[k]+=(r[k]||0));
+  }));
+  const span=`${DATA.weeks[0].week_start} → ${DATA.weeks[DATA.weeks.length-1].week_end}`;
+  const rows=Object.values(agg).map(a=>{
+    const conv=(a.converted_num+a.lost_num)>0?a.converted_num/(a.converted_num+a.lost_num):null;
+    return `<tr class="rep ${a.rep==='Company'?'company':''}"><td>${a.rep}</td><td>${fmtN(a.new_boxes)}</td>
+      <td>${fmt$(a.quotes_dollar)}</td><td>${fmtN(a.converted_num)} · ${fmt$(a.converted_dollar)}</td>
+      <td>${fmtN(a.lost_num)} · ${fmt$(a.lost_dollar)}</td><td>${conv==null?'—':pct(conv)}</td></tr>`;
+  }).join('');
+  $('#panel').innerHTML=`<div class="ctrls"><b style="font-size:.8rem">Rolling summary · ${span}</b></div>
+    <table><thead><tr><th>Rep</th><th>New Boxes</th><th>Quote $</th><th>Converted</th><th>Lost</th><th>Win Rate</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="note">Summary rolls up every loaded week. As history accumulates this becomes month → quarter → year. Win rate is reliable here (larger sample) — this is the number to coach against.</div>`;
+}
+
+function renderROI(){
+  const m=DATA.monthly_ad_roi||[];
+  if(!m.length){$('#panel').innerHTML='<div class="empty">No ad-ROI month loaded yet. Kelly\'s method: created-date cohort, finalized ~2 months later once pending clears.</div>';return;}
+  // alert if any final month conv rate < 18%
+  const risk=m.find(x=>x.status==='final'&&x.conversion_rate!=null&&x.conversion_rate<0.18);
+  const cards=m.map(x=>`<div class="card">
+    <h3>${x.platform} · ${x.month} <span class="pill ${x.status==='final'?'final':'prov'}">${x.status==='final'?'Final':'Provisional'}</span></h3>
+    <div class="roi">${x.roi==null?'—':x.roi.toFixed(2)+'x'} <small>ROI</small></div>
+    <div class="row"><span>Ad spend</span><b>${fmt$(x.ad_spend)}</b></div>
+    <div class="row"><span>Sales from ads</span><b>${fmt$(x.sales_from_ads)}</b></div>
+    <div class="row"><span>Quotes / Conv / Lost</span><b>${fmtN(x.quotes)} / ${fmtN(x.converted)} / ${fmtN(x.lost)}</b></div>
+    <div class="row"><span>Conversion rate</span><b>${pct(x.conversion_rate)}</b></div>
+    ${x.status==='provisional'?`<div class="row muted"><span>Still pending</span><b>${pct(x.pct_pending)}</b></div>`:''}
+  </div>`).join('');
+  $('#panel').innerHTML=`${risk?`<div class="alert on">⚠ Conversion rate ${pct(risk.conversion_rate)} on ${risk.platform} (${risk.month}) is below 18% — Kelly's watch line. In a scaling month this signals a follow-up problem, not an ad problem.</div>`:''}
+    <div class="cards">${cards}</div>
+    <div class="note">Sales-from-ads = Streak Est Invoice Total, attributed via Acquisition Method = Paid → Source. A month stays <b>Provisional</b> until its pending boxes clear (~2 months), then flips <b>Final</b> — don't trust a green-but-immature month.</div>`;
+}
+
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.view===view));
+  if(view==='weekly')renderWeekly(); else if(view==='monthly')renderMonthly(); else renderROI();
+}
+
+async function boot(){
+  try{
+    const r=await fetch('./scoreboard-data.json?_='+Math.floor(Date.now()/60000));
+    DATA=await r.json();
+  }catch(e){ DATA={weeks:[],monthly_ad_roi:[]}; }
+  $('#updated').textContent = DATA.generated_at ? ('Snapshot: '+DATA.generated_at) : 'No snapshot yet';
+  if(DATA.weeks&&DATA.weeks.length) weekIdx=DATA.weeks.length-1;
+  render();
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{view=t.dataset.view;render();});
+boot();
+</script>
+</body>
+</html>
