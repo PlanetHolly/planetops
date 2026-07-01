@@ -23,7 +23,9 @@
     {"month":"Mar 2026","platform":"Google","ad_spend":3997.00,"sales_from_ads":38375.06,"roi":9.64,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
     {"month":"Apr 2026","platform":"Google","ad_spend":4899.94,"sales_from_ads":52570.49,"roi":10.73,"quotes":81,"converted":16,"lost":65,"conversion_rate":0.20,"status":"final","pct_pending":0},
     {"month":"Feb 2026","platform":"Bing","ad_spend":400.00,"sales_from_ads":1751.20,"roi":4.38,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"final","pct_pending":0},
-    {"month":"Apr 2026","platform":"Bing","ad_spend":400.00,"sales_from_ads":0.00,"roi":0.00,"quotes":2,"converted":0,"lost":2,"conversion_rate":0.00,"status":"final","pct_pending":0}
+    {"month":"Apr 2026","platform":"Bing","ad_spend":400.00,"sales_from_ads":0.00,"roi":0.00,"quotes":2,"converted":0,"lost":2,"conversion_rate":0.00,"status":"final","pct_pending":0},
+    {"month":"Jun 2026","platform":"Google","ad_spend":6391.60,"sales_from_ads":null,"roi":null,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"provisional","pct_pending":null},
+    {"month":"Jun 2026","platform":"Bing","ad_spend":405.91,"sales_from_ads":null,"roi":null,"quotes":null,"converted":null,"lost":null,"conversion_rate":null,"status":"provisional","pct_pending":null}
   ],
   "targets": {},
   "data_notes": "Cortney (Apparel/Promo) converted counts are UNDERCOUNTED — apparel/promo won deals often have a blank Close Date (Streak field 1017), so they fail the close-date-in-week rule. Data-hygiene fix needed. Stage-history metrics (quotes#, connects, check-ins, speed-to-lead, why-lost) pending build pass 2."
