@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlanetIQ Panel — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --up:#3AAE5A; --down:#D64545; --flat:#8A93A0; --line:rgba(0,0,0,.09);
+  /* validated categorical palette (fixed order, never cycled): blue, amber, plum, teal */
+  --c1:#3E7CB1; --c2:#B98300; --c3:#A15CA8; --c4:#0E9678;
+  --ink:#232323; --ink2:#5B6470;
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:1080px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:900px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:.9rem;margin-bottom:1rem;}
+.head .t{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0 .05em;line-height:1.05;}
+.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
+.updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
+.updated a{color:inherit;}
+h2{font-size:1.05rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin:1.8rem 0 .8rem;border-bottom:2px solid var(--pa-yellow);padding-bottom:.3rem;}
+.pill{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:.16rem .45rem;vertical-align:middle;white-space:nowrap;}
+.pill.qb{background:#E8F0F7;color:#28516F;border:1px solid #3E7CB1;}
+.pill.kpi{background:#FFF3CC;color:#7a5c00;border:1px solid var(--pa-yellow);}
+.pill.mixed{background:#F0EAF4;color:#5E3766;border:1px solid #A15CA8;}
+.pill.live{background:#DFF3E6;color:#1b6b39;border:1px solid var(--up);}
+.pill.prov{background:#FFF3CC;color:#7a5c00;border:1px solid var(--pa-yellow);}
+.pill.open{background:#FDECEC;color:#8c1d1d;border:1px solid var(--down);}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;}
+.card{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;display:flex;flex-direction:column;}
+.card h3{margin:.1rem 0 .55rem;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.card .big{font-size:2rem;font-weight:900;line-height:1;margin-bottom:.35rem;}
+.card .big small{font-size:.85rem;font-weight:700;color:var(--ink2);}
+.card .cav{font-size:.74rem;color:var(--ink2);line-height:1.35;flex:1;}
+.card .stamp{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--flat);margin-top:.6rem;}
+.chartbox{border:1px solid var(--line);border-radius:11px;padding:1rem 1.1rem 0.7rem;margin-bottom:1.1rem;background:#fff;}
+.chartbox .chead{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;flex-wrap:wrap;margin-bottom:.4rem;}
+.chartbox .ct{font-size:.85rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem;font-weight:700;color:var(--ink);margin:.15rem 0 .3rem;}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.35rem;vertical-align:-1px;}
+.tblbtn{font:inherit;font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;border:1px solid #000;background:#fff;border-radius:6px;padding:.25rem .6rem;cursor:pointer;}
+.tblbtn:hover{background:#FCFAF0;}
+svg{display:block;width:100%;height:auto;}
+.axis{font-size:10px;fill:var(--ink2);}
+.gline{stroke:var(--line);stroke-width:1;}
+.dlab{font-size:10px;font-weight:700;fill:var(--ink);}
+.tip{position:fixed;pointer-events:none;background:#fff;border:1px solid #000;border-radius:7px;padding:.45rem .6rem;font-size:.72rem;box-shadow:0 3px 14px rgba(0,0,0,.18);z-index:50;display:none;max-width:240px;}
+.tip b{display:block;margin-bottom:.15rem;}
+.tip .r{display:flex;justify-content:space-between;gap:.8rem;}
+.datatable{width:100%;border-collapse:collapse;font-size:.74rem;margin:.4rem 0 .6rem;display:none;}
+.datatable th,.datatable td{padding:.3rem .45rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+.datatable th:first-child,.datatable td:first-child{text-align:left;}
+.datatable thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+.note{font-size:.72rem;color:var(--pa-tonal);background:#FBFBF4;border-left:3px solid var(--pa-yellow);padding:.6rem .8rem;border-radius:5px;margin:1rem 0;}
+.grid2{display:grid;grid-template-columns:1fr;gap:0;}
+@media(min-width:860px){.grid2{grid-template-columns:1fr 1fr;gap:1.1rem;}}
+footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.68rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;line-height:1.6;}
+footer a{color:inherit;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div class="t">Planet Apparel · PlanetOps</div><div class="t">Internal</div></div>
+  <div class="sub">Business Intelligence Foundation</div>
+  <h1>PlanetIQ Panel</h1>
+  <div class="updated" id="asof"></div>
+
+  <h2>The Seven Questions</h2>
+  <div class="cards" id="cards"></div>
+
+  <h2>Trends</h2>
+  <div id="charts"></div>
+
+  <div class="note"><b>Reading the basis pills:</b> <span class="pill qb">QB accrual</span> = QuickBooks P&amp;L (headline basis) · <span class="pill kpi">KPI cash</span> = Kelly's KPI tracker / Received Payments · <span class="pill mixed">mixed</span> = interface figures pending official invoices. The two bases are never blended — see the Rulings Log tab of the Data Layer sheet.</div>
+
+  <footer>
+    Source of truth: <a id="sheetlink" href="#" target="_blank">PlanetIQ Data Layer (Google Sheet)</a> — machine tabs "Data Layer" + "Chart Series", rulings in "Rulings Log".<br>
+    This page is a static snapshot (data.js) regenerated from the sheet — do not hand-edit numbers here.
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+<script src="data.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const PAL=["#3E7CB1","#B98300","#A15CA8","#0E9678"]; // validated categorical order
+const fmtUSD=v=>{const a=Math.abs(v);const s=v<0?"−":"";if(a>=1e6)return s+"$"+(a/1e6).toFixed(2)+"M";if(a>=1e3)return s+"$"+Math.round(a/1e3)+"K";return s+"$"+a.toFixed(0);};
+const fmtFull=(v,u)=>u==="USD"?(v<0?"−$":"$")+Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0}):u==="%"?v+"%":u==="x"?v.toFixed(2)+"×":v.toLocaleString();
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const plab=p=>{const m=p.match(/^(\d{4})-(\d{2})$/);return m?MON[+m[2]-1]+" ’"+m[1].slice(2):p;};
+document.getElementById("asof").innerHTML="Data as of "+PIQ_META.asOf+" · <a href='"+PIQ_META.sheet+"' target='_blank'>Data Layer sheet</a>";
+document.getElementById("sheetlink").href=PIQ_META.sheet;
+
+/* ---------- The Seven Questions ---------- */
+const CARDS=[
+ {q:"1 · Margin per hour",big:"Per-job",small:"in Planet Pulse",cav:"Every completed in-house job gets an actual MPH in its Production Summary email (margin ÷ captured press time). Old blanket targets ($350/$425/$550) retired with the $140/hr rebuild; blended monthly MPH lands here once June actuals post.",pill:["live","LIVE / PER-JOB"],stamp:"Verified 7/2/26 · Pulse production summaries"},
+ {q:"2 · Efficiency %",big:"~33%",small:"press efficiency",cav:"≈53 of 160 available press-hours running (2025 baseline). First-of-month compute routine went live 7/1 — June actuals pending Jean's month-end print times.",pill:["prov","PROVISIONAL"],stamp:"Baseline 2025 · routine live 7/1/26"},
+ {q:"3 · Real Revenue %",big:"58%",small:"of income (2025)",cav:"Revenue − COGS. COGS ran 42% of income in 2025 (KPI cash basis; 43% in 2024). Monthly Real Rev now totals live on every Pulse month tab.",pill:["kpi","KPI CASH"],stamp:"2025 full year · verified 7/2/26"},
+ {q:"4 · In-house %",big:"72.1%",small:"of June revenue",cav:"June 2026: $81,654 of $113,299 revenue produced in-house (66.7% of orders). Auto-computed on every Pulse month tab — this number updates monthly without human touch.",pill:["live","LIVE / MONTHLY"],stamp:"June 2026 tab · Planet Pulse"},
+ {q:"5 · Net profit per project",big:"Per-job",small:"in Planet Pulse",cav:"Actual net margin $ and % per invoice on every month tab (cols J/K), emailed to the PM 7 days after completion. Company-level 2025: −$9,343 QB accrual / +$13,550 KPI cash — the two-basis gap is a standing reconcile item with Kelly.",pill:["live","LIVE / PER-JOB"],stamp:"Verified 7/2/26 · Pulse PM summaries"},
+ {q:"6 · $ / minute running",big:"$2.33",small:"per press-minute",cav:"$140/hr production rate ÷ 60. Derived from the 2025 production pool ($284K) over ~2,050 winter-adjusted press-busy hours.",pill:["qb","QB ACCRUAL"],stamp:"Locked with $140/hr rebuild · 6/1/26"},
+ {q:"7 · $ / minute idle",big:"Not locked",small:"",cav:"Needs a ruled definition (whose clock runs when the press doesn't?) plus press-hours actuals from the efficiency routine. Overhead continues at $90–95K/mo regardless — that anchor is ruled; the per-idle-minute cut isn't.",pill:["open","OPEN QUESTION"],stamp:"Blocked on efficiency actuals + definition"},
+];
+$("#cards").innerHTML=CARDS.map(c=>`<div class="card"><h3><span>${c.q}</span><span class="pill ${c.pill[0]}">${c.pill[1]}</span></h3><div class="big">${c.big} <small>${c.small}</small></div><div class="cav">${c.cav}</div><div class="stamp">${c.stamp}</div></div>`).join("");
+
+/* ---------- generic chart renderers (single axis, hover layer, table view) ---------- */
+const tip=$("#tip");
+function showTip(html,x,y){tip.innerHTML=html;tip.style.display="block";const r=tip.getBoundingClientRect();tip.style.left=Math.min(x+14,innerWidth-r.width-8)+"px";tip.style.top=Math.max(8,y-r.height-10)+"px";}
+function hideTip(){tip.style.display="none";}
+function niceTicks(lo,hi,n=4){const span=hi-lo||1;const step0=span/n;const mag=Math.pow(10,Math.floor(Math.log10(step0)));const step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>span/s<=n+0.5)||mag*10;const start=Math.ceil(lo/step)*step;const t=[];for(let v=start;v<=hi+1e-9;v+=step)t.push(v);return t;}
+let CID=0;
+function chart(cfg){
+  // cfg: {title, basis, series:[{name,key|points,kind:'line'|'bar'}], unit, target?, tipExtra?}
+  const id="ch"+(++CID);
+  const sers=cfg.series.map((s,i)=>({name:s.name,kind:s.kind||"line",color:PAL[i],unit:cfg.unit,
+    pts:(s.points||PIQ_SERIES[s.key].points).map(p=>({p:p.p,v:p.v}))}));
+  const periods=[...new Set(sers.flatMap(s=>s.pts.map(p=>p.p)))].sort();
+  const hasLineLabels=cfg.series.length>1&&!cfg.series.some(s=>s.kind==="bar");
+  const W=980,H=300,L=56,R=hasLineLabels?92:16,T=14,B=34,IW=W-L-R,IH=H-T-B;
+  const vals=sers.flatMap(s=>s.pts.map(p=>p.v)).concat(cfg.target!=null?[cfg.target]:[]);
+  let lo=Math.min(0,...vals),hi=Math.max(0,...vals);const pad=(hi-lo)*0.08;hi+=pad;if(lo<0)lo-=pad;
+  const X=p=>L+(periods.indexOf(p)+0.5)/periods.length*IW;
+  const Y=v=>T+IH-(v-lo)/(hi-lo)*IH;
+  const anyBar=sers.some(s=>s.kind==="bar");
+  const barSlots=sers.filter(s=>s.kind==="bar").length;
+  let g="";
+  for(const tv of niceTicks(lo,hi)) g+=`<line class="gline" x1="${L}" x2="${W-R}" y1="${Y(tv)}" y2="${Y(tv)}"/><text class="axis" x="${L-6}" y="${Y(tv)+3}" text-anchor="end">${cfg.unit==="USD"?fmtUSD(tv):tv%1?tv.toFixed(1):tv}</text>`;
+  if(lo<0) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(0)}" y2="${Y(0)}" stroke="#000" stroke-width="1"/>`;
+  if(cfg.target!=null) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(cfg.target)}" y2="${Y(cfg.target)}" stroke="#232323" stroke-width="1.5" stroke-dasharray="5 4"/><text class="dlab" x="${W-R}" y="${Y(cfg.target)-5}" text-anchor="end">target ${fmtUSD(cfg.target)}</text>`;
+  const step=IW/periods.length;
+  const labEvery=Math.ceil(periods.length/13);
+  periods.forEach((p,i)=>{if(i%labEvery===0)g+=`<text class="axis" x="${X(p)}" y="${H-B+16}" text-anchor="middle">${plab(p)}</text>`;});
+  // collision-free end labels: sort line series by final y, enforce 13px spacing
+  const endLabs=sers.filter(s=>s.kind!=="bar").map(s=>({s,y:Y(s.pts[s.pts.length-1].v)})).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<endLabs.length;i++) if(endLabs[i].y-endLabs[i-1].y<13) endLabs[i].y=endLabs[i-1].y+13;
+  const labY=new Map(endLabs.map(e=>[e.s.name,e.y]));
+  let bi=0;
+  sers.forEach((s)=>{
+    if(s.kind==="bar"){
+      const bw=Math.min(34,step*0.66/Math.max(1,barSlots));const off=(bi-(barSlots-1)/2)*(bw+2);bi++;
+      s.pts.forEach(pt=>{const x=X(pt.p)+off-bw/2;const y0=Y(Math.max(0,pt.v)),y1=Y(Math.min(0,pt.v));const hgt=Math.max(1.5,y1-y0);
+        const col=cfg.posneg?(pt.v<0?"var(--down)":"var(--up)"):s.color;
+        g+=`<path d="M${x} ${y0+hgt}V${y0+4}Q${x} ${y0} ${x+4} ${y0}H${x+bw-4}Q${x+bw} ${y0} ${x+bw} ${y0+4}V${y0+hgt}Z" fill="${col}" data-tip="1" data-s="${s.name}" data-p="${pt.p}" data-v="${pt.v}"/>`;});
+    } else {
+      const d=s.pts.map((pt,i)=>(i?"L":"M")+X(pt.p)+" "+Y(pt.v)).join("");
+      g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
+      s.pts.forEach((pt,i)=>{g+=`<circle cx="${X(pt.p)}" cy="${Y(pt.v)}" r="${s.pts.length>15?2.5:4}" fill="${s.color}" stroke="#fff" stroke-width="2" data-tip="1" data-s="${s.name}" data-p="${pt.p}" data-v="${pt.v}"/>`;
+        if(i===s.pts.length-1&&sers.length>1)g+=`<text class="dlab" x="${X(pt.p)+8}" y="${(labY.get(s.name)??Y(pt.v))+3}" fill="${s.color}">${s.name}</text>`;});
+    }
+  });
+  const basisPill=cfg.basis==="QB-accrual"?'<span class="pill qb">QB accrual</span>':cfg.basis==="KPI-cash"?'<span class="pill kpi">KPI cash</span>':'<span class="pill mixed">mixed</span>';
+  const legend=sers.length>1?`<div class="legend">${sers.map(s=>`<span><span class="sw" style="background:${s.color}"></span>${s.name}</span>`).join("")}</div>`:"";
+  // table view
+  const thead=`<tr><th>Period</th>${sers.map(s=>`<th>${s.name}</th>`).join("")}</tr>`;
+  const tbody=periods.map(p=>`<tr><td>${plab(p)}</td>${sers.map(s=>{const pt=s.pts.find(x=>x.p===p);return `<td>${pt?fmtFull(pt.v,cfg.unit):"—"}</td>`;}).join("")}</tr>`).join("");
+  const div=document.createElement("div");div.className="chartbox";
+  div.innerHTML=`<div class="chead"><span class="ct">${cfg.title} ${basisPill}</span><button class="tblbtn" data-t="${id}">Table</button></div>${legend}
+    <svg id="${id}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${cfg.title}">${g}</svg>
+    <table class="datatable" id="${id}t"><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+    ${cfg.foot?`<div class="stamp" style="font-size:.64rem;color:var(--flat);text-transform:uppercase;letter-spacing:.07em;margin:.3rem 0 .4rem">${cfg.foot}</div>`:""}`;
+  (cfg.mount||$("#charts")).appendChild(div);
+  div.querySelector(".tblbtn").onclick=e=>{const t=$("#"+id+"t");const on=t.style.display==="table";t.style.display=on?"none":"table";e.target.textContent=on?"Table":"Chart data ✓";};
+  div.querySelectorAll("[data-tip]").forEach(el=>{
+    el.addEventListener("mousemove",ev=>{const extra=cfg.tipExtra?cfg.tipExtra(el.dataset.p):"";showTip(`<b>${plab(el.dataset.p)}</b><div class="r"><span>${el.dataset.s}</span><span><b>${fmtFull(+el.dataset.v,cfg.unit)}</b></span></div>${extra}`,ev.clientX,ev.clientY);});
+    el.addEventListener("mouseleave",hideTip);
+  });
+}
+
+/* ---------- the charts ---------- */
+chart({title:"Revenue vs Total Cost — annual",basis:"QB-accrual",unit:"USD",
+  series:[{name:"Revenue",key:"Revenue annual"},{name:"Total Cost",key:"Total Cost annual"}],
+  foot:"3-yr cumulative net: −$138,766 · loss months: 6 (’23) · 8 (’24) · 8 (’25)"});
+chart({title:"Net Income — annual",basis:"QB-accrual",unit:"USD",posneg:true,
+  series:[{name:"Net Income",key:"Net Income annual",kind:"bar"}],
+  foot:"KPI-cash view shows +$13,550 for 2025 — basis gap is a standing reconcile item (Rulings Log X1)"});
+chart({title:"2025 monthly — Income vs OpEx",basis:"QB-accrual",unit:"USD",
+  series:[{name:"Income",key:"Income monthly"},{name:"OpEx",key:"OpEx monthly"}]});
+chart({title:"2025 monthly — Net Operating",basis:"QB-accrual",unit:"USD",posneg:true,
+  series:[{name:"Net Operating",key:"Net Operating monthly",kind:"bar"}]});
+chart({title:"Labor cost by team — monthly",basis:"KPI-cash",unit:"USD",
+  series:[{name:"Production",key:"Labor PRODUCTION monthly"},{name:"Leadership",key:"Labor LEADERSHIP monthly"},{name:"Sales",key:"Labor SALES monthly"}],
+  foot:"Jan–Feb 2026 from Kelly's 2026 tracker (period corrected 7/2 — file header still says 2025)"});
+chart({title:"Bandana revenue — 2025 monthly",basis:"QB-accrual",unit:"USD",
+  series:[{name:"Bandana revenue",key:"Bandana revenue monthly",kind:"bar"}],
+  tipExtra:p=>{const u=PIQ_SERIES["Bandana units monthly"].points.find(x=>x.p===p);return u?`<div class="r"><span>Units</span><span><b>${u.v.toLocaleString()}</b></span></div>`:"";},
+  foot:"Screen-print in-house (QB-verified $776,949 total) · hover for units · all-bandana 2025 headline = $928,436"});
+chart({title:"Revenue by line — annual",basis:"QB-accrual",unit:"USD",
+  series:[{name:"Bandana",key:"Bandana revenue annual"},{name:"A&M",key:"A&M revenue annual"},{name:"A&M ex-DWC",key:"A&M ex-DWC revenue annual"},{name:"DWC",key:"DWC revenue annual"}]});
+chart({title:"SP recovery — 2025 monthly vs $47K/mo target",basis:"QB-accrual",unit:"USD",target:47000,
+  series:[{name:"SP recovered",key:"SP recovery monthly",kind:"bar"}],
+  foot:"Bandana share of overhead+profit pool: full-year recovery $449K vs $564K target (−$115K)"});
+chart({title:"Google CPC — spend vs sales, monthly",basis:"mixed",unit:"USD",
+  series:[{name:"CPC sales",key:"Google CPC sales monthly"},{name:"Spend",key:"Google CPC spend monthly"}],
+  tipExtra:p=>{const r=PIQ_SERIES["Google CPC ROAS monthly"].points.find(x=>x.p===p);return r?`<div class="r"><span>ROAS</span><span><b>${r.v.toFixed(2)}×</b></span></div>`:"";},
+  foot:"Interface figures (official invoice PDFs land the 5th business day — Brian) · hover for ROAS"});
+</script>
+</body>
+</html>
