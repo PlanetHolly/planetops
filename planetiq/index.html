@@ -180,9 +180,12 @@ chart({title:"2025 monthly — Income vs OpEx",basis:"QB-accrual",unit:"USD",
   series:[{name:"Income",key:"Income monthly"},{name:"OpEx",key:"OpEx monthly"}]});
 chart({title:"2025 monthly — Net Operating",basis:"QB-accrual",unit:"USD",posneg:true,
   series:[{name:"Net Operating",key:"Net Operating monthly",kind:"bar"}]});
+chart({title:"2026 monthly — Income vs Profit (through May; June not closed)",basis:"KPI-cash",unit:"USD",posneg:true,
+  series:[{name:"Income",key:"Income monthly 2026 (KPI)"},{name:"Profit",key:"Profit monthly 2026 (KPI)",kind:"bar"}],
+  foot:"2026 YTD profit +$42,502 (Jan–May) — first profitable YTD after the 2025 loss year · fresh KPI export 7/2"});
 chart({title:"Labor cost by team — monthly",basis:"KPI-cash",unit:"USD",
   series:[{name:"Production",key:"Labor PRODUCTION monthly"},{name:"Leadership",key:"Labor LEADERSHIP monthly"},{name:"Sales",key:"Labor SALES monthly"}],
-  foot:"Jan–Feb 2026 from Kelly's 2026 tracker (period corrected 7/2 — file header still says 2025)"});
+  foot:"2026 through May from Kelly's tracker (fresh export 7/2; header year fixed)"});
 chart({title:"Bandana revenue — 2025 monthly",basis:"QB-accrual",unit:"USD",
   series:[{name:"Bandana revenue",key:"Bandana revenue monthly",kind:"bar"}],
   tipExtra:p=>{const u=PIQ_SERIES["Bandana units monthly"].points.find(x=>x.p===p);return u?`<div class="r"><span>Units</span><span><b>${u.v.toLocaleString()}</b></span></div>`:"";},
