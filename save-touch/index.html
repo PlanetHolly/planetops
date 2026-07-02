@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Save Touch — Team Guide</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.65;
+}
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: #F4F6F9; line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+.pa-wrap { max-width: 780px; margin: 0 auto; background: var(--pa-white); padding: 1.5rem 1.6rem 2rem; }
+@media (min-width: 720px) { .pa-wrap { margin: 1.5rem auto; box-shadow: 0 2px 24px rgba(0,0,0,0.08); } body { padding: 0; } }
+h1, h2, h3 { font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.2; color: var(--pa-black); }
+h1 { font-size: 1.9rem; margin: 0.3em 0 0.1em; }
+h2 { font-size: 1.05rem; font-weight: 700; margin: 1.6em 0 0.4em; padding-bottom: 0.2em; border-bottom: 2px solid var(--pa-yellow); }
+p { margin: 0.5em 0; }
+.pa-sub { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pa-tonal); margin: 0 0 0.5rem; font-weight: 700; }
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0 1rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 1.25rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; }
+.pa-icon { height: 36px; width: auto; color: var(--pa-black); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 2.25rem; padding-top: 0.75rem; border-top: 1px solid var(--pa-black); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { height: 22px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+ul, ol { margin: 0.4rem 0; padding-left: 1.15rem; }
+li { margin: 0.35rem 0; }
+.pa-callout { border-left: 5px solid var(--pa-yellow); background: #FFFBEC; padding: 0.75rem 1rem; margin: 0.9rem 0; }
+.pa-script { background: #FFFBEC; border: 1px dashed var(--pa-yellow); padding: 0.75rem 1rem; margin: 0.6rem 0; font-style: italic; }
+.pa-pause { border: 3px solid var(--pa-black); background: var(--pa-yellow); padding: 0.9rem 1.1rem; margin: 1.1rem 0; font-weight: 700; }
+.pa-pause .big { font-weight: 900; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem; }
+table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; }
+th, td { border: 1px solid #DDD; padding: 0.55rem 0.8rem; text-align: left; vertical-align: middle; font-size: 0.92rem; }
+th { background: var(--pa-black); color: var(--pa-white); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.75rem; }
+tbody tr:nth-child(odd) { background: #FAFAFA; }
+
+/* interactive: task-type chooser */
+.choice-row { display: flex; gap: 0.75rem; margin: 0.9rem 0; flex-wrap: wrap; }
+.choice-btn { flex: 1 1 220px; border: 2px solid var(--pa-black); background: var(--pa-white); font-family: inherit; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; font-size: 1rem; padding: 0.9rem 1rem; cursor: pointer; transition: background 0.12s, transform 0.06s; }
+.choice-btn:hover { background: #FFFBEC; }
+.choice-btn:active { transform: scale(0.98); }
+.choice-btn.on { background: var(--pa-yellow); }
+.panel { display: none; border: 1px solid #DDD; border-top: 4px solid var(--pa-yellow); padding: 0.9rem 1.1rem 1rem; margin: 0 0 1rem; background: #FCFCFC; }
+.panel.show { display: block; }
+.steps { counter-reset: st; list-style: none; padding: 0; margin: 0.5rem 0 0; }
+.steps > li { counter-increment: st; position: relative; padding: 0 0 0.35rem 2.4rem; margin: 0.55rem 0; }
+.steps > li::before { content: counter(st); position: absolute; left: 0; top: 0.05rem; width: 1.6rem; height: 1.6rem; background: var(--pa-black); color: var(--pa-white); font-weight: 900; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.where { display: inline-block; background: #EFEFEF; border: 1px solid #CCC; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.1rem 0.45rem; border-radius: 3px; margin-left: 0.3rem; }
+
+/* outcome cards (accordion) */
+.acc { border: 1px solid #DDD; border-radius: 5px; overflow: hidden; margin: 0.45rem 0; background: var(--pa-white); }
+.acc > button { width: 100%; text-align: left; font-family: inherit; font-weight: 700; font-size: 0.98rem; background: var(--pa-white); border: 0; padding: 0.7rem 0.95rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.acc > button:hover { background: #FFFBEC; }
+.acc > button .tw { font-weight: 900; transition: transform 0.15s; }
+.acc.open > button { background: var(--pa-yellow); }
+.acc.open > button .tw { transform: rotate(90deg); }
+.acc > .acc-body { display: none; padding: 0.65rem 0.95rem 0.85rem; border-top: 1px solid #EEE; font-size: 0.95rem; }
+.acc.open > .acc-body { display: block; }
+
+/* lifecycle diagram */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0.9rem 0; }
+.chip { border: 2px solid var(--pa-black); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.78rem; padding: 0.35rem 0.6rem; background: var(--pa-white); white-space: nowrap; }
+.chip.hot { background: var(--pa-yellow); }
+.chip.dim { border-color: #999; color: #555; background: #F3F3F3; }
+.arrow { font-weight: 900; font-size: 1rem; }
+.flow-note { font-size: 0.85rem; color: var(--pa-tonal); margin: 0.2rem 0 0.8rem; }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.88em; background: #F3F3F3; padding: 0 0.3em; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="pa-wrap">
+
+<header class="pa-header">
+  <div class="pa-header-title">Save Touch · Team Guide</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+<p class="pa-sub">Customer Retention · Shara (bandana) · Cortney (apparel &amp; both)</p>
+<h1>The Save Touch</h1>
+<p><strong>The system watches every repeat customer's ordering rhythm. When a good customer quietly slips past their usual reorder timing, it puts ONE task on their retention box — for you.</strong> You do the human part. It does the watching, the timing, and the math. A machine never emails a customer; every touch goes out by your hand, from your inbox.</p>
+
+<div class="pa-pause">
+  <span class="big">🛑 The pause signal</span>
+  It's peak season. If anything feels off — wrong customer, weird timing, too many tasks — say <strong>"PAUSE THE SAVE TOUCHES"</strong> in the team chat. One click freezes the whole system. We'd rather pause ten times than annoy one good customer.
+</div>
+
+<h2>You got a task — which kind?</h2>
+<div class="choice-row">
+  <button class="choice-btn" id="btn-call" onclick="pick('call')">📞 Save Call (T1)</button>
+  <button class="choice-btn" id="btn-email" onclick="pick('email')">✉️ Save Email (T2)</button>
+</div>
+
+<div class="panel" id="panel-call">
+  <p><strong>T1 = our biggest relationships. They get a human voice, never an automated email.</strong> The task text has the customer's rhythm stats (cadence, last order, lifetime orders and spend) — read them before you dial.</p>
+  <ol class="steps">
+    <li><strong>Open the box.</strong> Skim Notes + last order so you sound like you know them (you do). <span class="where">Customer Retention pipeline</span></li>
+    <li><strong>Make the call.</strong> Script below — then let THEM talk.</li>
+    <li><strong>Log the call on the box.</strong> Gmail sidebar → the box → <em>Add call log</em>: who you reached, what they said, any date they mentioned. <span class="where">Streak call log</span></li>
+    <li><strong>Complete the task.</strong> Check it off so it leaves your list. <span class="where">Streak task</span></li>
+    <li><strong>Pick the outcome below</strong> ("What happened next?") and do that step.</li>
+  </ol>
+  <div class="pa-script">"Hi [FIRST NAME], it's [YOU] at Planet Apparel. It's been a while since your last run, so I wanted to check in. Anything on the horizon I can help you line up?" &nbsp;…let them talk… &nbsp;If they're unsure: "No rush — didn't want you flying solo."</div>
+  <p><strong>No answer?</strong> Leave a short voicemail with the same shape, log it, and try once more in 2–3 days before falling back to the T2 email.</p>
+</div>
+
+<div class="panel" id="panel-email">
+  <p><strong>The task text contains the complete email — subject, body, and their address.</strong> Copy-paste it, or use snippet <span class="mono">^atrisk1</span> / Text Blaze <span class="mono">/atrisk1</span> (same approved copy).</p>
+  <ol class="steps">
+    <li><strong>Compose a NEW email from YOUR inbox.</strong> Never reply to the old order thread — that conversation was about a finished job. <span class="where">Your Gmail</span></li>
+    <li><strong>Paste the copy.</strong> No sign-off line — your Gmail signature carries your name. No discounts, ever (sweetener = FastPass / priority slot / free mockup only).</li>
+    <li><strong>Add the new thread to the RETENTION box.</strong> Gmail sidebar → add to box. The conversation lives on the relationship record. <span class="where">Streak sidebar</span></li>
+    <li><strong>Complete the task.</strong> <span class="where">Streak task</span></li>
+    <li><strong>No reply in ~2 weeks?</strong> Send Touch 2 (<span class="mono">^atrisk2</span> — "should I stop bugging you?") as a <em>reply on YOUR thread</em>, so it stays one clean conversation.</li>
+  </ol>
+  <div class="pa-script">Subject: you crossed my mind<br><br>Hi [FIRST NAME],<br>It's been a bit longer than usual since your last run, so you crossed my mind. Anything coming up I could help you get ahead of?<br>No agenda here. Didn't want you flying solo if something's on the horizon.</div>
+  <p><strong>Task says "(no email on box)"?</strong> Find the address on the last Printavo invoice, add the contact to the box, then send.</p>
+</div>
+
+<h2>What happened next?</h2>
+<p>Click your outcome:</p>
+
+<div class="acc">
+  <button onclick="tog(this)"><span>🎉 They replied with a real project</span><span class="tw">›</span></button>
+  <div class="acc-body">
+    <p><strong>Treat it like any new inquiry: create a Sale box in the Sale Pipeline.</strong> Same intake as always — the system enriches it automatically.</p>
+    <ul>
+      <li>Within the hour, the <strong>Open-Deal Guard</strong> sees the open deal and stamps the retention box — all further save-touches on this customer <strong>auto-mute</strong>. Nobody will "check in" on someone you're mid-quote with.</li>
+      <li>The retention box <strong>stays where it is</strong> — it's the permanent relationship record. The Sale box is the deal.</li>
+      <li>When they <strong>pay</strong>, the system links the two and moves the retention box back to 🟢 <strong>ACTIVE</strong> on its own. You don't move anything by hand.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="acc">
+  <button onclick="tog(this)"><span>🙂 They replied "we're good for now"</span><span class="tw">›</span></button>
+  <div class="acc-body">
+    <p>Perfect — the door is open, that was the whole job. <strong>Note what they said on the box</strong> (especially any timing they mentioned: "after summer", "next season") and leave the box in AT-RISK. The system won't touch them again this episode — one touch per slip, guaranteed.</p>
+  </div>
+</div>
+
+<div class="acc">
+  <button onclick="tog(this)"><span>👗 They want the OTHER product line</span><span class="tw">›</span></button>
+  <div class="acc-body">
+    <p>Bandana customer asking about apparel (or the reverse) → use the warm handoff script <span class="mono">^handoff</span>, cc the other rep, and let them run it. Same handoff as always (the box's Department moves to Both).</p>
+  </div>
+</div>
+
+<div class="acc">
+  <button onclick="tog(this)"><span>🤫 No reply after Touch 1 (~2 weeks)</span><span class="tw">›</span></button>
+  <div class="acc-body">
+    <p>Send <strong>Touch 2</strong>: snippet <span class="mono">^atrisk2</span> ("should I stop bugging you?") as a <strong>reply on your own Touch-1 thread</strong>. It's the honest pull-back — it pulls fence-sitters off the fence. If they replied to Touch 1 at all, skip Touch 2.</p>
+  </div>
+</div>
+
+<div class="acc">
+  <button onclick="tog(this)"><span>📵 Nothing after Touch 2 / dead number / bounced email</span><span class="tw">›</span></button>
+  <div class="acc-body">
+    <p><strong>Note it on the box and tell Holly.</strong> A failed save is what qualifies a customer for 🔴 INACTIVE — and that move is always a human call, never automated. Don't move the box yourself unless Holly says so.</p>
+  </div>
+</div>
+
+<h2>How the machine thinks</h2>
+<p>So you know why a task appears — and why one <em>doesn't</em>:</p>
+<div class="flow">
+  <span class="chip">🟢 Active</span><span class="arrow">→</span>
+  <span class="chip hot">🟡 At-Risk</span><span class="arrow">→</span>
+  <span class="chip hot">Save touch (you)</span><span class="arrow">→</span>
+  <span class="chip">New Sale box</span><span class="arrow">→</span>
+  <span class="chip">Paid</span><span class="arrow">→</span>
+  <span class="chip">🟢 Active again</span>
+</div>
+<p class="flow-note">…or, if the save fails after both touches: <span class="chip dim">🔴 Inactive (human call only)</span></p>
+<ul>
+  <li><strong>Every night</strong> the system recomputes each repeat customer's real ordering rhythm from Printavo <em>delivery</em> dates (not invoice dates — a batch order delivering all summer reads as active, correctly).</li>
+  <li>Slip past <strong>~1.25× your usual cadence</strong> → the box moves to 🟡 AT-RISK.</li>
+  <li>Hourly, business hours only, the system queues <strong>at most 3 new tasks total</strong> — a trickle, never a flood.</li>
+  <li>Anyone with an <strong>open deal</strong> (live quote or order in progress) is skipped automatically. Event customers are skipped. Already-touched customers are skipped.</li>
+  <li>The moment a save turns into a deal and gets <strong>paid</strong>, the customer graduates back to ACTIVE automatically. The loop closes without anyone dragging boxes.</li>
+</ul>
+
+<h2>The bumpers</h2>
+<table>
+  <thead><tr><th>Bumper</th><th>What it guarantees</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Max 3 touches/hour, total</strong></td><td>The backlog drains over days, not in one dump</td></tr>
+    <tr><td><strong>Open-Deal Guard</strong></td><td>Nobody mid-quote or mid-order ever gets a "we miss you"</td></tr>
+    <tr><td><strong>One-touch stamp</strong></td><td>A customer can never be double-touched in the same slip</td></tr>
+    <tr><td><strong>Business hours only</strong></td><td>Tasks appear 5:40am–5:40pm PT, never overnight</td></tr>
+    <tr><td><strong>Humans send everything</strong></td><td>The system only creates tasks — every customer contact is you, from your inbox</td></tr>
+    <tr><td><strong>The pause signal</strong></td><td>"PAUSE THE SAVE TOUCHES" in chat = frozen in one click</td></tr>
+  </tbody>
+</table>
+
+<h2>Quick answers</h2>
+<div class="acc">
+  <button onclick="tog(this)"><span>Why did a customer who JUST ordered get a task?</span><span class="tw">›</span></button>
+  <div class="acc-body"><p>They shouldn't — the guard mutes anyone with an open deal. If you ever see this, it's a bug, and it's exactly what the pause signal is for. Say it in chat.</p></div>
+</div>
+<div class="acc">
+  <button onclick="tog(this)"><span>Do I reply to their old order email instead?</span><span class="tw">›</span></button>
+  <div class="acc-body"><p>No. New thread, always. The old thread is about a finished job; burying a check-in there kills it. Your new thread gets added to the retention box so the relationship history stays in one place.</p></div>
+</div>
+<div class="acc">
+  <button onclick="tog(this)"><span>Can I sweeten it with a discount?</span><span class="tw">›</span></button>
+  <div class="acc-body"><p>Never (locked rule). Sweetener = FastPass, a priority slot, or a free mockup. Discounts train customers to go quiet on purpose.</p></div>
+</div>
+<div class="acc">
+  <button onclick="tog(this)"><span>Do I sign the email?</span><span class="tw">›</span></button>
+  <div class="acc-body"><p>No sign-off line in the body — your Gmail signature already carries your name. Ending on the last real sentence is the style.</p></div>
+</div>
+<div class="acc">
+  <button onclick="tog(this)"><span>Who owns which customers?</span><span class="tw">›</span></button>
+  <div class="acc-body"><p>Ownership follows product, same as always: <strong>Shara = bandana</strong>, <strong>Cortney = apparel &amp; Both</strong>. Tasks appear on the boxes in your lane.</p></div>
+</div>
+
+<div class="pa-callout"><strong>Golden rule:</strong> this system exists to make sure no good customer quietly disappears while everyone's busy. It hands you the moment; you bring the relationship. If in doubt about anything — pause, ask Holly.</div>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · Internal Reference</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</div>
+<script>
+function pick(which){
+  document.getElementById('panel-call').classList.toggle('show', which==='call');
+  document.getElementById('panel-email').classList.toggle('show', which==='email');
+  document.getElementById('btn-call').classList.toggle('on', which==='call');
+  document.getElementById('btn-email').classList.toggle('on', which==='email');
+}
+function tog(btn){ btn.parentElement.classList.toggle('open'); }
+</script>
+</body>
+</html>
