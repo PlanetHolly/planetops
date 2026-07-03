@@ -140,6 +140,8 @@
   .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out}
   .lightbox .frame{width:90vw;height:90vh;background:#fff;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
   .lightbox .bigmock{font-size:min(38vh,300px);line-height:1}
+  .zoomwrap{max-width:86vw;max-height:72vh;overflow:hidden;border-radius:8px}
+  .zoomwrap img{display:block;max-width:86vw;max-height:72vh;object-fit:contain;transition:transform .12s ease-out}
   .lightbox .cap{font-family:'Barlow Condensed';font-size:24px;letter-spacing:.03em}
   .lightbox .note{color:var(--grey-text);font-size:13px;text-align:center;max-width:520px}
   .jbody{flex:1;min-width:0}
@@ -381,7 +383,7 @@ function mockFor(j){
 }
 function mockBig(m){
   const t=m.thumb||'';
-  const big=t.replace(/resize=width:\d+,height:\d+/,'resize=width:1400,height:1400');
+  const big=t.replace(/resize=width:\d+,height:\d+/,'resize=width:2000,height:2000');
   return big!==t&&big?big:(m.thumb||m.full);
 }
 function mockTile(j,cls){
@@ -930,9 +932,25 @@ function openLightbox(imp){
   const j=jobs.find(x=>x.imprint===imp);if(!j)return;
   const ov=document.createElement('div');ov.className='lightbox';
   const m=mockFor(j);
-  ov.innerHTML=`<div class="frame">${m?`<img src="${mockBig(m)}" style="max-width:86vw;max-height:74vh;object-fit:contain" alt="">`:`<div class="bigmock">${mockEmoji(j)}</div>`}
+  ov.innerHTML=`<div class="frame">${m?`<div class="zoomwrap"><img src="${mockBig(m)}" alt=""></div>`:`<div class="bigmock">${mockEmoji(j)}</div>`}
     <div class="cap"><b>${j.imprint}</b> — ${j.nickname}</div>
-    <div class="note">${m?'Live mockup from Printavo.':'No mockup on this invoice yet (or the webhook hasn\'t answered).'} Click anywhere or press Esc to close.</div></div>`;
+    <div class="note">${m?'🔍 Click the art to magnify that spot · move to sweep · scroll to zoom deeper · click again to reset.':'No mockup on this invoice yet (or the webhook hasn\'t answered).'} Click outside or press Esc to close.</div></div>`;
+  const wrap=ov.querySelector('.zoomwrap'),img=wrap?wrap.querySelector('img'):null;
+  if(img){
+    let z=1;
+    const setOrigin=e=>{
+      const r=wrap.getBoundingClientRect();
+      const cx=e.touches?e.touches[0].clientX:e.clientX, cy=e.touches?e.touches[0].clientY:e.clientY;
+      const x=Math.max(0,Math.min(100,(cx-r.left)/r.width*100)), y=Math.max(0,Math.min(100,(cy-r.top)/r.height*100));
+      img.style.transformOrigin=x+'% '+y+'%';
+    };
+    const apply=()=>{img.style.transform=z===1?'':'scale('+z+')';wrap.style.cursor=z===1?'zoom-in':'zoom-out';};
+    wrap.style.cursor='zoom-in';
+    wrap.addEventListener('click',e=>{e.stopPropagation();setOrigin(e);z=z===1?3:1;apply();});
+    wrap.addEventListener('mousemove',e=>{if(z>1)setOrigin(e);});
+    wrap.addEventListener('touchmove',e=>{if(z>1){e.preventDefault();setOrigin(e);}},{passive:false});
+    wrap.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();setOrigin(e);z=Math.min(6,Math.max(1,z+(e.deltaY<0?0.75:-0.75)));apply();},{passive:false});
+  }
   ov.addEventListener('click',()=>ov.remove());
   const esc=e=>{if(e.key==='Escape'){ov.remove();document.removeEventListener('keydown',esc);}};
   document.addEventListener('keydown',esc);
