@@ -440,7 +440,7 @@ async function loadMockups(){
   try{
     const inv=[...new Set(jobs.filter(j=>!j.placeholder&&/^\d+$/.test(j.invoice)).map(j=>j.invoice))];
     if(!inv.length)return;
-    const CK='sbmocks_v3';
+    const CK='sbmocks_v4';
     let c=null;try{c=JSON.parse(localStorage.getItem(CK));}catch(e){}
     if(c&&c.ts&&Date.now()-c.ts<12*3600e3&&inv.every(v=>v in (c.map||{}))){mockMap=c.map;renderAll();return;}
     const res=await fetch(MOCKUP_WEBHOOK+'?inv='+inv.join(','));
@@ -543,7 +543,9 @@ function recommendFor(j){
 function shipChip(j){
   if(!j.prodDue||!j.custDue)return '';
   const days=Math.round((new Date(j.custDue+'T12:00:00')-new Date(j.prodDue+'T12:00:00'))/864e5);
-  return `<span class="shipw ${days<=0?'warn':''}" title="Shipping window: days between production due and customer due. Shara's actual ship method (2-day / ground-4…) lives on the invoice — it fills in at the PlanetOps sync.">⇢ ${days}d ship${days<=0?' ⚠':''}</span>`;
+  const e=mockEntry(j);
+  const method=e&&e.ship?String(e.ship).replace(/\s*Shipment$/i,''):null;
+  return `<span class="shipw ${days<=0?'warn':''}" title="${method?escHtml(e.ship)+' (live from the invoice) · ':''}Shipping window: ${days} day${days===1?'':'s'} between production due and customer due.">⇢ ${method?escHtml(method)+' · ':''}${days}d${days<=0?' ⚠':''}</span>`;
 }
 function jobCard(j){
   if(j.placeholder){
