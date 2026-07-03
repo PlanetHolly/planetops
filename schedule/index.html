@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --yellow:#F7BE00; --black:#000; --tonal:#232323; --white:#fff;
+    --grey-bg:#f6f7f9; --grey-line:#e3e6ea; --grey-text:#6b7280;
+    --green:#1fa050; --amber:#e8a200; --red:#d64040;
+    --wb:#2f9fd0; --pl:#e8c132; --dc:#1e5f8a; --ha:#e06060;
+    --cust:#6b5b95; --cust-bg:#f3effa;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Barlow',system-ui,sans-serif;background:var(--grey-bg);color:var(--tonal);font-size:14px}
+  header{background:var(--white);border-bottom:3px solid var(--yellow);padding:14px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-family:'Barlow Condensed';font-weight:700;font-size:30px;letter-spacing:.04em;text-transform:uppercase}
+  header .sub{color:var(--grey-text);font-size:13px}
+  header .stamp{font-size:12px;color:var(--grey-text);background:var(--grey-bg);border:1px solid var(--grey-line);border-radius:6px;padding:4px 10px}
+  header .stamp b{color:var(--tonal)}
+  .proto{background:var(--yellow);color:#000;font-weight:600;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.06em}
+  .toolbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .toolbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
+    border:1px solid var(--grey-line);background:var(--white);padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--tonal)}
+  .toolbar button:hover{border-color:#000}
+  .toolbar button.primary{background:#000;color:var(--yellow);border-color:#000}
+  .sandbox{background:#fdf3d0;border-bottom:1px solid #eedc9a;padding:7px 26px;font-size:12.5px;color:#6b5600}
+  .sandbox b{color:#000}
+
+  nav{display:flex;gap:6px;padding:12px 26px 0;flex-wrap:wrap}
+  nav button{font-family:'Barlow Condensed';font-size:16px;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--grey-line);
+    background:var(--white);padding:7px 16px;border-radius:8px 8px 0 0;cursor:pointer;color:var(--grey-text);border-bottom:none}
+  nav button.on{color:#000;font-weight:600;border-bottom:3px solid var(--yellow);background:var(--white)}
+  main{padding:16px 26px 60px;max-width:1500px}
+
+  /* ── Range controls ── */
+  .controls{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;font-size:13px}
+  .controls .seg{display:flex;border:1px solid var(--grey-line);border-radius:7px;overflow:hidden}
+  .controls .seg button{font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:13.5px;
+    border:none;background:var(--white);padding:6px 14px;cursor:pointer;color:var(--grey-text)}
+  .controls .seg button.on{background:#000;color:var(--yellow)}
+  .controls input[type=date]{font:inherit;border:1px solid var(--grey-line);border-radius:6px;padding:4px 7px;background:var(--white)}
+  .controls .hint{color:var(--grey-text);font-size:12px}
+
+  /* ── Arrivals strip ── */
+  .arrivals{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid var(--yellow);border-radius:10px;margin-bottom:14px;padding:12px 16px}
+  .arrivals h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;display:inline}
+  .arrhead{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
+  .arrhead .dcount{font-size:12px;color:var(--grey-text)}
+  .arrivals.closed .arrbody,.arrivals.closed .hint{display:none}
+  .arrivals.closed .chev{transform:rotate(-90deg)}
+  .arrivals .hint{font-size:12px;color:var(--grey-text);margin-bottom:10px}
+  .arr-row{display:flex;gap:10px;flex-wrap:wrap}
+  .arr-card{border:1px solid var(--grey-line);border-radius:8px;padding:8px 12px;min-width:250px;background:var(--grey-bg)}
+  .arr-card .top{display:flex;gap:8px;align-items:center;margin-bottom:3px}
+  .arr-card .imp{font-family:'Barlow Condensed';font-weight:700;font-size:16px}
+  .arr-badge{font-size:10.5px;font-weight:600;border-radius:4px;padding:2px 7px;letter-spacing:.02em}
+  .arr-transit{background:#e8ddf5;color:#5b3a8a}
+  .arr-awaiting{background:#dcebf7;color:#1e5f8a}
+  .arr-received{background:#ddf2e2;color:#1a7a3d}
+  .arr-card .name{font-size:12.5px;color:var(--tonal);margin-bottom:5px}
+  .arr-card .then{font-size:11.5px;color:var(--grey-text)}
+  .arr-card .then b{color:var(--tonal)}
+  .arr-card select{font:inherit;font-size:11.5px;border:1px solid var(--grey-line);border-radius:5px;padding:2px 4px;margin-top:5px;max-width:100%}
+
+  /* ── Day ROWS (Printavo-style stacked groups) ── */
+  .dayrow{background:var(--white);border:1px solid var(--grey-line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+  .drhead{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;user-select:none;flex-wrap:wrap}
+  .drhead:hover{background:#fbfbfc}
+  .chev{font-size:13px;color:var(--grey-text);width:14px;transition:transform .12s}
+  .dayrow.closed .chev{transform:rotate(-90deg)}
+  .drhead .dname{font-family:'Barlow Condensed';font-weight:700;font-size:19px;text-transform:uppercase;letter-spacing:.04em}
+  .ot-badge{background:var(--yellow);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.05em}
+  .drhead .dcount{font-size:12px;color:var(--grey-text)}
+  .dchips{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .dchip{font-family:'Barlow Condensed';font-weight:600;font-size:12.5px;letter-spacing:.03em;border-radius:5px;padding:2px 9px;border:1.5px solid var(--grey-line);color:var(--grey-text);background:var(--white)}
+  .dchip.okc{border-color:var(--green);color:var(--green)}
+  .dchip.warnc{border-color:var(--amber);color:var(--amber)}
+  .dchip.overc{border-color:var(--red);color:var(--red);background:#fdf0f0}
+  .drbody{border-top:1px solid var(--grey-line);padding:10px 14px}
+  .dayrow.closed .drbody{display:none}
+  .dayrow.dragover{outline:2px dashed var(--yellow);outline-offset:-2px}
+  .openday{color:var(--grey-text);font-size:12.5px;font-style:italic}
+
+  .lane{margin-bottom:12px}
+  .lane:last-child{margin-bottom:0}
+  .lane-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .lane-name{font-family:'Barlow Condensed';font-weight:600;font-size:14.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--tonal)}
+  .cap{font-size:11px;font-weight:600;color:var(--grey-text);cursor:pointer;border-bottom:1px dashed transparent}
+  .cap:hover{border-bottom-color:var(--grey-text)}
+  .cap input{width:52px;font:inherit;border:1px solid var(--yellow);border-radius:4px;padding:0 3px}
+  .capbar{height:5px;border-radius:3px;background:var(--grey-line);overflow:hidden;margin-bottom:8px}
+  .capbar i{display:block;height:100%;border-radius:3px}
+  .ok i{background:var(--green)} .warn i{background:var(--amber)} .over i{background:var(--red)}
+  .cap.okt{color:var(--green)} .cap.warnt{color:var(--amber)} .cap.overt{color:var(--red)}
+  /* one imprint per full-width row — true table-aligned columns */
+  .cardgrid{display:flex;flex-direction:column;gap:6px}
+  .job{display:grid;grid-template-columns:56px minmax(138px,172px) 86px minmax(148px,1fr) 66px minmax(118px,158px) 110px 106px 122px 76px 106px;gap:4px 8px;align-items:center;padding:9px 10px}
+  .cship{white-space:nowrap}
+  .job.ph{background:#fbf7e8;border:1.5px dashed #d9c66a}
+  .job.ph .phref{cursor:text;border-bottom:1px dashed #b9a53e;font-style:italic}
+  .rec{display:inline-block;font-size:11px;font-weight:700;color:#1e5f8a;background:#e3edf6;border-radius:4px;padding:2px 7px;cursor:pointer;margin-top:3px;white-space:nowrap}
+  .rec:hover{outline:1.5px solid #1e5f8a}
+  .rec.late{color:#a33;background:#fdeaea}
+  .rec.none{color:#9aa1ab;background:var(--grey-bg);cursor:default}
+  .rec.none:hover{outline:none}
+  .schedinput{font:inherit;font-size:11.5px;border:1.5px solid var(--grey-line);border-radius:5px;padding:2px 4px;max-width:118px}
+  .chip.pallet{background:#fff;color:var(--tonal);border:1.5px solid #b9bfc7}
+  .lanesum{font-size:11px;color:var(--grey-text);margin:-3px 0 7px;display:flex;gap:12px;flex-wrap:wrap}
+  .lanesum .warn2{color:#a33;font-weight:600}
+  .phbtn{font-family:'Barlow Condensed';font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;border:1.5px dashed #b9a53e;background:#fdf8e3;color:#6b5600;border-radius:6px;padding:3px 10px;cursor:pointer}
+  .phbtn:hover{background:#f7ecc0}
+  .cid{display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-width:0}
+  .cmin{display:flex;align-items:center;gap:3px;white-space:nowrap}
+  .cqty{text-align:right}
+  .cink{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  .cprodc{display:flex;gap:6px;align-items:center;white-space:nowrap}
+  .ccust{justify-self:end}
+  .job .name{margin:0;min-width:0}
+  .job .min{margin-left:0}
+  .dots{margin-left:0}
+  @media(max-width:1330px){.job{display:flex;flex-wrap:wrap}.ccust{margin-left:auto}}
+  .drbody,.arrbody{overflow-x:auto}
+
+  /* ── Job cards ── */
+  .job{border:1px solid var(--grey-line);border-radius:7px;padding:7px 8px;background:var(--white);position:relative;cursor:grab}
+  .job:active{cursor:grabbing}
+  .job.dragging{opacity:.4}
+  .job.split{border-left:3px solid var(--yellow)}
+  .job.moved{box-shadow:0 0 0 2px #cfe6ff inset}
+  .jgrid{display:flex;gap:8px}
+  .mock{width:56px;height:56px;border-radius:7px;background:var(--grey-bg);border:1px solid var(--grey-line);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;cursor:zoom-in}
+  .mock:hover{border-color:#000}
+  .mock.lg{width:150px;height:150px;font-size:68px}
+  /* mockup lightbox — 90% full screen for the production team */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out}
+  .lightbox .frame{width:90vw;height:90vh;background:#fff;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+  .lightbox .bigmock{font-size:min(38vh,300px);line-height:1}
+  .lightbox .cap{font-family:'Barlow Condensed';font-size:24px;letter-spacing:.03em}
+  .lightbox .note{color:var(--grey-text);font-size:13px;text-align:center;max-width:520px}
+  .jbody{flex:1;min-width:0}
+  .job .r1{display:flex;align-items:center;gap:6px}
+  .job .imp{font-family:'Barlow Condensed';font-weight:700;font-size:15px;white-space:nowrap}
+  .job .min{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--tonal);white-space:nowrap;cursor:pointer;border-bottom:1px dashed #aab}
+  .job .min input,.chip.qty input{width:48px;font:inherit;border:1px solid var(--yellow);border-radius:4px;padding:0 3px}
+  .splitbtn{border:none;background:none;cursor:pointer;font-size:13px;color:var(--grey-text);padding:0 2px}
+  .splitbtn:hover{color:#000}
+  .job .name{font-size:12px;color:var(--tonal);line-height:1.25;margin:2px 0 4px}
+  .job .r3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .chip{font-size:10px;font-weight:600;padding:1.5px 6px;border-radius:4px;color:#fff;letter-spacing:.02em}
+  .chip.qty{background:var(--grey-bg);color:var(--grey-text);border:1px solid var(--grey-line)}
+  .chip.qty.editable{cursor:pointer;border-bottom:1px dashed #aab}
+  .chip.out{background:var(--tonal)}
+  .dots{display:flex;gap:2.5px;margin-left:auto}
+  .dot{width:7px;height:7px;border-radius:2px;background:var(--grey-line)}
+  .dot.done{background:var(--green)} .dot.pause{background:var(--red)}
+  .splitnote{font-size:10px;color:#8a6d00;background:#fdf3d0;border-radius:4px;padding:1px 6px;font-weight:600}
+  .movednote{font-size:10px;color:#1e5f8a;background:#dcebf7;border-radius:4px;padding:1px 6px;font-weight:600}
+  /* due/date row: SCHED+PROD left · PRINTED · CUST hard right in its own palette */
+  .dues{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;align-items:center}
+  .due{font-family:'Barlow Condensed';font-weight:700;font-size:13.5px;letter-spacing:.03em;border-radius:5px;padding:3px 10px}
+  .due.sched{background:var(--grey-bg);border:1px solid var(--grey-line);color:var(--grey-text)}
+  .due.prod{background:#000;color:#fff}
+  .due.late{background:var(--red);color:#fff}
+  .printed{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--green)}
+  .shipw{font-family:'Barlow Condensed';font-weight:600;font-size:12.5px;letter-spacing:.02em;color:var(--grey-text);white-space:nowrap}
+  .shipw.warn{color:var(--red);font-weight:700}
+  .due.cust{margin-left:auto;background:#fff;border:2px solid #000;color:#000}
+  .ddbtn{font-family:'Barlow Condensed';font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;border:1px dashed #b9bfc7;background:#fff;color:var(--grey-text);border-radius:4px;padding:1px 6px;cursor:pointer}
+  .ddbtn.on{background:#8a5a00;border:1px solid #8a5a00;color:#fff}
+  /* arrivals: ETA + tracking sub-bar */
+  .etabar{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px dashed var(--grey-line);margin-top:6px;padding-top:6px;font-size:12px}
+  .etalab{font-family:'Barlow Condensed';font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--grey-text);text-transform:uppercase}
+  .due.eta{background:#000;color:#fff;cursor:pointer}
+  .due.eta.late{background:var(--red)}
+  .trkinput{font:inherit;font-size:12px;border:1.5px solid var(--grey-line);border-radius:5px;padding:2px 6px;width:190px}
+  .trk{color:#1e5f8a;font-weight:600;text-decoration:none}
+  .trk:hover{text-decoration:underline}
+  .etabar select{font:inherit;font-size:12px;border:1px solid var(--grey-line);border-radius:5px;padding:2px 4px}
+  .readylab{font-size:11.5px;color:var(--grey-text);display:flex;gap:3px;align-items:center;cursor:pointer}
+  .arrdate{display:flex;align-items:center;gap:8px;margin:12px 0 6px;padding-bottom:3px;border-bottom:2px solid var(--grey-line)}
+  .arrdate .adname{font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:.04em;text-transform:uppercase}
+  .arrdate.nodate .adname{color:var(--grey-text)}
+  .arrdate .dcount{font-size:12px;color:var(--grey-text)}
+  /* pickups list (Jackie) */
+  .pkrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--grey-line);border-radius:8px;background:var(--white);padding:9px 12px;margin-bottom:7px}
+  .pkrow.ready{border-left:5px solid var(--green)}
+  .ready-badge{background:var(--green);color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.04em;border-radius:4px;padding:2px 8px}
+  .pkrow .imp{font-family:'Barlow Condensed';font-weight:700;font-size:16px}
+  .pkrow .note{font-weight:600}
+  .pkrow .meta{color:var(--grey-text);font-size:12px}
+  /* QC gate chip */
+  .qcchip{font-family:'Barlow Condensed';font-size:11px;font-weight:700;letter-spacing:.04em;border:1.5px dashed #b9bfc7;color:var(--grey-text);background:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;margin-top:3px;display:inline-block}
+  .qcchip.on{border:1.5px solid var(--green);background:#ddf2e2;color:#1a7a3d}
+  .qcchip input{width:64px;font:inherit;border:1px solid var(--yellow);border-radius:4px;padding:0 3px}
+  .cdots{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .arrivedn{background:#ddf2e2 !important;color:#1a7a3d !important}
+  /* search + flash */
+  #searchbox{font:inherit;font-size:13px;border:1.5px solid var(--grey-line);border-radius:7px;padding:6px 10px;width:190px}
+  #searchbox:focus{border-color:#000;outline:none}
+  .flash{animation:flashk 2.4s}
+  @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
+  .arrsub{margin-bottom:8px}
+  .csched{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+  .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background:#fffdf2}
+  .lane-head{cursor:pointer;user-select:none}
+  .lane-head .chev{font-size:11px}
+  .lane.lclosed .chev{transform:rotate(-90deg)}
+  .histdiv{font-family:'Barlow Condensed';font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--grey-text);margin:14px 0 6px}
+  /* expanded panel */
+  .xpanel{border-top:1px dashed var(--grey-line);margin-top:7px;padding-top:8px;display:flex;gap:12px;cursor:default;grid-column:1/-1;width:100%}
+  .xmeta{flex:1;font-size:12px;line-height:1.55}
+  .xmeta b{font-family:'Barlow Condensed';font-size:13px;letter-spacing:.03em;text-transform:uppercase}
+  .xmeta .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px 12px;margin:4px 0}
+  .xmeta .steps span{white-space:nowrap}
+  .xmeta select{font:inherit;font-size:12px;border:1px solid var(--grey-line);border-radius:5px;padding:2px 5px}
+  .xmeta a{color:#1e5f8a;font-weight:600;text-decoration:none}
+  .xmeta a:hover{text-decoration:underline}
+  .xgrid{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:12.5px;margin:5px 0}
+  .xgrid span:nth-child(odd){color:var(--grey-text);font-weight:600;white-space:nowrap}
+  .xdetails{flex:0 0 320px;border-left:1px dashed var(--grey-line);padding-left:14px;font-size:12.5px;line-height:1.6}
+  .xdetails b{font-family:'Barlow Condensed';font-size:13px;letter-spacing:.03em;text-transform:uppercase}
+  .pending{color:#9aa1ab;font-style:italic}
+  .pending-note{color:#9aa1ab;font-size:11px}
+
+  /* ── Unscheduled + List + Changes ── */
+  .tray{background:var(--white);border:1px dashed #c9ced6;border-radius:10px;margin-top:14px;padding:12px 16px}
+  .tray h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+  .tray .arr-row .arr-card{background:var(--white)}
+  table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--grey-line);border-radius:10px;overflow:hidden}
+  th{font-family:'Barlow Condensed';text-transform:uppercase;letter-spacing:.05em;font-size:13.5px;text-align:left;background:var(--grey-bg);padding:8px 10px;border-bottom:2px solid var(--grey-line)}
+  th[data-sort]{cursor:pointer;user-select:none;white-space:nowrap}
+  th[data-sort]:hover{color:#000;background:#eef0f3}
+  th.sorted{color:#000;border-bottom-color:#000}
+  td{padding:7px 10px;border-bottom:1px solid var(--grey-line);font-size:12.5px;vertical-align:middle}
+  td.custcol{background:#f2f2f2;color:#000;font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .tablewrap{overflow-x:auto;border-radius:10px}
+  .changes{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid #2f9fd0;border-radius:10px;margin-bottom:14px;padding:12px 16px}
+  .changes h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+  .changes ol{margin:0 0 10px 20px;font-size:13px;line-height:1.7}
+  .changes .none{color:var(--grey-text);font-size:13px}
+  .changes button{font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;border:1px solid var(--grey-line);padding:6px 14px;border-radius:7px;cursor:pointer}
+  .changes button.dl{background:#000;color:var(--yellow);border-color:#000}
+  footer{padding:14px 26px;color:var(--grey-text);font-size:11.5px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Schedule</h1>
+  <span class="proto">PROTOTYPE · SANDBOX</span>
+  <span class="sub">One board. Every station. Arrivals included.</span>
+  <span class="stamp" id="stamp"></span>
+  <span class="toolbar">
+    <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
+    <button id="importBtn" class="primary">⬆ Import CSV</button>
+    <button id="changesBtn">📝 Changes (0)</button>
+    <button id="backupBtn">💾 Backup</button>
+    <button id="resetBtn">↺ Reset</button>
+  </span>
+  <input type="file" id="fileInput" accept=".csv" style="display:none">
+</header>
+<div class="sandbox"><b>Sandbox:</b> drag jobs between day rows · click a day header to collapse it · click <b>minutes</b> to set projected time · click a lane's <b>x/420</b> to change that day's max · ⧉ splits (click a split's <b>pcs/min</b> to rebalance) · ↩ rejoins · click a card to expand. Changes live ONLY here — <b>📝 Changes</b> is Jean's apply-in-Printavo checklist.</div>
+
+<nav id="tabs"></nav>
+<main id="main"></main>
+
+<footer>
+  Planet Apparel · Schedule prototype · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
+  ✓ PRINTED appears when an imprint's Printing/Heat step reads Completed in the export; the actual printed-on DATE comes from Printavo's schedule history via the internal-endpoint feed (production-efficiency data) at PlanetOps integration.
+</footer>
+
+<script type="text/csv" id="csvdata">"Minutes","Quantity","Prod. Date","Station","Imprint","Nickname","Prod. Due","Cust. Due","Project Type","Screen Count","Ink Change","Ink/Application Type","Pallet","Post Production Type","Films","Burn Screens","Blanks","Inks","Press Check (If Applicable)","Setup","Printing / Heat Application","Post Production","Invoice Status"
+"28","4","","","27386 - 1","REPRINT Smol Fries Apparel Print","2026-07-07","2026-07-08","Apparel","1","None","Waterbase","16""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Paid / Terms - Blanks To Order 👕  (📨Jean / Luis) "
+"28","4","","","27386 - 2","REPRINT Smol Fries Apparel Print","2026-07-07","2026-07-08","Apparel","1","None","Waterbase","16""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Paid / Terms - Blanks To Order 👕  (📨Jean / Luis) "
+"","90","","","27390 - 1","REORDER Mutt Hut Lg Triangle Bandana","2026-07-13","2026-07-20","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Paid / Terms - Blanks To Order 👕  (📨Jean / Luis) "
+"","505","","","26574 - 1","Hell Hound / Yule Cat Bandana Prints (PO 8831)","2026-07-31","2026-08-14","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"","505","","","26574 - 2","Hell Hound / Yule Cat Bandana Prints (PO 8831)","2026-07-31","2026-08-14","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"","505","","","26574 - 3","Hell Hound / Yule Cat Bandana Prints (PO 8831)","2026-07-31","2026-08-14","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"","254","","","26504 - 4","Pet + Owner Keychain & Charm Set (PO 8830)","2026-08-14","2026-08-21","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Goods (Outsourced - In Production)👕"
+"","514","","","27045 - 2","National Coffee Day / Flavor Skull Stir Sticks (PO 8737)","2026-09-08","2026-09-15","Select Project Status","0","None","N/A","N/A","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Goods (Outsourced - In Production)👕"
+"40","48","2026-07-06","Auto Press (In Season)","27068 - 1","50th Anniversary Bandana","2026-07-07","2026-07-08","Bandana","1","None","Waterbase","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"48","80","2026-07-06","Auto Press (In Season)","27109 - 1","Last Heat Verano Film Bandana","2026-07-07","2026-07-08","Bandana","1","None","Plastisol","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"45","48","2026-07-06","Auto Press (In Season)","27158 - 1","Garden Grow Bandana","2026-07-07","2026-07-08","Bandana","1","None","Discharge","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"70","72","2026-07-06","Auto Press (In Season)","27161 - 1","Rosy Moth Bandana","2026-07-06","2026-07-10","Bandana","2","None","Plastisol","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"60","100","2026-07-06","Auto Press (In Season)","27190 - 1","REORDER G Bandana","2026-07-08","2026-07-14","Bandana","1","None","Plastisol","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"45","48","2026-07-06","Auto Press (In Season)","26879 - 1","Rosie's Organic Bandana","2026-07-07","2026-07-09","Bandana","1","None","Waterbase","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"57","100","2026-07-06","Auto Press (In Season)","27304 - 1","REORDER Santa Teresa Bandana","2026-07-08","2026-07-10","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"13","150","2026-07-06","Post Production","27074 - 2","Decked Sublimated Gaiter Bandana","2026-07-08","2026-07-10","Select Project Status","0","None","N/A","N/A","Packaging (Bandana)","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","✈️🚀 In Transit to PA (Outsourced - In Production)"
+"10","50","2026-07-06","Post Production","27364 - 2","Topographical Sublimated Bandana","2026-07-06","2026-07-07","Select Project Status","0","None","N/A","N/A","Packaging (Bandana)","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Goods (Outsourced - In Production)👕"
+"20","200","2026-07-06","Post Production","27257 - 2","REORDER Ride Anywhere Sublimated Bandana","2026-07-06","2026-07-09","Select Project Status","0","None","N/A","N/A","Packaging (Bandana)","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Completed","🚀 Order Shipped ✈️ 🏁"
+"45","48","2026-07-07","Auto Press (In Season)","27130 - 1","Rosie's USA Made Bandana","2026-07-07","2026-07-09","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"180","400","2026-07-07","Auto Press (In Season)","27290 - 1","Jameson USA Made Bandana","2026-07-07","2026-07-08","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"41","50","2026-07-07","Auto Press (In Season)","27230 - 1","Prodigy Camp 2026 USA Made Bandana","2026-07-08","2026-07-09","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"125","250","2026-07-07","Auto Press (In Season)","27183 - 1","Chartreuse 2026 USA Made Bandana","2026-07-08","2026-07-14","Bandana","1","None","Discharge","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"225","500","2026-07-08","Auto Press (OT)","26839 - 1","Redwoods Discovery USA Made Bandana","2026-07-08","2026-07-10","Bandana","1","None","Discharge","22""","N/A","Completed","Completed","Not Started","Not Started","Not Started","Pause","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"420","1100","2026-07-08","Auto Press (OT)","27073 - 1","Decked USA Made Bandana","2026-07-08","2026-07-10","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"41","104","2026-07-08","Heat Press","27011 - 27","I&V Icon Embroidered Apparel (June 2026)","2026-07-08","2026-07-13","Apparel","0","None","Heat Applied - Apparel","4""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Goods Received 👕"
+"97","73","2026-07-08","Heat Press","27204 - 1","Vertica Tank DTF","2026-07-10","2026-07-10","Apparel","0","None","Heat Applied - Apparel","16""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"11","26","2026-07-08","Post Production","27010 - 26","Small But Savage Skeleton T-Shirt Print (June 2026)","2026-07-08","2026-07-13","Select Project Status","0","None","N/A","N/A","Hang Tag","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","🚧 In Production 🚧🔧"
+"42","100","2026-07-08","Post Production","27011 - 26","I&V Icon Embroidered Apparel (June 2026)","2026-07-08","2026-07-13","Select Project Status","0","None","N/A","N/A","Hang Tag","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Goods Received 👕"
+"40","96","2026-07-08","Post Production","27005 - 26","Motorcycle Club Apparel Print (June 2026)","2026-07-08","2026-07-13","Select Project Status","0","None","N/A","N/A","Hang Tag","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","📦 Production Completed - Ready to Package 📦"
+"10","3000","2026-07-08","Post Production","27154 - 2","I&V Hem Tags (Manufacturing only) (June 2026)","2026-07-08","2026-07-08","Select Project Status","0","None","N/A","N/A","Packaging (Apparel)","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Goods (Outsourced - In Production)👕"
+"100","200","2026-07-09","Auto Press (In Season)","26941 - 1","Playmakers 2026 Bandana","2026-07-09","2026-07-15","Bandana","1","None","Plastisol","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"40","48","2026-07-09","Auto Press (In Season)","27221 - 1","Camp Lopez USA Made Bandana","2026-07-09","2026-07-13","Bandana","1","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"280","600","2026-07-09","Auto Press (In Season)","27099 - 1","Gaia Herbs USA Made Bandana","2026-07-10","2026-07-16","Bandana","2","None","Waterbase","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"45","72","2026-07-10","Auto Press (In Season)","27388 - 1","REPRINT Wert & Company Bandana","2026-07-10","2026-07-14","Bandana","1","None","Plastisol","22""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"40","24","2026-07-10","Auto Press (In Season)","27387 - 1","REPRINT The Rose Bandana","2026-07-10","2026-07-14","Bandana","1","None","Discharge","22""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"60","72","2026-07-10","Auto Press (In Season)","27346 - 1","REORDER Pine Barren USA Made Bandana","2026-07-13","2026-07-17","Bandana","1","None","Waterbase","22""","N/A","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"38","48","2026-07-10","Auto Press (In Season)","27341 - 1","Spirited Family Bandana","2026-07-13","2026-07-14","Bandana","1","None","Plastisol","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"
+"38","48","2026-07-10","Auto Press (In Season)","27243 - 1","Athenaeum USA Made Bandana","2026-07-13","2026-07-15","Bandana","1","None","Plastisol","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Blanks to Pull from Inventory 👕"
+"118","300","2026-07-10","Auto Press (In Season)","27172 - 1","OG Extracts Bandana","2026-07-14","2026-07-16","Bandana","1","None","Plastisol","22""","N/A","Completed","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","Not Started","👕 Awaiting Blanks 👕"</script>
+
+<script>
+/* ───────── CSV parsing ───────── */
+function parseCSV(text){
+  const rows=[];let row=[],cell='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else inQ=false; }
+      else cell+=c;
+    }else{
+      if(c==='"') inQ=true;
+      else if(c===','){row.push(cell);cell='';}
+      else if(c==='\n'){row.push(cell);cell='';if(row.some(x=>x!==''))rows.push(row);row=[];}
+      else if(c!=='\r') cell+=c;
+    }
+  }
+  if(cell!==''||row.length){row.push(cell);if(row.some(x=>x!==''))rows.push(row);}
+  return rows;
+}
+
+/* ───────── Sandbox state ───────── */
+const KEY='sbproto_v1';
+let store;
+try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
+store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},range:{mode:'week',start:null,end:null},exported:true},store);
+const todayISO=()=>new Date().toLocaleDateString('en-CA');
+function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();}
+
+/* ───────── Constants ───────── */
+const LANES=[
+  {key:'auto',label:'Auto Press',cap:420,otCap:600,match:s=>s.startsWith('Auto Press'),printavo:'Auto Press (In Season)'},
+  {key:'heat',label:'Heat Press',cap:120,match:s=>s==='Heat Press',printavo:'Heat Press'},
+  {key:'manual',label:'Manual Press',cap:120,match:s=>s==='Manual Press',printavo:'Manual Press'},
+  {key:'post',label:'Post Production',cap:240,match:s=>s==='Post Production',printavo:'Post Production'},
+  {key:'ship',label:'Shipping',cap:120,match:s=>s==='Shipping',printavo:'Shipping'},
+];
+const laneOf=s=>LANES.find(l=>l.match(s||''))||null;
+const OUTSOURCED=/Outsourced|In Transit to PA|Goods Received/i;
+function outBadge(st){
+  if(/In Transit to PA/i.test(st))return{cls:'arr-transit',txt:'✈ IN TRANSIT'};
+  if(/Goods Received/i.test(st))return{cls:'arr-received',txt:'✓ RECEIVED'};
+  if(/Awaiting Goods/i.test(st))return{cls:'arr-awaiting',txt:'⏳ AT VENDOR'};
+  return null;
+}
+const INK={Waterbase:'var(--wb)',Plastisol:'var(--pl)',Discharge:'var(--dc)'};
+const inkColor=i=>/Heat Applied/.test(i)?'var(--ha)':(INK[i]||'#9aa1ab');
+const cleanStatus=s=>s.replace(/[👕🚀✈️🏁🚧🔧📦📨]/g,'').replace(/\s+/g,' ').trim();
+const fmtDay=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?'—':dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});};
+const fmtShort=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?'—':dt.toLocaleDateString('en-US',{weekday:'short'})+' '+(dt.getMonth()+1)+'/'+dt.getDate();};
+const iso=dt=>dt.toISOString().slice(0,10);
+const mockEmoji=j=>j.projectType==='Bandana'?'🧣':j.projectType==='Apparel'?'👕':'📦';
+const isPrinted=j=>j.steps.find(s=>s.name==='Printing / Heat Application')?.v==='Completed';
+function capFor(lane,date,isOT){
+  const o=store.caps[date+'|'+lane.key];
+  if(o)return o;
+  return (lane.key==='auto'&&isOT)?lane.otCap:lane.cap;
+}
+
+/* ───────── Model ───────── */
+let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=false,collapsedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
+const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
+function rowToJob(r,hdr){
+  const g=name=>{const i=hdr.indexOf(name);return i>=0?(r[i]||''):'';};
+  const imp=g('Imprint').trim();
+  const m=imp.match(/^(\d+)\s*-\s*(\d+)([a-z])?$/i);
+  return {
+    minutes:+g('Minutes')||0, qty:+g('Quantity')||0,
+    date:g('Prod. Date'), station:g('Station'),
+    imprint:imp, invoice:m?m[1]:imp, impNum:m?m[2]:'', splitLetter:m&&m[3]?m[3].toLowerCase():'',
+    parentKey:m?`${m[1]}-${m[2]}`:imp,
+    nickname:g('Nickname'), prodDue:g('Prod. Due'), custDue:g('Cust. Due'),
+    projectType:g('Project Type'), screens:g('Screen Count'), inkChange:g('Ink Change'),
+    ink:g('Ink/Application Type'), pallet:g('Pallet'), postProdType:g('Post Production Type'),
+    steps:['Films','Burn Screens','Blanks','Inks','Press Check (If Applicable)','Setup','Printing / Heat Application','Post Production']
+      .map(s=>({name:s.replace(' (If Applicable)',''),v:g(s)})),
+    status:g('Invoice Status').trim(), localSplit:false, moved:false,
+  };
+}
+function buildModel(){
+  const text=store.csvText||document.getElementById('csvdata').textContent.trim();
+  const raw=parseCSV(text), hdr=raw[0];
+  let base=raw.slice(1).map(r=>rowToJob(r,hdr));
+  jobs=[];
+  base.forEach(j=>{
+    if(store.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=store.minutesEdit[j.imprint];}
+    const sp=store.splits[j.imprint];
+    if(sp&&!j.splitLetter){
+      const n=sp.parts, qEach=Math.round(j.qty/n), mEach=Math.round(j.minutes/n);
+      for(let k=0;k<n;k++){
+        const c=Object.assign({},j,{steps:j.steps});
+        c.splitOf=j.imprint;
+        c.splitLetter=String.fromCharCode(97+k);
+        c.imprint=j.imprint+c.splitLetter;
+        c.qty=k===n-1?j.qty-qEach*(n-1):qEach;
+        c.minutes=k===n-1?j.minutes-mEach*(n-1):mEach;
+        const al=store.alloc[c.imprint];
+        if(al){if(al.qty!=null)c.qty=al.qty;if(al.min!=null)c.minutes=al.min;}
+        c.localSplit=true;
+        jobs.push(c);
+      }
+    } else jobs.push(j);
+  });
+  jobs.forEach(j=>{
+    j.csvDate=j.date;j.csvPtype=j.projectType;j.csvPptype=j.postProdType;
+    const st=store.stations[j.imprint];if(st){j.stationOrig=j.station;j.station=st;j.stationAssigned=true;}
+    const mv=store.moves[j.imprint];
+    if(mv!==undefined&&mv!==j.csvDate){j.origDate=j.csvDate;j.date=mv;j.moved=true;}
+    const pt=store.ptype[j.imprint];if(pt)j.projectType=pt;
+    const pp=store.pptype[j.imprint];if(pp!==undefined)j.postProdType=pp||'N/A';
+  });
+  (store.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
+  fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
+  unscheduled=jobs.filter(j=>!j.date);
+  arrivals=jobs.filter(j=>OUTSOURCED.test(j.status));
+}
+function scheduledDates(){return [...new Set(jobs.filter(j=>j.date).map(j=>j.date))].sort();}
+function dateRange(){
+  const sched=scheduledDates();
+  if(store.range.mode==='custom'&&store.range.start&&store.range.end){
+    const out=[];let d=new Date(store.range.start+'T12:00:00');const end=new Date(store.range.end+'T12:00:00');
+    let guard=0;
+    while(d<=end&&guard++<42){out.push(iso(d));d.setDate(d.getDate()+1);}
+    return out;
+  }
+  const anchor=sched[0]?new Date(sched[0]+'T12:00:00'):new Date('2026-07-06T12:00:00');
+  const mon=new Date(anchor);mon.setDate(anchor.getDate()-((anchor.getDay()+6)%7));
+  return Array.from({length:5},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return iso(d);});
+}
+
+/* ───────── Recommendation (Jean's habit: on the due date, or the closest earlier day with room) ───────── */
+function usedMin(lane,d){return jobs.filter(x=>x.date===d&&laneOf(x.station)===lane).reduce((a,x)=>a+x.minutes,0);}
+function freeMin(lane,d){const isOT=jobs.some(x=>x.date===d&&/\(OT\)/.test(x.station));return capFor(lane,d,isOT)-usedMin(lane,d);}
+function recommendFor(j){
+  const lane=laneOf(j.station);
+  if(!lane||!j.minutes)return null;
+  const days=dateRange();
+  const onOrBefore=days.filter(d=>!j.prodDue||d<=j.prodDue);
+  for(const d of onOrBefore.slice().reverse()){if(freeMin(lane,d)>=j.minutes)return{date:d,free:freeMin(lane,d),late:false};}
+  for(const d of days.filter(d=>j.prodDue&&d>j.prodDue)){if(freeMin(lane,d)>=j.minutes)return{date:d,free:freeMin(lane,d),late:true};}
+  return null;
+}
+
+/* ───────── Renderers ───────── */
+function shipChip(j){
+  if(!j.prodDue||!j.custDue)return '';
+  const days=Math.round((new Date(j.custDue+'T12:00:00')-new Date(j.prodDue+'T12:00:00'))/864e5);
+  return `<span class="shipw ${days<=0?'warn':''}" title="Shipping window: days between production due and customer due. Shara's actual ship method (2-day / ground-4…) lives on the invoice — it fills in at the PlanetOps sync.">⇢ ${days}d ship${days<=0?' ⚠':''}</span>`;
+}
+function jobCard(j){
+  if(j.placeholder){
+    return `<div class="job ph" draggable="true" data-imp="${j.imprint}">
+      <div class="mock" style="cursor:default">⏳</div>
+      <div class="cid"><span class="imp">PLACEHOLDER</span><span class="splitnote">reserved time</span></div>
+      <div class="cmin"><span class="min" data-min="${j.imprint}" title="Click to change the reserved minutes">${j.minutes} min</span></div>
+      <div class="name phref" data-phref="${j.imprint}" title="Click to describe what you expect to land in this slot">${j.nickname}</div>
+      <div class="cqty"></div>
+      <div class="cink"><select data-phlane="${j.imprint}" title="Which station this reserves time on">${LANES.map(l=>`<option value="${l.printavo}" ${l.printavo===j.station?'selected':''}>${l.label}</option>`).join('')}</select></div>
+      <div class="cdots"></div><div class="csched"></div><div class="cprodc"></div><div class="cship"></div>
+      <div class="ccust"><button class="splitbtn" data-phdel="${j.imprint}" title="Remove placeholder">✕</button></div>
+    </div>`;
+  }
+  const dots=j.steps.map(s=>`<span class="dot ${s.v==='Completed'?'done':s.v==='Pause'?'pause':''}" title="${s.name}: ${s.v}"></span>`).join('');
+  const ob=outBadge(j.status);
+  const sibs=fam[j.parentKey];
+  const splitNum=j.splitLetter?j.splitLetter.charCodeAt(0)-96:0;
+  const dd=j.localSplit&&store.alloc[j.imprint]?.dd;
+  const split=j.splitLetter?`<span class="splitnote">Split ${splitNum} of ${sibs}</span>${j.localSplit?`<button class="ddbtn ${dd?'on':''}" data-dd="${j.imprint}" title="Mark this split as reserved for DOUBLE DRYING (second pass through the dryer)">${dd?'✓ double dry':'dry ×2?'}</button>`:''}`:'';
+  const moved=j.moved?`<span class="movednote">moved · was ${fmtShort(j.origDate)}</span>`:'';
+  const canSplit=!j.splitLetter;
+  const isX=expanded.has(j.imprint);
+  const late=j.date&&j.prodDue&&j.date>j.prodDue;
+  const qtyChip=j.localSplit
+    ?`<span class="chip qty editable" data-qty="${j.imprint}" title="Click to rebalance this split's quantity">${j.qty} pcs</span>`
+    :`<span class="chip qty">${j.qty} pcs</span>`;
+  return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
+    <div class="mock" title="Mockup — live version pulls the real image from Printavo">${mockEmoji(j)}</div>
+    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
+    <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
+      ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
+      ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}</div>
+    <div class="name">${j.nickname}</div>
+    <div class="cqty">${qtyChip}</div>
+    <div class="cink">
+      ${j.ink&&j.ink!=='N/A'?`<span class="chip" style="background:${inkColor(j.ink)}">${j.ink.replace(' - Apparel','')}</span>`:''}
+      ${j.pallet&&j.pallet!=='N/A'?`<span class="chip pallet" title="Pallet size — production sequences the day to minimize pallet switches">${j.pallet}</span>`:''}
+      ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${j.postProdType}</span>`:''}
+      ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
+    <div class="cdots"><span class="dots">${dots}</span><span class="qcchip ${store.qc[j.imprint]?'on':''}" data-qc="${j.imprint}" title="QC gate — every project gets signed off by SOMEBODY. Click to enter who.">${store.qc[j.imprint]?'QC ✓ '+store.qc[j.imprint].by:'QC —'}</span></div>
+    <div class="csched">${j.date
+      ?`<span class="due sched" title="Scheduled production date">SCHED ${fmtShort(j.date)}</span>`
+      :(()=>{const rec=recommendFor(j);
+        const stSel=!laneOf(j.station)?`<select data-station="${j.imprint}" title="Step 1 — which station runs this? Then minutes, then the date.">
+          <option value="">station?</option>${LANES.map(l=>`<option value="${l.printavo}">${l.label}</option>`).join('')}</select>`:'';
+        return `${stSel}<input type="date" class="schedinput" data-schedule="${j.imprint}" title="Pick the production date — the row jumps onto that day (Jean's last step)">
+        ${rec?`<span class="rec ${rec.late?'late':''}" data-place="${j.imprint}|${rec.date}" title="Closest day to the due date with room: ${rec.free} min free after placing. Click to place.">⚡ fits ${fmtShort(rec.date)}${rec.late?' · after due ⚠':''}</span>`
+             :(laneOf(j.station)?`<span class="rec none">${!j.minutes?'add minutes first':'no room in range'}</span>`:'')}`;})()}</div>
+    <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
+    <div class="cship">${shipChip(j)}</div>
+    <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
+    ${(OUTSOURCED.test(j.status)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
+    ${isX?xPanel(j):''}
+  </div>`;
+}
+function etaBar(j){
+  const imp=j.imprint,eta=store.eta[imp],trk=store.tracking[imp];
+  const lateEta=eta&&j.date&&eta>j.date;
+  const etaHtml=(eta&&!etaEditing.has(imp))
+    ?`<span class="due eta ${lateEta?'late':''}" data-etaedit="${imp}" title="Estimated arrival at production — click to change${lateEta?'. Arrives AFTER its scheduled work day!':''}">${fmtShort(eta)}${lateEta?' ⚠ after sched day':''}</span>`
+    :`<input type="date" class="schedinput" data-eta="${imp}" value="${eta||''}" title="When do we expect this at the building?">`;
+  const trkHtml=(trk&&!trkEditing.has(imp))
+    ?`<a class="trk" href="https://www.google.com/search?q=${encodeURIComponent(trk)}" target="_blank" rel="noopener" title="Quick-track (Google recognizes most carrier numbers)">${trk} ↗</a><button class="splitbtn" data-trkedit="${imp}" title="Edit tracking number">✎</button>`
+    :`<input type="text" class="trkinput" data-trk="${imp}" value="${(trk||'').replace(/"/g,'&quot;')}" placeholder="paste tracking #">`;
+  const m=store.method[imp]||{};
+  const ad=store.arrived[imp];
+  const arrivedHtml=(ad&&!arrEditing.has(imp))
+    ?`<span class="due eta" style="background:var(--green)" data-arredit="${imp}" title="Actually arrived — click to change the date. The row lives under this date in the ARRIVED history.">📦 ARRIVED ${fmtShort(ad)}</span>`
+    :(arrEditing.has(imp)
+      ?`<input type="date" class="schedinput" data-arrdate="${imp}" value="${ad||todayISO()}" title="The day it actually arrived (clear to un-mark)">`
+      :`<button class="phbtn" style="padding:2px 8px" data-arrmark="${imp}" title="It's here — stamps today's date; the row moves out of pending into that date's ARRIVED group">✓ arrived</button>`);
+  return `<div class="etabar">
+    <span class="etalab">📦 Est. arrival</span>${etaHtml}
+    ${arrivedHtml}
+    <span class="etalab" style="margin-left:14px">Tracking</span>${trkHtml}
+    <span class="etalab" style="margin-left:14px">Vendor / return</span>
+    <select data-method="${imp}" title="How does this get back to us? Pickup/DTF-tagged items appear on Jackie's Pickups list.">
+      <option value="">—</option>
+      <option value="pickup" ${m.t==='pickup'?'selected':''}>🚗 Pickup required</option>
+      <option value="deliver" ${m.t==='deliver'?'selected':''}>🚚 Deliver to customer</option>
+      <option value="ship" ${m.t==='ship'?'selected':''}>📦 Ships back</option>
+      <option value="dtf" ${m.t==='dtf'?'selected':''}>🎞 DTF transfers</option>
+    </select>
+    ${m.t?`<input type="text" class="trkinput" style="width:190px" data-mnote="${imp}" value="${(m.note||'').replace(/"/g,'&quot;')}" placeholder="vendor (who's producing) · PO · tag">`:''}
+    ${m.t==='pickup'||m.t==='dtf'?`<label class="readylab"><input type="checkbox" data-mready="${imp}" ${m.ready?'checked':''}>ready now</label>`:''}
+  </div>`;
+}
+function xPanel(j){
+  const steps=j.steps.map(s=>`<span>${s.v==='Completed'?'🟩':s.v==='Pause'?'🟥':s.v==='Started'?'🟨':'⬜'} ${s.name}</span>`).join('');
+  const sel=`<select data-station="${j.imprint}"><option value="">— assign station —</option>
+    ${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select>`;
+  return `<div class="xpanel" data-noexpand="1">
+    <div class="mock lg" title="Click to view at 90% full screen">${mockEmoji(j)}</div>
+    <div class="xmeta">
+      <b>Invoice ${j.invoice} · Imprint ${j.impNum}${j.splitLetter||''}</b> — ${j.nickname}
+      <div class="xgrid">
+        <span>Type</span><span>${j.projectType!=='Select Project Status'?j.projectType:'—'}</span>
+        <span>Qty · Time</span><span>${j.qty} pcs · ${j.minutes} min</span>
+        <span>Screens</span><span>${j.screens>0?j.screens:'—'}</span>
+        <span>Ink</span><span>${j.ink!=='N/A'?j.ink:'—'}${j.inkChange&&j.inkChange!=='None'?' · ink change: '+j.inkChange:''}</span>
+        <span>Pallet</span><span>${j.pallet&&j.pallet!=='N/A'?j.pallet:'—'}</span>
+        <span>Post-Pro</span><span>${j.postProdType!=='N/A'?j.postProdType:'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
+        <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
+        <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
+        <span>Status</span><span>${cleanStatus(j.status)}</span>
+      </div>
+      <div class="steps">${steps}</div>
+      Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
+    </div>
+    <div class="xdetails">
+      <b>Imprint details</b> <span class="pending-note">— these fields live in the imprint's details block; the Printavo API exposes them, the CSV export doesn't. They fill in at the PlanetOps sync.</span>
+      <div class="xgrid">
+        <span>Location</span><span class="pending">e.g. Front Print</span>
+        <span>Size</span><span class="pending">imprint width</span>
+        <span>PMS colors</span><span class="pending">per-screen ink colors</span>
+        <span>Finishing</span><span class="pending">—</span>
+        <span>Customer</span><span class="pending">—</span>
+      </div>
+      <a href="https://www.printavo.com/invoices?query=${j.invoice}" target="_blank" rel="noopener">Find invoice ${j.invoice} in Printavo ↗</a>
+    </div>
+  </div>`;
+}
+function laneBlock(lane,dayJobs,isOT,date){
+  const rows=dayJobs.filter(j=>laneOf(j.station)===lane);
+  if(!rows.length)return '';
+  const used=rows.reduce((a,j)=>a+j.minutes,0);
+  const cap=capFor(lane,date,isOT);
+  const pct=Math.min(100,Math.round(used/cap*100));
+  const cls=used>=cap?'over':used>=cap*.7?'warn':'ok';
+  // pallet + ink sequencing insight (production wants minimal pallet switches; no waterbase/discharge at day's end)
+  const pallets={};rows.forEach(r=>{if(r.pallet&&r.pallet!=='N/A')pallets[r.pallet]=(pallets[r.pallet]||0)+1;});
+  const pkeys=Object.keys(pallets);
+  const lastRow=rows[rows.length-1];
+  const endInkWarn=lastRow&&/Waterbase|Discharge/.test(lastRow.ink)?`<span class="warn2">⚠ day ends on ${lastRow.ink}</span>`:'';
+  let switchWarn='';
+  const dr=dateRange(),di=dr.indexOf(date);
+  for(let k=di+1;k<dr.length;k++){
+    const nxt=jobs.filter(x=>x.date===dr[k]&&laneOf(x.station)===lane);
+    if(nxt.length){
+      const eP=lastRow?.pallet,nP=nxt[0]?.pallet;
+      if(eP&&nP&&eP!=='N/A'&&nP!=='N/A'&&eP!==nP)switchWarn=`<span class="warn2">ends ${eP} → ${fmtShort(dr[k])} starts ${nP} · pallet switch</span>`;
+      break;
+    }
+  }
+  const lanesum=(pkeys.length||endInkWarn||switchWarn)?`<div class="lanesum">${pkeys.length?`<span>Pallets: ${pkeys.map(k=>k+'×'+pallets[k]).join(' · ')}${pkeys.length>1?' (mixed)':''}</span>`:''}${switchWarn}${endInkWarn}</div>`:'';
+  const lkey=date+'|'+lane.key;
+  const lclosed=collapsedLanes.has(lkey);
+  return `<div class="lane ${lclosed?'lclosed':''}">
+    <div class="lane-head" data-lanetoggle="${lkey}" title="Click to collapse/expand this station"><span class="chev">▾</span><span class="lane-name">${lane.label}${lane.key==='auto'&&isOT?' · OT':''}</span>
+      <span class="cap ${cls}t" data-date="${date}" data-lane="${lane.key}" title="Click to change this day's max minutes">${used}/${cap} min</span></div>
+    <div class="capbar ${cls}"><i style="width:${pct}%"></i></div>
+    ${lclosed?'':lanesum+`<div class="cardgrid">${rows.map(jobCard).join('')}</div>`}
+  </div>`;
+}
+function dayChips(dayJobs,isOT,date){
+  return LANES.map(lane=>{
+    const rows=dayJobs.filter(j=>laneOf(j.station)===lane);
+    if(!rows.length)return '';
+    const used=rows.reduce((a,j)=>a+j.minutes,0);
+    const cap=capFor(lane,date,isOT);
+    const cls=used>=cap?'overc':used>=cap*.7?'warnc':'okc';
+    return `<span class="dchip ${cls}">${lane.label.replace('Production','Pro').toUpperCase()} ${used}/${cap}</span>`;
+  }).join('');
+}
+function dayRow(d,filterLane){
+  const dayJobs=jobs.filter(j=>j.date===d&&(!filterLane||laneOf(j.station)===filterLane));
+  const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+  const lanes=(filterLane?[filterLane]:LANES).map(l=>laneBlock(l,dayJobs,isOT,d)).join('');
+  const total=dayJobs.reduce((a,j)=>a+j.minutes,0);
+  const closed=collapsedDays.has(d);
+  return `<section class="dayrow ${closed?'closed':''}" data-date="${d}">
+    <div class="drhead" data-toggle="${d}">
+      <span class="chev">▾</span>
+      <span class="dname">${fmtDay(d)}</span>
+      ${isOT?'<span class="ot-badge">OT DAY</span>':''}
+      <span class="dcount">${dayJobs.length?dayJobs.length+' scheduled · '+total+' min':'open'}</span>
+      <button class="phbtn" data-ph="${d}" title="Reserve time on this day for a project you know is coming (Scheduled Placeholder)">+ placeholder</button>
+      <span class="dchips">${dayChips(dayJobs,isOT,d)}</span>
+    </div>
+    <div class="drbody">${lanes||'<div class="openday">Open — nothing scheduled. Drag a job here.</div>'}</div>
+  </section>`;
+}
+function rangeControls(){
+  const m=store.range.mode;
+  const sched=scheduledDates();
+  const s=store.range.start||sched[0]||'2026-07-06', e=store.range.end||sched[sched.length-1]||'2026-07-10';
+  return `<div class="controls">
+    <span class="seg">
+      <button data-mode="week" class="${m==='week'?'on':''}">Work Week</button>
+      <button data-mode="custom" class="${m==='custom'?'on':''}">Custom Range</button>
+    </span>
+    ${m==='custom'?`<input type="date" id="rgStart" value="${s}"> → <input type="date" id="rgEnd" value="${e}">
+      <span class="hint">1 day, 3 days, 5 weeks — whatever Jean wants (max 42 days)</span>`:`<span class="hint">Mon–Fri of the scheduled week · click a day header to collapse it</span>`}
+  </div>`;
+}
+let arrCollapsed=false;
+function arrSub(dkey,label,rows,extra){
+  const closed=collapsedArrDates.has(dkey);
+  return `<section class="dayrow arrsub ${closed?'closed':''}">
+    <div class="drhead" data-arrtoggle="${dkey}"><span class="chev">▾</span>
+      <span class="dname">${label}</span><span class="dcount">· ${rows.length}${extra||''}</span></div>
+    <div class="drbody"><div class="cardgrid">${rows.map(jobCard).join('')}</div></div>
+  </section>`;
+}
+function arrivalsSection(standalone){
+  // pending grouped by ARRIVAL DATE (ETA, else scheduled leg date) as collapsible date rows — same structure as Auto Press days.
+  // Once marked ✓ arrived, a row leaves pending and lives under its actual arrival date in the ARRIVED history below.
+  const pending=arrivals.filter(j=>!store.arrived[j.imprint]);
+  const done=arrivals.filter(j=>store.arrived[j.imprint]);
+  const key=j=>store.eta[j.imprint]||j.date||'';
+  const groups={};
+  pending.forEach(j=>{const k=key(j);(groups[k]=groups[k]||[]).push(j);});
+  const dates=Object.keys(groups).filter(k=>k).sort();
+  // board = scoped to the viewed range (awareness stays via a count line); Arrivals tab = everything
+  const dr=dateRange();
+  const shown=standalone?dates:dates.filter(d=>dr.includes(d));
+  const hidden=standalone?[]:dates.filter(d=>!dr.includes(d));
+  const hiddenN=hidden.reduce((a,d)=>a+groups[d].length,0);
+  let body=shown.map(d=>arrSub('d:'+d,'Due to arrive · '+fmtDay(d),groups[d])).join('');
+  if(hiddenN)body+=`<div class="hint" style="margin:4px 0 10px">⋯ ${hiddenN} more inbound outside this range (${fmtShort(hidden[0])} → ${fmtShort(hidden[hidden.length-1])}) — open the <b>Arrivals</b> tab or widen the range.</div>`;
+  if(groups[''])body+=arrSub('nodate','No arrival determined',groups[''],' — set an EST. ARRIVAL; stays visible until dated');
+  if(done.length){
+    const ag={};done.forEach(j=>{const d=store.arrived[j.imprint];(ag[d]=ag[d]||[]).push(j);});
+    const adates=Object.keys(ag).sort();
+    const ashown=standalone?adates:adates.filter(d=>dr.includes(d));
+    const ahidden=adates.length-ashown.length;
+    if(ashown.length||ahidden)body+=`<div class="histdiv">Arrived — history (lives on the day it actually came in)</div>`
+      +ashown.map(d=>arrSub('a:'+d,'📦 Arrived · '+fmtDay(d),ag[d])).join('')
+      +(ahidden?`<div class="hint">⋯ arrived on ${ahidden} other date${ahidden>1?'s':''} outside this range — see the Arrivals tab.</div>`:'');
+  }
+  const closed=!standalone&&arrCollapsed;
+  return `<section class="arrivals ${closed?'closed':''}">
+    <div class="arrhead" ${standalone?'style="cursor:default"':'id="arrToggle" title="Click to collapse/expand"'}>
+      ${standalone?'':'<span class="chev">▾</span>'}<h2>⟵ Arrivals — coming back from outside</h2>
+      <span class="dcount">· ${pending.length} pending${done.length?' · '+done.length+' arrived':''}</span></div>
+    <div class="hint">Each row is the IN-HOUSE leg (the -2/-3 imprint) — the timed QC/packaging event production actually does. The outsourced -1 is awareness only: it shows as the AT VENDOR / IN TRANSIT badge (and attaches as its own line once the outsourced-scheduler data is ingested).</div>
+    <div class="arrbody">${body||'<span class="hint">Nothing inbound.</span>'}</div>
+  </section>`;
+}
+function renderPickups(){
+  const tagged=jobs.filter(j=>['pickup','deliver','dtf'].includes(store.method[j.imprint]?.t));
+  const items=[...tagged.map(j=>({id:j.imprint,job:j,errand:null,t:store.method[j.imprint].t,ready:!!store.method[j.imprint].ready})),
+               ...(store.errands||[]).map(e=>({id:e.id,job:null,errand:e,t:e.t,ready:!!e.ready}))];
+  const queue=items.filter(i=>!store.pickedup[i.id]).sort((a,b)=>(b.ready?1:0)-(a.ready?1:0));
+  const logged=items.filter(i=>store.pickedup[i.id]).sort((a,b)=>store.pickedup[b.id].date<store.pickedup[a.id].date?-1:1);
+  const puForm=id=>{
+    const p=store.pickedup[id];
+    return `<span class="etalab">done on</span><input type="date" class="schedinput" data-pudate="${id}" value="${p?.date||todayISO()}">
+      <span class="etalab">gave to / notified</span><input type="text" class="trkinput" style="width:180px" data-puwho="${id}" value="${(p?.gaveTo||'').replace(/"/g,'&quot;')}" placeholder="required — who received / was told">
+      <button class="phbtn" data-pusave="${id}">save ✓</button>`;
+  };
+  const act=id=>pkEditing.has(id)?puForm(id):`<button class="phbtn" data-pumark="${id}" title="Jacque: done? Log the date + who received it / was notified.">✓ done</button>`;
+  const rowJ=i=>{
+    const j=i.job,imp=j.imprint,m=store.method[imp],ob=outBadge(j.status),eta=store.eta[imp],trk=store.tracking[imp];
+    return `<div class="pkrow ${i.ready?'ready':''}">
+      ${i.ready?'<span class="ready-badge">🔔 READY NOW</span>':''}
+      <span class="imp">${imp}</span>
+      <span>${j.nickname}</span>
+      ${m.note?`<span class="note">📍 ${m.note}</span>`:'<span class="meta">(no vendor note — add one on the Arrivals row)</span>'}
+      ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}
+      <span class="meta">${eta?'ETA '+fmtShort(eta):'no ETA'} · PROD due ${fmtShort(j.prodDue)} · ${j.qty} pcs</span>
+      ${trk?`<a class="trk" href="https://www.google.com/search?q=${encodeURIComponent(trk)}" target="_blank" rel="noopener">${trk} ↗</a>`:''}
+      ${act(imp)}
+    </div>`;
+  };
+  const rowE=i=>{
+    const e=i.errand;
+    return `<div class="pkrow ${i.ready?'ready':''}">
+      ${i.ready?'<span class="ready-badge">🔔 READY</span>':''}
+      <span class="imp" style="color:var(--grey-text)">ERRAND</span>
+      <span class="note phref" data-erwhat="${e.id}" title="Click to edit what this is">${e.what}</span>
+      <select data-ertype="${e.id}" title="Pickup or delivery?">
+        <option value="pickup" ${e.t==='pickup'?'selected':''}>🚗 Pickup</option>
+        <option value="deliver" ${e.t==='deliver'?'selected':''}>🚚 Delivery</option></select>
+      <input type="text" class="trkinput" style="width:170px" data-ernote="${e.id}" value="${(e.note||'').replace(/"/g,'&quot;')}" placeholder="where / for whom">
+      <label class="readylab"><input type="checkbox" data-erready="${e.id}" ${e.ready?'checked':''}>ready</label>
+      ${act(e.id)}
+      <button class="splitbtn" data-erdel="${e.id}" title="Remove errand">✕</button>
+    </div>`;
+  };
+  const row=i=>i.errand?rowE(i):rowJ(i);
+  const sec=(t,label)=>{const rs=queue.filter(i=>i.t===t);return rs.length?`<div class="arrdate"><span class="adname">${label} · ${rs.length}</span></div>${rs.map(row).join('')}`:'';};
+  const hrow=i=>{
+    const p=store.pickedup[i.id];
+    const title=i.errand?`<span class="imp" style="color:var(--grey-text)">ERRAND</span><span>${i.errand.what}${i.errand.note?' · '+i.errand.note:''}</span>`
+                        :`<span class="imp">${i.job.imprint}</span><span>${i.job.nickname}</span>`;
+    return `<div class="pkrow" style="background:var(--grey-bg)">${title}
+      ${pkEditing.has(i.id)?puForm(i.id):`<span class="printed">✓ done ${fmtShort(p.date)} → gave to / notified: <b>${p.gaveTo}</b></span>
+      <button class="splitbtn" data-puedit="${i.id}" title="Edit the log entry">✎</button>`}
+    </div>`;
+  };
+  return `<section class="arrivals" style="border-left-color:#000">
+    <div class="arrhead" style="cursor:default"><h2>🚗 Pickup & Delivery</h2>
+      <span class="dcount">· the running errand queue — vendor pickups, customer deliveries, DTF transfers, ad-hoc requests · ALL dates · ready first</span>
+      <button class="phbtn" data-eradd style="margin-left:auto" title="Add something that isn't an imprint — a request, a drop-off, anything with wheels">+ add errand</button></div>
+    <div class="hint">Rows come from Arrivals (Return: 🚗 / 🚚 / 🎞) or the + add errand button (things that aren't an imprint — something we're requesting or dropping off). On completion — Jacque hits ✓ done and logs the DATE + WHO received it or was notified; it moves to the log below. Job pickups also stamp their ARRIVED date.</div>
+    ${sec('pickup','🚗 Pickups')}
+    ${sec('deliver','🚚 Deliveries to customers')}
+    ${sec('dtf','🎞 DTF transfers')}
+    ${!queue.length?'<div class="hint" style="margin-top:8px">Queue is empty. Tag a Return method on an Arrivals row, or + add errand.</div>':''}
+    ${logged.length?`<div class="histdiv">Done — log</div>${logged.map(hrow).join('')}`:''}
+  </section>`;
+}
+function renderBoard(filterLane){
+  const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
+  const un=unscheduled.filter(j=>!OUTSOURCED.test(j.status)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
+  return rangeControls()+`
+    ${!filterLane?arrivalsSection(false):''}
+    ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
+      <div class="drhead" id="unschToggle" title="Click to collapse/expand"><span class="chev">▾</span><span class="dname">Unscheduled · ${un.length}</span>
+        <span class="dcount">soonest prod-due first · Jean's flow: assign station (expand the row) → set minutes → pick the date last. ⚡ = closest day to due with room.</span></div>
+      <div class="drbody"><div class="cardgrid">${un.map(jobCard).join('')}</div></div>
+    </section>`:''}
+    ${rows}`;
+}
+let listSort={key:null,dir:1};
+const SORTVAL={
+  imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
+  station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
+  ink:j=>j.ink==='N/A'?'~':j.ink, postpro:j=>j.postProdType==='N/A'?'~':j.postProdType,
+  ptype:j=>['Bandana','Apparel','Promo'].includes(j.projectType)?j.projectType:'~',
+  prodDue:j=>j.prodDue||'~', printed:j=>isPrinted(j)?0:1, custDue:j=>j.custDue||'~',
+  status:j=>cleanStatus(j.status).toLowerCase(),
+};
+function renderList(){
+  let list=[...jobs];
+  if(listSort.key&&SORTVAL[listSort.key]){
+    const f=SORTVAL[listSort.key];
+    list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
+  }
+  const PPOPTS=['Hang Tag','Packaging (Bandana)','Packaging (Apparel)','Fold & Bag'];
+  const rows=list.map(j=>j.placeholder
+    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+    :`<tr${j.moved?' style="background:#f4f9ff"':''}>
+    <td>${mockEmoji(j)}</td><td><b>${j.imprint}</b>${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
+    <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
+    <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
+    <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
+    <td style="text-align:right">${j.qty}</td>
+    <td>${j.ink!=='N/A'?j.ink:''}</td>
+    <td><select data-ptype="${j.imprint}" title="Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
+    <td class="custcol">${fmtShort(j.custDue)}</td>
+    <td>${cleanStatus(j.status)}</td></tr>`).join('');
+  const H=(key,label)=>{
+    const on=listSort.key===key;
+    return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
+  };
+  return `<div class="hint" style="margin-bottom:8px">Jean's workbench — every cell is LIVE: set the date (or clear it to unschedule), assign the station, click minutes, set Project Type + post-production. Same jobs as the Board, list-shaped. Sort by any header.</div>
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('date','Sched')}${H('station','Station')}${H('minutes','Min')}${H('qty','Qty')}${H('ink','Ink')}${H('ptype','Type')}${H('postpro','Post-Pro')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ───────── Changes checklist ───────── */
+function changeList(){
+  const out=[];
+  Object.entries(store.splits).forEach(([imp,s])=>{
+    const allocs=Object.entries(store.alloc).filter(([k])=>k.startsWith(imp)).map(([k,v])=>`${k.slice(-1)}: ${v.qty!=null?v.qty+' pcs':''}${v.min!=null?' / '+v.min+' min':''}${v.dd?' [DOUBLE DRY]':''}`).join(', ');
+    out.push(`SPLIT ${imp} into ${s.parts} parts (Copy icon in Power Scheduler)${allocs?' — rebalance: '+allocs:''}`);
+  });
+  Object.entries(store.minutesEdit).forEach(([imp,v])=>out.push(`SET projected time for ${imp} → ${v} min (Minutes cell)`));
+  Object.entries(store.stations).forEach(([imp,st])=>out.push(`ASSIGN ${imp} → ${st} (Station cell / drag onto station row)`));
+  Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)`));
+  Object.entries(store.ptype).forEach(([imp,v])=>out.push(`SET Project Type for ${imp} → ${v}`));
+  Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
+  Object.entries(store.caps).forEach(([k,v])=>{const[date,lane]=k.split('|');out.push(`CAPACITY note: treat ${LANES.find(l=>l.key===lane).label} on ${fmtDay(date)} as ${v} min (in Printavo this may mean the OT/Off-Season station)`)});
+  (store.placeholders||[]).forEach(p=>out.push(`PLACEHOLDER ${fmtDay(p.date)} · ${laneOf(p.station)?.label||p.station} · ${p.minutes} min — "${p.ref}" (board-only: Printavo has no placeholders — this reserves capacity in our math)`));
+  return out;
+}
+function renderChanges(){
+  const ch=changeList();
+  return `<section class="changes"><h2>📝 Pending changes — apply in Printavo</h2>
+    ${ch.length?`<ol>${ch.map(c=>`<li>${c}</li>`).join('')}</ol>`:`<div class="none">No local changes yet. Drag a job, edit minutes, split a card, assign a station — everything lands here as Jean's checklist.</div>`}
+    ${ch.length?`<button class="dl" id="exportChanges">⬇ Download checklist</button>
+    <button id="clearChanges" style="margin-left:8px;background:#fff">Clear all changes</button>`:''}
+  </section>`+renderBoard(null);
+}
+
+/* ───────── Tabs ───────── */
+const TABS=[
+  {label:'Board',render:()=>renderBoard(null)},
+  {label:'List',render:renderList},
+  {label:'Arrivals',render:()=>arrivalsSection(true)},
+  {label:'Pickup & Delivery',render:renderPickups},
+  ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
+  {label:'Changes',render:renderChanges},
+];
+let activeTab=0;
+const nav=document.getElementById('tabs'),main=document.getElementById('main');
+TABS.forEach((t,i)=>{
+  const b=document.createElement('button');b.textContent=t.label;b.dataset.i=i;
+  b.onclick=()=>{activeTab=i;renderAll();};
+  nav.appendChild(b);
+});
+function updateChangesBtn(){
+  const n=changeList().length;
+  document.getElementById('changesBtn').textContent=`📝 Changes (${n})`;
+  const tabBtn=nav.querySelector('button[data-i="'+(TABS.length-1)+'"]');
+  if(tabBtn)tabBtn.textContent=n?`Changes · ${n}`:'Changes';
+}
+function renderAll(){
+  buildModel();
+  nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
+  main.innerHTML=TABS[activeTab].render();
+  document.getElementById('stamp').innerHTML=`DATA <b>${store.csvName||'export_July 6.csv'}</b>${store.csvName?' · imported':' · pulled Thu Jul 2 · 10:29 PM'}`;
+  updateChangesBtn();
+  wireMain();
+  if(highlightImp){
+    const el=main.querySelector(`.job[data-imp="${CSS.escape(highlightImp)}"]`);
+    if(el){el.classList.add('flash');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>el.classList.remove('flash'),2500);}
+    highlightImp=null;
+  }
+}
+
+/* ───────── Interactions ───────── */
+function inlineEdit(span,initial,commitFn){
+  span.innerHTML=`<input type="number" value="${initial}" min="0">`;
+  const inp=span.querySelector('input');inp.focus();inp.select();
+  let done=false;
+  const commit=()=>{if(done)return;done=true;commitFn(parseInt(inp.value,10));};
+  inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();if(e.key==='Escape'){done=true;renderAll();}});
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('click',e=>e.stopPropagation());
+}
+function openLightbox(imp){
+  const j=jobs.find(x=>x.imprint===imp);if(!j)return;
+  const ov=document.createElement('div');ov.className='lightbox';
+  ov.innerHTML=`<div class="frame"><div class="bigmock">${mockEmoji(j)}</div>
+    <div class="cap"><b>${j.imprint}</b> — ${j.nickname}</div>
+    <div class="note">The real mockup renders here at 90% full screen once the Printavo sync feeds images — the production-team detail view. Click anywhere or press Esc to close.</div></div>`;
+  ov.addEventListener('click',()=>ov.remove());
+  const esc=e=>{if(e.key==='Escape'){ov.remove();document.removeEventListener('keydown',esc);}};
+  document.addEventListener('keydown',esc);
+  document.body.appendChild(ov);
+}
+function wireMain(){
+  // arrivals collapse (board view)
+  const at=document.getElementById('arrToggle');
+  if(at)at.addEventListener('click',e=>{
+    if(e.target.closest('input,button,select,a'))return;
+    arrCollapsed=!arrCollapsed;renderAll();
+  });
+  // sortable list headers
+  main.querySelectorAll('th[data-sort]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const k=th.dataset.sort;
+      if(listSort.key===k)listSort.dir*=-1;else listSort={key:k,dir:1};
+      renderAll();
+    });
+  });
+  // mockup → 90% lightbox
+  main.querySelectorAll('.mock').forEach(m=>{
+    m.addEventListener('click',e=>{
+      e.stopPropagation();
+      const job=m.closest('.job');
+      if(job)openLightbox(job.dataset.imp);
+    });
+  });
+  // day collapse/expand
+  main.querySelectorAll('.drhead').forEach(h=>{
+    h.addEventListener('click',e=>{
+      if(e.target.closest('.cap,input,button,select'))return;
+      const d=h.dataset.toggle;
+      collapsedDays.has(d)?collapsedDays.delete(d):collapsedDays.add(d);
+      renderAll();
+    });
+  });
+  // drag & drop between day rows
+  main.querySelectorAll('.job').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.imp);el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('click',e=>{
+      if(el.classList.contains('ph'))return;
+      if(e.target.closest('button,input,select,a,.min,.cap,[data-qty],.xpanel,.phref,.rec,.etabar'))return;
+      const imp=el.dataset.imp;
+      expanded.has(imp)?expanded.delete(imp):expanded.add(imp);
+      renderAll();
+    });
+  });
+  main.querySelectorAll('.dayrow').forEach(row=>{
+    row.addEventListener('dragover',e=>{e.preventDefault();row.classList.add('dragover');});
+    row.addEventListener('dragleave',()=>row.classList.remove('dragover'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault();row.classList.remove('dragover');
+      const imp=e.dataTransfer.getData('text/plain');if(!imp)return;
+      const j=jobs.find(x=>x.imprint===imp);
+      const target=row.dataset.date;
+      if(!j||!target)return;
+      if(j.placeholder){
+        const p=store.placeholders.find(x=>x.id===imp);
+        if(p){p.date=target;save();renderAll();}
+        return;
+      }
+      const orig=j.origDate||j.date;
+      if(target===orig)delete store.moves[imp];else store.moves[imp]=target;
+      save();renderAll();
+    });
+  });
+  // placeholder create / edit / delete
+  main.querySelectorAll('.phbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      store.placeholders.push({id:'ph'+Date.now(),date:btn.dataset.ph,station:'Auto Press (In Season)',minutes:60,ref:'Incoming project — click to name it'});
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('[data-phdel]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      store.placeholders=store.placeholders.filter(p=>p.id!==btn.dataset.phdel);
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('[data-phlane]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{
+      const p=store.placeholders.find(x=>x.id===sel.dataset.phlane);
+      if(p){p.station=sel.value;save();renderAll();}
+    });
+  });
+  main.querySelectorAll('.phref').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const p=store.placeholders.find(x=>x.id===sp.dataset.phref);if(!p)return;
+      sp.innerHTML=`<input type="text" value="${p.ref.replace(/"/g,'&quot;')}" style="font:inherit;width:95%;border:1px solid var(--yellow);border-radius:4px;padding:1px 4px">`;
+      const inp=sp.querySelector('input');inp.focus();inp.select();
+      let done=false;
+      const commit=()=>{if(done)return;done=true;p.ref=inp.value||'Placeholder';save();renderAll();};
+      inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')commit();if(ev.key==='Escape'){done=true;renderAll();}});
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+    });
+  });
+  // per-station collapse within a day
+  main.querySelectorAll('[data-lanetoggle]').forEach(h=>{
+    h.addEventListener('click',e=>{
+      if(e.target.closest('.cap,input,button,select'))return;
+      const k=h.dataset.lanetoggle;
+      collapsedLanes.has(k)?collapsedLanes.delete(k):collapsedLanes.add(k);
+      renderAll();
+    });
+  });
+  // arrivals date-group + unscheduled collapse toggles
+  main.querySelectorAll('[data-arrtoggle]').forEach(h=>{
+    h.addEventListener('click',e=>{
+      if(e.target.closest('input,button,select,a'))return;
+      const k=h.dataset.arrtoggle;
+      collapsedArrDates.has(k)?collapsedArrDates.delete(k):collapsedArrDates.add(k);
+      renderAll();
+    });
+  });
+  const ut=document.getElementById('unschToggle');
+  if(ut)ut.addEventListener('click',e=>{
+    if(e.target.closest('input,button,select,a'))return;
+    collapsedUnsch=!collapsedUnsch;renderAll();
+  });
+  // mark-arrived
+  main.querySelectorAll('[data-arrmark]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      store.arrived[btn.dataset.arrmark]=todayISO();
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('[data-arredit]').forEach(sp=>{
+    sp.addEventListener('click',e=>{e.stopPropagation();arrEditing.add(sp.dataset.arredit);renderAll();});
+  });
+  main.querySelectorAll('input[data-arrdate]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('change',()=>{
+      const imp=inp.dataset.arrdate;
+      if(inp.value)store.arrived[imp]=inp.value;else delete store.arrived[imp];
+      arrEditing.delete(imp);save();renderAll();
+    });
+  });
+  // QC gate sign-off
+  main.querySelectorAll('.qcchip').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=sp.dataset.qc;
+      const cur=store.qc[imp]?.by||'';
+      sp.innerHTML=`<input type="text" value="${cur}" placeholder="who?" maxlength="12">`;
+      const inp=sp.querySelector('input');inp.focus();inp.select();
+      let done=false;
+      const commit=()=>{if(done)return;done=true;
+        const v=inp.value.trim();
+        if(v)store.qc[imp]={by:v,at:todayISO()};else delete store.qc[imp];
+        save();renderAll();};
+      inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')commit();if(ev.key==='Escape'){done=true;renderAll();}});
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+    });
+  });
+  // errands (non-imprint pickups/deliveries)
+  const ea=main.querySelector('[data-eradd]');
+  if(ea)ea.addEventListener('click',e=>{
+    e.stopPropagation();
+    store.errands.push({id:'er'+Date.now(),t:'pickup',what:'New errand — click to name it',note:'',ready:false});
+    save();renderAll();
+  });
+  main.querySelectorAll('[data-erdel]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();store.errands=store.errands.filter(x=>x.id!==btn.dataset.erdel);delete store.pickedup[btn.dataset.erdel];save();renderAll();});
+  });
+  main.querySelectorAll('select[data-ertype]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{const er=store.errands.find(x=>x.id===sel.dataset.ertype);if(er){er.t=sel.value;save();renderAll();}});
+  });
+  main.querySelectorAll('input[data-erready]').forEach(cb=>{
+    cb.addEventListener('click',e=>e.stopPropagation());
+    cb.addEventListener('change',()=>{const er=store.errands.find(x=>x.id===cb.dataset.erready);if(er){er.ready=cb.checked;save();renderAll();}});
+  });
+  main.querySelectorAll('input[data-ernote]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    let done=false;
+    const commit=()=>{if(done)return;done=true;const er=store.errands.find(x=>x.id===inp.dataset.ernote);if(er){er.note=inp.value.trim();save();renderAll();}};
+    inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
+    inp.addEventListener('blur',commit);
+  });
+  main.querySelectorAll('[data-erwhat]').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const er=store.errands.find(x=>x.id===sp.dataset.erwhat);if(!er)return;
+      sp.innerHTML=`<input type="text" value="${er.what.replace(/"/g,'&quot;')}" style="font:inherit;width:220px;border:1px solid var(--yellow);border-radius:4px;padding:1px 4px">`;
+      const inp=sp.querySelector('input');inp.focus();inp.select();
+      let done=false;
+      const commit=()=>{if(done)return;done=true;er.what=inp.value.trim()||'Errand';save();renderAll();};
+      inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter')commit();if(ev.key==='Escape'){done=true;renderAll();}});
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('click',ev=>ev.stopPropagation());
+    });
+  });
+  // Jacque's pickup/delivery check-off
+  main.querySelectorAll('[data-pumark]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();pkEditing.add(btn.dataset.pumark);renderAll();});
+  });
+  main.querySelectorAll('[data-puedit]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();pkEditing.add(btn.dataset.puedit);renderAll();});
+  });
+  main.querySelectorAll('[data-pusave]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=btn.dataset.pusave;
+      const d=main.querySelector(`input[data-pudate="${CSS.escape(imp)}"]`);
+      const w=main.querySelector(`input[data-puwho="${CSS.escape(imp)}"]`);
+      if(!w.value.trim()){w.style.borderColor='var(--red)';w.focus();return;}
+      store.pickedup[imp]={date:d.value||todayISO(),gaveTo:w.value.trim()};
+      if(jobs.find(x=>x.imprint===imp)&&!store.arrived[imp])store.arrived[imp]=store.pickedup[imp].date;
+      pkEditing.delete(imp);save();renderAll();
+    });
+  });
+  main.querySelectorAll('input[data-pudate],input[data-puwho]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){const s=main.querySelector(`[data-pusave="${CSS.escape(inp.dataset.pudate||inp.dataset.puwho)}"]`);if(s)s.click();}});
+  });
+  // ETA + tracking on arrival rows
+  main.querySelectorAll('input[data-eta]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('change',()=>{
+      const imp=inp.dataset.eta;
+      if(inp.value)store.eta[imp]=inp.value;else delete store.eta[imp];
+      etaEditing.delete(imp);save();renderAll();
+    });
+  });
+  main.querySelectorAll('[data-etaedit]').forEach(sp=>{
+    sp.addEventListener('click',e=>{e.stopPropagation();etaEditing.add(sp.dataset.etaedit);renderAll();});
+  });
+  main.querySelectorAll('input[data-trk]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    let done=false;
+    const commit=()=>{if(done)return;done=true;
+      const imp=inp.dataset.trk;
+      if(inp.value.trim())store.tracking[imp]=inp.value.trim();else delete store.tracking[imp];
+      trkEditing.delete(imp);save();renderAll();};
+    inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
+    inp.addEventListener('blur',commit);
+  });
+  main.querySelectorAll('[data-trkedit]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();trkEditing.add(btn.dataset.trkedit);renderAll();});
+  });
+  // return method + vendor note + ready flag (feeds the Pickups list)
+  main.querySelectorAll('select[data-method]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{
+      const imp=sel.dataset.method;
+      if(sel.value)store.method[imp]=Object.assign({},store.method[imp],{t:sel.value});
+      else delete store.method[imp];
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('input[data-mnote]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    let done=false;
+    const commit=()=>{if(done)return;done=true;
+      const imp=inp.dataset.mnote;
+      store.method[imp]=Object.assign({},store.method[imp],{note:inp.value.trim()});
+      save();renderAll();};
+    inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
+    inp.addEventListener('blur',commit);
+  });
+  main.querySelectorAll('input[data-mready]').forEach(cb=>{
+    cb.addEventListener('click',e=>e.stopPropagation());
+    cb.addEventListener('change',()=>{
+      const imp=cb.dataset.mready;
+      store.method[imp]=Object.assign({},store.method[imp],{ready:cb.checked});
+      save();renderAll();
+    });
+  });
+  // recommended placement (⚡) + date picker on unscheduled rows
+  main.querySelectorAll('[data-place]').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const [imp,d]=sp.dataset.place.split('|');
+      store.moves[imp]=d;save();renderAll();
+    });
+  });
+  main.querySelectorAll('.schedinput[data-schedule]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('change',()=>{
+      const imp=inp.dataset.schedule;
+      const j=jobs.find(x=>x.imprint===imp);
+      const csv=j?j.csvDate:'';
+      if(inp.value===csv)delete store.moves[imp];
+      else if(inp.value)store.moves[imp]=inp.value;
+      else if(csv)store.moves[imp]='';       // clear = pull off the schedule
+      else delete store.moves[imp];
+      save();renderAll();
+    });
+  });
+  // Project Type + Post-Pro settings (List workbench)
+  main.querySelectorAll('select[data-ptype]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{
+      const imp=sel.dataset.ptype,j=jobs.find(x=>x.imprint===imp);
+      if(sel.value&&sel.value!==j.csvPtype)store.ptype[imp]=sel.value;else delete store.ptype[imp];
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('select[data-pptype]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{
+      const imp=sel.dataset.pptype,j=jobs.find(x=>x.imprint===imp);
+      const v=sel.value;
+      if((v||'N/A')===j.csvPptype)delete store.pptype[imp];else store.pptype[imp]=v;
+      save();renderAll();
+    });
+  });
+  // capacity edit
+  main.querySelectorAll('.cap[data-lane]').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const cur=sp.textContent.split('/')[1].replace(' min','').trim();
+      inlineEdit(sp,cur,v=>{
+        const k=sp.dataset.date+'|'+sp.dataset.lane;
+        const lane=LANES.find(l=>l.key===sp.dataset.lane);
+        if(v&&v>0&&v!==lane.cap&&v!==lane.otCap)store.caps[k]=v;else delete store.caps[k];
+        save();renderAll();
+      });
+    });
+  });
+  // projected-time edit
+  main.querySelectorAll('.min[data-min]').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=sp.dataset.min;
+      const j=jobs.find(x=>x.imprint===imp);
+      inlineEdit(sp,j.minutes,v=>{
+        if(v==null||isNaN(v)){renderAll();return;}
+        if(j.placeholder){const p=store.placeholders.find(x=>x.id===imp);if(p){p.minutes=v;save();renderAll();}return;}
+        if(j.localSplit){store.alloc[imp]=Object.assign({},store.alloc[imp],{min:v});}
+        else{
+          const orig=j.minutesOrig!=null?j.minutesOrig:j.minutes;
+          if(v===orig&&store.minutesEdit[imp]==null){renderAll();return;}
+          if(v===j.minutesOrig)delete store.minutesEdit[imp];else store.minutesEdit[imp]=v;
+        }
+        save();renderAll();
+      });
+    });
+  });
+  // split-quantity rebalance
+  main.querySelectorAll('[data-qty]').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=sp.dataset.qty;
+      const j=jobs.find(x=>x.imprint===imp);
+      inlineEdit(sp,j.qty,v=>{
+        if(v==null||isNaN(v)){renderAll();return;}
+        store.alloc[imp]=Object.assign({},store.alloc[imp],{qty:v});
+        save();renderAll();
+      });
+    });
+  });
+  // station assignment
+  main.querySelectorAll('select[data-station]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{
+      const imp=sel.dataset.station;
+      if(sel.value)store.stations[imp]=sel.value;else delete store.stations[imp];
+      save();renderAll();
+    });
+  });
+  // double-dry label on splits
+  main.querySelectorAll('.ddbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=btn.dataset.dd;
+      const cur=store.alloc[imp]?.dd;
+      store.alloc[imp]=Object.assign({},store.alloc[imp],{dd:!cur});
+      save();renderAll();
+    });
+  });
+  // split + rejoin
+  main.querySelectorAll('.splitbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(btn.dataset.rejoin){
+        const orig=btn.dataset.rejoin;
+        delete store.splits[orig];
+        Object.keys(store.moves).forEach(k=>{if(k.startsWith(orig)&&k.length>orig.length)delete store.moves[k];});
+        Object.keys(store.alloc).forEach(k=>{if(k.startsWith(orig))delete store.alloc[k];});
+        save();renderAll();
+        return;
+      }
+      const imp=btn.dataset.split;
+      store.splits[imp]={parts:(store.splits[imp]?.parts||1)+1};
+      save();renderAll();
+    });
+  });
+  // range controls
+  main.querySelectorAll('.controls .seg button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      store.range.mode=b.dataset.mode;
+      if(store.range.mode==='custom'&&!store.range.start){
+        const sched=scheduledDates();
+        store.range.start=sched[0]||'2026-07-06';store.range.end=sched[sched.length-1]||'2026-07-10';
+      }
+      localStorage.setItem(KEY,JSON.stringify(store));renderAll();
+    });
+  });
+  const rs=document.getElementById('rgStart'),re=document.getElementById('rgEnd');
+  if(rs)rs.addEventListener('change',()=>{store.range.start=rs.value;localStorage.setItem(KEY,JSON.stringify(store));renderAll();});
+  if(re)re.addEventListener('change',()=>{store.range.end=re.value;localStorage.setItem(KEY,JSON.stringify(store));renderAll();});
+  // changes tab buttons
+  const ex=document.getElementById('exportChanges');
+  if(ex)ex.onclick=()=>{
+    const txt='SCHEDULE — apply in Printavo · generated '+new Date().toLocaleString()+'\n\n'+changeList().map((c,i)=>`${i+1}. ${c}`).join('\n')+'\n';
+    download('schedule_changes.txt',txt);store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
+  };
+  const cl=document.getElementById('clearChanges');
+  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];save();renderAll();}};
+}
+function download(name,content){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'text/plain'}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+
+/* ───────── Toolbar ───────── */
+document.getElementById('searchbox').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const sb=e.target,q=sb.value.trim().toLowerCase();if(!q)return;
+  const norm=s=>s.toLowerCase().replace(/\s+/g,'');
+  const j=jobs.find(x=>norm(x.imprint).includes(norm(q)))||jobs.find(x=>x.nickname.toLowerCase().includes(q));
+  if(!j){sb.style.borderColor='var(--red)';setTimeout(()=>sb.style.borderColor='',900);return;}
+  highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
+  if(j.date){
+    collapsedDays.delete(j.date);
+    const dr=dateRange();
+    if(!dr.includes(j.date)){
+      if(store.range.mode==='custom'){
+        if(j.date<store.range.start)store.range.start=j.date;
+        if(j.date>store.range.end)store.range.end=j.date;
+      }else{
+        store.range={mode:'custom',start:j.date<dr[0]?j.date:dr[0],end:j.date>dr[dr.length-1]?j.date:dr[dr.length-1]};
+      }
+      localStorage.setItem(KEY,JSON.stringify(store));
+    }
+  }
+  if(OUTSOURCED.test(j.status)){
+    const ad=store.arrived[j.imprint];
+    if(ad)collapsedArrDates.delete('a:'+ad);
+    else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
+  }
+  renderAll();
+});
+document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const text=rd.result;
+    if(!/(^|,)\s*"?Minutes"?/.test(text.split('\n')[0])||!/Imprint/.test(text.split('\n')[0])){
+      alert('That does not look like a Power Scheduler export (missing Minutes/Imprint headers).');return;
+    }
+    store.csvText=text;store.csvName=f.name;
+    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};
+    store.range={mode:'week',start:null,end:null};
+    save();renderAll();
+  };
+  rd.readAsText(f);
+});
+document.getElementById('changesBtn').onclick=()=>{activeTab=TABS.length-1;renderAll();};
+document.getElementById('backupBtn').onclick=()=>{
+  download('schedule_backup.json',JSON.stringify(store,null,2));
+  store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
+};
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('Reset the board? This clears the imported CSV and all local changes (back to the embedded July 6 data).')){
+    localStorage.removeItem(KEY);location.reload();
+  }
+};
+window.addEventListener('beforeunload',e=>{
+  if(!store.exported&&changeList().length){e.preventDefault();e.returnValue='';}
+});
+
+renderAll();
+</script>
+</body>
+</html>
