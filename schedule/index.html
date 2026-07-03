@@ -134,6 +134,8 @@
   .mock{width:56px;height:56px;border-radius:7px;background:var(--grey-bg);border:1px solid var(--grey-line);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;cursor:zoom-in}
   .mock:hover{border-color:#000}
   .mock.lg{width:150px;height:150px;font-size:68px}
+  .mock.sm{width:34px;height:34px;font-size:17px;border-radius:5px}
+  .mock img{width:100%;height:100%;object-fit:contain;border-radius:6px;background:#fff}
   /* mockup lightbox — 90% full screen for the production team */
   .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out}
   .lightbox .frame{width:90vw;height:90vh;background:#fff;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
@@ -365,6 +367,40 @@ const fmtDay=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNa
 const fmtShort=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?'—':dt.toLocaleDateString('en-US',{weekday:'short'})+' '+(dt.getMonth()+1)+'/'+dt.getDate();};
 const iso=dt=>dt.toISOString().slice(0,10);
 const mockEmoji=j=>j.projectType==='Bandana'?'🧣':j.projectType==='Apparel'?'👕':'📦';
+/* ── real mockups via the schedule-mockups webhook (Printavo API, server-side creds) ── */
+const MOCKUP_WEBHOOK='https://primary-production-079f9.up.railway.app/webhook/schedule-mockups';
+let mockMap={};
+const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function mockEntry(j){return mockMap[j.invoice]||null;}
+function mockFor(j){
+  const e=mockEntry(j);if(!e||!e.imprints||!e.imprints.length)return null;
+  const idx=(+j.impNum||1)-1;
+  let m=(e.imprints[idx]&&(e.imprints[idx].thumb||e.imprints[idx].full))?e.imprints[idx]:null;
+  if(!m)m=e.imprints.find(x=>x.thumb||x.full)||null;   // sibling fallback: the -1's art is the job's face
+  return m;
+}
+function mockBig(m){
+  const t=m.thumb||'';
+  const big=t.replace(/resize=width:\d+,height:\d+/,'resize=width:1400,height:1400');
+  return big!==t&&big?big:(m.thumb||m.full);
+}
+function mockTile(j,cls){
+  const m=j.placeholder?null:mockFor(j);
+  if(m)return `<div class="mock ${cls||''}" title="Click to view at 90% full screen"><img src="${cls==='lg'?mockBig(m):(m.thumb||m.full)}" loading="lazy" alt=""></div>`;
+  return `<div class="mock ${cls||''}" title="Mockup loads from Printavo once the webhook responds">${j.placeholder?'⏳':mockEmoji(j)}</div>`;
+}
+async function loadMockups(){
+  try{
+    const inv=[...new Set(jobs.filter(j=>!j.placeholder&&/^\d+$/.test(j.invoice)).map(j=>j.invoice))];
+    if(!inv.length)return;
+    const CK='sbmocks_v1';
+    let c=null;try{c=JSON.parse(localStorage.getItem(CK));}catch(e){}
+    if(c&&c.ts&&Date.now()-c.ts<12*3600e3&&inv.every(v=>v in (c.map||{}))){mockMap=c.map;renderAll();return;}
+    const res=await fetch(MOCKUP_WEBHOOK+'?inv='+inv.join(','));
+    const d=await res.json();
+    if(d&&d.map){mockMap=Object.assign({},(c&&c.map)||{},d.map);localStorage.setItem(CK,JSON.stringify({ts:Date.now(),map:mockMap}));renderAll();}
+  }catch(e){/* offline or webhook down — emoji fallbacks stay */}
+}
 const isPrinted=j=>j.steps.find(s=>s.name==='Printing / Heat Application')?.v==='Completed';
 function capFor(lane,date,isOT){
   const o=store.caps[date+'|'+lane.key];
@@ -489,7 +525,7 @@ function jobCard(j){
     ?`<span class="chip qty editable" data-qty="${j.imprint}" title="Click to rebalance this split's quantity">${j.qty} pcs</span>`
     :`<span class="chip qty">${j.qty} pcs</span>`;
   return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
-    <div class="mock" title="Mockup — live version pulls the real image from Printavo">${mockEmoji(j)}</div>
+    ${mockTile(j,'')}
     <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
     <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
       ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
@@ -554,7 +590,7 @@ function xPanel(j){
   const sel=`<select data-station="${j.imprint}"><option value="">— assign station —</option>
     ${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select>`;
   return `<div class="xpanel" data-noexpand="1">
-    <div class="mock lg" title="Click to view at 90% full screen">${mockEmoji(j)}</div>
+    ${mockTile(j,'lg')}
     <div class="xmeta">
       <b>Invoice ${j.invoice} · Imprint ${j.impNum}${j.splitLetter||''}</b> — ${j.nickname}
       <div class="xgrid">
@@ -572,14 +608,17 @@ function xPanel(j){
       Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
     </div>
     <div class="xdetails">
-      <b>Imprint details</b> <span class="pending-note">— these fields live in the imprint's details block; the Printavo API exposes them, the CSV export doesn't. They fill in at the PlanetOps sync.</span>
-      <div class="xgrid">
-        <span>Location</span><span class="pending">e.g. Front Print</span>
-        <span>Size</span><span class="pending">imprint width</span>
-        <span>PMS colors</span><span class="pending">per-screen ink colors</span>
-        <span>Finishing</span><span class="pending">—</span>
-        <span>Customer</span><span class="pending">—</span>
-      </div>
+      ${(()=>{const e=mockEntry(j);const exact=e&&e.imprints&&e.imprints[(+j.impNum||1)-1];
+        if(exact&&exact.details)return `<b>Imprint details</b> <span class="pending-note">(live from Printavo)</span>
+          <div style="white-space:pre-wrap;margin:5px 0">${escHtml(exact.details)}</div>
+          ${e.company?`<div class="xgrid"><span>Customer</span><span>${escHtml(e.company)}</span></div>`:''}`;
+        return `<b>Imprint details</b> <span class="pending-note">— nothing typed in this imprint's details block in Printavo${e?'':' (or the webhook hasn\'t answered yet)'}.</span>
+          <div class="xgrid">
+            <span>Location</span><span class="pending">—</span>
+            <span>Size</span><span class="pending">—</span>
+            <span>PMS colors</span><span class="pending">—</span>
+            <span>Customer</span><span>${e&&e.company?escHtml(e.company):'<span class="pending">—</span>'}</span>
+          </div>`;})()}
       <a href="https://www.printavo.com/invoices?query=${j.invoice}" target="_blank" rel="noopener">Find invoice ${j.invoice} in Printavo ↗</a>
     </div>
   </div>`;
@@ -797,7 +836,7 @@ function renderList(){
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr${j.moved?' style="background:#f4f9ff"':''}>
-    <td>${mockEmoji(j)}</td><td><b>${j.imprint}</b>${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
     <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
@@ -890,9 +929,10 @@ function inlineEdit(span,initial,commitFn){
 function openLightbox(imp){
   const j=jobs.find(x=>x.imprint===imp);if(!j)return;
   const ov=document.createElement('div');ov.className='lightbox';
-  ov.innerHTML=`<div class="frame"><div class="bigmock">${mockEmoji(j)}</div>
+  const m=mockFor(j);
+  ov.innerHTML=`<div class="frame">${m?`<img src="${mockBig(m)}" style="max-width:86vw;max-height:74vh;object-fit:contain" alt="">`:`<div class="bigmock">${mockEmoji(j)}</div>`}
     <div class="cap"><b>${j.imprint}</b> — ${j.nickname}</div>
-    <div class="note">The real mockup renders here at 90% full screen once the Printavo sync feeds images — the production-team detail view. Click anywhere or press Esc to close.</div></div>`;
+    <div class="note">${m?'Live mockup from Printavo.':'No mockup on this invoice yet (or the webhook hasn\'t answered).'} Click anywhere or press Esc to close.</div></div>`;
   ov.addEventListener('click',()=>ov.remove());
   const esc=e=>{if(e.key==='Escape'){ov.remove();document.removeEventListener('keydown',esc);}};
   document.addEventListener('keydown',esc);
@@ -1378,6 +1418,7 @@ window.addEventListener('beforeunload',e=>{
 });
 
 renderAll();
+loadMockups();
 </script>
 </body>
 </html>
