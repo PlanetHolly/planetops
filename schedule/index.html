@@ -242,6 +242,8 @@
   td.custcol{background:#f2f2f2;color:#000;font-weight:700}
   tr:last-child td{border-bottom:none}
   .tablewrap{overflow-x:auto;border-radius:10px}
+  .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
+  .xrow .xpanel{border-top:none;margin-top:0;padding-top:2px}
   .changes{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid #2f9fd0;border-radius:10px;margin-bottom:14px;padding:12px 16px}
   .changes h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
   .changes ol{margin:0 0 10px 20px;font-size:13px;line-height:1.7}
@@ -400,8 +402,8 @@ function mockBig(m){
 }
 function mockTile(j,cls){
   const m=j.placeholder?null:mockFor(j);
-  if(m)return `<div class="mock ${cls||''}" title="Click to view at 90% full screen"><img src="${cls==='lg'?mockBig(m):(m.thumb||m.full)}" loading="lazy" alt=""></div>`;
-  return `<div class="mock ${cls||''}" title="Mockup loads from Printavo once the webhook responds">${j.placeholder?'⏳':mockEmoji(j)}</div>`;
+  if(m)return `<div class="mock ${cls||''}" data-mimp="${j.imprint}" title="Click to view at 90% full screen"><img src="${cls==='lg'?mockBig(m):(m.thumb||m.full)}" loading="lazy" alt=""></div>`;
+  return `<div class="mock ${cls||''}" data-mimp="${j.imprint}" title="Mockup loads from Printavo once the webhook responds">${j.placeholder?'⏳':mockEmoji(j)}</div>`;
 }
 async function loadMockups(){
   try{
@@ -857,8 +859,8 @@ function renderList(){
   const rows=list.map(j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
-    :`<tr${j.moved?' style="background:#f4f9ff"':''}>
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
+    :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
     <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
@@ -868,7 +870,7 @@ function renderList(){
     <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${cleanStatus(j.status)}</td></tr>`).join('');
+    <td>${cleanStatus(j.status)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="14">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
@@ -987,6 +989,15 @@ function wireMain(){
     if(e.target.closest('input,button,select,a'))return;
     arrCollapsed=!arrCollapsed;renderAll();
   });
+  // list rows: click to expand details
+  main.querySelectorAll('tr[data-limp]').forEach(tr=>{
+    tr.addEventListener('click',e=>{
+      if(e.target.closest('input,select,a,button,.mock,.min,[data-qty],.xpanel,.qcchip'))return;
+      const imp=tr.dataset.limp;
+      expanded.has(imp)?expanded.delete(imp):expanded.add(imp);
+      renderAll();
+    });
+  });
   // sortable list headers
   main.querySelectorAll('th[data-sort]').forEach(th=>{
     th.addEventListener('click',()=>{
@@ -999,8 +1010,8 @@ function wireMain(){
   main.querySelectorAll('.mock').forEach(m=>{
     m.addEventListener('click',e=>{
       e.stopPropagation();
-      const job=m.closest('.job');
-      if(job)openLightbox(job.dataset.imp);
+      const imp=m.dataset.mimp||(m.closest('.job')&&m.closest('.job').dataset.imp);
+      if(imp)openLightbox(imp);
     });
   });
   // day collapse/expand
