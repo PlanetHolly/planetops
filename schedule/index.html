@@ -371,6 +371,18 @@ const iso=dt=>dt.toISOString().slice(0,10);
 const mockEmoji=j=>j.projectType==='Bandana'?'🧣':j.projectType==='Apparel'?'👕':'📦';
 /* ── real mockups via the schedule-mockups webhook (Printavo API, server-side creds) ── */
 const MOCKUP_WEBHOOK='https://primary-production-079f9.up.railway.app/webhook/schedule-mockups';
+/* ── live CSV feed: newest Power Scheduler export from the Gauge pipeline (Railway cron 4×/day + Jean's /gauge) ── */
+const CSV_FEED='https://primary-production-079f9.up.railway.app/webhook/schedule-csv';
+let liveCsv=null,liveName=null,livePulledAt=null;
+async function loadLiveCsv(){
+  try{
+    const r=await fetch(CSV_FEED);const d=await r.json();
+    if(d&&d.ok&&d.csv&&/Imprint/.test(d.csv.split('\n')[0])){
+      liveCsv=d.csv;liveName=d.name;livePulledAt=d.pulledAt||null;
+      renderAll();loadMockups();
+    }
+  }catch(e){/* feed unreachable — embedded/imported data stays */}
+}
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
@@ -431,7 +443,7 @@ function rowToJob(r,hdr){
   };
 }
 function buildModel(){
-  const text=store.csvText||document.getElementById('csvdata').textContent.trim();
+  const text=store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
   jobs=[];
@@ -916,7 +928,11 @@ function renderAll(){
   buildModel();
   nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
   main.innerHTML=TABS[activeTab].render();
-  document.getElementById('stamp').innerHTML=`DATA <b>${store.csvName||'export_July 6.csv'}</b>${store.csvName?' · imported':' · pulled Thu Jul 2 · 10:29 PM'}`;
+  const stampEl=document.getElementById('stamp');
+  if(store.csvName)stampEl.innerHTML=`DATA <b>${store.csvName}</b> · manual import (↺ Reset returns to the live feed)`;
+  else if(liveName){const t=livePulledAt?new Date(livePulledAt):null;
+    stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}`;}
+  else stampEl.innerHTML=`DATA <b>export_July 6.csv</b> · embedded sample (live feed loading…)`;
   updateChangesBtn();
   wireMain();
   if(highlightImp){
@@ -1445,6 +1461,7 @@ window.addEventListener('beforeunload',e=>{
 
 renderAll();
 loadMockups();
+loadLiveCsv();
 </script>
 </body>
 </html>
