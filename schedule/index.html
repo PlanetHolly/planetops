@@ -258,6 +258,9 @@
   .calbar .cb1{display:flex;justify-content:space-between;gap:6px;font-size:11.5px}
   .calbar .cb2,.calbar .cb3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;opacity:.92}
   .calbar .cb3{font-size:9.5px;opacity:.8}
+  .calgrid.wk{grid-template-columns:repeat(7,minmax(0,1fr))}
+  .calgrid.wk .calcell{min-height:320px}
+  .calgrid.wk .calitems{max-height:640px}
   .calbar:active{cursor:grabbing}
   .calbar.dragging{opacity:.4}
   .calbar.ph{border:1.5px dashed #8a6d00}
@@ -933,19 +936,31 @@ function renderChanges(){
 }
 
 /* ───────── Calendar view ───────── */
-let calMonth=null,calLane='';
+let calMonth=null,calLane='',calMode='month',calAnchor=null;
+function mondayOf(iso){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toLocaleDateString('en-CA');}
+function addDays(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.toLocaleDateString('en-CA');}
 function renderCalendar(){
   const sched=scheduledDates();
   if(!calMonth)calMonth=(sched[0]||todayISO()).slice(0,7);
-  const [Y,M]=calMonth.split('-').map(Number);
-  const first=new Date(Y,M-1,1);
-  const off=(first.getDay()+6)%7;
-  const dim=new Date(Y,M,0).getDate();
-  const cells=[];for(let i=0;i<off;i++)cells.push(null);
-  for(let d=1;d<=dim;d++)cells.push(calMonth+'-'+String(d).padStart(2,'0'));
-  while(cells.length%7)cells.push(null);
+  if(!calAnchor)calAnchor=mondayOf(sched[0]||todayISO());
   const laneF=calLane?LANES.find(l=>l.key===calLane):null;
-  const label=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  let cells=[],label='';
+  if(calMode==='month'){
+    const [Y,M]=calMonth.split('-').map(Number);
+    const first=new Date(Y,M-1,1);
+    const off=(first.getDay()+6)%7;
+    const dim=new Date(Y,M,0).getDate();
+    for(let i=0;i<off;i++)cells.push(null);
+    for(let d=1;d<=dim;d++)cells.push(calMonth+'-'+String(d).padStart(2,'0'));
+    while(cells.length%7)cells.push(null);
+    label=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  }else{
+    const n=calMode==='2wk'?14:7;
+    for(let i=0;i<n;i++)cells.push(addDays(calAnchor,i));
+    const a=new Date(calAnchor+'T12:00:00'),b=new Date(addDays(calAnchor,n-1)+'T12:00:00');
+    label=a.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+b.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }
+  const modeSeg=`<span class="seg">${[['1wk','Week'],['2wk','2 Weeks'],['month','Month']].map(([k,lb])=>`<button data-calmode="${k}" class="${calMode===k?'on':''}">${lb}</button>`).join('')}</span>`;
   const chips=`<span class="seg">`+[['','All stations'],...LANES.map(l=>[l.key,l.label])].map(([k,lb])=>`<button data-callane="${k}" class="${calLane===k?'on':''}">${lb}</button>`).join('')+`</span>`;
   const bar=j=>{
     const e=mockEntry(j);const c=(e&&e.stat&&e.stat.color)||(j.placeholder?'#d9c66a':'#9aa1ab');
@@ -963,25 +978,26 @@ function renderCalendar(){
     const tot=rows.reduce((a,j)=>a+j.minutes,0);
     const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
     const dow=new Date(d+'T12:00:00').getDay();
-    // Gauge-style fullness: the filtered lane, else Auto Press (the constraint)
-    const gl=laneF||LANES[0];
-    const gUsed=jobs.filter(j=>j.date===d&&laneOf(j.station)===gl).reduce((a,j)=>a+j.minutes,0);
-    const gCap=capFor(gl,d,isOT);
+    // fullness chip: filtered lane vs its cap; on All = TOTAL minutes vs the whole day's capacity (all lanes, OT/overrides honored)
+    let gUsed,gCap,gTitle;
+    if(laneF){gUsed=tot;gCap=capFor(laneF,d,isOT);gTitle=laneF.label+': '+gUsed+'/'+gCap+' min';}
+    else{gUsed=tot;gCap=LANES.reduce((a,l)=>a+capFor(l,d,isOT),0);gTitle='All stations: '+gUsed+'/'+gCap+' min (full-day capacity, OT honored)';}
     const gPct=gCap?Math.round(gUsed/gCap*100):0;
     const gCls=gUsed>=gCap?'overc':gUsed>=gCap*.7?'warnc':'okc';
-    const gChip=gUsed?`<span class="dchip ${gCls}" title="${gl.label}: ${gUsed}/${gCap} min — same math as the Gauge">${gPct}%</span>`:'';
+    const gChip=gUsed?`<span class="dchip ${gCls}" title="${gTitle} — same math as the Gauge">${gPct}%</span>`:'';
     return `<div class="calcell ${dow===0||dow===6?'wkend':''}" data-date="${d}">
-      <div class="calday"><b>${+d.slice(8)}</b>${isOT?' <span class="ot-badge">OT</span>':''}${gChip}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
+      <div class="calday"><b>${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${isOT?' <span class="ot-badge">OT</span>':''}${gChip}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
       <div class="calitems">${rows.map(bar).join('')}</div></div>`;
   }).join('');
   return `<div class="controls">
       <span class="seg"><button data-calnav="-1">‹</button><button data-calnav="1">›</button></span>
       <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:.04em;text-transform:uppercase">${label}</span>
+      ${modeSeg}
       ${chips}
     </div>
-    <div class="hint" style="margin-bottom:10px">Per-IMPRINT (what production runs), colored by live Printavo status · filter by station above · drag a bar to another day = moves its <b>scheduled production day</b> (lands on Jean's checklist — note: Printavo's own calendar drag moves Prod&nbsp;Due, a different lever) · click a bar to jump to it on the Board.</div>
-    <div class="calhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div>${x}</div>`).join('')}</div>
-    <div class="calgrid">${grid}</div>`;
+    <div class="hint" style="margin-bottom:10px">Per-IMPRINT (what production runs), colored by live Printavo status · % chip = ${calLane?'that station':'ALL stations'} vs the day's capacity, Gauge math · drag a bar to another day = moves its <b>scheduled production day</b> only (never Prod Due; past-due moves ask first) · click a bar to jump to it on the Board.</div>
+    ${calMode==='month'?`<div class="calhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div>${x}</div>`).join('')}</div>`:''}
+    <div class="calgrid ${calMode!=='month'?'wk':''}">${grid}</div>`;
 }
 
 /* ───────── Tabs ───────── */
@@ -1072,10 +1088,17 @@ function wireMain(){
   });
   // calendar: nav, station filter, bars (drag + click-to-jump), day drops
   main.querySelectorAll('[data-calnav]').forEach(b=>b.addEventListener('click',()=>{
-    const [Y,M]=calMonth.split('-').map(Number);
-    const d=new Date(Y,M-1+ +b.dataset.calnav,1);
-    calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');renderAll();
+    const dir=+b.dataset.calnav;
+    if(calMode==='month'){
+      const [Y,M]=calMonth.split('-').map(Number);
+      const d=new Date(Y,M-1+dir,1);
+      calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    }else{
+      calAnchor=addDays(calAnchor,dir*(calMode==='2wk'?14:7));
+    }
+    renderAll();
   }));
+  main.querySelectorAll('[data-calmode]').forEach(b=>b.addEventListener('click',()=>{calMode=b.dataset.calmode;renderAll();}));
   main.querySelectorAll('[data-callane]').forEach(b=>b.addEventListener('click',()=>{calLane=b.dataset.callane;renderAll();}));
   main.querySelectorAll('.calbar').forEach(el=>{
     el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.imp);el.classList.add('dragging');});
