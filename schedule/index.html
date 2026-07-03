@@ -244,6 +244,20 @@
   .tablewrap{overflow-x:auto;border-radius:10px}
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
   .stpill{font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;display:inline-block;line-height:1.35;max-width:280px}
+  /* calendar view */
+  .calhead{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--grey-text);margin:2px 0 4px;padding:0 2px}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .calcell{background:var(--white);border:1px solid var(--grey-line);border-radius:8px;min-height:112px;padding:5px 6px}
+  .calcell.empty{background:transparent;border:none}
+  .calcell.wkend{background:#fafafa}
+  .calcell.dragover{outline:2px dashed var(--yellow);outline-offset:-2px}
+  .calday{display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:4px}
+  .calmin{margin-left:auto;color:var(--grey-text);font-size:10.5px;white-space:nowrap}
+  .calitems{max-height:160px;overflow-y:auto}
+  .calbar{font-size:10.5px;font-weight:600;border-radius:4px;padding:2px 6px;margin-bottom:3px;cursor:grab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .calbar:active{cursor:grabbing}
+  .calbar.dragging{opacity:.4}
+  .calbar.ph{border:1.5px dashed #8a6d00}
   .xrow .xpanel{border-top:none;margin-top:0;padding-top:2px}
   .changes{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid #2f9fd0;border-radius:10px;margin-bottom:14px;padding:12px 16px}
   .changes h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
@@ -324,6 +338,7 @@
 <script>
 /* ───────── CSV parsing ───────── */
 function parseCSV(text){
+  text=String(text).replace(/^\uFEFF/,'');   // live exports carry a UTF-8 BOM — strip or the Minutes header never matches
   const rows=[];let row=[],cell='',inQ=false;
   for(let i=0;i<text.length;i++){
     const c=text[i];
@@ -914,9 +929,50 @@ function renderChanges(){
   </section>`+renderBoard(null);
 }
 
+/* ───────── Calendar view ───────── */
+let calMonth=null,calLane='';
+function renderCalendar(){
+  const sched=scheduledDates();
+  if(!calMonth)calMonth=(sched[0]||todayISO()).slice(0,7);
+  const [Y,M]=calMonth.split('-').map(Number);
+  const first=new Date(Y,M-1,1);
+  const off=(first.getDay()+6)%7;
+  const dim=new Date(Y,M,0).getDate();
+  const cells=[];for(let i=0;i<off;i++)cells.push(null);
+  for(let d=1;d<=dim;d++)cells.push(calMonth+'-'+String(d).padStart(2,'0'));
+  while(cells.length%7)cells.push(null);
+  const laneF=calLane?LANES.find(l=>l.key===calLane):null;
+  const label=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const chips=`<span class="seg">`+[['','All stations'],...LANES.map(l=>[l.key,l.label])].map(([k,lb])=>`<button data-callane="${k}" class="${calLane===k?'on':''}">${lb}</button>`).join('')+`</span>`;
+  const bar=j=>{
+    const e=mockEntry(j);const c=(e&&e.stat&&e.stat.color)||(j.placeholder?'#d9c66a':'#9aa1ab');
+    const n=parseInt(c.slice(1),16),lum=(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255;
+    return `<div class="calbar ${j.placeholder?'ph':''}" draggable="true" data-imp="${j.imprint.replace(/"/g,'&quot;')}" style="background:${c};color:${lum>0.62?'#000':'#fff'}" title="${escHtml(j.imprint+' — '+j.nickname+' · '+j.minutes+' min · '+(j.station||'no station')+((e&&e.stat)?' · '+e.stat.name:''))}">${j.placeholder?'⏳ ':''}${j.imprint} · ${j.minutes}m</div>`;
+  };
+  const grid=cells.map(d=>{
+    if(!d)return '<div class="calcell empty"></div>';
+    const rows=jobs.filter(j=>j.date===d&&(!laneF||laneOf(j.station)===laneF));
+    const tot=rows.reduce((a,j)=>a+j.minutes,0);
+    const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+    const dow=new Date(d+'T12:00:00').getDay();
+    return `<div class="calcell ${dow===0||dow===6?'wkend':''}" data-date="${d}">
+      <div class="calday"><b>${+d.slice(8)}</b>${isOT?' <span class="ot-badge">OT</span>':''}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
+      <div class="calitems">${rows.map(bar).join('')}</div></div>`;
+  }).join('');
+  return `<div class="controls">
+      <span class="seg"><button data-calnav="-1">‹</button><button data-calnav="1">›</button></span>
+      <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:.04em;text-transform:uppercase">${label}</span>
+      ${chips}
+    </div>
+    <div class="hint" style="margin-bottom:10px">Per-IMPRINT (what production runs), colored by live Printavo status · filter by station above · drag a bar to another day = moves its <b>scheduled production day</b> (lands on Jean's checklist — note: Printavo's own calendar drag moves Prod&nbsp;Due, a different lever) · click a bar to jump to it on the Board.</div>
+    <div class="calhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div>${x}</div>`).join('')}</div>
+    <div class="calgrid">${grid}</div>`;
+}
+
 /* ───────── Tabs ───────── */
 const TABS=[
   {label:'Board',render:()=>renderBoard(null)},
+  {label:'Calendar',render:renderCalendar},
   {label:'List',render:renderList},
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
@@ -998,6 +1054,32 @@ function wireMain(){
   if(at)at.addEventListener('click',e=>{
     if(e.target.closest('input,button,select,a'))return;
     arrCollapsed=!arrCollapsed;renderAll();
+  });
+  // calendar: nav, station filter, bars (drag + click-to-jump), day drops
+  main.querySelectorAll('[data-calnav]').forEach(b=>b.addEventListener('click',()=>{
+    const [Y,M]=calMonth.split('-').map(Number);
+    const d=new Date(Y,M-1+ +b.dataset.calnav,1);
+    calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');renderAll();
+  }));
+  main.querySelectorAll('[data-callane]').forEach(b=>b.addEventListener('click',()=>{calLane=b.dataset.callane;renderAll();}));
+  main.querySelectorAll('.calbar').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.imp);el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('click',e=>{e.stopPropagation();jumpTo(el.dataset.imp);});
+  });
+  main.querySelectorAll('.calcell[data-date]').forEach(cell=>{
+    cell.addEventListener('dragover',e=>{e.preventDefault();cell.classList.add('dragover');});
+    cell.addEventListener('dragleave',()=>cell.classList.remove('dragover'));
+    cell.addEventListener('drop',e=>{
+      e.preventDefault();cell.classList.remove('dragover');
+      const imp=e.dataTransfer.getData('text/plain');if(!imp)return;
+      const j=jobs.find(x=>x.imprint===imp);const target=cell.dataset.date;
+      if(!j||!target)return;
+      if(j.placeholder){const ph=store.placeholders.find(x=>x.id===imp);if(ph){ph.date=target;save();renderAll();}return;}
+      const orig=j.csvDate!==undefined?j.csvDate:(j.origDate||j.date);
+      if(target===orig)delete store.moves[imp];else store.moves[imp]=target;
+      save();renderAll();
+    });
   });
   // list rows: click to expand details
   main.querySelectorAll('tr[data-limp]').forEach(tr=>{
@@ -1423,12 +1505,36 @@ function download(name,content){
 }
 
 /* ───────── Toolbar ───────── */
+function jumpTo(imp){
+  const j=jobs.find(x=>x.imprint===imp);if(!j)return;
+  highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
+  if(j.date){
+    collapsedDays.delete(j.date);
+    const dr=dateRange();
+    if(!dr.includes(j.date)){
+      if(store.range.mode==='custom'){
+        if(j.date<store.range.start)store.range.start=j.date;
+        if(j.date>store.range.end)store.range.end=j.date;
+      }else{
+        store.range={mode:'custom',start:j.date<dr[0]?j.date:dr[0],end:j.date>dr[dr.length-1]?j.date:dr[dr.length-1]};
+      }
+      localStorage.setItem(KEY,JSON.stringify(store));
+    }
+  }
+  if(OUTSOURCED.test(j.status)){
+    const ad=store.arrived[j.imprint];
+    if(ad)collapsedArrDates.delete('a:'+ad);
+    else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
+  }
+  renderAll();
+}
 document.getElementById('searchbox').addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
   const sb=e.target,q=sb.value.trim().toLowerCase();if(!q)return;
   const norm=s=>s.toLowerCase().replace(/\s+/g,'');
   const j=jobs.find(x=>norm(x.imprint).includes(norm(q)))||jobs.find(x=>x.nickname.toLowerCase().includes(q));
   if(!j){sb.style.borderColor='var(--red)';setTimeout(()=>sb.style.borderColor='',900);return;}
+  jumpTo(j.imprint);return;
   highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
   if(j.date){
     collapsedDays.delete(j.date);
