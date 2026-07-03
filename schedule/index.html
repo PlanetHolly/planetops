@@ -272,6 +272,8 @@
   .changes button{font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;border:1px solid var(--grey-line);padding:6px 14px;border-radius:7px;cursor:pointer}
   .changes button.dl{background:#000;color:var(--yellow);border-color:#000}
   footer{padding:14px 26px;color:var(--grey-text);font-size:11.5px}
+  body.histmode .sandbox{opacity:.4}
+  body.histmode #main{outline:3px solid #1e5f8a;outline-offset:-3px;border-radius:6px}
 </style>
 </head>
 <body>
@@ -283,6 +285,7 @@
   <span class="stamp" id="stamp"></span>
   <span class="toolbar">
     <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
+    <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)" style="font:inherit;border:1.5px solid var(--grey-line);border-radius:7px;padding:5px 8px">
     <button id="importBtn" class="primary">⬆ Import CSV</button>
     <button id="changesBtn">📝 Changes (0)</button>
     <button id="backupBtn">💾 Backup</button>
@@ -292,6 +295,7 @@
 </header>
 <div class="sandbox"><b>Sandbox:</b> drag jobs between day rows · click a day header to collapse it · click <b>minutes</b> to set projected time · click a lane's <b>x/420</b> to change that day's max · ⧉ splits (click a split's <b>pcs/min</b> to rebalance) · ↩ rejoins · click a card to expand. Changes live ONLY here — <b>📝 Changes</b> is Jean's apply-in-Printavo checklist.</div>
 
+<div id="histbanner" style="display:none;background:#1e5f8a;color:#fff;padding:7px 26px;font-size:13px;font-weight:600"></div>
 <nav id="tabs"></nav>
 <main id="main"></main>
 
@@ -398,6 +402,7 @@ const MOCKUP_WEBHOOK='https://primary-production-079f9.up.railway.app/webhook/sc
 /* ── live CSV feed: newest Power Scheduler export from the Gauge pipeline (Railway cron 4×/day + Jean's /gauge) ── */
 const CSV_FEED='https://primary-production-079f9.up.railway.app/webhook/schedule-csv';
 let liveCsv=null,liveName=null,livePulledAt=null;
+let histCsv=null,histDate=null;   // history playback: a past-date snapshot, read-only
 async function loadLiveCsv(){
   try{
     const r=await fetch(CSV_FEED);const d=await r.json();
@@ -475,14 +480,16 @@ function rowToJob(r,hdr){
     status:g('Invoice Status').trim(), localSplit:false, moved:false,
   };
 }
+const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},placeholders:[]};
 function buildModel(){
-  const text=store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
+  const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
+  const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
   jobs=[];
   base.forEach(j=>{
-    if(store.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=store.minutesEdit[j.imprint];}
-    const sp=store.splits[j.imprint];
+    if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
+    const sp=OV.splits[j.imprint];
     if(sp&&!j.splitLetter){
       const n=sp.parts, qEach=Math.round(j.qty/n), mEach=Math.round(j.minutes/n);
       for(let k=0;k<n;k++){
@@ -492,7 +499,7 @@ function buildModel(){
         c.imprint=j.imprint+c.splitLetter;
         c.qty=k===n-1?j.qty-qEach*(n-1):qEach;
         c.minutes=k===n-1?j.minutes-mEach*(n-1):mEach;
-        const al=store.alloc[c.imprint];
+        const al=OV.alloc[c.imprint];
         if(al){if(al.qty!=null)c.qty=al.qty;if(al.min!=null)c.minutes=al.min;}
         c.localSplit=true;
         jobs.push(c);
@@ -501,13 +508,13 @@ function buildModel(){
   });
   jobs.forEach(j=>{
     j.csvDate=j.date;j.csvPtype=j.projectType;j.csvPptype=j.postProdType;
-    const st=store.stations[j.imprint];if(st){j.stationOrig=j.station;j.station=st;j.stationAssigned=true;}
-    const mv=store.moves[j.imprint];
+    const st=OV.stations[j.imprint];if(st){j.stationOrig=j.station;j.station=st;j.stationAssigned=true;}
+    const mv=OV.moves[j.imprint];
     if(mv!==undefined&&mv!==j.csvDate){j.origDate=j.csvDate;j.date=mv;j.moved=true;}
-    const pt=store.ptype[j.imprint];if(pt)j.projectType=pt;
-    const pp=store.pptype[j.imprint];if(pp!==undefined)j.postProdType=pp||'N/A';
+    const pt=OV.ptype[j.imprint];if(pt)j.projectType=pt;
+    const pp=OV.pptype[j.imprint];if(pp!==undefined)j.postProdType=pp||'N/A';
   });
-  (store.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
+  (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
   arrivals=jobs.filter(j=>OUTSOURCED.test(j.status));
@@ -1035,6 +1042,7 @@ function renderAll(){
     stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}`;}
   else stampEl.innerHTML=`DATA <b>export_July 6.csv</b> · embedded sample (live feed loading…)`;
   updateChangesBtn();
+  if(typeof renderHistBanner==='function')renderHistBanner();
   wireMain();
   if(highlightImp){
     const el=main.querySelector(`.job[data-imp="${CSS.escape(highlightImp)}"]`);
@@ -1555,6 +1563,16 @@ function moveAllowed(j,target){
   if(target<=j.prodDue)return true;
   return confirm('⚠ '+j.imprint+' — '+j.nickname+'\n\nThis moves it PAST its production due date ('+fmtShort(j.prodDue)+'; customer due '+fmtShort(j.custDue)+').\n\nMoves NEVER change the production due date — this is only the risk flag.\n\nMove anyway?');
 }
+function applyMove(imp,target){
+  if(histCsv)return false;   // history is read-only
+  const j=jobs.find(x=>x.imprint===imp);
+  if(!j||!target)return false;
+  if(j.placeholder){const ph=store.placeholders.find(x=>x.id===imp);if(ph){ph.date=target;save();renderAll();}return true;}
+  const orig=j.csvDate!==undefined?j.csvDate:(j.origDate||j.date);
+  if(target!==orig&&!moveAllowed(j,target))return false;
+  if(target===orig)delete store.moves[imp];else store.moves[imp]=target;
+  save();renderAll();return true;
+}
 function jumpTo(imp){
   const j=jobs.find(x=>x.imprint===imp);if(!j)return;
   highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
@@ -1640,6 +1658,69 @@ if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar')
 renderAll();
 loadMockups();
 loadLiveCsv();
+
+/* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */
+async function loadHistory(dateStr){
+  try{
+    const r=await fetch(CSV_FEED+'?date='+encodeURIComponent(dateStr));
+    const d=await r.json();
+    if(d&&d.ok&&d.csv&&/Imprint/.test(d.csv.split('\n')[0])){
+      histCsv=d.csv;histDate=dateStr;
+      document.body.classList.add('histmode');
+      renderAll();loadMockups();
+    }else{
+      alert('No snapshot captured for '+dateStr+' (history starts 2026-06-15; weekends/holidays may have no pull).');
+    }
+  }catch(e){alert('History feed unreachable.');}
+}
+function exitHistory(){histCsv=null;histDate=null;document.body.classList.remove('histmode');const h=document.getElementById('histpick');if(h)h.value='';renderAll();loadMockups();}
+function renderHistBanner(){
+  const b=document.getElementById('histbanner');if(!b)return;
+  if(histDate){b.style.display='block';
+    const t=new Date(histDate+'T12:00:00');
+    b.innerHTML='🕰 VIEWING HISTORY · '+t.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+' — read-only snapshot of how the day was scheduled. <a href="#" id="histexit" style="color:#fff;text-decoration:underline">← Back to live</a>';
+    const x=document.getElementById('histexit');if(x)x.onclick=(e)=>{e.preventDefault();exitHistory();};
+  }else b.style.display='none';
+}
+const _hp=document.getElementById('histpick');
+if(_hp)_hp.addEventListener('change',()=>{if(_hp.value)loadHistory(_hp.value);});
+
+/* ── touch drag-and-drop: HTML5 drag events don't fire on touchscreens.
+   One delegated pointer shim moves .job / .calbar sources onto any [data-date] target,
+   routing through applyMove so behavior matches mouse exactly (incl. past-due gate). ── */
+(function(){
+  let src=null,ghost=null,lastTgt=null,moved=false,sx=0,sy=0;
+  const clearTgt=()=>{if(lastTgt){lastTgt.classList.remove('dragover');lastTgt=null;}};
+  document.addEventListener('touchstart',e=>{
+    const el=e.target.closest('.job[data-imp],.calbar[data-imp]');
+    if(!el)return;
+    // let interactive controls + the expand/jump tap work normally
+    if(e.target.closest('button,input,select,a,.min,.cap,[data-qty],.qcchip,.splitbtn,.rec,.phref,.etabar'))return;
+    src=el;moved=false;const t=e.touches[0];sx=t.clientX;sy=t.clientY;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!src)return;
+    const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(!moved){ if(Math.hypot(dx,dy)<10)return;   // 10px threshold = a drag, not a tap
+      moved=true;src.classList.add('dragging');
+      ghost=src.cloneNode(true);ghost.style.cssText='position:fixed;z-index:2000;pointer-events:none;opacity:.85;width:'+src.offsetWidth+'px;box-shadow:0 6px 18px rgba(0,0,0,.3)';
+      document.body.appendChild(ghost);
+    }
+    e.preventDefault();
+    ghost.style.left=(t.clientX-40)+'px';ghost.style.top=(t.clientY-14)+'px';
+    ghost.style.display='none';
+    const under=document.elementFromPoint(t.clientX,t.clientY);
+    ghost.style.display='';
+    const cell=under&&under.closest('[data-date]');
+    if(cell!==lastTgt){clearTgt();if(cell){lastTgt=cell;cell.classList.add('dragover');}}
+  },{passive:false});
+  document.addEventListener('touchend',()=>{
+    if(src&&moved&&lastTgt)applyMove(src.dataset.imp,lastTgt.dataset.date);
+    if(src)src.classList.remove('dragging');
+    if(ghost){ghost.remove();ghost=null;}
+    clearTgt();src=null;moved=false;
+  });
+})();
 </script>
 </body>
 </html>
