@@ -298,6 +298,9 @@
 <div id="histbanner" style="display:none;background:#1e5f8a;color:#fff;padding:7px 26px;font-size:13px;font-weight:600"></div>
 <nav id="tabs"></nav>
 <main id="main"></main>
+<div id="estWrap" style="display:none;height:calc(100vh - 210px);min-height:560px">
+  <iframe id="estFrame" title="Project Estimator" style="width:100%;height:100%;border:0"></iframe>
+</div>
 
 <footer>
   Planet Apparel · Schedule prototype · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
@@ -1017,6 +1020,7 @@ const TABS=[
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
   ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
+  {label:'⏱ Estimator',est:true,render:()=>''},   // persistent iframe (estWrap) — keeps a dropped export alive across tab switches
   {label:'Changes',render:renderChanges},
 ];
 let activeTab=0;
@@ -1035,6 +1039,9 @@ function updateChangesBtn(){
 function renderAll(){
   buildModel();
   nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
+  const est=!!TABS[activeTab].est,estWrap=document.getElementById('estWrap');
+  estWrap.style.display=est?'block':'none';main.style.display=est?'none':'';
+  if(est){const f=document.getElementById('estFrame');if(!f.getAttribute('src'))f.src='../estimator/';}
   main.innerHTML=TABS[activeTab].render();
   const stampEl=document.getElementById('stamp');
   if(store.csvName)stampEl.innerHTML=`DATA <b>${store.csvName}</b> · manual import (↺ Reset returns to the live feed)`;
