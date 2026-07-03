@@ -395,7 +395,7 @@ async function loadMockups(){
   try{
     const inv=[...new Set(jobs.filter(j=>!j.placeholder&&/^\d+$/.test(j.invoice)).map(j=>j.invoice))];
     if(!inv.length)return;
-    const CK='sbmocks_v1';
+    const CK='sbmocks_v2';
     let c=null;try{c=JSON.parse(localStorage.getItem(CK));}catch(e){}
     if(c&&c.ts&&Date.now()-c.ts<12*3600e3&&inv.every(v=>v in (c.map||{}))){mockMap=c.map;renderAll();return;}
     const res=await fetch(MOCKUP_WEBHOOK+'?inv='+inv.join(','));
@@ -621,7 +621,15 @@ function xPanel(j){
             <span>PMS colors</span><span class="pending">—</span>
             <span>Customer</span><span>${e&&e.company?escHtml(e.company):'<span class="pending">—</span>'}</span>
           </div>`;})()}
-      <a href="https://www.printavo.com/invoices?query=${j.invoice}" target="_blank" rel="noopener">Find invoice ${j.invoice} in Printavo ↗</a>
+      ${(()=>{const e=mockEntry(j);
+        const links=e&&e.invUrl
+          ?`<a href="${e.invUrl}" target="_blank" rel="noopener">Open invoice ${j.invoice} in Printavo ↗</a>${e.woUrl?` · <a href="${e.woUrl}" target="_blank" rel="noopener">Work order ↗</a>`:''}`
+          :`<a href="https://www.printavo.com/invoices?query=${j.invoice}" target="_blank" rel="noopener">Find invoice ${j.invoice} in Printavo ↗</a>`;
+        const files=e&&e.files&&e.files.length
+          ?`<div style="margin-top:7px"><b>📎 Production files</b><br>${e.files.map(f=>`<a href="${f.url}" target="_blank" rel="noopener" title="${escHtml(f.name)}">${escHtml(f.name.length>52?f.name.slice(0,50)+'…':f.name)}</a>`).join('<br>')}</div>`:'';
+        const noteTxt=e&&e.note?String(e.note).replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/[ \t]+/g,' ').trim():'';
+        const note=noteTxt?`<div style="margin-top:7px"><b>Production notes</b><div style="white-space:pre-wrap;max-height:130px;overflow:auto;font-size:12px">${escHtml(noteTxt)}</div></div>`:'';
+        return files+note+`<div style="margin-top:7px">${links}</div>`;})()}
     </div>
   </div>`;
 }
