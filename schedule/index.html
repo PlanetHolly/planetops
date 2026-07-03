@@ -243,6 +243,7 @@
   tr:last-child td{border-bottom:none}
   .tablewrap{overflow-x:auto;border-radius:10px}
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
+  .stpill{font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;display:inline-block;line-height:1.35;max-width:280px}
   .xrow .xpanel{border-top:none;margin-top:0;padding-top:2px}
   .changes{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid #2f9fd0;border-radius:10px;margin-bottom:14px;padding:12px 16px}
   .changes h2{font-family:'Barlow Condensed';font-size:19px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
@@ -388,6 +389,15 @@ async function loadLiveCsv(){
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
+function statusPill(j){
+  const e=mockEntry(j);
+  if(e&&e.stat&&e.stat.name){
+    const c=e.stat.color||'#9aa1ab';
+    const n=parseInt(c.slice(1),16),lum=(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255;
+    return `<span class="stpill" style="background:${c};color:${lum>0.62?'#000':'#fff'}" title="Live Printavo status">${escHtml(e.stat.name)}</span>`;
+  }
+  return `<span class="stpill" style="background:var(--grey-bg);color:var(--grey-text);border:1px solid var(--grey-line)">${escHtml(cleanStatus(j.status))}</span>`;
+}
 function mockFor(j){
   const e=mockEntry(j);if(!e||!e.imprints||!e.imprints.length)return null;
   const idx=(+j.impNum||1)-1;
@@ -409,7 +419,7 @@ async function loadMockups(){
   try{
     const inv=[...new Set(jobs.filter(j=>!j.placeholder&&/^\d+$/.test(j.invoice)).map(j=>j.invoice))];
     if(!inv.length)return;
-    const CK='sbmocks_v2';
+    const CK='sbmocks_v3';
     let c=null;try{c=JSON.parse(localStorage.getItem(CK));}catch(e){}
     if(c&&c.ts&&Date.now()-c.ts<12*3600e3&&inv.every(v=>v in (c.map||{}))){mockMap=c.map;renderAll();return;}
     const res=await fetch(MOCKUP_WEBHOOK+'?inv='+inv.join(','));
@@ -618,7 +628,7 @@ function xPanel(j){
         <span>Post-Pro</span><span>${j.postProdType!=='N/A'?j.postProdType:'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
         <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
-        <span>Status</span><span>${cleanStatus(j.status)}</span>
+        <span>Status</span><span>${statusPill(j)}</span>
       </div>
       <div class="steps">${steps}</div>
       Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
@@ -870,7 +880,7 @@ function renderList(){
     <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${cleanStatus(j.status)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="14">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="14">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
