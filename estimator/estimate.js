@@ -3,8 +3,10 @@
    Loaded by BOTH the Estimator tab (/estimator/) and the Schedule (/schedule/).
    Change a number HERE, push, and every projected time everywhere recomputes.
    Extracted verbatim from Jean's Project Estimator so numbers match exactly.
-   (2026-07-03. Bigger phase later: serve EST_CONFIG from a Google Sheet so
-    formulas can be edited with no code at all — see Architecture doc §5.)
+   2026-07-03: EST_CONFIG values below are the BAKED FALLBACK. loadRates()
+   pulls the live values from Jean's Project Calculator sheet (n8n
+   /webhook/estimator-rates) and deep-merges them — the Sheet is the source
+   of truth for the curve; this file only carries the formulas + defaults.
    ========================================================================== */
 (function(g){
   // ---- EDIT FORMULAS HERE ---------------------------------------------------
@@ -60,7 +62,7 @@
       if(sec===undefined) return Object.assign({status:'INCOMPLETE',reason:'Unknown finishing type'},base);
       const perUnit=sec/60, total=perUnit*qty;
       return Object.assign({status:'OK',rate:C.rate.post_prod,setup:0,process:r1(total),dry:0,total:r1(total),
-        cost:money(total,C.rate.post_prod),provisional:false,procLabel:'Finishing'},base);
+        cost:money(total,C.rate.post_prod),unitsPerHr:perUnit?Math.round(60/perUnit):null,provisional:false,procLabel:'Finishing'},base);
     }
     if(wt==='heat_press'){
       const presses=num(inp.presses)||1;
@@ -69,7 +71,7 @@
       const perUnit=palletMin*presses+inkMin;
       const printMin=perUnit*qty, setup=C.heatSetup, total=printMin+setup;
       return Object.assign({status:'OK',rate:C.rate.heat_press,setup:r1(setup),process:r1(printMin),dry:0,total:r1(total),
-        cost:money(total,C.rate.heat_press),provisional:true,procLabel:'Heat apply'},base);
+        cost:money(total,C.rate.heat_press),unitsPerHr:perUnit?Math.round(60/perUnit):null,provisional:true,procLabel:'Heat apply'},base);
     }
     // screen_print
     const colors=num(inp.colors);
@@ -81,10 +83,36 @@
     const palletSec=C.palletAuto[palletKey(inp.pallet)]!==undefined?C.palletAuto[palletKey(inp.pallet)]:C.palletDefaultSec;
     const printPerUnit=(palletSec/60)*strokes*(C.productScaler[product]||C.productScaler.Apparel);
     const printMin=printPerUnit*qty, dry=((C.dry[ink]||0)/60)*qty, total=setup+printMin+dry;
-    return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,
+    return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,scaler:(C.productScaler[product]||C.productScaler.Apparel),
       setup:r1(setup),process:r1(printMin),dry:r1(dry),total:r1(total),cost:money(total,C.rate.screen_print),
-      provisional:false,procLabel:'Print'},base);
+      unitsPerHr:printPerUnit?Math.round(60/printPerUnit):null,provisional:false,procLabel:'Print'},base);
   }
 
-  g.PA_ESTIMATE = { config:EST_CONFIG, classify, estimate };
+  /* ---- live rates: Jean's sheet is the source of truth for the curve ---- */
+  const RATES_URL='https://primary-production-079f9.up.railway.app/webhook/estimator-rates';
+  function mergeCfg(payload){
+    if(!payload||typeof payload!=='object')return false;let hit=false;
+    for(const k in payload){ if(!(k in EST_CONFIG))continue;
+      const cur=EST_CONFIG[k], val=payload[k];
+      if(typeof cur==='object'&&val&&typeof val==='object'){Object.assign(cur,val);hit=true;}
+      else if(typeof cur==='number'&&typeof val==='number'&&isFinite(val)){EST_CONFIG[k]=val;hit=true;}
+    }
+    return hit;
+  }
+  async function loadRates(url){
+    let src={mode:'baked',at:null};
+    try{
+      const r=await fetch(url||RATES_URL,{cache:'no-store'});
+      if(r.ok){const d=await r.json();const cfg=d&&(d.config||d);
+        if(mergeCfg(cfg)){src={mode:'live',at:d.updatedAt||null};
+          try{localStorage.setItem('pa_est_rates',JSON.stringify({cfg,at:d.updatedAt||''}));}catch(e){}}}
+    }catch(e){
+      try{const c=JSON.parse(localStorage.getItem('pa_est_rates'));
+        if(c&&mergeCfg(c.cfg))src={mode:'cache',at:c.at||null};}catch(_){}
+    }
+    g.PA_ESTIMATE.source=src;
+    return src;
+  }
+
+  g.PA_ESTIMATE = { config:EST_CONFIG, classify, estimate, loadRates, source:{mode:'baked',at:null} };
 })(typeof window!=='undefined'?window:this);

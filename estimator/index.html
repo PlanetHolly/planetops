@@ -138,12 +138,18 @@ tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fc
     <div class="out" id="q_out"></div>
   </div>
 
+  <h2>3 · Formulas &amp; Rates <span id="ratesSrc"></span></h2>
+  <p class="muted" style="font-size:.8rem;margin:.2rem 0 .6rem">These are the exact values every projection on this page AND the Schedule board's ⏱ chips use. Source of truth = Jean's Project Calculator sheet (Print Time References) — edit there, and these update on next load. Baked defaults apply only if the sheet feed is unreachable.
+    <a id="sheetLink" target="_blank" href="https://docs.google.com/spreadsheets/d/1rd7QXEmVBxEpy4QWFBteXRiDDlnBix_UiQzughEdDbs" style="font-weight:700">Edit values in the Project Calculator ↗</a></p>
+  <div id="ratesPanel"></div>
+
   <div class="pa-footer">
     <span class="pa-icon icon-svg" id="iconBot"></span>
     <span class="pa-footer-meta">PLANET APPAREL · PROJECT ESTIMATOR · <span id="today"></span></span>
   </div>
 </div>
 
+<script src="./estimate.js"></script>
 <script>
 /* ---------- Brand Ø icon ---------- */
 const PA_ICON='<svg xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet" style="height:100%;width:auto;"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>';
@@ -152,73 +158,13 @@ document.getElementById('iconBot').innerHTML=PA_ICON;
 document.getElementById('today').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
 /* ============================================================
-   ENGINE — multi work-type (mirrors the live calc tabs)
+   ENGINE — shared ./estimate.js (PA_ESTIMATE). One engine for this
+   page AND the Schedule board's ⏱ chips. Values live in Jean's
+   Project Calculator sheet via loadRates(); baked = fallback only.
    ============================================================ */
-const RATE={screen_print:140, heat_press:34, post_prod:26};
-const PALLET_AUTO={'8':7,'10':8,'16':10,'22':12,'4':6};          // sec/unit (Print Time References Auto D:F)
-const DRY={plastisol:0,waterbase:10,discharge:20};                // sec/unit dry (Auto G:I)
-const HEAT_PALLET_SEC=70;                                         // Print Time References Heat: any pallet = 70 sec/unit
-const HEAT_INK={'heat applied - apparel':10,'heat applied - hat':25}; // sec/unit (Heat G:I)
-const FINISH={'fold':15,'bag':10,'barcode':5,'fold + bag':22,'packaging':5,'custom':60,'fold + belly band':30,'fold + bag + barcode':27,'belly band':15,'hang tag':25,'2-side sewn label':60,'4-side sewn label':120,'special fold & belly band':35,'fold + belly band + barcode':32,'inside neck removal':5,'double drying':25,'premium packaging service':25,'none':0,'n/a':0};
-const BANDANA=0.80, APPAREL=1.35, DEF_STROKES=2, HEAT_SETUP=10;
-
-function num(v){const n=Number(String(v==null?'':v).replace(/,/g,''));return isNaN(n)?null:n;}
-function inkkey(s){s=String(s||'').toLowerCase();return s.includes('discharge')?'discharge':s.includes('waterbase')?'waterbase':s.includes('plastisol')?'plastisol':'other';}
-function palletKey(s){return String(s||'').replace(/[^0-9]/g,'');}
-function normFinish(s){return String(s||'').replace(/\([^)]*\)/g,'').trim().toLowerCase();} // strip "(Bandana)" etc.
+const CFG=window.PA_ESTIMATE.config;
+const estimate=i=>window.PA_ESTIMATE.estimate(i);
 function r1(x){return Math.round(x*10)/10;}
-function money(t,rate){return Math.round(t/60*rate*100)/100;}
-
-function classify(product,inkRaw,postType){
-  const pt=normFinish(postType);
-  if(pt && pt!=='n/a' && pt!=='none' && pt!=='select finishing type' && pt!=='select project status') return 'post_prod';
-  if(String(inkRaw||'').toLowerCase().includes('heat applied')) return 'heat_press';
-  if((product==='Bandana'||product==='Apparel') && inkkey(inkRaw)!=='other') return 'screen_print';
-  return 'incomplete';
-}
-
-function estimate(inp){
-  const product=String(inp.product||'').trim();
-  const qty=num(inp.qty);
-  const inkRaw=String(inp.ink||'').trim();
-  const wt=classify(product,inkRaw,inp.postType);
-  const base={workType:wt, product, qty, ink:inkRaw, colors:num(inp.colors), pallet:String(inp.pallet||''),
-              finishing:String(inp.postType||''), jobName:String(inp.jobName||''), imprintId:String(inp.imprintId||'')};
-
-  if(wt==='incomplete' || !qty) return Object.assign({status:'INCOMPLETE'},base);
-
-  if(wt==='post_prod'){
-    const sec=FINISH[normFinish(inp.postType)];
-    if(sec===undefined) return Object.assign({status:'INCOMPLETE',reason:'Unknown finishing type'},base);
-    const perUnit=sec/60, total=perUnit*qty;
-    return Object.assign({status:'OK',rate:RATE.post_prod,setup:0,process:r1(total),dry:0,total:r1(total),
-      cost:money(total,RATE.post_prod),unitsPerHr:perUnit?Math.round(60/perUnit):null,provisional:false,procLabel:'Finishing'},base);
-  }
-
-  if(wt==='heat_press'){
-    const presses=num(inp.presses)||1;
-    const palletMin=(palletKey(inp.pallet)?HEAT_PALLET_SEC:HEAT_PALLET_SEC)/60; // heat = 70s regardless of pallet size
-    const inkMin=(HEAT_INK[inkRaw.toLowerCase()]!==undefined?HEAT_INK[inkRaw.toLowerCase()]:10)/60;
-    const perUnit=palletMin*presses+inkMin;
-    const printMin=perUnit*qty, setup=HEAT_SETUP, total=printMin+setup;
-    return Object.assign({status:'OK',rate:RATE.heat_press,setup:r1(setup),process:r1(printMin),dry:0,total:r1(total),
-      cost:money(total,RATE.heat_press),unitsPerHr:perUnit?Math.round(60/perUnit):null,provisional:true,procLabel:'Heat apply'},base);
-  }
-
-  // screen_print
-  const colors=num(inp.colors);
-  if(!colors) return Object.assign({status:'INCOMPLETE',reason:'Missing colors'},base);
-  const ink=inkkey(inkRaw);
-  const setupType=inp.setupType?String(inp.setupType).trim():((ink==='waterbase'||ink==='discharge')?'Specialty':'Standard');
-  const strokes=num(inp.strokes)||DEF_STROKES;
-  const setup=setupType==='Standard'?(10+12*colors):(25*colors);
-  const palletSec=PALLET_AUTO[palletKey(inp.pallet)]!==undefined?PALLET_AUTO[palletKey(inp.pallet)]:12;
-  const printPerUnit=(palletSec/60)*strokes*(product==='Bandana'?BANDANA:APPAREL);
-  const printMin=printPerUnit*qty, dry=((DRY[ink]||0)/60)*qty, total=setup+printMin+dry;
-  return Object.assign({status:'OK',rate:RATE.screen_print,setupType,strokes,scaler:(product==='Bandana'?BANDANA:APPAREL),
-    setup:r1(setup),process:r1(printMin),dry:r1(dry),total:r1(total),cost:money(total,RATE.screen_print),
-    unitsPerHr:printPerUnit?Math.round(60/printPerUnit):null,provisional:false,procLabel:'Print'},base);
-}
 
 /* ---------- CSV parse ---------- */
 function parseCSV(text){
@@ -312,7 +258,9 @@ document.getElementById('saveAllBtn').addEventListener('click',async()=>{
 
 /* ---------- Quick Estimate (work-type aware, live) ---------- */
 const finSel=document.getElementById('q_finish');
-Object.keys(FINISH).filter(k=>k!=='n/a').forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k.replace(/\b\w/g,c=>c.toUpperCase());if(k==='packaging')o.selected=true;finSel.appendChild(o);});
+function buildFinishSel(){const cur=finSel.value;finSel.innerHTML='';
+  Object.keys(CFG.finish).filter(k=>k!=='n/a').forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k.replace(/\b\w/g,c=>c.toUpperCase());if(k===(cur||'packaging'))o.selected=true;finSel.appendChild(o);});}
+buildFinishSel();
 function val(id){return document.getElementById(id).value;}
 function showType(){
   const t=val('q_type');
@@ -324,10 +272,10 @@ function showType(){
 function quick(){
   const t=val('q_type');let e,note='';
   if(t==='screen'){e=estimate({product:val('q_product'),ink:val('q_ink'),colors:val('q_colors'),qty:val('q_qty'),pallet:val('q_pallet'),strokes:val('q_strokes')});
-    note='Setup '+(e.setupType||'')+(e.setupType==='Specialty'?' (waterbase/discharge premium)':'')+' · scaler '+Math.round((e.scaler||0)*100)+'% · $140/hr';}
+    note='Setup '+(e.setupType||'')+(e.setupType==='Specialty'?' (waterbase/discharge premium)':'')+' · scaler '+Math.round((e.scaler||0)*100)+'% · $'+CFG.rate.screen_print+'/hr';}
   else if(t==='heat'){e=estimate({product:'Apparel',ink:val('q_heatink'),qty:val('q_heatqty'),presses:val('q_presses'),pallet:'16"'});
-    note='Heat press · $34/hr · PROVISIONAL (Heat reference, not yet validated vs actuals)';}
-  else{e=estimate({postType:val('q_finish'),qty:val('q_postqty')});note='Post production · $26/hr · finishing-time × qty';}
+    note='Heat press · $'+CFG.rate.heat_press+'/hr · PROVISIONAL (Heat reference, not yet validated vs actuals)';}
+  else{e=estimate({postType:val('q_finish'),qty:val('q_postqty')});note='Post production · $'+CFG.rate.post_prod+'/hr · finishing-time × qty';}
   document.getElementById('q_note').textContent=note;
   const o=document.getElementById('q_out');
   if(e.status!=='OK'){o.innerHTML='<div class="lab">Fill in the fields</div>';return;}
@@ -342,6 +290,31 @@ function quick(){
 document.getElementById('q_type').addEventListener('change',showType);
 ['q_product','q_ink','q_colors','q_qty','q_pallet','q_strokes','q_heatink','q_heatqty','q_presses','q_finish','q_postqty'].forEach(id=>document.getElementById(id).addEventListener('input',quick));
 showType();
+
+/* ---------- Formulas & Rates panel (live values, visible) ---------- */
+function renderRates(){
+  const C=CFG,s=window.PA_ESTIMATE.source||{mode:'baked'};
+  document.getElementById('ratesSrc').innerHTML=
+    s.mode==='live'?'<span class="pill ok" style="font-size:.68rem">● LIVE from Project Calculator'+(s.at?' · '+String(s.at).slice(0,10):'')+'</span>'
+    :s.mode==='cache'?'<span class="pill t-heat" style="font-size:.68rem">CACHED sheet values — feed unreachable</span>'
+    :'<span class="pill bad" style="font-size:.68rem">BAKED DEFAULTS — sheet feed unreachable</span>';
+  const map=(o,u)=>Object.entries(o).map(([k,v])=>'<tr><td style="text-align:left;padding:2px 10px 2px 0">'+k+'</td><td style="text-align:right">'+v+u+'</td></tr>').join('');
+  const box='border:1px solid var(--pa-line);padding: .7rem .9rem;font-size:.8rem';
+  document.getElementById('ratesPanel').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">'
+    +'<div style="'+box+'"><strong>SCREEN PRINT</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Setup = '+C.setupStandardBase+' + '+C.setupStandardPerColor+'×colors min (Standard) · '+C.setupSpecialtyPerColor+'×colors (Specialty)<br>Press = pallet-sec ÷ 60 × strokes × scaler × qty · Dry = dry-sec ÷ 60 × qty</p>'
+    +'<table><tr><th style="text-align:left">Pallet</th><th>sec/unit</th></tr>'+map(C.palletAuto,'s')+'<tr><td style="text-align:left;padding:2px 10px 2px 0">unknown</td><td style="text-align:right">'+C.palletDefaultSec+'s</td></tr></table>'
+    +'<table style="margin-top:.4rem"><tr><th style="text-align:left">Dry</th><th>sec/unit</th></tr>'+map(C.dry,'s')+'</table>'
+    +'<table style="margin-top:.4rem"><tr><th style="text-align:left">Scaler</th><th>×</th></tr>'+map(C.productScaler,'')+'</table></div>'
+    +'<div style="'+box+'"><strong>HEAT PRESS</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Setup = '+C.heatSetup+' min · Press = ('+C.heatPalletSec+'s × presses + adder) ÷ 60 × qty</p>'
+    +'<table><tr><th style="text-align:left">Application</th><th>adder s/u</th></tr>'+map(C.heatInk,'s')+'</table>'
+    +'<p style="margin:.8rem 0 .2rem"><strong>COST RATES</strong></p><table><tr><th style="text-align:left">Type</th><th>$/hr</th></tr>'+map(C.rate,'')+'</table></div>'
+    +'<div style="'+box+'"><strong>POST PRODUCTION</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Time = finish-sec ÷ 60 × qty</p>'
+    +'<table><tr><th style="text-align:left">Finish</th><th>sec/unit</th></tr>'+map(C.finish,'s')+'</table></div>'
+    +'</div>';
+}
+renderRates();
+window.PA_ESTIMATE.loadRates().then(()=>{renderRates();buildFinishSel();quick();});
 </script>
 </body>
 </html>

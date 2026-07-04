@@ -1727,6 +1727,7 @@ if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar')
 renderAll();
 loadMockups();
 loadLiveCsv();
+if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
 /* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */
 async function loadHistory(dateStr){
