@@ -113,7 +113,7 @@
   .phbtn{font-family:'Barlow Condensed';font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;border:1.5px dashed #b9a53e;background:#fdf8e3;color:#6b5600;border-radius:6px;padding:3px 10px;cursor:pointer}
   .phbtn:hover{background:#f7ecc0}
   .cid{display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-width:0}
-  .cmin{display:flex;align-items:center;gap:3px;white-space:nowrap}
+  .cmin{display:flex;flex-wrap:wrap;align-items:center;gap:2px 3px}
   .cqty{text-align:right}
   .cink{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
   .cprodc{display:flex;gap:6px;align-items:center;white-space:nowrap}
@@ -243,6 +243,14 @@
   tr:last-child td{border-bottom:none}
   .tablewrap{overflow-x:auto;border-radius:10px}
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
+  .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
+  .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
+  .estchip.near{background:#fdf3d0;border:1.5px solid #d9b74a;color:#6b5000}
+  .estchip.ok{background:#ddf2e2;border:1.5px solid var(--green);color:#1a7a3d}
+  .estchip:hover{outline:1.5px solid currentColor}
+  .strkbtn{font:inherit;font-size:11px;border:1px solid var(--grey-line);background:#fff;border-radius:4px;padding:0 6px;cursor:pointer;margin-left:2px}
+  .strkbtn.on{background:#000;color:var(--yellow);border-color:#000}
+  .estbox{border-left:3px solid #d9b74a;padding-left:10px;margin:6px 0}
   .stpill{font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;display:inline-block;line-height:1.35;max-width:280px}
   /* calendar view */
   .calhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--grey-text);margin:2px 0 4px;padding:0 2px}
@@ -275,6 +283,7 @@
   body.histmode .sandbox{opacity:.4}
   body.histmode #main{outline:3px solid #1e5f8a;outline-offset:-3px;border-radius:6px}
 </style>
+<script src="../estimator/estimate.js"></script>
 </head>
 <body>
 
@@ -373,7 +382,7 @@ function parseCSV(text){
 const KEY='sbproto_v1';
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
-store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},range:{mode:'week',start:null,end:null},exported:true},store);
+store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},strokes:{},timeVerified:{},range:{mode:'week',start:null,end:null},exported:true},store);
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();}
 
@@ -418,6 +427,21 @@ async function loadLiveCsv(){
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
+/* ── embedded estimator: auto-chart projected time from the imprint's own attributes ── */
+function estimateFor(j){
+  if(j.placeholder||!window.PA_ESTIMATE)return null;
+  const strokes=store.strokes[j.imprint]||2;
+  const e=window.PA_ESTIMATE.estimate({product:j.projectType,qty:j.qty,ink:j.ink,colors:j.screens,pallet:j.pallet,postType:j.postProdType,strokes,jobName:j.nickname,imprintId:j.imprint});
+  return e&&e.status==='OK'?e:null;
+}
+function estBadge(j){
+  const e=estimateFor(j);if(!e)return '';
+  const v=store.timeVerified[j.imprint];
+  if(v)return `<span class="estchip ok" data-estimp="${j.imprint}" title="Verified ${fmtShort(v.at)} · written to the calculator · tap to un-verify">✓ ${v.min}m</span>`;
+  const csv=j.minutes||0, near=csv&&Math.abs(e.total-csv)<=Math.max(3,csv*0.12);
+  const flag=csv&&!near?' Δ':'';
+  return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → writes to your calculator">⏱ ${e.total}m${flag}</span>`;
+}
 function statusPill(j){
   const e=mockEntry(j);
   if(e&&e.stat&&e.stat.name){
@@ -586,9 +610,10 @@ function jobCard(j){
   return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
     ${mockTile(j,'')}
     <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
-    <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
+    <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time (from Printavo) — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
       ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
-      ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}</div>
+      ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}
+      ${estBadge(j)}</div>
     <div class="name">${j.nickname}</div>
     <div class="cqty">${qtyChip}</div>
     <div class="cink">
@@ -663,6 +688,17 @@ function xPanel(j){
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
         <span>Status</span><span>${statusPill(j)}</span>
       </div>
+      ${(()=>{const e=estimateFor(j);if(!e)return '';
+        const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
+        const v=store.timeVerified[j.imprint];
+        return `<div class="estbox"><b>Auto-charted time</b> <span class="pending-note">(embedded estimator — same formulas as the Estimator tab)</span>
+          <div class="xgrid">
+            <span>Work type</span><span>${e.workType.replace('_',' ')}${e.provisional?' <span class="pending-note">(heat provisional)</span>':''}</span>
+            <span>Setup</span><span>${e.setup}m</span>
+            <span>${e.procLabel||'Process'}</span><span>${e.process}m${e.dry?' · dry '+e.dry+'m':''}</span>
+            <span>Total</span><span><b>${e.total} min</b>${strokeCtl}</span>
+            <span>Verify</span><span>${v?`<span class="printed">✓ verified ${fmtShort(v.at)} → in the calculator</span>`:'<span class="pending">tap the ⏱ chip to verify + write to the calculator</span>'}</span>
+          </div></div>`;})()}
       <div class="steps">${steps}</div>
       Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
     </div>
@@ -1281,6 +1317,32 @@ function wireMain(){
     });
   });
   // QC gate sign-off
+  // ── estimator: verify time (green) + write back to Jean's calculator (his /webhook/estimate) ──
+  main.querySelectorAll('[data-estimp]').forEach(chip=>{
+    chip.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(histCsv)return;
+      const imp=chip.dataset.estimp;
+      if(store.timeVerified[imp]){delete store.timeVerified[imp];save();renderAll();return;}
+      const j=jobs.find(x=>x.imprint===imp);const est=estimateFor(j);if(!est)return;
+      store.timeVerified[imp]={min:est.total,at:todayISO()};
+      save();renderAll();
+      // fire-and-forget writeback (same payload shape as the Estimator's "Save to Calculator")
+      try{
+        fetch('https://primary-production-079f9.up.railway.app/webhook/estimate',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({mode:'save',source:'schedule',product:j.projectType,colors:j.screens,qty:j.qty,ink:j.ink,pallet:j.pallet,strokes:store.strokes[imp]||2,postType:j.postProdType,jobName:j.nickname,imprintId:j.imprint})});
+      }catch(err){}
+    });
+  });
+  main.querySelectorAll('.strkbtn').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const [imp,n]=b.dataset.strk.split('|');
+      if(+n===2)delete store.strokes[imp];else store.strokes[imp]=+n;
+      delete store.timeVerified[imp];  // strokes changed → re-verify
+      save();renderAll();
+    });
+  });
   main.querySelectorAll('.qcchip').forEach(sp=>{
     sp.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1556,7 +1618,7 @@ function wireMain(){
     download('schedule_changes.txt',txt);store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
   };
   const cl=document.getElementById('clearChanges');
-  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];save();renderAll();}};
+  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.timeVerified={};save();renderAll();}};
 }
 function download(name,content){
   const a=document.createElement('a');
@@ -1641,7 +1703,7 @@ document.getElementById('fileInput').addEventListener('change',e=>{
       alert('That does not look like a Power Scheduler export (missing Minutes/Imprint headers).');return;
     }
     store.csvText=text;store.csvName=f.name;
-    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};
+    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};store.strokes={};store.timeVerified={};
     store.range={mode:'week',start:null,end:null};
     save();renderAll();
   };
