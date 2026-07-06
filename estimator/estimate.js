@@ -14,7 +14,8 @@
     rate:        { screen_print:140, heat_press:34, post_prod:26 }, // $/hr (cost only)
     palletAuto:  {'8':7,'10':8,'16':10,'22':12,'4':6},   // screen-print sec/unit by pallet size
     palletDefaultSec: 12,                                 // fallback if pallet unknown
-    dry:         { plastisol:0, waterbase:10, discharge:20 }, // sec/unit added dry time
+    dry:         { plastisol:0, waterbase:6, discharge:6 }, // sec/unit DOUBLE-DRY — Jean's stopwatch 7/6: 100 units/10 min = 6 s/u; blanket rule: ALL waterbase + discharge double-dry (#8/#10)
+    dryConcurrentMaxQty: 100,                             // ≤100 pcs: dry rides ALONG SIDE the next job on press — tracked but NOT schedule-blocking; >100: separate dryer block (end of day)
     heatPalletSec: 70,                                    // heat = 70 sec/unit regardless of pallet
     heatInk:     {'heat applied - apparel':10, 'heat applied - hat':25}, // sec/unit
     heatInkDefaultSec: 10,
@@ -83,9 +84,14 @@
     const setup=setupType==='Standard'?(C.setupStandardBase+C.setupStandardPerColor*colors):(C.setupSpecialtyPerColor*colors);
     const palletSec=C.palletAuto[palletKey(inp.pallet)]!==undefined?C.palletAuto[palletKey(inp.pallet)]:C.palletDefaultSec;
     const printPerUnit=(palletSec/60)*strokes*(C.productScaler[product]||C.productScaler.Apparel);
-    const printMin=printPerUnit*qty, dry=((C.dry[ink]||0)/60)*qty, total=setup+printMin+dry;
+    const printMin=printPerUnit*qty, dry=((C.dry[ink]||0)/60)*qty;
+    // #8/#10 double-dry model (Jean 2026-07-06): small jobs (≤ dryConcurrentMaxQty) dry CONCURRENT
+    // with the next job on press — tracked as data but excluded from the blocking total.
+    // Large jobs dry in a separate block (like a post-prod service) — added to the total.
+    const dryConcurrent=dry>0&&qty<=(C.dryConcurrentMaxQty||100);
+    const total=setup+printMin+(dryConcurrent?0:dry);
     return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,scaler:(C.productScaler[product]||C.productScaler.Apparel),
-      setup:r1(setup),process:r1(printMin),dry:r1(dry),total:r1(total),cost:money(total,C.rate.screen_print),
+      setup:r1(setup),process:r1(printMin),dry:r1(dry),dryConcurrent,total:r1(total),cost:money(total,C.rate.screen_print),
       unitsPerHr:printPerUnit?Math.round(60/printPerUnit):null,provisional:false,procLabel:'Print'},base);
   }
 
