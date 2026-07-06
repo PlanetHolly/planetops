@@ -382,7 +382,7 @@ function parseCSV(text){
 const KEY='sbproto_v1';
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
-store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},range:{mode:'week',start:null,end:null},exported:true},store);
+store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true},store);
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();}
 
@@ -466,13 +466,17 @@ function autofillAttrs(j){
 function estimateFor(j){
   if(j.placeholder||!window.PA_ESTIMATE)return null;
   const strokes=store.strokes[j.imprint]||2;
-  const e=window.PA_ESTIMATE.estimate({product:j.projectType,qty:j.qty,ink:j.ink,colors:j.screens,pallet:j.pallet,postType:j.postProdType,strokes,jobName:j.nickname,imprintId:j.imprint});
+  const e=window.PA_ESTIMATE.estimate({product:j.projectType,qty:j.qty,ink:j.ink,colors:j.screens,pallet:j.pallet,postType:j.postProdType,inkChange:j.inkChange,strokes,jobName:j.nickname,imprintId:j.imprint});
   return e&&e.status==='OK'?e:null;
 }
 function estBadge(j){
   const e=estimateFor(j);if(!e)return '';
   const v=store.timeVerified[j.imprint];
-  if(v)return `<span class="estchip ok" data-estimp="${j.imprint}" title="Verified ${fmtShort(v.at)} · written to the calculator · tap to un-verify">✓ ${v.min}m</span>`;
+  if(v){
+    const f=(store.wbFail||{})[j.imprint];
+    if(f)return `<span class="estchip prop" data-estimp="${j.imprint}" title="Verified ${fmtShort(v.at)} but the CALCULATOR WRITE FAILED (${fmtShort(f.at)}) — tap to retry the write">✓ ${v.min}m ⚠</span>`;
+    return `<span class="estchip ok" data-estimp="${j.imprint}" title="Verified ${fmtShort(v.at)} · written to the calculator · tap to un-verify">✓ ${v.min}m</span>`;
+  }
   const csv=j.minutes||0, near=csv&&Math.abs(e.total-csv)<=Math.max(3,csv*0.12);
   const flag=csv&&!near?' Δ':'';
   return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → writes to your calculator">⏱ ${e.total}m${flag}</span>`;
@@ -737,7 +741,7 @@ function xPanel(j){
             <span>Setup</span><span>${e.setup}m</span>
             <span>${e.procLabel||'Process'}</span><span>${e.process}m${e.dry?' · dry '+e.dry+'m':''}</span>
             <span>Total</span><span><b>${e.total} min</b>${strokeCtl}</span>
-            <span>Verify</span><span>${v?`<span class="printed">✓ verified ${fmtShort(v.at)} → in the calculator</span>`:'<span class="pending">tap the ⏱ chip to verify + write to the calculator</span>'}</span>
+            <span>Verify</span><span>${v?((store.wbFail||{})[j.imprint]?'<span class="pending">✓ verified — ⚠ CALCULATOR WRITE FAILED, tap the ⏱ chip to retry</span>':`<span class="printed">✓ verified ${fmtShort(v.at)} → in the calculator</span>`):'<span class="pending">tap the ⏱ chip to verify + write to the calculator</span>'}</span>
           </div></div>`;})()}
       <div class="steps">${steps}</div>
       Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
@@ -1362,24 +1366,33 @@ function wireMain(){
   });
   // QC gate sign-off
   // ── estimator: verify time (green) + write back to Jean's calculator (his /webhook/estimate) ──
-  // ⏸ WRITEBACK PAUSED (Holly 2026-07-06, focus-list #12): rows arrive incomplete (no ink change /
-  //   post-prod / stroke times, #13) and the "L" trigger bug (#14) is unresolved. Verify-to-green
-  //   still works — only the send to the calculator is held. Re-enable: set WRITEBACK_PAUSED=false.
+  // ⏸ WRITEBACK PAUSED (Holly 2026-07-06, focus-list #12). #13 FIXED 2026-07-06: webhook now writes
+  //   ink change / post-prod / strokes / pallet-stroke / dry-type + the broken setup header key;
+  //   sends are response-checked (⚠ chip + tap-to-retry on failure), no more silent drops.
+  //   Verify-to-green still works — only the send is held. Re-enable: set WRITEBACK_PAUSED=false (Jean's go).
   const WRITEBACK_PAUSED = true;
+  function sendWriteback(j,imp){
+    if(WRITEBACK_PAUSED||!j)return;
+    fetch('https://primary-production-079f9.up.railway.app/webhook/estimate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mode:'save',source:'schedule',product:j.projectType,colors:j.screens,qty:j.qty,ink:j.ink,pallet:j.pallet,strokes:store.strokes[imp]||2,postType:j.postProdType,inkChange:j.inkChange,jobName:j.nickname,imprintId:j.imprint})})
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);
+      if(store.wbFail&&store.wbFail[imp]){delete store.wbFail[imp];save();renderAll();}})
+    .catch(()=>{store.wbFail=store.wbFail||{};store.wbFail[imp]={at:todayISO()};save();renderAll();});
+  }
   main.querySelectorAll('[data-estimp]').forEach(chip=>{
     chip.addEventListener('click',e=>{
       e.stopPropagation();
       if(histCsv)return;
       const imp=chip.dataset.estimp;
-      if(store.timeVerified[imp]){delete store.timeVerified[imp];save();renderAll();return;}
+      if(store.timeVerified[imp]){
+        // failed write → this tap retries the send instead of un-verifying
+        if((store.wbFail||{})[imp]){sendWriteback(jobs.find(x=>x.imprint===imp),imp);return;}
+        delete store.timeVerified[imp];save();renderAll();return;
+      }
       const j=jobs.find(x=>x.imprint===imp);const est=estimateFor(j);if(!est)return;
       store.timeVerified[imp]={min:est.total,at:todayISO()};
       save();renderAll();
-      // fire-and-forget writeback (same payload shape as the Estimator's "Save to Calculator")
-      if(!WRITEBACK_PAUSED){try{
-        fetch('https://primary-production-079f9.up.railway.app/webhook/estimate',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({mode:'save',source:'schedule',product:j.projectType,colors:j.screens,qty:j.qty,ink:j.ink,pallet:j.pallet,strokes:store.strokes[imp]||2,postType:j.postProdType,jobName:j.nickname,imprintId:j.imprint})});
-      }catch(err){}}
+      sendWriteback(j,imp);
     });
   });
   main.querySelectorAll('.strkbtn').forEach(b=>{
@@ -1387,7 +1400,7 @@ function wireMain(){
       e.stopPropagation();
       const [imp,n]=b.dataset.strk.split('|');
       if(+n===2)delete store.strokes[imp];else store.strokes[imp]=+n;
-      delete store.timeVerified[imp];  // strokes changed → re-verify
+      delete store.timeVerified[imp];if(store.wbFail)delete store.wbFail[imp];  // strokes changed → re-verify
       save();renderAll();
     });
   });
@@ -1685,7 +1698,7 @@ function wireMain(){
     download('schedule_changes.txt',txt);store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
   };
   const cl=document.getElementById('clearChanges');
-  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.timeVerified={};save();renderAll();}};
+  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.timeVerified={};store.wbFail={};save();renderAll();}};
 }
 function download(name,content){
   const a=document.createElement('a');
@@ -1770,7 +1783,7 @@ document.getElementById('fileInput').addEventListener('change',e=>{
       alert('That does not look like a Power Scheduler export (missing Minutes/Imprint headers).');return;
     }
     store.csvText=text;store.csvName=f.name;
-    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};store.attrs={};store.strokes={};store.timeVerified={};
+    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};store.attrs={};store.strokes={};store.timeVerified={};store.wbFail={};
     store.range={mode:'week',start:null,end:null};
     save();renderAll();
   };

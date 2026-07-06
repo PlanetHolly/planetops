@@ -47,14 +47,15 @@
     return 'incomplete';
   }
 
-  // inp: {product, qty, ink, colors, pallet, postType, strokes?, presses?, setupType?}
+  // inp: {product, qty, ink, colors, pallet, postType, inkChange?, strokes?, presses?, setupType?}
   function estimate(inp){
     const product=String(inp.product||'').trim();
     const qty=num(inp.qty);
     const inkRaw=String(inp.ink||'').trim();
     const wt=classify(product,inkRaw,inp.postType);
     const base={workType:wt, product, qty, ink:inkRaw, colors:num(inp.colors), pallet:String(inp.pallet||''),
-                finishing:String(inp.postType||''), jobName:String(inp.jobName||''), imprintId:String(inp.imprintId||'')};
+                finishing:String(inp.postType||''), inkChange:String(inp.inkChange||''),
+                jobName:String(inp.jobName||''), imprintId:String(inp.imprintId||'')};
     if(wt==='incomplete' || !qty) return Object.assign({status:'INCOMPLETE'},base);
 
     if(wt==='post_prod'){

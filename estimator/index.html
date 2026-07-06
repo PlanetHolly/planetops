@@ -197,7 +197,8 @@ function render(rows){
     jobName:pick(o,['Nickname']), imprintId:pick(o,['Imprint']),
     product:pick(o,['Project Type']), colors:pick(o,['Screen Count']),
     qty:pick(o,['Quantity']), ink:pick(o,['Ink/Application Type','Ink / Application Type']),
-    pallet:pick(o,['Pallet']), postType:pick(o,['Post Production Type'])
+    pallet:pick(o,['Pallet']), postType:pick(o,['Post Production Type']),
+    inkChange:pick(o,['Ink Change'])
   }));
   document.getElementById('results').classList.remove('hide');
   document.getElementById('saveLog').textContent='';
@@ -255,7 +256,7 @@ document.getElementById('saveAllBtn').addEventListener('click',async()=>{
   if(!rows.length){log.textContent='No complete rows to save.';return;}
   log.textContent='Saving '+rows.length+' rows…';let done=0,fail=0;
   for(const r of rows){try{const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,jobName:r.jobName,imprintId:r.imprintId})});
+    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,inkChange:r.inkChange,jobName:r.jobName,imprintId:r.imprintId})});
     res.ok?done++:fail++;}catch(e){fail++;}}
   log.textContent='Saved '+done+' · failed '+fail+(fail?' (check connection)':'')+' — routed to Auto / Heat / Post tabs by type.';
 });
