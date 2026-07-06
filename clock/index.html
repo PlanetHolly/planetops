@@ -59,6 +59,12 @@ html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);ba
 .backbar{margin-top:1.2rem;text-align:center;}
 .err-msg{color:var(--down);font-weight:800;font-size:.9rem;min-height:1.2em;margin-top:.6rem;}
 .gate{max-width:420px;margin:3rem auto;text-align:center;font-weight:800;color:var(--down);}
+.actlog{max-width:420px;margin:1.3rem auto 0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;}
+.actlog h3{margin:0 0 .4rem;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--flat);}
+.actlog .ev{display:flex;justify-content:space-between;font-size:.92rem;padding:.22rem 0;border-bottom:1px dotted var(--line);}
+.actlog .ev:last-child{border-bottom:none;}
+.actlog .ev b{font-weight:800;}
+.actlog:empty{display:none;}
 footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;}
 </style>
 </head>
@@ -88,6 +94,7 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
       <div class="pinname" id="actname"></div>
       <div class="status" id="actstatus"></div>
       <div id="actbtns"></div>
+      <div class="actlog" id="actlog"></div>
       <button class="linkbtn" id="forgot">I forgot to clock in on a previous day…</button>
       <button class="linkbtn" id="notebtn">💬 Leave a note for Jean…</button>
       <div class="err-msg" id="acterr"></div>
@@ -133,9 +140,22 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
     </div>
   </div>
 
+  <div id="s-confirm" class="screen">
+    <div class="corr" style="border-color:var(--orange);">
+      <h2>🤔 Just checking</h2>
+      <p id="confmsg" style="font-size:1.05rem;"></p>
+      <button class="bigbtn primary small" id="confyes">Yes, I'm sure</button>
+      <button class="bigbtn small" id="confno">Cancel</button>
+    </div>
+  </div>
+
   <div id="s-done" class="screen">
     <div class="result" id="doneres"></div>
-    <div class="backbar"><button class="linkbtn" data-back>← Back to names</button></div>
+    <div class="actlog" id="donelog"></div>
+    <div class="backbar">
+      <button class="linkbtn" id="donenote">💬 Leave a note for Jean…</button>
+      <button class="linkbtn" data-back>← Back to names</button>
+    </div>
   </div>
 
   <footer>Planet Apparel · Time Clock · punches write instantly to the timesheet</footer>
@@ -191,30 +211,50 @@ function drawDots(){$('dots').innerHTML='';for(let i=0;i<4;i++){const d=document
   b.onclick=()=>{ if(ch==='⌫'){pin=pin.slice(0,-1);} else if(ch==='✓'){ if(pin.length===4) enterActions(); return;} else if(pin.length<4){pin+=ch; if(pin.length===4){drawDots();setTimeout(enterActions,150);return;}} drawDots(); };
   pad.appendChild(b);});})();
 
-async function enterActions(){
-  // verify pin by pulling fresh state via a no-op? We verify on first punch; show actions based on grid state.
-  $('actname').textContent=cur.display_name;
-  const st=cur.state==='in'?'Clocked in since '+fmtSince(cur.since):cur.state==='break'?'On break since '+fmtSince(cur.since):'Clocked out';
-  $('actstatus').textContent=st;
-  $('acterr').textContent='';
-  const btns=$('actbtns');btns.innerHTML='';
-  const mk=(label,type,cls)=>{const b=document.createElement('button');b.className='bigbtn '+cls;b.textContent=label;b.onclick=()=>punch(type);btns.appendChild(b);};
-  if(cur.state==='out'){ mk('Clock In','in','primary'); }
-  else if(cur.state==='in'){ mk('Clock Out','out','danger'); mk('Start Break','break_start','small'); }
-  else { mk('End Break','break_end','primary'); mk('Clock Out','out','danger'); }
-  show('s-act');
+const EV={in:'✅ Clock in',out:'👋 Clock out',break_start:'☕ Break start',break_end:'▶️ Break end'};
+function renderLog(el,activity){
+  el.innerHTML='';
+  if(!activity||!activity.length) return;
+  el.innerHTML='<h3>Your recent punches</h3>'+activity.slice(-8).map(a=>{
+    const d=a.ts.slice(0,10)===new Date().toLocaleDateString('sv-SE')?'Today':a.ts.slice(5,10);
+    return `<div class="ev"><b>${EV[a.type]||a.type}</b><span>${d} · ${a.ts.slice(11,16)}</span></div>`;}).join('');
 }
 
-async function punch(type){
+async function enterActions(){
+  $('actname').textContent=cur.display_name;
+  $('actstatus').textContent='Checking…';$('acterr').textContent='';$('actbtns').innerHTML='';$('actlog').innerHTML='';
+  show('s-act');
+  const r=await api({action:'status',emp_id:cur.emp_id,pin});
+  if(!r.ok){
+    if((r.error||'').includes('PIN')){ pin='';drawDots();$('pinerr').textContent='Wrong PIN — try again';show('s-pin');return; }
+    $('actstatus').textContent='';$('acterr').textContent=r.error;return;
+  }
+  cur.state=r.state; cur.since=r.since;
+  const st=r.state==='in'?'Clocked in since '+fmtSince(r.since):r.state==='break'?'On break since '+fmtSince(r.since):'Clocked out';
+  $('actstatus').textContent=st;
+  const btns=$('actbtns');btns.innerHTML='';
+  const mk=(label,type,cls)=>{const b=document.createElement('button');b.className='bigbtn '+cls;b.textContent=label;b.onclick=()=>punch(type);btns.appendChild(b);};
+  if(r.state==='out'){ mk('Clock In','in','primary'); }
+  else if(r.state==='in'){ mk('Clock Out','out','danger'); mk('Start Break','break_start','small'); }
+  else { mk('End Break','break_end','primary'); mk('Clock Out','out','danger'); }
+  renderLog($('actlog'), r.activity);
+}
+
+let pendingConfirm=null;
+async function punch(type, confirmed){
   $('acterr').textContent='';
-  const r=await api({action:'punch',emp_id:cur.emp_id,pin,type});
-  if(r.ok){ done(true, type, r.ts); return; }
+  const r=await api({action:'punch',emp_id:cur.emp_id,pin,type,...(confirmed?{confirmed:true}:{})});
+  if(r.ok){ done(true, type, r.ts, null, r.activity); return; }
+  if(r.error==='needs_confirm'){ pendingConfirm=type;
+    $('confmsg').textContent=r.needs_confirm.message; show('s-confirm'); return; }
   if(r.error==='needs_correction'){ pendingPunch=type; corrInfo=r.needs_correction;
     $('corrmsg').textContent=corrInfo.message+' (last punch: '+corrInfo.last_ts+')';
     $('corrtime').value='';$('correrr').textContent='';show('s-corr');return; }
   $('acterr').textContent=r.error||'Something went wrong';
   if((r.error||'').includes('PIN')){ pin='';drawDots();$('pinerr').textContent='Wrong PIN — try again';show('s-pin'); }
 }
+$('confyes').onclick=()=>punch(pendingConfirm,true);
+$('confno').onclick=()=>enterActions();
 
 $('corrsave').onclick=async()=>{
   const t=$('corrtime').value; if(!t){$('correrr').textContent='Pick a time';return;}
@@ -235,21 +275,24 @@ $('fsave').onclick=async()=>{
   done(true,'logged',d+' '+i+'–'+o);
 };
 
-$('notebtn').onclick=()=>{$('ntext').value='';$('nerr').textContent='';show('s-note');};
+let noteReturn='actions';
+$('notebtn').onclick=()=>{noteReturn='actions';$('ntext').value='';$('nerr').textContent='';show('s-note');};
+$('donenote').onclick=()=>{noteReturn='names';$('ntext').value='';$('nerr').textContent='';show('s-note');};
 $('nsave').onclick=async()=>{
   const t=$('ntext').value.trim();
   if(!t){$('nerr').textContent='Write something first';return;}
   const r=await api({action:'note',emp_id:cur.emp_id,pin,text:t});
   if(!r.ok){$('nerr').textContent=r.error;return;}
-  done(true,'noted','');
+  if(noteReturn==='actions'){ enterActions(); } else { done(true,'noted',''); }
 };
 
-function done(ok,type,ts,extra){
+function done(ok,type,ts,extra,activity){
   const words={in:'✅ Clocked In',out:'👋 Clocked Out',break_start:'☕ Break Started',break_end:'✅ Break Ended',logged:'📋 Shift Logged',noted:'💬 Note Sent'};
   $('doneres').className='result'+(ok?'':' err');
   $('doneres').innerHTML=`<div class="big">${words[type]||'Done'}</div><div class="sub2">${cur.display_name} · ${ts||''}${extra?'<br>'+extra:''}</div>`;
+  renderLog($('donelog'), activity||[]);
   show('s-done');
-  backTimer=setTimeout(loadRoster,5000);
+  backTimer=setTimeout(loadRoster,12000);
 }
 
 loadRoster();
