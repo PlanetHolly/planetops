@@ -65,8 +65,9 @@ input,select{font:inherit;width:100%;padding:.5rem;border:1px solid #000;border-
 <script>
 const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-admin';
 const qk=new URLSearchParams(location.search).get('k');
-if(qk) localStorage.setItem('ts_admin_key',qk);
-const KEY=localStorage.getItem('ts_admin_key')||'';
+if(qk) sessionStorage.setItem('ts_admin_key',qk);
+localStorage.removeItem('ts_admin_key'); // manager access is per-session only (shared devices)
+const KEY=sessionStorage.getItem('ts_admin_key')||'';
 const $=id=>document.getElementById(id);
 let roster=[], editing=null;
 async function api(b){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,admin_key:KEY})}).then(r=>r.json());}
@@ -81,7 +82,7 @@ function pinGate(){
     const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'manager_login',pin:$('mpin').value})}).then(r=>r.json());
     if(!r.ok){$('mperr').textContent=r.error;$('mpin').value='';return;}
-    localStorage.setItem('ts_admin_key',r.admin_key);localStorage.setItem('ts_device_key',r.device_key);
+    sessionStorage.setItem('ts_admin_key',r.admin_key);
     location.reload();
   };
   $('mgo').onclick=go;

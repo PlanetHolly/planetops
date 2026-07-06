@@ -182,7 +182,7 @@ $('ggo').onclick=async()=>{
   const r=await fetch('https://primary-production-079f9.up.railway.app/webhook/timesheets-admin',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'manager_login',pin:$('gpin').value})}).then(r=>r.json());
   if(!r.ok){$('gerr').textContent=r.error;$('gpin').value='';return;}
-  localStorage.setItem('ts_device_key',r.device_key);localStorage.setItem('ts_admin_key',r.admin_key);
+  localStorage.setItem('ts_device_key',r.device_key); // device key ONLY — never the admin key on a shared kiosk
   location.reload();
 };
 
