@@ -59,6 +59,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .board-filter-row::-webkit-scrollbar{display:none}
 .filter-pill{padding:5px 13px;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid rgba(0,0,0,.09);background:var(--white);color:rgba(0,0,0,.45);white-space:nowrap;min-height:30px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent;transition:all .12s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .filter-pill.active{background:var(--tonal-black);color:var(--white);border-color:var(--tonal-black);box-shadow:none}
+#board-search{height:32px;padding:0 12px;border-radius:var(--radius-pill);border:1.5px solid rgba(0,0,0,.14);background:#fff;font-family:var(--font-body);font-size:13px;min-width:170px}
+#board-search:focus{outline:none;border-color:#F7BE00}
 .board-job-count{font-family:var(--font-head);font-weight:700;font-size:13px;color:rgba(0,0,0,.38);white-space:nowrap;letter-spacing:.02em;flex-shrink:0}
 
 /* ── KANBAN ── */
@@ -88,6 +90,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .k-urgent-dot{width:7px;height:7px;border-radius:50%;background:var(--red);margin-top:4px;flex-shrink:0}
 .k-client-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:rgba(247,190,0,.15);color:#7a5000;padding:1px 6px;border-radius:3px;margin-bottom:3px}
 .k-customer{font-size:12px;font-weight:600;color:rgba(0,0,0,.6);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:7px}
+.k-custid{font-size:10px;font-weight:700;color:rgba(0,0,0,.35);font-family:ui-monospace,monospace;margin-bottom:5px;cursor:pointer}
 .k-due{font-size:10px;color:rgba(0,0,0,.36);font-weight:600;display:flex;align-items:center;gap:3px}
 .k-due.today{color:var(--orange);font-weight:700}
 .k-due.overdue{color:var(--red);font-weight:700}
@@ -145,6 +148,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .ds-back-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--blue);text-transform:uppercase;-webkit-tap-highlight-color:transparent;padding:0 8px 0 0;flex-shrink:0}
 .ds-job-num{font-family:var(--font-head);font-weight:900;font-size:24px;color:var(--tonal-black);letter-spacing:.02em;line-height:1}
 .ds-customer{font-weight:700;font-size:13px;color:var(--tonal-black);margin-top:2px}
+.ds-custid{font-size:12px;font-weight:700;color:rgba(0,0,0,.4);font-family:ui-monospace,monospace;cursor:pointer}
 .ds-meta{font-size:11px;color:rgba(0,0,0,.36);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
 .ds-close{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(0,0,0,.45);flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .ds-body{flex:1;overflow-y:auto;padding:12px 14px 32px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
@@ -629,6 +633,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
           <button class="filter-pill" onclick="setBoardFilter('urgent',this)">🔴 Urgent</button>
           <button class="filter-pill" onclick="setBoardFilter('active',this)">⚡ Running</button>
           <button class="filter-pill" onclick="setBoardFilter('blocked',this)">⚠️ Blocked</button>
+          <input id="board-search" type="search" placeholder="🔍 Job # · customer · ID"
+            autocomplete="off" oninput="setBoardSearch(this.value)">
         </div>
         <div class="board-job-count" id="board-job-count"></div>
         <button onclick="document.getElementById('csv-import-input').click()"
@@ -1279,6 +1285,7 @@ function makeJob(id,number,customer,clientTag,dueDate,dueDateLabel,urgent,statio
     receivedAt: null,
     deliveryMethod: opts.deliveryMethod||null, // from Printavo: 'ship'|'pickup'|'delivery'
     printavoId:     opts.printavoId||null,      // Printavo internal invoice ID
+    customerId:     opts.customerId||null,      // Printavo customer.id — cross-system key (Streak field 1068)
     printavoUrl:    opts.printavoUrl||null,     // link to invoice in Printavo
     workorderUrl:   opts.workorderUrl||null,    // public work order link
     blanksList:     opts.blanksList||[],        // [{description, color, qty}]
@@ -1416,6 +1423,12 @@ function showToast(msg){
   }, 2800);
 }
 
+function copyCustomerId(id){
+  (navigator.clipboard ? navigator.clipboard.writeText(String(id)) : Promise.reject())
+    .then(() => showToast('🔑 Customer ID ' + id + ' copied'))
+    .catch(() => showToast('Customer ID: ' + id));   // clipboard API needs HTTPS — fine on Pages
+}
+
 /* ============================================================
    TAB SWITCHING
    ============================================================ */
@@ -1451,6 +1464,7 @@ function buildBoard(){
           .filter(w => w.category === 'screen' || w.category === 'heat')
           .map(w => ({ w, j }))
         );
+      wuPairs = wuPairs.filter(({j}) => matchesSearch(j));
       wuPairs.sort((a,b) => new Date(a.j.dueDate) - new Date(b.j.dueDate));
       if(filter === 'urgent') wuPairs = wuPairs.filter(({w,j}) => isDueSoon(j) || w.needsAttention);
       if(filter === 'active') wuPairs = wuPairs.filter(({w})   => w.timer.state === 'running');
@@ -1472,7 +1486,7 @@ function buildBoard(){
 
     /* ── PRE-PRESS: one card per screen/heat WU (gate progress) ── */
     if(stn.id === 'prepress'){
-      const prepJobs = sortByDue(state.jobs.filter(j => j.station === 'prepress' && !j.archived));
+      const prepJobs = sortByDue(state.jobs.filter(j => j.station === 'prepress' && !j.archived && matchesSearch(j)));
       let wuPairs = prepJobs.flatMap(j => j.workUnits
         .filter(w => w.category === 'screen' || w.category === 'heat')
         .map(w => ({ w, j }))
@@ -1495,7 +1509,7 @@ function buildBoard(){
 
     /* ── POST PRODUCTION: one card per finishing/sewing WU ── */
     if(stn.id === 'postprod'){
-      const ppJobs = state.jobs.filter(j => j.station === 'postprod' && !j.archived);
+      const ppJobs = state.jobs.filter(j => j.station === 'postprod' && !j.archived && matchesSearch(j));
       let wuPairs = ppJobs.flatMap(j =>
         j.workUnits.filter(w => w.category === 'finishing' || w.category === 'sewing').map(w => ({w,j}))
       );
@@ -1517,7 +1531,7 @@ function buildBoard(){
 
     /* ── POST-PROD QC: job-level cards — QC checklist + delivery method ── */
     if(stn.id === 'readyqc'){
-      const rqJobs = sortByDue(state.jobs.filter(j => j.station === 'readyqc' && !j.archived));
+      const rqJobs = sortByDue(state.jobs.filter(j => j.station === 'readyqc' && !j.archived && matchesSearch(j)));
       const col = document.createElement('div');
       col.className = 'kanban-col';
       col.innerHTML = `
@@ -1535,7 +1549,7 @@ function buildBoard(){
 
     /* ── BLANKS: split regular jobs and INCOMING (outsourced) ── */
     if(stn.id === 'blanks'){
-      let allBlanksJobs = sortByDue(state.jobs.filter(j => j.station === 'blanks' && !j.archived));
+      let allBlanksJobs = sortByDue(state.jobs.filter(j => j.station === 'blanks' && !j.archived && matchesSearch(j)));
       const incomingJobs = allBlanksJobs.filter(j => j.type === 'outsourced');
       const regularJobs  = allBlanksJobs.filter(j => j.type !== 'outsourced');
       const totalCount   = allBlanksJobs.length;
@@ -1565,8 +1579,8 @@ function buildBoard(){
 
     /* ── DONE: compact archive table ── */
     if(stn.id === 'done'){
-      const doneJobs = sortByDue(state.jobs.filter(j => j.station === 'done' && !j.archived)).reverse();
-      const archivedJobs = state.jobs.filter(j => j.archived).slice().reverse();
+      const doneJobs = sortByDue(state.jobs.filter(j => j.station === 'done' && !j.archived && matchesSearch(j))).reverse();
+      const archivedJobs = state.jobs.filter(j => j.archived && matchesSearch(j)).slice().reverse();
       const allDone = [...doneJobs, ...archivedJobs];
       const col = document.createElement('div');
       col.className = 'kanban-col';
@@ -1599,6 +1613,7 @@ function buildBoard(){
 
     /* ── ALL OTHER COLUMNS: job-level cards ── */
     let jobs = state.jobs.filter(j => j.station === stn.id && !j.archived);
+    jobs = jobs.filter(matchesSearch);
     jobs = sortByDue(jobs);
     if(filter === 'urgent') jobs = jobs.filter(j => isDueSoon(j) || j.workUnits.some(w => w.needsAttention));
     if(filter === 'active') jobs = jobs.filter(j => j.workUnits.some(w => w.timer.state === 'running'));
@@ -1903,6 +1918,7 @@ function buildCard(job){
     </div>
     ${tagHtml}
     <div class="k-customer">${job.customer}</div>
+    ${job.customerId ? `<div class="k-custid" onclick="event.stopPropagation();copyCustomerId('${job.customerId}')">🔑 ${job.customerId}</div>` : ''}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
       <div class="k-due ${ddc}">📅 ${job.dueDateLabel}</div>
       ${imprintCount}
@@ -2004,7 +2020,7 @@ function buildImprintCard(w, job){
   card.innerHTML = `
     <div class="imp-k-id">${w.label}</div>
     <div class="imp-k-placement">${w.placement}</div>
-    <div class="imp-k-job">#${job.number} · ${job.customer}</div>
+    <div class="imp-k-job">#${job.number} · ${job.customer}${job.customerId ? ' · 🔑 ' + job.customerId : ''}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
       <div class="k-due ${ddc}" style="font-size:9px">📅 ${job.dueDateLabel}</div>
       ${isDueSoon(job) ? '<span style="font-family:var(--font-head);font-weight:800;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--orange);background:rgba(255,152,0,.12);padding:1px 6px;border-radius:3px">📅 Due Soon</span>' : ''}
@@ -2266,7 +2282,7 @@ function renderJobLevel(){
   document.getElementById('ds-header').innerHTML = `
     <div>
       <div class="ds-job-num">#${job.number}${tagHtml}</div>
-      <div class="ds-customer">${job.customer}</div>
+      <div class="ds-customer">${job.customer}${job.customerId ? ` <span class="ds-custid" onclick="copyCustomerId('${job.customerId}')">🔑 ${job.customerId} ⧉</span>` : ''}</div>
       <div class="ds-meta">
         <span class="k-due ${ddc}">📅 ${job.dueDateLabel}</span>
         <span>${job.workUnits.length} imprint${job.workUnits.length!==1?'s':''}</span>
@@ -4514,6 +4530,21 @@ function setBoardFilter(f, btn){
   buildBoard();
 }
 
+/* ── Board search (per-device, NOT in shared state — keystrokes must not become server pushes) ── */
+let _boardSearch = '', _searchTimer = null;
+function setBoardSearch(v){
+  _boardSearch = v.trim().toLowerCase();
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(buildBoard, 150);   // debounce — buildBoard is a full re-render
+}
+function matchesSearch(job){
+  if(!_boardSearch) return true;
+  return String(job.number||'').toLowerCase().includes(_boardSearch)
+      || (job.customer||'').toLowerCase().includes(_boardSearch)
+      || (job.clientTag||'').toLowerCase().includes(_boardSearch)
+      || String(job.customerId||'').toLowerCase().includes(_boardSearch);
+}
+
 /* ============================================================
    TICKER  (1s interval — updates all live displays)
    ============================================================ */
@@ -4784,7 +4815,7 @@ async function loadPrintavoStatusIds(){
 const PRINTAVO_LIST_PAGES = 4;   // 4 × 25 = up to 100 invoices of cushion
 function printavoListQuery(cursor){
   const afterClause = cursor ? `, after: "${cursor}"` : '';
-  return `{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${afterClause}) { pageInfo { endCursor hasNextPage } edges { node { id visualId nickname dueAt status { name } deliveryMethod { name } contact { fullName customer { companyName } } } } } }`;
+  return `{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${afterClause}) { pageInfo { endCursor hasNextPage } edges { node { id visualId nickname dueAt status { name } deliveryMethod { name } contact { fullName customer { id companyName } } } } } }`;
 }
 
 // Step 2: detail query — imprints + line items (with size breakdown) + URLs for a single invoice
@@ -4941,6 +4972,7 @@ async function syncFromPrintavo(){
         const detail = detailData?.data?.invoice || {};
         const groups = detail?.lineItemGroups?.nodes || [];
         if(inv.dueAt){ existing.dueDate = inv.dueAt.split('T')[0]; existing.dueDateLabel = fmtDueLabel(existing.dueDate); }
+        if(inv.contact?.customer?.id) existing.customerId = inv.contact.customer.id;
         existing.printavoUrl  = detail.url || existing.printavoUrl || null;
         existing.workorderUrl = detail.workorderUrl || existing.workorderUrl || null;
         existing.blanksList   = mapBlanksList(groups);
@@ -5116,6 +5148,7 @@ function mapInvoiceToJob(inv){
   return makeJob(jobId, inv.visualId, jobName, company, dueDate, fmtDueLabel(dueDate),
                  false, 'blanks', workUnits, {
                    deliveryMethod: dm, printavoId: inv.id,
+                   customerId: inv.contact?.customer?.id || null,
                    printavoUrl: inv.printavoUrl || null,
                    workorderUrl: inv.workorderUrl || null,
                    blanksList,
