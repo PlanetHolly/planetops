@@ -269,6 +269,13 @@
   .calgrid.wk{grid-template-columns:repeat(7,minmax(0,1fr))}
   .calgrid.wk .calcell{min-height:320px}
   .calgrid.wk .calitems{max-height:640px}
+  /* #3: single-day view — one column per station */
+  .calgrid.day{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .calgrid.day .calcell{min-height:420px}
+  .calgrid.day .calitems{max-height:none}
+  .calgrid.day .calday{font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase}
+  .calgoday{cursor:pointer}
+  .calgoday:hover{text-decoration:underline}
   .calbar:active{cursor:grabbing}
   .calbar.dragging{opacity:.4}
   .calbar.ph{border:1.5px dashed #8a6d00}
@@ -1050,13 +1057,16 @@ function renderCalendar(){
     for(let d=1;d<=dim;d++)cells.push(calMonth+'-'+String(d).padStart(2,'0'));
     while(cells.length%7)cells.push(null);
     label=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  }else if(calMode==='day'){
+    // #3: one day as a whole — station columns, built separately below
+    label=new Date(calAnchor+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   }else{
     const n=calMode==='2wk'?14:7;
     for(let i=0;i<n;i++)cells.push(addDays(calAnchor,i));
     const a=new Date(calAnchor+'T12:00:00'),b=new Date(addDays(calAnchor,n-1)+'T12:00:00');
     label=a.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+b.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   }
-  const modeSeg=`<span class="seg">${[['1wk','Week'],['2wk','2 Weeks'],['month','Month']].map(([k,lb])=>`<button data-calmode="${k}" class="${calMode===k?'on':''}">${lb}</button>`).join('')}</span>`;
+  const modeSeg=`<span class="seg">${[['day','Day'],['1wk','Week'],['2wk','2 Weeks'],['month','Month']].map(([k,lb])=>`<button data-calmode="${k}" class="${calMode===k?'on':''}">${lb}</button>`).join('')}</span>`;
   const chips=`<span class="seg">`+[['','All stations'],...LANES.map(l=>[l.key,l.label])].map(([k,lb])=>`<button data-callane="${k}" class="${calLane===k?'on':''}">${lb}</button>`).join('')+`</span>`;
   const bar=j=>{
     const e=mockEntry(j);const c=(e&&e.stat&&e.stat.color)||(j.placeholder?'#d9c66a':'#9aa1ab');
@@ -1068,32 +1078,67 @@ function renderCalendar(){
       ${(e&&e.company)?`<div class="cb3">${escHtml(e.company)}${(e&&e.stat)?' · '+escHtml(e.stat.name.length>26?e.stat.name.slice(0,24)+'…':e.stat.name):''}</div>`:((e&&e.stat)?`<div class="cb3">${escHtml(e.stat.name)}</div>`:'')}
     </div>`;
   };
-  const grid=cells.map(d=>{
+  /* #4: capacity % that's never noise. Filtered = that station vs ITS cap, chip names it ("AP 87%").
+     All stations = the BUSIEST station's % — the old blended all-lane average let idle Post-Pro/
+     Shipping minutes hide a full Auto Press. Tooltip carries every working lane's used/cap. */
+  const laneAbbr=l=>l.label.split(' ').map(w=>w[0]).join('');
+  const dayFullness=d=>{
+    const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+    const per=LANES.map(l=>{
+      const used=jobs.filter(j=>j.date===d&&laneOf(j.station)===l).reduce((a,j)=>a+j.minutes,0);
+      const cap=capFor(l,d,isOT);
+      return {l,used,cap,pct:cap?Math.round(used/cap*100):0};
+    });
+    return {isOT,per,busiest:per.filter(x=>x.used).sort((a,b)=>b.pct-a.pct)[0]||null};
+  };
+  const fullChip=(f,laneFilter)=>{
+    const x=laneFilter?f.per.find(p=>p.l===laneFilter):f.busiest;
+    if(!x||!x.used)return '';
+    const cls=x.used>=x.cap?'overc':x.used>=x.cap*.7?'warnc':'okc';
+    const detail=f.per.filter(p=>p.used).map(p=>p.l.label+' '+p.used+'/'+p.cap+'m ('+p.pct+'%)').join(' · ');
+    const title=laneFilter?`${x.l.label}: ${x.used}/${x.cap} min — same math as the Gauge`:`Busiest station that day (its % of its own capacity) — ${detail}`;
+    return `<span class="dchip ${cls}" title="${title}">${laneAbbr(x.l)} ${x.pct}%</span>`;
+  };
+  let grid;
+  if(calMode==='day'){
+    // #3: the whole day, one column per station — always the 3 working stations, others when occupied
+    const d=calAnchor, f=dayFullness(d);
+    const lanes=(laneF?[laneF]:LANES).filter(l=>['auto','heat','post'].includes(l.key)||f.per.find(p=>p.l===l).used);
+    const unlaned=jobs.filter(j=>j.date===d&&!laneOf(j.station));
+    grid=lanes.map(l=>{
+      const rows=jobs.filter(j=>j.date===d&&laneOf(j.station)===l);
+      const p=f.per.find(x=>x.l===l);
+      const cls=p.used>=p.cap?'overc':p.used>=p.cap*.7?'warnc':'okc';
+      return `<div class="calcell" data-date="${d}">
+        <div class="calday"><b>${l.label}</b>${l.key==='auto'&&f.isOT?' <span class="ot-badge">OT</span>':''}
+          ${p.used?`<span class="dchip ${cls}" title="${l.label}: ${p.used}/${p.cap} min — same math as the Gauge">${p.pct}%</span>`:''}
+          <span class="calmin">${rows.length?rows.length+' · ':''}${p.used}/${p.cap}m</span></div>
+        <div class="calitems">${rows.map(bar).join('')||'<div style="color:var(--grey-text);font-size:11px;margin:6px 0">nothing scheduled</div>'}</div>
+      </div>`;
+    }).join('')+(unlaned.length?`<div class="calcell" data-date="${d}">
+        <div class="calday"><b>No station</b><span class="calmin">${unlaned.length} · ${unlaned.reduce((a,j)=>a+j.minutes,0)}m</span></div>
+        <div class="calitems">${unlaned.map(bar).join('')}</div></div>`:'');
+  }else{
+  grid=cells.map(d=>{
     if(!d)return '<div class="calcell empty"></div>';
     const rows=jobs.filter(j=>j.date===d&&(!laneF||laneOf(j.station)===laneF));
     const tot=rows.reduce((a,j)=>a+j.minutes,0);
-    const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+    const f=dayFullness(d);
     const dow=new Date(d+'T12:00:00').getDay();
-    // fullness chip: filtered lane vs its cap; on All = TOTAL minutes vs the whole day's capacity (all lanes, OT/overrides honored)
-    let gUsed,gCap,gTitle;
-    if(laneF){gUsed=tot;gCap=capFor(laneF,d,isOT);gTitle=laneF.label+': '+gUsed+'/'+gCap+' min';}
-    else{gUsed=tot;gCap=LANES.reduce((a,l)=>a+capFor(l,d,isOT),0);gTitle='All stations: '+gUsed+'/'+gCap+' min (full-day capacity, OT honored)';}
-    const gPct=gCap?Math.round(gUsed/gCap*100):0;
-    const gCls=gUsed>=gCap?'overc':gUsed>=gCap*.7?'warnc':'okc';
-    const gChip=gUsed?`<span class="dchip ${gCls}" title="${gTitle} — same math as the Gauge">${gPct}%</span>`:'';
     return `<div class="calcell ${dow===0||dow===6?'wkend':''}" data-date="${d}">
-      <div class="calday"><b>${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${isOT?' <span class="ot-badge">OT</span>':''}${gChip}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
+      <div class="calday"><b class="calgoday" data-calgoday="${d}" title="Open this day alone (Day view)">${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${f.isOT?' <span class="ot-badge">OT</span>':''}${fullChip(f,laneF)}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
       <div class="calitems">${rows.map(bar).join('')}</div></div>`;
   }).join('');
+  }
   return `<div class="controls">
       <span class="seg"><button data-calnav="-1">‹</button><button data-calnav="1">›</button></span>
       <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:.04em;text-transform:uppercase">${label}</span>
       ${modeSeg}
       ${chips}
     </div>
-    <div class="hint" style="margin-bottom:10px">Per-IMPRINT (what production runs), colored by live Printavo status · % chip = ${calLane?'that station':'ALL stations'} vs the day's capacity, Gauge math · drag a bar to another day = moves its <b>scheduled production day</b> only (never Prod Due; past-due moves ask first) · click a bar to jump to it on the Board.</div>
+    <div class="hint" style="margin-bottom:10px">Per-IMPRINT (what production runs), colored by live Printavo status · % chip = ${calLane?'that station vs its own capacity':'the BUSIEST station vs its own capacity (hover for every station)'}, Gauge math${calMode==='day'?'':' · click a date to open that day alone'} · drag a bar to another day = moves its <b>scheduled production day</b> only (never Prod Due; past-due moves ask first) · click a bar to jump to it on the Board.</div>
     ${calMode==='month'?`<div class="calhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div>${x}</div>`).join('')}</div>`:''}
-    <div class="calgrid ${calMode!=='month'?'wk':''}">${grid}</div>`;
+    <div class="calgrid ${calMode==='day'?'day':calMode!=='month'?'wk':''}">${grid}</div>`;
 }
 
 /* ───────── Tabs ───────── */
@@ -1195,12 +1240,18 @@ function wireMain(){
       const d=new Date(Y,M-1+dir,1);
       calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     }else{
-      calAnchor=addDays(calAnchor,dir*(calMode==='2wk'?14:7));
+      calAnchor=addDays(calAnchor,dir*(calMode==='2wk'?14:calMode==='day'?1:7));
     }
     renderAll();
   }));
-  main.querySelectorAll('[data-calmode]').forEach(b=>b.addEventListener('click',()=>{calMode=b.dataset.calmode;renderAll();}));
+  main.querySelectorAll('[data-calmode]').forEach(b=>b.addEventListener('click',()=>{
+    const prev=calMode;calMode=b.dataset.calmode;
+    // month → day: land inside the month being looked at, not a stale week anchor
+    if(calMode==='day'&&prev==='month'&&calAnchor&&!calAnchor.startsWith(calMonth))calAnchor=calMonth+'-01';
+    renderAll();
+  }));
   main.querySelectorAll('[data-callane]').forEach(b=>b.addEventListener('click',()=>{calLane=b.dataset.callane;renderAll();}));
+  main.querySelectorAll('[data-calgoday]').forEach(el=>el.addEventListener('click',()=>{calAnchor=el.dataset.calgoday;calMode='day';renderAll();}));
   main.querySelectorAll('.calbar').forEach(el=>{
     el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.imp);el.classList.add('dragging');});
     el.addEventListener('dragend',()=>el.classList.remove('dragging'));
