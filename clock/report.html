@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timesheets Report — Planet Apparel</title>
+<style>
+:root{--pa-yellow:#F7BE00;--pa-black:#000;--pa-tonal:#232323;
+ --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+ --up:#3AAE5A;--down:#D64545;--flat:#8A93A0;--line:rgba(0,0,0,.09);}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:#000;background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:1100px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:900px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}}
+h1{font-size:1.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0;}
+.sub{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--pa-tonal);font-weight:700;}
+.ctrls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0;}
+select,input[type=date]{font:inherit;font-weight:700;padding:.45rem .6rem;border:1px solid #000;border-radius:7px;background:#fff;}
+button{font:inherit;font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:.5rem .95rem;border:1px solid #000;background:#fff;border-radius:7px;cursor:pointer;}
+button.primary{background:var(--pa-yellow);}
+.badge{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;background:#FDECEC;border:1px solid var(--down);color:#8c1d1d;border-radius:5px;padding:.25rem .6rem;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th,td{padding:.45rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left;}
+thead th{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;position:sticky;top:0;background:#fff;}
+tr.emp td{font-weight:900;background:#FAFBFC;border-top:2px solid #000;font-size:.88rem;}
+tr.total td{font-weight:900;background:#000;color:#fff;border-bottom:none;}
+td.issue{color:var(--down);font-weight:800;}
+.ot{color:#B25E00;font-weight:800;}
+.gate{max-width:420px;margin:3rem auto;text-align:center;font-weight:800;color:var(--down);}
+.muted{color:var(--flat);}
+footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.66rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;}
+@media print{.ctrls,footer{display:none;}body{background:#fff;}.wrap{box-shadow:none;margin:0;padding:0;}
+ table{font-size:.7rem;}thead th{position:static;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Timesheets — Pay Period Review</h1>
+  <div class="sub">Planet Apparel · in-house time clock</div>
+  <div class="ctrls">
+    <select id="period"></select>
+    <input type="date" id="from"><input type="date" id="to">
+    <button class="primary" id="load">Load</button>
+    <button onclick="window.print()">🖨 Print</button>
+    <span id="review" class="badge" style="display:none;"></span>
+    <span class="muted" id="gen"></span>
+  </div>
+  <div id="out"></div>
+  <footer>Computed live from the punches sheet · CA math: daily OT &gt;8h ×1.5, &gt;12h ×2, weekly &gt;40h ×1.5 (Mon week) · unpaid breaks as recorded · missing-break days are flagged, not auto-deducted</footer>
+</div>
+<script>
+const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-report';
+const qk=new URLSearchParams(location.search).get('k');
+if(qk) localStorage.setItem('ts_admin_key',qk);
+const KEY=localStorage.getItem('ts_admin_key')||'';
+const $=id=>document.getElementById(id);
+const h=m=>(m/60).toFixed(2);
+const money=v=>'$'+v.toFixed(2);
+
+// semi-monthly periods: 10th–25th and 26th–9th
+function periods(){
+  const out=[]; const t=new Date();
+  for(let i=0;i<6;i++){
+    let y=t.getFullYear(),m=t.getMonth()-Math.floor(i/2);
+    const d=new Date(y,m,1); y=d.getFullYear(); m=d.getMonth();
+    const iso=(yy,mm,dd)=>new Date(yy,mm,dd).toLocaleDateString('sv-SE');
+    if(i%2===0) out.push({label:iso(y,m,10)+' → '+iso(y,m,25),from:iso(y,m,10),to:iso(y,m,25)});
+    else out.push({label:iso(y,m-1,26)+' → '+iso(y,m,9),from:iso(y,m-1,26),to:iso(y,m,9)});
+  }
+  return out.filter(p=>p.from<=new Date().toLocaleDateString('sv-SE'));
+}
+(function(){const sel=$('period');
+ periods().forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.label;sel.appendChild(o);});
+ const c=document.createElement('option');c.value='custom';c.textContent='Custom range…';sel.appendChild(c);
+ sel.onchange=()=>{if(sel.value!=='custom'){const p=periods()[sel.value];$('from').value=p.from;$('to').value=p.to;}};
+ sel.onchange();})();
+
+$('load').onclick=load;
+async function load(){
+  if(!KEY){$('out').innerHTML='<div class="gate">Not authorized. Open the report link with your admin key.</div>';return;}
+  $('out').innerHTML='<p class="muted">Loading…</p>';
+  const r=await fetch(`${API}?k=${KEY}&from=${$('from').value}&to=${$('to').value}`).then(r=>r.json());
+  if(!r.ok){$('out').innerHTML='<div class="gate">'+(r.error||'Error')+'</div>';return;}
+  $('gen').textContent='computed '+r.generated;
+  const emps=Object.fromEntries(r.employees.map(e=>[e.emp_id,e]));
+  const byEmp={};
+  r.cards.forEach(c=>{(byEmp[c.emp_id]=byEmp[c.emp_id]||[]).push(c);});
+  let issues=0, T={cards:0,paid:0,reg:0,brk:0,ot:0,dot:0,cost:0};
+  let html='<table><thead><tr><th>Team member</th><th>Time card</th><th>Issue</th><th>Total paid hrs</th><th>Regular</th><th>Unpaid breaks</th><th>OT</th><th>2×</th><th>Labor cost</th></tr></thead><tbody>';
+  const order=Object.keys(byEmp).sort((a,b)=>(emps[a]?.full_name||a)<(emps[b]?.full_name||b)?-1:1);
+  for(const id of order){
+    const e=emps[id]||{full_name:id,wage_hourly:0};
+    const cs=byEmp[id]; let s={paid:0,reg:0,brk:0,ot:0,dot:0,cost:0};
+    let rows='';
+    for(const c of cs){
+      const w=e.wage_hourly;
+      const cost=(c.regular_min/60)*w+(c.ot_min/60)*w*1.5+(c.dot_min/60)*w*2;
+      s.paid+=c.paid_min;s.reg+=c.regular_min;s.brk+=c.break_min;s.ot+=c.ot_min;s.dot+=c.dot_min;s.cost+=cost;
+      if(c.issue&&c.issue!=='open')issues++;
+      const day=new Date(c.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      rows+=`<tr><td class="muted">${day}</td><td>${c.clock_in||'—'} – ${c.clock_out||(c.issue==='open'?'(on the clock)':'—')}</td>
+        <td class="issue">${c.issue&&c.issue!=='open'?'⚠️ '+c.issue.replace('_',' '):''}</td>
+        <td>${h(c.paid_min)}</td><td>${h(c.regular_min)}</td><td>${h(c.break_min)}</td>
+        <td class="${c.ot_min?'ot':''}">${h(c.ot_min)}</td><td class="${c.dot_min?'ot':''}">${h(c.dot_min)}</td>
+        <td>${money(cost)}</td></tr>`;
+    }
+    T.cards+=cs.length;T.paid+=s.paid;T.reg+=s.reg;T.brk+=s.brk;T.ot+=s.ot;T.dot+=s.dot;T.cost+=s.cost;
+    html+=`<tr class="emp"><td>${e.full_name}</td><td>${cs.length} time card${cs.length>1?'s':''}</td><td></td>
+      <td>${h(s.paid)}</td><td>${h(s.reg)}</td><td>${h(s.brk)}</td><td class="${s.ot?'ot':''}">${h(s.ot)}</td><td>${h(s.dot)}</td><td>${money(s.cost)}</td></tr>${rows}`;
+  }
+  html+=`<tr class="total"><td>Totals</td><td>${T.cards} time cards</td><td></td><td>${h(T.paid)}</td><td>${h(T.reg)}</td><td>${h(T.brk)}</td><td>${h(T.ot)}</td><td>${h(T.dot)}</td><td>${money(T.cost)}</td></tr></tbody></table>`;
+  if(!r.cards.length) html='<p class="muted">No time cards in this range.</p>';
+  $('out').innerHTML=html;
+  $('review').style.display=issues?'inline-block':'none';
+  $('review').textContent='Needs review ('+issues+')';
+}
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Admin — Planet Apparel Timesheets</title>
+<style>
+:root{--pa-yellow:#F7BE00;--pa-tonal:#232323;--down:#D64545;--up:#3AAE5A;--flat:#8A93A0;--line:rgba(0,0,0,.09);
+ --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:#000;background:#F4F6F9;}
+.wrap{max-width:900px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:900px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}}
+h1{font-size:1.5rem;font-weight:900;text-transform:uppercase;margin:.1em 0;}
+.sub{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--pa-tonal);font-weight:700;margin-bottom:1rem;}
+table{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:1rem;}
+th,td{padding:.5rem .5rem;text-align:left;border-bottom:1px solid var(--line);}
+thead th{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+tr.term td{color:var(--flat);text-decoration:line-through;}
+button{font:inherit;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.45rem .8rem;border:1px solid #000;background:#fff;border-radius:7px;cursor:pointer;}
+button.primary{background:var(--pa-yellow);}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow:auto;}
+.modal.on{display:flex;}
+.box{background:#fff;border-radius:14px;max-width:460px;width:100%;padding:1.3rem;}
+.box h2{margin:.1rem 0 .8rem;font-size:1.05rem;text-transform:uppercase;}
+label{display:block;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin:.7rem 0 .2rem;}
+input,select{font:inherit;width:100%;padding:.5rem;border:1px solid #000;border-radius:8px;box-sizing:border-box;background:#fff;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.err{color:var(--down);font-weight:800;font-size:.85rem;min-height:1.1em;margin-top:.6rem;}
+.gate{max-width:420px;margin:3rem auto;text-align:center;font-weight:800;color:var(--down);}
+.muted{color:var(--flat);}
+.pill{font-size:.6rem;font-weight:900;text-transform:uppercase;border-radius:4px;padding:.15rem .45rem;border:1px solid #000;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Team Admin</h1>
+  <div class="sub">Timesheets roster · add people, change wages, reset PINs — no sheet editing</div>
+  <button class="primary" id="add">+ Add team member</button>
+  <a href="report.html" style="margin-left:.6rem;font-size:.75rem;font-weight:800;">→ Pay period report</a>
+  <div id="out"></div>
+</div>
+<div class="modal" id="modal"><div class="box">
+  <h2 id="mtitle">Add team member</h2>
+  <label>Full name (Last First, like the sheet)</label><input id="f_name">
+  <label>Short ID (lowercase, no spaces — locked after create)</label><input id="f_id">
+  <label>Display name (kiosk button)</label><input id="f_disp">
+  <div class="row2">
+    <div><label>Role</label><input id="f_role"></div>
+    <div><label>Department</label><select id="f_dept"><option>production</option><option>sales</option><option>admin</option></select></div>
+  </div>
+  <div class="row2">
+    <div><label>Hourly wage $</label><input id="f_wage" type="number" step="0.25"></div>
+    <div><label>Punch mode</label><select id="f_mode"><option>kiosk</option><option>phone</option><option>none</option></select></div>
+  </div>
+  <div class="row2">
+    <div><label>Status</label><select id="f_status"><option>active</option><option>terminated</option></select></div>
+    <div><label>New PIN (4 digits — blank keeps current)</label><input id="f_pin" inputmode="numeric" maxlength="4"></div>
+  </div>
+  <div class="err" id="merr"></div>
+  <div style="margin-top:1rem;display:flex;gap:.6rem;">
+    <button class="primary" id="msave">Save</button>
+    <button id="mcancel">Cancel</button>
+  </div>
+</div></div>
+<script>
+const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-admin';
+const qk=new URLSearchParams(location.search).get('k');
+if(qk) localStorage.setItem('ts_admin_key',qk);
+const KEY=localStorage.getItem('ts_admin_key')||'';
+const $=id=>document.getElementById(id);
+let roster=[], editing=null;
+async function api(b){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,admin_key:KEY})}).then(r=>r.json());}
+async function load(){
+  if(!KEY){$('out').innerHTML='<div class="gate">Not authorized. Open the admin link with the admin key.</div>';$('add').style.display='none';return;}
+  const r=await api({action:'list'});
+  if(!r.ok){$('out').innerHTML='<div class="gate">'+r.error+'</div>';return;}
+  roster=r.employees;
+  let html='<table><thead><tr><th>Name</th><th>Role</th><th>Dept</th><th>Wage</th><th>Punch</th><th>Status</th><th></th></tr></thead><tbody>';
+  for(const e of roster){
+    html+=`<tr class="${e.status==='terminated'?'term':''}"><td><b>${e.full_name}</b> <span class="muted">(${e.emp_id})</span></td>
+     <td>${e.role}</td><td>${e.departments}</td>
+     <td>${e.is_salaried==='TRUE'?'<span class="pill">salaried</span>':'$'+e.wage_hourly+'/hr'}</td>
+     <td>${e.punch_mode}${e.has_pin?'':' <span class="pill" style="border-color:var(--down);color:var(--down);">no PIN</span>'}</td>
+     <td>${e.status}</td><td><button data-e="${e.emp_id}">Edit</button></td></tr>`;
+  }
+  $('out').innerHTML=html+'</tbody></table>';
+  document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openModal(roster.find(x=>x.emp_id===b.dataset.e)));
+}
+function openModal(e){
+  editing=e||null;
+  $('mtitle').textContent=e?('Edit — '+e.full_name):'Add team member';
+  $('f_name').value=e?e.full_name:''; $('f_id').value=e?e.emp_id:''; $('f_id').disabled=!!e;
+  $('f_disp').value=e?e.display_name:''; $('f_role').value=e?e.role:'';
+  $('f_dept').value=e?e.departments:'production'; $('f_wage').value=e?e.wage_hourly:'';
+  $('f_mode').value=e?e.punch_mode:'kiosk'; $('f_status').value=e?e.status:'active';
+  $('f_pin').value=''; $('merr').textContent='';
+  $('modal').classList.add('on');
+}
+$('add').onclick=()=>openModal(null);
+$('mcancel').onclick=()=>$('modal').classList.remove('on');
+$('msave').onclick=async()=>{
+  const b={action:'upsert',pin:$('f_pin').value||undefined,employee:{
+    emp_id:$('f_id').value,full_name:$('f_name').value,display_name:$('f_disp').value,
+    role:$('f_role').value,departments:$('f_dept').value,wage_hourly:$('f_wage').value||'0',
+    punch_mode:$('f_mode').value,status:$('f_status').value}};
+  const r=await api(b);
+  if(!r.ok){$('merr').textContent=r.error;return;}
+  $('modal').classList.remove('on');load();
+};
+load();
+</script>
+</body>
+</html>
