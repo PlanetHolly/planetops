@@ -1318,6 +1318,10 @@ function wireMain(){
   });
   // QC gate sign-off
   // ── estimator: verify time (green) + write back to Jean's calculator (his /webhook/estimate) ──
+  // ⏸ WRITEBACK PAUSED (Holly 2026-07-06, focus-list #12): rows arrive incomplete (no ink change /
+  //   post-prod / stroke times, #13) and the "L" trigger bug (#14) is unresolved. Verify-to-green
+  //   still works — only the send to the calculator is held. Re-enable: set WRITEBACK_PAUSED=false.
+  const WRITEBACK_PAUSED = true;
   main.querySelectorAll('[data-estimp]').forEach(chip=>{
     chip.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1328,10 +1332,10 @@ function wireMain(){
       store.timeVerified[imp]={min:est.total,at:todayISO()};
       save();renderAll();
       // fire-and-forget writeback (same payload shape as the Estimator's "Save to Calculator")
-      try{
+      if(!WRITEBACK_PAUSED){try{
         fetch('https://primary-production-079f9.up.railway.app/webhook/estimate',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({mode:'save',source:'schedule',product:j.projectType,colors:j.screens,qty:j.qty,ink:j.ink,pallet:j.pallet,strokes:store.strokes[imp]||2,postType:j.postProdType,jobName:j.nickname,imprintId:j.imprint})});
-      }catch(err){}
+      }catch(err){}}
     });
   });
   main.querySelectorAll('.strkbtn').forEach(b=>{
