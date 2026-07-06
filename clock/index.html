@@ -72,7 +72,12 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
 <div class="wrap">
   <div class="head"><h1>⏱ Planet Apparel Time Clock</h1><div id="clocknow"></div></div>
 
-  <div id="s-gate" class="screen"><div class="gate">This device is not authorized for the time clock.<br>Open the clock link Jean gave you (it contains the device key).</div></div>
+  <div id="s-gate" class="screen"><div class="gate">This device is not set up for the time clock yet.<br>Open the clock link Jean gave you — or a manager can unlock this device:
+    <div style="margin-top:1.2rem;color:#000;">
+      <input id="gpin" inputmode="numeric" maxlength="4" type="password" placeholder="Manager PIN" style="font:inherit;font-size:1.4rem;text-align:center;width:190px;padding:.5rem;border:2px solid #000;border-radius:10px;">
+      <div><button class="bigbtn primary small" id="ggo" style="max-width:230px;margin:1rem auto 0;">Unlock device</button></div>
+      <div id="gerr" class="err-msg"></div>
+    </div></div></div>
 
   <div id="s-grid" class="screen">
     <div class="grid" id="grid"></div>
@@ -158,7 +163,7 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
     </div>
   </div>
 
-  <footer>Planet Apparel · Time Clock · punches write instantly to the timesheet</footer>
+  <footer>Planet Apparel · Time Clock · punches write instantly to the timesheet · <a href="report.html" style="color:inherit;">manager reports 🔒</a></footer>
 </div>
 
 <script>
@@ -173,6 +178,13 @@ let roster=[], cur=null, pin='', pendingPunch=null, corrInfo=null, backTimer=nul
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');clearTimeout(backTimer);}
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{pin='';cur=null;loadRoster();});
+$('ggo').onclick=async()=>{
+  const r=await fetch('https://primary-production-079f9.up.railway.app/webhook/timesheets-admin',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'manager_login',pin:$('gpin').value})}).then(r=>r.json());
+  if(!r.ok){$('gerr').textContent=r.error;$('gpin').value='';return;}
+  localStorage.setItem('ts_device_key',r.device_key);localStorage.setItem('ts_admin_key',r.admin_key);
+  location.reload();
+};
 
 function tick(){const d=new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',second:'2-digit'});$('clocknow').textContent=d;}
 setInterval(tick,1000);tick();

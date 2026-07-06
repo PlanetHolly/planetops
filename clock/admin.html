@@ -70,8 +70,27 @@ const KEY=localStorage.getItem('ts_admin_key')||'';
 const $=id=>document.getElementById(id);
 let roster=[], editing=null;
 async function api(b){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,admin_key:KEY})}).then(r=>r.json());}
+function pinGate(){
+  $('add').style.display='none';
+  $('out').innerHTML=`<div style="max-width:340px;margin:2.5rem auto;text-align:center;">
+    <div style="font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;">🔒 Manager PIN</div>
+    <input id="mpin" inputmode="numeric" maxlength="4" type="password" style="font:inherit;font-size:1.6rem;text-align:center;width:170px;padding:.5rem;border:2px solid #000;border-radius:10px;letter-spacing:.4em;">
+    <div><button class="primary" id="mgo" style="margin-top:.9rem;">Unlock</button></div>
+    <div id="mperr" style="color:var(--down);font-weight:800;min-height:1.2em;margin-top:.5rem;"></div></div>`;
+  const go=async()=>{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'manager_login',pin:$('mpin').value})}).then(r=>r.json());
+    if(!r.ok){$('mperr').textContent=r.error;$('mpin').value='';return;}
+    localStorage.setItem('ts_admin_key',r.admin_key);localStorage.setItem('ts_device_key',r.device_key);
+    location.reload();
+  };
+  $('mgo').onclick=go;
+  $('mpin').onkeydown=e=>{if(e.key==='Enter')go();};
+  $('mpin').focus();
+}
+
 async function load(){
-  if(!KEY){$('out').innerHTML='<div class="gate">Not authorized. Open the admin link with the admin key.</div>';$('add').style.display='none';return;}
+  if(!KEY){pinGate();return;}
   const r=await api({action:'list'});
   if(!r.ok){$('out').innerHTML='<div class="gate">'+r.error+'</div>';return;}
   roster=r.employees;
