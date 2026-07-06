@@ -245,9 +245,9 @@ document.getElementById('copyBtn').addEventListener('click',()=>{
 });
 
 /* ---------- Save — all work types; webhook routes each to its own tab (Auto/Heat/Post) ---------- */
-/* ⏸ WRITEBACK PAUSED (Holly 2026-07-06, focus-list #12): incomplete rows (#13) + "L" trigger bug (#14).
-   Re-enable: set WRITEBACK_PAUSED=false once both are fixed. */
-const WRITEBACK_PAUSED = true;
+/* ▶ WRITEBACK RE-ENABLED 2026-07-06 (Jean's go) — #13 missing fields + broken setup header key fixed,
+   #14 diagnosed (header edit + quota 429s, not a real "L" write). Emergency stop: WRITEBACK_PAUSED=true. */
+const WRITEBACK_PAUSED = false;
 const WEBHOOK_URL="https://primary-production-079f9.up.railway.app/webhook/estimate";
 document.getElementById('saveAllBtn').addEventListener('click',async()=>{
   const rows=lastResults.filter(r=>r.status==='OK');
