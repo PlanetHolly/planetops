@@ -101,6 +101,7 @@
   .cship{white-space:nowrap}
   .job.ph{background:#fbf7e8;border:1.5px dashed #d9c66a}
   .job.ph .phref{cursor:text;border-bottom:1px dashed #b9a53e;font-style:italic}
+  .phuid{font-size:10px;font-weight:700;color:#7a5000;background:rgba(247,190,0,.18);border-radius:4px;padding:0 6px;cursor:pointer;margin-left:4px;white-space:nowrap} /* #15: optional invoice-correlation ID */
   .rec{display:inline-block;font-size:11px;font-weight:700;color:#1e5f8a;background:#e3edf6;border-radius:4px;padding:2px 7px;cursor:pointer;margin-top:3px;white-space:nowrap}
   .rec:hover{outline:1.5px solid #1e5f8a}
   .rec.late{color:#a33;background:#fdeaea}
@@ -592,7 +593,7 @@ function buildModel(){
     const at=OV.attrs[j.imprint];
     if(at){if(at.ink)j.ink=at.ink;if(at.screens!=null&&at.screens!=='')j.screens=at.screens;if(at.pallet)j.pallet=at.pallet;}
   });
-  (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
+  (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
   arrivals=jobs.filter(j=>OUTSOURCED.test(j.status));
@@ -636,10 +637,10 @@ function jobCard(j){
   if(j.placeholder){
     return `<div class="job ph" draggable="true" data-imp="${j.imprint}">
       <div class="mock" style="cursor:default">⏳</div>
-      <div class="cid"><span class="imp">PLACEHOLDER</span><span class="splitnote">reserved time</span></div>
+      <div class="cid"><span class="imp">PLACEHOLDER</span><span class="splitnote">reserved time</span><span class="phuid" data-phuid="${j.imprint}" title="Optional ID — e.g. the invoice # this reserves time for (click to set/clear)">${j.uid?'#'+j.uid:'+ id'}</span></div>
       <div class="cmin"><span class="min" data-min="${j.imprint}" title="Click to change the reserved minutes">${j.minutes} min</span></div>
       <div class="name phref" data-phref="${j.imprint}" title="Click to describe what you expect to land in this slot">${j.nickname}</div>
-      <div class="cqty"></div>
+      <div class="cqty">${j.minutes>=2?`<button class="ddbtn" data-phsplit="${j.imprint}" title="#15: split this reserved time across TWO days — half stays here, the rest moves to the next day (same name/ID)">⇒ split 2 days</button>`:''}</div>
       <div class="cink"><select data-phlane="${j.imprint}" title="Which station this reserves time on">${LANES.map(l=>`<option value="${l.printavo}" ${l.printavo===j.station?'selected':''}>${l.label}</option>`).join('')}</select></div>
       <div class="cdots"></div><div class="csched"></div><div class="cprodc"></div><div class="cship"></div>
       <div class="ccust"><button class="splitbtn" data-phdel="${j.imprint}" title="Remove placeholder">✕</button></div>
@@ -1026,7 +1027,7 @@ function changeList(){
   Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
   Object.entries(store.attrs).forEach(([imp,a])=>{const p=[];if(a.ink)p.push('Ink → '+a.ink);if(a.screens!=null&&a.screens!=='')p.push('Screens → '+a.screens);if(a.pallet)p.push('Pallet → '+a.pallet);if(p.length)out.push(`SET ${p.join(' · ')} for ${imp}`);});
   Object.entries(store.caps).forEach(([k,v])=>{const[date,lane]=k.split('|');out.push(`CAPACITY note: treat ${LANES.find(l=>l.key===lane).label} on ${fmtDay(date)} as ${v} min (in Printavo this may mean the OT/Off-Season station)`)});
-  (store.placeholders||[]).forEach(p=>out.push(`PLACEHOLDER ${fmtDay(p.date)} · ${laneOf(p.station)?.label||p.station} · ${p.minutes} min — "${p.ref}" (board-only: Printavo has no placeholders — this reserves capacity in our math)`));
+  (store.placeholders||[]).forEach(p=>out.push(`PLACEHOLDER ${fmtDay(p.date)} · ${laneOf(p.station)?.label||p.station} · ${p.minutes} min — "${p.ref}"${p.uid?' · ID '+p.uid:''} (board-only: Printavo has no placeholders — this reserves capacity in our math)`));
   return out;
 }
 function renderChanges(){
@@ -1358,6 +1359,31 @@ function wireMain(){
     sel.addEventListener('change',()=>{
       const p=store.placeholders.find(x=>x.id===sel.dataset.phlane);
       if(p){p.station=sel.value;save();renderAll();}
+    });
+  });
+  // #15: split a placeholder across two days — half stays, the rest becomes a sibling on the next day
+  main.querySelectorAll('[data-phsplit]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const p=store.placeholders.find(x=>x.id===btn.dataset.phsplit);if(!p)return;
+      const half=Math.ceil(p.minutes/2),rest=p.minutes-half;
+      if(rest<1)return;
+      p.minutes=half;
+      store.placeholders.push({id:'ph'+Date.now(),date:addDays(p.date,1),station:p.station,minutes:rest,ref:p.ref,uid:p.uid||''});
+      save();renderAll();
+    });
+  });
+  // #15: optional unique ID (correlate to the invoice #) — inline edit, empty clears
+  main.querySelectorAll('.phuid').forEach(sp=>{
+    sp.addEventListener('click',e=>{
+      e.stopPropagation();
+      const p=store.placeholders.find(x=>x.id===sp.dataset.phuid);if(!p)return;
+      sp.innerHTML=`<input type="text" value="${(p.uid||'').replace(/"/g,'&quot;')}" placeholder="e.g. 27412" style="font:inherit;width:70px;border:1px solid var(--yellow);border-radius:4px;padding:1px 4px">`;
+      const inp=sp.querySelector('input');inp.focus();inp.select();
+      let done=false;
+      const commit=()=>{if(done)return;done=true;p.uid=inp.value.trim();save();renderAll();};
+      inp.addEventListener('blur',commit);
+      inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')commit();if(ev.key==='Escape'){done=true;renderAll();}});
     });
   });
   main.querySelectorAll('.phref').forEach(sp=>{
