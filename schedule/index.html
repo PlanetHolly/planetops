@@ -427,6 +427,41 @@ async function loadLiveCsv(){
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
+/* ── #5: auto-fill imprint attributes the CSV export came in without (Printavo scheduler
+   fields unset — export says "Select Project Status" / N/A / 0). Sources, in order:
+   (a) the invoice's own imprint details via the mockups webhook ("Ink: 2 Color, Plastisol Ink"),
+   (b) nickname keywords for project type, (c) de-facto pallet defaults measured from the
+   export history (Bandana→22" 22/22, Apparel→16"). CSV-provided values are never touched;
+   Jean's manual overrides (store.ptype/…) are applied after this and win. Re-runs every
+   buildModel(), so it self-heals when the async mockups feed lands. ── */
+function autofillAttrs(j){
+  if(j.placeholder)return;
+  const needT=!j.projectType||/select project/i.test(j.projectType);
+  const needI=!j.ink||j.ink==='N/A';
+  const needC=!+j.screens;
+  const needP=!j.pallet||j.pallet==='N/A';
+  if(!(needT||needI||needC||needP))return;
+  const e=mockEntry(j),d=e&&e.imprints&&e.imprints[(+j.impNum||1)-1];
+  if(d&&d.details){
+    // two formats in the wild: "🎨Ink: 1 Color, Plastisol Ink"  and  "🖌️Ink(s): 1/colors" + "🪄Ink Type: Plastisol"
+    const det=d.details;
+    const mc=det.match(/Ink\(s\)?:\s*(\d+)\s*\/?\s*colors?/i)||det.match(/Ink:\s*(\d+)\s*Colors?/i);
+    const mi=det.match(/Ink Type:\s*([A-Za-z][A-Za-z /-]*)/i)||det.match(/Ink:\s*\d+\s*Colors?\s*,\s*([A-Za-z /-]+?)\s*Ink/i);
+    if(mc&&needC)j.screens=mc[1];
+    if(mi&&needI)j.ink=mi[1].trim();
+  }
+  if(needT){
+    const n=j.nickname||'';
+    if(/bandana/i.test(n))j.projectType='Bandana';
+    else if(/(t-?shirt|\btee\b|hoodie|crewneck|sweatshirt|apparel|jacket|tank)/i.test(n))j.projectType='Apparel';
+    else if(/(keychain|charm|sticker|stir stick|mug|\bpin\b|patch|koozie|magnet|tumbler)/i.test(n))j.projectType='Promo';
+  }
+  if(needP){
+    if(j.projectType==='Bandana')j.pallet='22"';
+    else if(j.projectType==='Apparel')j.pallet='16"';
+  }
+  j.autofilled=true;
+}
 /* ── embedded estimator: auto-chart projected time from the imprint's own attributes ── */
 function estimateFor(j){
   if(j.placeholder||!window.PA_ESTIMATE)return null;
@@ -535,6 +570,7 @@ function buildModel(){
   });
   jobs.forEach(j=>{
     j.csvDate=j.date;j.csvPtype=j.projectType;j.csvPptype=j.postProdType;
+    autofillAttrs(j);   // #5: fill type/colors/ink/pallet the CSV came in without (before OV so Jean's manual edits still win)
     const st=OV.stations[j.imprint];if(st){j.stationOrig=j.station;j.station=st;j.stationAssigned=true;}
     const mv=OV.moves[j.imprint];
     if(mv!==undefined&&mv!==j.csvDate){j.origDate=j.csvDate;j.date=mv;j.moved=!!j.csvDate;} // #2: first scheduling of an unscheduled job (csvDate empty) is NOT a "move" — badge only when it deviates from a CSV-scheduled date
