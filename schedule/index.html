@@ -382,7 +382,7 @@ function parseCSV(text){
 const KEY='sbproto_v1';
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
-store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},strokes:{},timeVerified:{},range:{mode:'week',start:null,end:null},exported:true},store);
+store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},range:{mode:'week',start:null,end:null},exported:true},store);
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();}
 
@@ -542,7 +542,7 @@ function rowToJob(r,hdr){
     status:g('Invoice Status').trim(), localSplit:false, moved:false,
   };
 }
-const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},placeholders:[]};
+const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[]};
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
@@ -576,6 +576,10 @@ function buildModel(){
     if(mv!==undefined&&mv!==j.csvDate){j.origDate=j.csvDate;j.date=mv;j.moved=!!j.csvDate;} // #2: first scheduling of an unscheduled job (csvDate empty) is NOT a "move" — badge only when it deviates from a CSV-scheduled date
     const pt=OV.ptype[j.imprint];if(pt)j.projectType=pt;
     const pp=OV.pptype[j.imprint];if(pp!==undefined)j.postProdType=pp||'N/A';
+    // #7: List-view imprint-attr edits (ink / screens / pallet) — override CSV+autofill values
+    j.baseInk=j.ink;j.baseScreens=j.screens;j.basePallet=j.pallet;
+    const at=OV.attrs[j.imprint];
+    if(at){if(at.ink)j.ink=at.ink;if(at.screens!=null&&at.screens!=='')j.screens=at.screens;if(at.pallet)j.pallet=at.pallet;}
   });
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
@@ -960,6 +964,7 @@ const SORTVAL={
   imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
   station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
   ink:j=>j.ink==='N/A'?'~':j.ink, postpro:j=>j.postProdType==='N/A'?'~':j.postProdType,
+  screens:j=>+j.screens||0, pallet:j=>j.pallet==='N/A'?'~':j.pallet,
   ptype:j=>['Bandana','Apparel','Promo'].includes(j.projectType)?j.projectType:'~',
   prodDue:j=>j.prodDue||'~', printed:j=>isPrinted(j)?0:1, custDue:j=>j.custDue||'~',
   status:j=>cleanStatus(j.status).toLowerCase(),
@@ -973,25 +978,27 @@ function renderList(){
   const PPOPTS=['Hang Tag','Packaging (Bandana)','Packaging (Apparel)','Fold & Bag'];
   const rows=list.map(j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
-      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
     <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
     <td style="text-align:right">${j.qty}</td>
-    <td>${j.ink!=='N/A'?j.ink:''}</td>
+    <td><select data-aink="${j.imprint}" title="Ink / application type (#7 — editable)"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Screen count / # colors (#7 — editable)"></td>
+    <td><select data-apal="${j.imprint}" title="Pallet size (#7 — editable)"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
     <td><select data-ptype="${j.imprint}" title="Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="14">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="16">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
   };
   return `<div class="hint" style="margin-bottom:8px">Jean's workbench — every cell is LIVE: set the date (or clear it to unschedule), assign the station, click minutes, set Project Type + post-production. Same jobs as the Board, list-shaped. Sort by any header.</div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('date','Sched')}${H('station','Station')}${H('minutes','Min')}${H('qty','Qty')}${H('ink','Ink')}${H('ptype','Type')}${H('postpro','Post-Pro')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('date','Sched')}${H('station','Station')}${H('minutes','Min')}${H('qty','Qty')}${H('ink','Ink')}${H('screens','Scr')}${H('pallet','Pallet')}${H('ptype','Type')}${H('postpro','Post-Pro')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
@@ -1006,6 +1013,7 @@ function changeList(){
   Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)`));
   Object.entries(store.ptype).forEach(([imp,v])=>out.push(`SET Project Type for ${imp} → ${v}`));
   Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
+  Object.entries(store.attrs).forEach(([imp,a])=>{const p=[];if(a.ink)p.push('Ink → '+a.ink);if(a.screens!=null&&a.screens!=='')p.push('Screens → '+a.screens);if(a.pallet)p.push('Pallet → '+a.pallet);if(p.length)out.push(`SET ${p.join(' · ')} for ${imp}`);});
   Object.entries(store.caps).forEach(([k,v])=>{const[date,lane]=k.split('|');out.push(`CAPACITY note: treat ${LANES.find(l=>l.key===lane).label} on ${fmtDay(date)} as ${v} min (in Printavo this may mean the OT/Off-Season station)`)});
   (store.placeholders||[]).forEach(p=>out.push(`PLACEHOLDER ${fmtDay(p.date)} · ${laneOf(p.station)?.label||p.station} · ${p.minutes} min — "${p.ref}" (board-only: Printavo has no placeholders — this reserves capacity in our math)`));
   return out;
@@ -1556,6 +1564,25 @@ function wireMain(){
       save();renderAll();
     });
   });
+  // #7: List-view imprint-attr editors (ink / screens / pallet)
+  const setAttr=(imp,key,v,base)=>{
+    const at=store.attrs[imp]||(store.attrs[imp]={});
+    if(v===''||v===base)delete at[key];else at[key]=v;
+    if(!Object.keys(at).length)delete store.attrs[imp];
+    save();renderAll();
+  };
+  main.querySelectorAll('select[data-aink]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{const imp=sel.dataset.aink,j=jobs.find(x=>x.imprint===imp);setAttr(imp,'ink',sel.value,j.baseInk);});
+  });
+  main.querySelectorAll('input[data-ascr]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('change',()=>{const imp=inp.dataset.ascr,j=jobs.find(x=>x.imprint===imp);setAttr(imp,'screens',inp.value,String(j.baseScreens||''));});
+  });
+  main.querySelectorAll('select[data-apal]').forEach(sel=>{
+    sel.addEventListener('click',e=>e.stopPropagation());
+    sel.addEventListener('change',()=>{const imp=sel.dataset.apal,j=jobs.find(x=>x.imprint===imp);setAttr(imp,'pallet',sel.value,j.basePallet);});
+  });
   // capacity edit
   main.querySelectorAll('.cap[data-lane]').forEach(sp=>{
     sp.addEventListener('click',e=>{
@@ -1743,7 +1770,7 @@ document.getElementById('fileInput').addEventListener('change',e=>{
       alert('That does not look like a Power Scheduler export (missing Minutes/Imprint headers).');return;
     }
     store.csvText=text;store.csvName=f.name;
-    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};store.strokes={};store.timeVerified={};
+    store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.eta={};store.tracking={};store.method={};store.arrived={};store.qc={};store.pickedup={};store.errands=[];store.ptype={};store.pptype={};store.attrs={};store.strokes={};store.timeVerified={};
     store.range={mode:'week',start:null,end:null};
     save();renderAll();
   };
