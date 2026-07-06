@@ -89,6 +89,7 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
       <div class="status" id="actstatus"></div>
       <div id="actbtns"></div>
       <button class="linkbtn" id="forgot">I forgot to clock in on a previous day…</button>
+      <button class="linkbtn" id="notebtn">💬 Leave a note for Jean…</button>
       <div class="err-msg" id="acterr"></div>
       <div class="backbar"><button class="linkbtn" data-back>← Back to names</button></div>
     </div>
@@ -116,6 +117,18 @@ footer{margin-top:2rem;text-align:center;font-size:.65rem;color:var(--flat);text
       <label>Note (optional)</label><input type="text" id="fnote" placeholder="e.g. kiosk was down">
       <button class="bigbtn primary small" id="fsave" style="margin-top:1rem;">Log shift</button>
       <div class="err-msg" id="ferr"></div>
+      <div class="backbar"><button class="linkbtn" data-back>Cancel</button></div>
+    </div>
+  </div>
+
+  <div id="s-note" class="screen">
+    <div class="corr" style="border-color:#000;">
+      <h2>💬 Note for Jean</h2>
+      <p>Goes straight to Jean's time-clock chat and the log.</p>
+      <label>Your note</label>
+      <textarea id="ntext" rows="4" style="font-size:1.05rem;"></textarea>
+      <button class="bigbtn primary small" id="nsave" style="margin-top:1rem;">Send note</button>
+      <div class="err-msg" id="nerr"></div>
       <div class="backbar"><button class="linkbtn" data-back>Cancel</button></div>
     </div>
   </div>
@@ -222,8 +235,17 @@ $('fsave').onclick=async()=>{
   done(true,'logged',d+' '+i+'–'+o);
 };
 
+$('notebtn').onclick=()=>{$('ntext').value='';$('nerr').textContent='';show('s-note');};
+$('nsave').onclick=async()=>{
+  const t=$('ntext').value.trim();
+  if(!t){$('nerr').textContent='Write something first';return;}
+  const r=await api({action:'note',emp_id:cur.emp_id,pin,text:t});
+  if(!r.ok){$('nerr').textContent=r.error;return;}
+  done(true,'noted','');
+};
+
 function done(ok,type,ts,extra){
-  const words={in:'✅ Clocked In',out:'👋 Clocked Out',break_start:'☕ Break Started',break_end:'✅ Break Ended',logged:'📋 Shift Logged'};
+  const words={in:'✅ Clocked In',out:'👋 Clocked Out',break_start:'☕ Break Started',break_end:'✅ Break Ended',logged:'📋 Shift Logged',noted:'💬 Note Sent'};
   $('doneres').className='result'+(ok?'':' err');
   $('doneres').innerHTML=`<div class="big">${words[type]||'Done'}</div><div class="sub2">${cur.display_name} · ${ts||''}${extra?'<br>'+extra:''}</div>`;
   show('s-done');
