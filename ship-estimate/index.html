@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bandana Shipping Estimator — Planet Apparel</title>
+<style>
+  :root{
+    --y:#F7BE00; --k:#000; --tonal:#232323; --w:#fff; --line:#e6e6e6; --muted:#767676;
+    --font:"Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#f4f4f4;color:var(--k);font-family:var(--font);line-height:1.5}
+  .wrap{max-width:560px;margin:0 auto;padding:24px 18px 60px}
+  header{display:flex;align-items:center;gap:12px;padding:8px 0 18px;border-bottom:2px solid var(--k);margin-bottom:22px}
+  header .mark{width:34px;height:34px;flex:0 0 auto}
+  header h1{font-size:1.15rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin:0}
+  header .sub{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .card{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:18px}
+  label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tonal);margin:0 0 5px}
+  input{width:100%;padding:12px 13px;font-size:1rem;font-family:var(--font);border:1.5px solid var(--line);border-radius:9px;outline:none;transition:border-color .15s}
+  input:focus{border-color:var(--y)}
+  .row{display:flex;gap:12px}
+  .row .col{flex:1}
+  .fields>*+*{margin-top:14px}
+  button{width:100%;margin-top:18px;padding:14px;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font);color:var(--k);background:var(--y);border:none;border-radius:10px;cursor:pointer;transition:filter .15s}
+  button:hover{filter:brightness(.94)}
+  button:disabled{opacity:.5;cursor:default}
+  .hint{font-size:.75rem;color:var(--muted);margin-top:6px}
+  #out{display:none}
+  .big{display:flex;align-items:baseline;gap:10px;padding:4px 0 2px}
+  .big .amt{font-size:2.5rem;font-weight:900;letter-spacing:-.02em}
+  .big .cap{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .sub-rate{font-size:.85rem;color:var(--tonal)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:.85rem}
+  .meta b{font-weight:700}
+  .accent{height:4px;width:44px;background:var(--y);border-radius:2px;margin:2px 0 14px}
+  h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tonal);margin:22px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  td{padding:7px 4px;border-bottom:1px solid var(--line)}
+  td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .err{display:none;background:#fff4f4;border:1px solid #f3c2c2;color:#a12020;padding:12px 14px;border-radius:9px;font-size:.9rem;margin-top:14px}
+  .foot{font-size:.72rem;color:var(--muted);text-align:center;margin-top:26px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="mark" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="#000"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+    <div>
+      <h1>Bandana Shipping Estimator</h1>
+      <div class="sub">Real UPS Ground rate · destination-specific · cushion included</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="fields">
+      <div>
+        <label for="qty">Quantity</label>
+        <input id="qty" type="number" inputmode="numeric" min="1" placeholder="e.g. 300">
+      </div>
+      <div class="row">
+        <div class="col">
+          <label for="zip">Ship-to ZIP</label>
+          <input id="zip" inputmode="numeric" placeholder="e.g. 78701">
+        </div>
+        <div class="col">
+          <label for="state">State</label>
+          <input id="state" placeholder="TX (optional)">
+        </div>
+      </div>
+      <div>
+        <label for="city">City <span style="font-weight:400;text-transform:none;color:var(--muted)">(optional)</span></label>
+        <input id="city" placeholder="Austin">
+      </div>
+    </div>
+    <button id="go">Estimate Shipping</button>
+    <div class="hint">Origin: San Diego 92120. Uses our subsidized UPS Ground rate with the 15% cushion built in — the number to fold into a quote.</div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card" id="out">
+    <div class="accent"></div>
+    <div class="big"><span class="amt" id="buffered">—</span><span class="cap">shipping to charge (incl. 15%)</span></div>
+    <div class="sub-rate" id="raw"></div>
+    <div class="meta" id="meta"></div>
+    <h3 id="fasterHdr" style="display:none">Faster options (with 15% cushion)</h3>
+    <table id="faster"></table>
+  </div>
+
+  <div class="foot">Planet Apparel · internal tool · live rates via EasyPost/Engine&nbsp;1</div>
+</div>
+
+<script>
+const WEBHOOK = "https://primary-production-079f9.up.railway.app/webhook/bandana-ship-estimate";
+const $ = id => document.getElementById(id);
+const money = n => "$" + Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+async function estimate(){
+  const qty = parseInt($("qty").value)||0;
+  const zip = $("zip").value.trim();
+  $("err").style.display="none";
+  if(qty<1){ showErr("Enter a quantity."); return; }
+  if(!/^\d{5}$/.test(zip)){ showErr("Enter a 5-digit ZIP."); return; }
+  const btn=$("go"); btn.disabled=true; btn.textContent="Estimating…";
+  try{
+    const r = await fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({qty,zip,city:$("city").value.trim(),state:$("state").value.trim()})});
+    if(!r.ok) throw new Error("Rate service returned "+r.status);
+    const d = await r.json();
+    render(d);
+  }catch(e){ showErr("Could not get a rate: "+e.message); }
+  finally{ btn.disabled=false; btn.textContent="Estimate Shipping"; }
+}
+function showErr(m){ const e=$("err"); e.textContent=m; e.style.display="block"; $("out").style.display="none"; }
+function render(d){
+  if(d.ship_cost_buffered==null){ showErr("No Ground rate returned for that destination."); return; }
+  $("buffered").textContent = money(d.ship_cost_buffered);
+  $("raw").innerHTML = "UPS Ground (our rate): <b>"+money(d.ground_rate)+"</b> × 1.15 cushion";
+  const boxes = (d.boxes||[]).map(b=>b.l+"×"+b.w+"×"+b.h).join(", ");
+  $("meta").innerHTML =
+    "<span><b>"+d.qty.toLocaleString()+"</b> bandanas</span>"+
+    "<span><b>"+d.n_boxes+"</b> box"+(d.n_boxes>1?"es":"")+"</span>"+
+    (d.ground_delivery_days?"<span><b>"+d.ground_delivery_days+"</b>-day ground</span>":"")+
+    (boxes?"<span>"+boxes+"</span>":"");
+  const exp = (d.expedited||[]).slice(0,6);
+  const t=$("faster");
+  if(exp.length){
+    $("fasterHdr").style.display="block";
+    t.innerHTML = exp.map(s=>"<tr><td>"+(s.carrier||"")+" "+s.service+(s.delivery_days?" ("+s.delivery_days+"-day)":"")+
+      "</td><td class='r'><b>"+money(s.rate_buffered!=null?s.rate_buffered:s.rate*1.15)+"</b></td></tr>").join("");
+  } else { $("fasterHdr").style.display="none"; t.innerHTML=""; }
+  $("out").style.display="block";
+}
+$("go").addEventListener("click",estimate);
+["qty","zip","city","state"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")estimate();}));
+</script>
+</body>
+</html>
