@@ -610,7 +610,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
         <div class="hdr-kpi-label">In Shop</div>
         <div class="hdr-kpi-value" id="kpi-inshop">0</div>
       </div>
-      <button class="sync-btn" id="sync-btn" onclick="syncFromPrintavo()" title="Sync from Printavo">🔄</button>
+      <button class="sync-btn" id="sync-btn" onclick="syncFromPrintavo(true)" title="Sync from Printavo (full — ignores the recent-sync skip)">🔄</button>
       <div class="sync-status" id="sync-status">Not synced</div>
       <button class="hdr-operator" id="hdr-operator" onclick="openModal('operator-modal')">
         <div class="hdr-op-avatar" id="hdr-op-avatar">?</div>
@@ -4737,6 +4737,8 @@ const PRINTAVO_PROXY = 'https://primary-production-079f9.up.railway.app/webhook/
 const INVENTORY_PROXY = 'https://primary-production-079f9.up.railway.app/webhook/bandana-inventory';
 const PRINTAVO_STATUS_TRIGGER = 'Blanks To Order';
 const SYNC_INTERVAL_MS = 20 * 60 * 1000; // 20 minutes
+const SYNC_FRESH_MS    = 15 * 60 * 1000; // auto-sync skips if ANY device synced this recently — state.lastSyncAt rides the shared State API
+const DETAIL_REFRESH_MS = 6 * 60 * 60 * 1000; // near-static invoice detail (blanks/URLs/placements) re-fetches at most this often unless the job's status moved
 
 function isWorkHours(){
   const now = new Date();
@@ -4922,8 +4924,12 @@ async function printavoFetch(query){
 
 const _sleep = ms => new Promise(r => setTimeout(r, ms));
 let _printavoSyncing = false;
-async function syncFromPrintavo(){
+async function syncFromPrintavo(force = false){
   if(_printavoSyncing) return;
+  if(!force && state.lastSyncAt && Date.now() - state.lastSyncAt < SYNC_FRESH_MS){
+    updateSyncUI('ok', 'Up to date');   // another device already pulled — its jobs arrive via shared state
+    return;
+  }
   _printavoSyncing = true;
   updateSyncUI('syncing');
   try {
@@ -4947,7 +4953,9 @@ async function syncFromPrintavo(){
       if(existing){
         // ── Inbound status sync: check if Printavo changed the status ──
         const statusName = inv.status?.name || '';
+        let statusChanged = false;
         if(statusName && existing.lastSyncedPrintavoStatus !== statusName){
+          statusChanged = true;
           const resolved = resolveStationFromPrintavoStatus(statusName);
           if(resolved){
             if(resolved.onHold){
@@ -4970,23 +4978,31 @@ async function syncFromPrintavo(){
           existing.lastSyncedPrintavoStatus = statusName;
         }
 
-        // Always re-fetch detail to refresh blanks list, URLs, placements
-        await _sleep(300);
-        const detailData = await printavoFetch(printavoDetailQuery(inv.id));
-        const detail = detailData?.data?.invoice || {};
-        const groups = detail?.lineItemGroups?.nodes || [];
+        // List-carried fields — always refreshed (these are what actually changes)
         if(inv.dueAt){ existing.dueDate = inv.dueAt.split('T')[0]; existing.dueDateLabel = fmtDueLabel(existing.dueDate); }
         if(inv.contact?.customer?.id) existing.customerId = inv.contact.customer.id;
-        existing.printavoUrl  = detail.url || existing.printavoUrl || null;
-        existing.workorderUrl = detail.workorderUrl || existing.workorderUrl || null;
-        existing.blanksList   = mapBlanksList(groups);
         if(inv.deliveryMethod?.name && !existing.deliveryMethod) existing.deliveryMethod = mapDeliveryMethod(inv.deliveryMethod.name);
-        let impIdx = 0;
-        groups.forEach(g => (g.imprints?.nodes || []).forEach(imp => {
-          impIdx++;
-          const w = existing.workUnits[impIdx - 1];
-          if(w) w.placement = extractPlacement(imp.details, impIdx);
-        }));
+
+        // Detail fields (blanks list, URLs, placements) are near-static — re-fetch only
+        // when the job's status moved or the last detail pull is older than DETAIL_REFRESH_MS.
+        // (This loop at 1 call/job/sync/device was the 7/6 429-storm + Imperva-WAF source.)
+        const detailStale = !existing.detailFetchedAt || (Date.now() - existing.detailFetchedAt > DETAIL_REFRESH_MS);
+        if(statusChanged || detailStale){
+          await _sleep(300);
+          const detailData = await printavoFetch(printavoDetailQuery(inv.id));
+          const detail = detailData?.data?.invoice || {};
+          const groups = detail?.lineItemGroups?.nodes || [];
+          existing.printavoUrl  = detail.url || existing.printavoUrl || null;
+          existing.workorderUrl = detail.workorderUrl || existing.workorderUrl || null;
+          existing.blanksList   = mapBlanksList(groups);
+          let impIdx = 0;
+          groups.forEach(g => (g.imprints?.nodes || []).forEach(imp => {
+            impIdx++;
+            const w = existing.workUnits[impIdx - 1];
+            if(w) w.placement = extractPlacement(imp.details, impIdx);
+          }));
+          existing.detailFetchedAt = Date.now();
+        }
         updated++;
         continue;
       }
@@ -5005,7 +5021,7 @@ async function syncFromPrintavo(){
       inv.printavoUrl    = detail.url || null;
       inv.workorderUrl   = detail.workorderUrl || null;
       const job = mapInvoiceToJob(inv);
-      if(job){ state.jobs.push(job); added++; }
+      if(job){ job.detailFetchedAt = Date.now(); state.jobs.push(job); added++; }
     }
 
     // Backfill blanksList for any board jobs missing itemNumber (one-time migration)

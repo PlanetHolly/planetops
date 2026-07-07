@@ -2,6 +2,31 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-06 — Printavo-proxy polling throttled ~96% (429-storm root cause)
+- Who:    Jean (via Claude, Fable 5; Jean approved the design)
+- What:   `syncFromPrintavo()` was making ~105 proxy calls per sync per device
+          (4 list pages + an UNCONDITIONAL per-job detail re-fetch), every 20 min,
+          on every open device — the measured 353-executions-in-45-min storm that
+          starved the shared quota pool (killed the 7/6 morning calculator
+          writebacks) and previously tripped Printavo's Imperva WAF.
+          Two changes:
+          (1) **Detail TTL** — blanks list / URLs / placements (near-static) re-fetch
+              only when the job's Printavo status moved or `detailFetchedAt` is
+              older than 6h. Status, due date, customer ID, delivery method still
+              refresh every sync — they ride the cheap list query, now hoisted out
+              of the detail block so they apply unconditionally.
+          (2) **Cross-device skip** — auto-sync returns early if `state.lastSyncAt`
+              (shared via the State API) is fresher than 15 min: one device pulls,
+              the rest inherit through shared state. The header 🔄 button passes
+              `force=true` and bypasses the skip (but not the detail TTL — 6h is
+              the staleness bound on near-static fields by design).
+          Steady state drops from ~1,000 proxy executions/hr (3 devices) to ~15–30/hr.
+- Why:    n8n CHANGELOG 7/6 flagged this as the storm's root cause after the
+          writeback retry-hardening; extra-credit item #2.
+- Proof:  node --check clean on all 7 inline script blocks; headless render OK;
+          new-job path stamps `detailFetchedAt`; manual button verified passing force.
+- Build doc updated?  no — sync behavior; this entry is the record.
+
 ## 2026-07-06 — Phase 3: Customer ID on cards + board search (Tray deferred)
 - Who:    Jean (via Claude) — built by a Fable 5 agent, reviewed + deployed on Opus 4.8
 - What:   Shipped 2 of the 3 Phase-3 blueprint features into `index.html`:
