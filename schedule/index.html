@@ -20,6 +20,9 @@
   header .sub{color:var(--grey-text);font-size:13px}
   header .stamp{font-size:12px;color:var(--grey-text);background:var(--grey-bg);border:1px solid var(--grey-line);border-radius:6px;padding:4px 10px}
   header .stamp b{color:var(--tonal)}
+  header .sync-err{color:#a33325;border-color:#dfb0a8}
+  header .sync-paused{color:#8a6d1a;border-color:#dcc98a}
+  header .sync-off{color:#888}
   .proto{background:var(--yellow);color:#000;font-weight:600;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.06em}
   .toolbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
   .toolbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
@@ -300,6 +303,7 @@
   <span class="proto">PROTOTYPE · SANDBOX</span>
   <span class="sub">One board. Every station. Arrivals included.</span>
   <span class="stamp" id="stamp"></span>
+  <span class="stamp" id="syncstamp" title="Planning edits sync through the PlanetOps State API">…</span>
   <span class="toolbar">
     <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
     <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)" style="font:inherit;border:1.5px solid var(--grey-line);border-radius:7px;padding:5px 8px">
@@ -388,11 +392,90 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
-store=Object.assign({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true},store);
+store=Object.assign(defaultStore(),store);
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
-function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();}
+function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();schedPush();}
+
+/* ───────── Shared store (roadmap "multi-user shared state", v1) ─────────
+   Planning edits live in the PlanetOps State API under their OWN document
+   (/api/state/schedule_board) — the main board's blob is untouched. Boot
+   adopts the shared copy; every save() pushes (debounced, last-write-wins,
+   same pattern as the board). Per-device (NOT shared): manual CSV import
+   (sharing PAUSES while an import override is active — it's a local
+   experiment until ↺ Reset), view range, backup-nag flag. localStorage
+   remains the offline fallback; the pre-adoption store is snapshotted once
+   to sbproto_v1_preShared. Per-person attribution + who-else-edits = the
+   Group F / Holly conversation (Architecture §6b item 2). */
+const STATE_API='https://planetops-production.up.railway.app';
+const STATE_KEY='be6022c715f16a6b1bdecf74a030b852f05925fee556302d66254d00a170dd5d'; // same key the board page embeds; access control = roadmap #4
+const SHARED_DOC='schedule_board';
+const LOCAL_ONLY=['csvName','csvText','range','exported'];
+let _pushT=null,_lastRemoteAt=0;
+const sharingPaused=()=>!!store.csvText;
+const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
+function sharedPayload(){
+  const p={};for(const k in store){if(!LOCAL_ONLY.includes(k))p[k]=store[k];}
+  p._savedAt=Date.now();return p;
+}
+function setSync(s,msg){
+  const el=document.getElementById('syncstamp');if(!el)return;
+  el.textContent=s==='ok'?'☁ shared':s==='paused'?'⏸ local import — sharing paused':s==='err'?'⚠ share failed — edits saved on this device only':s==='off'?'☁ offline — edits saved on this device':'…';
+  el.title=msg||'Planning edits sync through the PlanetOps State API';
+  el.className='stamp'+(s==='ok'?'':' sync-'+s);
+}
+function schedPush(){
+  if(sharingPaused()){setSync('paused');return;}
+  clearTimeout(_pushT);
+  _pushT=setTimeout(_doSchedPush,800);
+}
+async function _doSchedPush(){
+  _pushT=null;
+  try{
+    const p=sharedPayload();
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(p)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    _lastRemoteAt=p._savedAt;setSync('ok');
+  }catch(e){
+    setSync('err',String(e));
+    _pushT=setTimeout(_doSchedPush,5000);   // keep retrying, like the board
+  }
+}
+function adoptShared(remote){
+  const cur=localStorage.getItem(KEY);
+  if(cur&&!localStorage.getItem(KEY+'_preShared'))localStorage.setItem(KEY+'_preShared',cur); // one-time safety net
+  for(const k in remote){if(k[0]==='_'||LOCAL_ONLY.includes(k))continue;store[k]=remote[k];}
+  _lastRemoteAt=remote._savedAt||Date.now();
+  localStorage.setItem(KEY,JSON.stringify(store));
+  updateChangesBtn();
+}
+async function loadSharedStore(){
+  if(sharingPaused()){setSync('paused');return;}
+  try{
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const remote=await r.json();
+    if(remote&&remote._savedAt){adoptShared(remote);setSync('ok');renderAll();}
+    else{
+      // Empty shared doc: seed ONLY from a device that has real edits — an
+      // empty visitor seeding a blank doc would make richer devices adopt blank.
+      if(hasLocalEdits())schedPush();
+      setSync('ok');
+    }
+  }catch(e){setSync('off',String(e));}
+}
+document.addEventListener('visibilitychange',async()=>{
+  if(document.hidden||_pushT||sharingPaused())return;   // don't adopt over unpushed local edits
+  try{
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+    if(!r.ok)return;
+    const remote=await r.json();
+    if(remote&&remote._savedAt&&remote._savedAt>_lastRemoteAt){adoptShared(remote);setSync('ok');renderAll();}
+  }catch(e){}
+});
 
 /* ───────── Constants ───────── */
 const LANES=[
@@ -1872,8 +1955,21 @@ document.getElementById('backupBtn').onclick=()=>{
   store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
 };
 document.getElementById('resetBtn').onclick=()=>{
-  if(confirm('Reset the board? This clears the imported CSV and all local changes (back to the embedded July 6 data).')){
-    localStorage.removeItem(KEY);location.reload();
+  const shared=!sharingPaused();
+  const msg=shared
+    ?'Reset the SHARED board? This clears all planning edits (moves, splits, minutes, QC, verified times…) for EVERY device, and reloads from the live feed.'
+    :'Reset the board? This drops the imported CSV and this device\'s local changes, and returns to the live feed + shared edits.';
+  if(confirm(msg)){
+    (async()=>{
+      if(shared){
+        try{
+          store=defaultStore();
+          await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
+            headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(sharedPayload())});
+        }catch(e){/* server unreachable — local reset still proceeds; another device's next push re-seeds */}
+      }
+      localStorage.removeItem(KEY);location.reload();
+    })();
   }
 };
 window.addEventListener('beforeunload',e=>{
@@ -1884,6 +1980,7 @@ if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar')
 renderAll();
 loadMockups();
 loadLiveCsv();
+loadSharedStore();
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
 /* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */
