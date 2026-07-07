@@ -856,7 +856,7 @@ function xPanel(j){
       ${(()=>{const e=estimateFor(j);if(!e)return '';
         const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
         const v=store.timeVerified[j.imprint];
-        return `<div class="estbox"><b>Auto-charted time</b> <span class="pending-note">(embedded estimator — same formulas as the Estimator tab)</span>
+        return `<div class="estbox"><b>Auto-charted time</b> <span class="pending-note">(embedded estimator — same formulas as the ⏱ Estimator sub-tab)</span>
           <div class="xgrid">
             <span>Work type</span><span>${e.workType.replace('_',' ')}${e.provisional?' <span class="pending-note">(heat provisional)</span>':''}</span>
             <span>Setup</span><span>${e.setup}m</span>

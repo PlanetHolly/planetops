@@ -739,12 +739,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       </div>
     </div>
 
-    <!-- PROJECT ESTIMATOR (embedded; single source lives at /estimator/) -->
-    <div class="tab-panel" id="panel-estimator" style="padding:0;">
-      <iframe id="estimator-frame" title="Project Estimator"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
-    </div>
-
     <!-- PRODUCTION AVAILABILITY (embedded; single source lives at /capacity/) -->
     <div class="tab-panel" id="panel-availability" style="padding:0;">
       <iframe id="availability-frame" title="Production Availability"
@@ -783,10 +777,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       <span class="nav-icon">📦</span>
       <span class="nav-label">Fulfillment</span>
       <span class="nav-badge hidden" id="fulfillment-badge">0</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('estimator',this)">
-      <span class="nav-icon">🧮</span>
-      <span class="nav-label">Estimator</span>
     </button>
     <button class="nav-tab" onclick="switchTab('schedule',this)">
       <span class="nav-icon">🗓</span>
@@ -1446,7 +1436,6 @@ function switchTab(id, btn){
   if(id === 'fulfillment') renderFulfillmentTab();
   if(id === 'availability'){ const f=document.getElementById('availability-frame'); if(f && !f.getAttribute('src')) f.src='./capacity/?mode=jean'; }
   if(id === 'schedule'){ const f=document.getElementById('schedule-frame'); if(f && !f.getAttribute('src')) f.src='./schedule/'; }
-  if(id === 'estimator'){ const f=document.getElementById('estimator-frame'); if(f && !f.getAttribute('src')) f.src='./estimator/'; }
 }
 
 /* ============================================================

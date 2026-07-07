@@ -2,6 +2,24 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-07 — Top-level Estimator tab removed (UI/aesthetic pass)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Removed the 🧮 Estimator tab from the main dashboard's bottom nav,
+          its `panel-estimator` iframe panel, and the `switchTab` lazy-load
+          line. The estimator itself is UNCHANGED: single source still lives
+          at `/estimator/` and remains fully reachable via the Schedule
+          module's ⏱ Estimator sub-tab (persistent iframe) plus the board's
+          auto-charted time chips (`estimate.js`). Also refreshed the
+          schedule tooltip note that referenced the deleted tab.
+- Why:    Jean lives in the Schedule module; the standalone tab duplicated
+          the sub-tab and cluttered the nav. Both iframed the same source,
+          so nothing is lost.
+- Proof:  grep for "estimator" in index.html returns zero matches; nav goes
+          Board / Pre-Press / Running / Reports / Fulfillment / Schedule /
+          Availability / Clock; no hash routing or saved-tab state pointed
+          at the removed tab.
+- Build doc updated?  no — nav-only change; this entry is the record.
+
 ## 2026-07-06 — Printavo-proxy polling throttled ~96% (429-storm root cause)
 - Who:    Jean (via Claude, Fable 5; Jean approved the design)
 - What:   `syncFromPrintavo()` was making ~105 proxy calls per sync per device
