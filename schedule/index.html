@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule — Prototype</title>
+<title>Schedule — Planet Apparel</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -15,28 +15,57 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Barlow',system-ui,sans-serif;background:var(--grey-bg);color:var(--tonal);font-size:14px}
-  header{background:var(--white);border-bottom:3px solid var(--yellow);padding:14px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header h1{font-family:'Barlow Condensed';font-weight:700;font-size:30px;letter-spacing:.04em;text-transform:uppercase}
-  header .sub{color:var(--grey-text);font-size:13px}
-  header .stamp{font-size:12px;color:var(--grey-text);background:var(--grey-bg);border:1px solid var(--grey-line);border-radius:6px;padding:4px 10px}
-  header .stamp b{color:var(--tonal)}
-  header .sync-err{color:#a33325;border-color:#dfb0a8}
-  header .sync-paused{color:#8a6d1a;border-color:#dcc98a}
-  header .sync-off{color:#888}
-  .proto{background:var(--yellow);color:#000;font-weight:600;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.06em}
-  .toolbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-  .toolbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
-    border:1px solid var(--grey-line);background:var(--white);padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--tonal)}
-  .toolbar button:hover{border-color:#000}
-  .toolbar button.primary{background:#000;color:var(--yellow);border-color:#000}
-  .sandbox{background:#fdf3d0;border-bottom:1px solid #eedc9a;padding:7px 26px;font-size:12.5px;color:#6b5600}
+  /* ── Identity band: black, white type, yellow Ø — brand pairing rules ── */
+  header{background:var(--black);border-bottom:3px solid var(--yellow);padding:12px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-family:'Barlow Condensed';font-weight:700;font-size:27px;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
+  header .sub{color:rgba(255,255,255,.62);font-size:12.5px;letter-spacing:.02em}
+  header .stamp{font-size:12px;color:#b9b9b9;background:#161616;border:1px solid #3a3a3a;border-radius:6px;padding:4px 10px}
+  header .stamp b{color:var(--white)}
+  header .sync-err{color:#ff9d8f;border-color:#7a4038}
+  header .sync-paused{color:#f0d27a;border-color:#7a6a2e}
+  header .sync-off{color:#9a9a9a}
+  .paicon{margin-left:auto;height:32px;width:auto;color:var(--yellow);flex-shrink:0;display:flex;align-items:center}
+  .paicon svg{height:32px;width:auto}
+  .actionbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--white);border-bottom:1px solid var(--grey-line);padding:9px 26px}
+  .actionbar .spacer{flex:1}
+  .actionbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
+    border:1.5px solid var(--grey-line);background:var(--white);padding:6px 14px;border-radius:6px;cursor:pointer;color:var(--tonal);min-height:32px}
+  .actionbar button:hover{border-color:#000}
+  .actionbar button.primary{background:#000;color:var(--yellow);border-color:#000}
+  .sandbox{background:#fdf6dd;border-bottom:1px solid #eee0ab;padding:5px 26px;font-size:12px;color:#6b5600}
   .sandbox b{color:#000}
 
-  nav{display:flex;gap:6px;padding:12px 26px 0;flex-wrap:wrap}
-  nav button{font-family:'Barlow Condensed';font-size:16px;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--grey-line);
-    background:var(--white);padding:7px 16px;border-radius:8px 8px 0 0;cursor:pointer;color:var(--grey-text);border-bottom:none}
-  nav button.on{color:#000;font-weight:600;border-bottom:3px solid var(--yellow);background:var(--white)}
+  nav{display:flex;gap:2px;padding:8px 26px 0;flex-wrap:wrap;border-bottom:1px solid var(--grey-line);background:var(--white)}
+  nav button{font-family:'Barlow Condensed';font-size:15.5px;letter-spacing:.04em;text-transform:uppercase;border:none;
+    background:transparent;padding:8px 14px;border-bottom:3px solid transparent;cursor:pointer;color:var(--grey-text)}
+  nav button:hover{color:#000}
+  nav button.on{color:#000;font-weight:700;border-bottom-color:var(--yellow)}
   main{padding:16px 26px 60px;max-width:1500px}
+  /* ── One control family: selects / dates / text inputs read as the same system ── */
+  main select,.arr-card select,.etabar select,.xmeta select{
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%236b7280'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 7px center;background-color:#fff;padding-right:22px}
+  main select,main input[type=date],main input[type=text],main input[type=number]{
+    font:inherit;font-size:12px;border:1.5px solid #c9ced6;border-radius:6px;padding:3px 8px;color:var(--tonal);background-color:#fff;min-height:26px}
+  main select:focus,main input:focus,.actionbar input:focus{border-color:#000;outline:none}
+  #histpick{font:inherit;font-size:12.5px;border:1.5px solid var(--grey-line);border-radius:6px;padding:5px 8px;background:#fff;min-height:32px}
+  /* ── TODAY: the yellow rail — the one thing that should pop first ── */
+  .dayrow.today{border-left:5px solid var(--yellow)}
+  .dayrow.today .dname::after{content:'TODAY';background:var(--yellow);color:#000;font-size:10px;font-weight:700;
+    letter-spacing:.07em;border-radius:4px;padding:1px 7px;margin-left:9px;vertical-align:2px}
+  .calcell.today{outline:2px solid var(--yellow);outline-offset:-2px}
+  /* ── Touch layer: iPad-first tap targets ── */
+  @media(pointer:coarse){
+    .actionbar button,#searchbox,#histpick,.controls .seg button{min-height:42px}
+    main select,main input[type=date],main input[type=text],main input[type=number]{min-height:38px;font-size:13px}
+    nav button{padding:12px 16px}
+    .estchip,.qcchip,.due,.rec,.phbtn{padding-top:4px;padding-bottom:4px}
+    .splitbtn{font-size:17px;padding:3px 7px}
+    .strkbtn{padding:4px 10px}
+    .job{padding:11px 10px}
+    .arrhead,.drhead{padding-top:13px;padding-bottom:13px}
+  }
 
   /* ── Range controls ── */
   .controls{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;font-size:13px}
@@ -212,7 +241,7 @@
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
   .csched{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
-  .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background:#fffdf2}
+  .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background-color:#fffdf2}
   .lane-head{cursor:pointer;user-select:none}
   .lane-head .chev{font-size:11px}
   .lane.lclosed .chev{transform:rotate(-90deg)}
@@ -300,21 +329,22 @@
 
 <header>
   <h1>Schedule</h1>
-  <span class="proto">PROTOTYPE · SANDBOX</span>
   <span class="sub">One board. Every station. Arrivals included.</span>
   <span class="stamp" id="stamp"></span>
   <span class="stamp" id="syncstamp" title="Planning edits sync through the PlanetOps State API">…</span>
-  <span class="toolbar">
-    <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
-    <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)" style="font:inherit;border:1.5px solid var(--grey-line);border-radius:7px;padding:5px 8px">
-    <button id="importBtn" class="primary">⬆ Import CSV</button>
-    <button id="changesBtn">📝 Changes (0)</button>
-    <button id="backupBtn">💾 Backup</button>
-    <button id="resetBtn">↺ Reset</button>
-  </span>
-  <input type="file" id="fileInput" accept=".csv" style="display:none">
+  <span class="paicon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg></span>
 </header>
-<div class="sandbox"><b>Sandbox:</b> drag jobs between day rows · click a day header to collapse it · click <b>minutes</b> to set projected time · click a lane's <b>x/420</b> to change that day's max · ⧉ splits (click a split's <b>pcs/min</b> to rebalance) · ↩ rejoins · click a card to expand. Changes live ONLY here — <b>📝 Changes</b> is Jean's apply-in-Printavo checklist.</div>
+<div class="actionbar">
+  <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
+  <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)">
+  <span class="spacer"></span>
+  <button id="importBtn" class="primary">⬆ Import CSV</button>
+  <button id="changesBtn">📝 Changes (0)</button>
+  <button id="backupBtn">💾 Backup</button>
+  <button id="resetBtn">↺ Reset</button>
+  <input type="file" id="fileInput" accept=".csv" style="display:none">
+</div>
+<div class="sandbox"><b>Sandbox</b> — drag to move · click <b>minutes</b> or a lane's <b>x/420</b> to edit · ⧉ split / ↩ rejoin · click a card for details. Changes live here only; <b>📝 Changes</b> is the apply-in-Printavo checklist.</div>
 
 <div id="histbanner" style="display:none;background:#1e5f8a;color:#fff;padding:7px 26px;font-size:13px;font-weight:600"></div>
 <nav id="tabs"></nav>
@@ -324,7 +354,7 @@
 </div>
 
 <footer>
-  Planet Apparel · Schedule prototype · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
+  Planet Apparel · Production Schedule · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
   ✓ PRINTED appears when an imprint's Printing/Heat step reads Completed in the export; the actual printed-on DATE comes from Printavo's schedule history via the internal-endpoint feed (production-efficiency data) at PlanetOps integration.
 </footer>
 
@@ -909,7 +939,7 @@ function dayRow(d,filterLane){
   const lanes=(filterLane?[filterLane]:LANES).map(l=>laneBlock(l,dayJobs,isOT,d)).join('');
   const total=dayJobs.reduce((a,j)=>a+j.minutes,0);
   const closed=collapsedDays.has(d);
-  return `<section class="dayrow ${closed?'closed':''}" data-date="${d}">
+  return `<section class="dayrow ${closed?'closed':''}${d===todayISO()?' today':''}" data-date="${d}">
     <div class="drhead" data-toggle="${d}">
       <span class="chev">▾</span>
       <span class="dname">${fmtDay(d)}</span>
@@ -1209,7 +1239,7 @@ function renderCalendar(){
     const tot=rows.reduce((a,j)=>a+j.minutes,0);
     const f=dayFullness(d);
     const dow=new Date(d+'T12:00:00').getDay();
-    return `<div class="calcell ${dow===0||dow===6?'wkend':''}" data-date="${d}">
+    return `<div class="calcell ${dow===0||dow===6?'wkend':''}${d===todayISO()?' today':''}" data-date="${d}">
       <div class="calday"><b class="calgoday" data-calgoday="${d}" title="Open this day alone (Day view)">${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${f.isOT?' <span class="ot-badge">OT</span>':''}${fullChip(f,laneF)}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
       <div class="calitems">${rows.map(bar).join('')}</div></div>`;
   }).join('');
