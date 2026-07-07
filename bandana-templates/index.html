@@ -71,8 +71,10 @@ a{color:var(--pa-black)}
 .card:hover .over{opacity:1}
 .card .over span{border:2px dashed var(--pa-yellow);color:var(--pa-yellow);font-weight:900;
   text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;padding:9px 11px;border-radius:6px;text-align:center;line-height:1.2}
-.card .lab{margin-top:9px;font-weight:900;font-size:1rem;letter-spacing:.03em;color:#000}
-.card .lab small{display:block;font-weight:400;text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;color:#999;margin-top:1px}
+.card .badge{position:absolute;top:0;left:0;z-index:2;background:var(--pa-yellow);color:#000;
+  font-weight:900;font-size:1.05rem;letter-spacing:.02em;line-height:1;padding:8px 12px;
+  border-bottom-right-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.card .lab{margin-top:9px;font-weight:700;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:#999}
 
 /* cta */
 .cta{margin-top:56px;background:var(--pa-yellow);color:var(--pa-black);padding:34px 36px;text-align:center}
@@ -154,9 +156,10 @@ a{color:var(--pa-black)}
   for(let i=1;i<=21;i++){
     const n=String(i).padStart(2,'0');
     h+=`<div class="card"><div class="imgwrap">`
+      +`<span class="badge">№ ${i}</span>`
       +`<img src="tiles/template_${n}.png" alt="Bandana template ${i}" loading="lazy">`
       +`<div class="over"><span>Add your design<br>anywhere</span></div></div>`
-      +`<div class="lab">№ ${i}<small>Template</small></div></div>`;
+      +`<div class="lab">Template ${i}</div></div>`;
   }
   g.innerHTML=h;
 </script>
