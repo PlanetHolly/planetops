@@ -1259,11 +1259,11 @@ function renderCalendar(){
 const TABS=[
   {label:'Board',render:()=>renderBoard(null)},
   {label:'Calendar',render:renderCalendar},
-  {label:'List',render:renderList},
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
   ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
   {label:'⏱ Estimator',est:true,render:()=>''},   // persistent iframe (estWrap) — keeps a dropped export alive across tab switches
+  {label:'List',render:renderList},               // Jean 7/7: List lives right of Estimator
   {label:'Changes',render:renderChanges},
 ];
 let activeTab=0;
