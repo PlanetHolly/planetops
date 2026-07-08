@@ -156,7 +156,7 @@ mark { background: var(--pa-yellow); color: var(--pa-black); padding: 0 0.08em; 
 <div class="canvas">
   <div class="col">
 
-    <div class="node guard">🛑 <strong>Never send</strong> if the pre-flight sheet flags the box: <strong>duplicate&nbsp;· T3&nbsp;· open-deal&nbsp;· bad email</strong>. Skip it and flag anything that looks wrong to Holly — don't override the sheet by hand.</div>
+    <div class="node guard">🛑 <strong>Never send</strong> if the pre-flight sheet flags the box: <strong>duplicate&nbsp;· T3&nbsp;· open-deal&nbsp;· bad email&nbsp;· in-production</strong>. Skip it and flag anything that looks wrong to Holly — don't override the sheet by hand.<br><strong>Delivery gate:</strong> a cross-sell only drafts once the order is actually delivered (linked Sale box = <em>Closed&nbsp;-&nbsp;Won</em>). Anything still <em>Paid&nbsp;/&nbsp;In&nbsp;Production</em> is held automatically until it ships — "your bandanas came out great" is only true after they've got them.</div>
     <div class="conn"></div>
 
     <div class="trigger">When: a first order is delivered<span class="tr-sub">Streak queues the Activation ladder</span></div>
@@ -268,7 +268,7 @@ mark { background: var(--pa-yellow); color: var(--pa-black); padding: 0 0.08em; 
   <div class="col">
     <div class="node"><h4><span class="stepno">1</span>Run the pre-flight audit</h4><p><span class="mono">crosssell_preflight.py</span> — before touching a single draft.</p></div>
     <div class="conn"></div>
-    <div class="node"><h4><span class="stepno">2</span>Scan the review sheet</h4><p>Skip every flagged box (duplicate / T3 / open-deal / bad email).</p></div>
+    <div class="node"><h4><span class="stepno">2</span>Scan the review sheet</h4><p>Skip every flagged box (duplicate / T3 / open-deal / bad email / in-production).</p></div>
     <div class="conn"></div>
     <div class="node"><h4><span class="stepno">3</span>Drafts appear in bandanas@ Drafts</h4><p>Claude drafts personalized copy — reply-in-thread when the project chain is fresh, otherwise a new email with the project name in the subject.</p></div>
     <div class="conn"></div>
