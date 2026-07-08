@@ -2,6 +2,29 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-08 — Nav shell: Home directory + ☰ quick-jump + PIN-gate infrastructure (overhaul #1)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Main dashboard gains an app navigation shell so the bottom tab bar stops
+          growing ("getting girthy"): a `SECTIONS` registry drives (a) a **Home**
+          panel — one tile per section with a description, reached via the ☰ menu or
+          tapping the logo — and (b) a **☰ hamburger menu** in the header that jumps
+          between sections from anywhere (current section highlighted). New sections
+          get ONE registry entry and appear in both places; the bottom bar stays as-is.
+          Bottom-nav buttons now route through `goSection()` (adds `data-tab` attrs).
+          **PIN gate built but inert:** `NAV_PIN = { code:null, gated:[] }` — when Holly
+          picks a PIN + which sections are restricted, set both and gated sections get a
+          🔒 in the menu/tiles, a PIN modal on entry, and a per-browser-session unlock.
+          Hamburger chosen over a persistent icon bar per the plan doc's recommendation
+          (scales better) — flag to Holly in case she prefers the icon bar.
+- Why:    Holly's 7/7 Board-overhaul plan #1 (P0): navigation must scale as sections
+          keep being added; PIN-restricted sections requested as infrastructure.
+- Proof:  Commit 5dd8692, pushed to Pages. Headless-driven test: Home renders 8 tiles;
+          menu opens with 9 entries + current highlight; jumping syncs panel + bottom
+          tab; with a test PIN configured the gate blocks entry, rejects a wrong PIN,
+          unlocks on the right one, and stays unlocked for the session.
+- Build doc updated?  no — this entry is the record. Open DECISIONS for Holly: PIN code +
+          gated section list (config at `NAV_PIN` in index.html), and the "Board" rename (#2).
+
 ## 2026-07-07 — P0 bugs from Holly's Board walkthrough: inventory loading + scheduler date range
 - Who:    Jean (via Claude, Fable 5)
 - What:   (1) **Blanks inventory loading** — `fetchBandanaInventory()` was only
