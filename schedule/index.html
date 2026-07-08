@@ -545,6 +545,22 @@ async function loadLiveCsv(){
     }
   }catch(e){/* feed unreachable — embedded/imported data stays */}
 }
+/* ── live intake feed: schedulable jobs straight from the OFFICIAL Printavo API (n8n intake-feed
+   webhook — cutover Step 1). Invoices the Power Scheduler CSV doesn't carry yet land in the
+   unscheduled pool without waiting for an export. Merge is INVOICE-level union: if the CSV knows
+   the invoice at all, CSV wins — PS's imprint ordinals are a lifetime counter (survive
+   delete/re-create) and can't be rebuilt from the API, so per-imprint matching would misfire. ── */
+const INTAKE_FEED='https://primary-production-079f9.up.railway.app/webhook/intake-feed';
+let intakeJobs=null,intakePulledAt=null,intakeAdded=0,intakeStale=0,_intakeLast=0;
+async function loadIntakeFeed(){
+  if(Date.now()-_intakeLast<60000)return;   // cooldown — each pull is ~10 paginated Printavo calls
+  _intakeLast=Date.now();
+  try{
+    const r=await fetch(INTAKE_FEED);const d=await r.json();
+    if(d&&Array.isArray(d.jobs)){intakeJobs=d.jobs;intakePulledAt=d.pulledAt||null;renderAll();loadMockups();}
+  }catch(e){/* intake unreachable — board runs on the CSV alone */}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadIntakeFeed();});
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
@@ -667,12 +683,37 @@ function rowToJob(r,hdr){
     status:g('Invoice Status').trim(), localSplit:false, moved:false,
   };
 }
+const API_STEPS=['Films','Burn Screens','Blanks','Inks','Press Check','Setup','Printing / Heat Application','Post Production'];
+function apiToJob(a){
+  const m=String(a.imprint).match(/^(\d+)\s*-\s*(\d+)$/);
+  return {
+    minutes:0, qty:+a.qty||0, date:'', station:'',
+    imprint:String(a.imprint), invoice:m?m[1]:String(a.imprint), impNum:m?m[2]:'', splitLetter:'',
+    parentKey:m?`${m[1]}-${m[2]}`:String(a.imprint),
+    nickname:a.nickname||'', prodDue:a.prodDue||'', custDue:a.custDue||'',
+    projectType:'', screens:a.screens!=null?String(a.screens):'', inkChange:'None',
+    ink:a.ink||'N/A', pallet:'N/A', postProdType:'N/A',
+    steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
+    status:(a.invoiceStatus||'').trim(), localSplit:false, moved:false, apiIntake:true,
+  };
+}
 const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[]};
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
+  intakeAdded=0;intakeStale=0;
+  if(intakeJobs&&!histCsv&&!store.csvText){   // live mode only — history snapshots + manual imports stay pure
+    const known=new Set(base.map(j=>j.invoice)), seen=new Set();
+    const staleCut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
+    intakeJobs.forEach(a=>{
+      const m=String(a.imprint).match(/^(\d+)/);
+      if(!m||known.has(m[1])||seen.has(String(a.imprint)))return;   // CSV wins at INVOICE level
+      if(a.custDue&&a.custDue<staleCut){intakeStale++;return;}      // zombie invoices parked in paid statuses for months — triage them in Printavo, not the pool
+      seen.add(String(a.imprint));base.push(apiToJob(a));intakeAdded++;
+    });
+  }
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
@@ -776,7 +817,7 @@ function jobCard(j){
     :`<span class="chip qty">${j.qty} pcs</span>`;
   return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
     ${mockTile(j,'')}
-    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
+    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${j.apiIntake?`<span class="movednote" style="background:#eef7ee;color:#1c7c2a" title="Landed via the Printavo API intake feed — not in the Power Scheduler export yet. Schedule it normally; it reconciles when the export catches up.">⚡ new via API</span>`:''}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
     <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time (from Printavo) — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
       ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
       ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}
@@ -1131,13 +1172,14 @@ function renderList(){
 /* ───────── Changes checklist ───────── */
 function changeList(){
   const out=[];
+  const apiTag=i=>{const j=jobs.find(x=>x.imprint===i);return j&&j.apiIntake?' — ⚡ API-intake job (not in Power Scheduler yet; apply once its export catches up)':'';};
   Object.entries(store.splits).forEach(([imp,s])=>{
     const allocs=Object.entries(store.alloc).filter(([k])=>k.startsWith(imp)).map(([k,v])=>`${k.slice(-1)}: ${v.qty!=null?v.qty+' pcs':''}${v.min!=null?' / '+v.min+' min':''}${v.dd?' [DOUBLE DRY]':''}`).join(', ');
     out.push(`SPLIT ${imp} into ${s.parts} parts (Copy icon in Power Scheduler)${allocs?' — rebalance: '+allocs:''}`);
   });
-  Object.entries(store.minutesEdit).forEach(([imp,v])=>out.push(`SET projected time for ${imp} → ${v} min (Minutes cell)`));
-  Object.entries(store.stations).forEach(([imp,st])=>out.push(`ASSIGN ${imp} → ${st} (Station cell / drag onto station row)`));
-  Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)`));
+  Object.entries(store.minutesEdit).forEach(([imp,v])=>out.push(`SET projected time for ${imp} → ${v} min (Minutes cell)${apiTag(imp)}`));
+  Object.entries(store.stations).forEach(([imp,st])=>out.push(`ASSIGN ${imp} → ${st} (Station cell / drag onto station row)${apiTag(imp)}`));
+  Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)${apiTag(imp)}`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)${apiTag(imp)}`));
   Object.entries(store.ptype).forEach(([imp,v])=>out.push(`SET Project Type for ${imp} → ${v}`));
   Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
   Object.entries(store.attrs).forEach(([imp,a])=>{const p=[];if(a.ink)p.push('Ink → '+a.ink);if(a.screens!=null&&a.screens!=='')p.push('Screens → '+a.screens);if(a.pallet)p.push('Pallet → '+a.pallet);if(p.length)out.push(`SET ${p.join(' · ')} for ${imp}`);});
@@ -1291,7 +1333,7 @@ function renderAll(){
   const stampEl=document.getElementById('stamp');
   if(store.csvName)stampEl.innerHTML=`DATA <b>${store.csvName}</b> · manual import (↺ Reset returns to the live feed)`;
   else if(liveName){const t=livePulledAt?new Date(livePulledAt):null;
-    stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}`;}
+    stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}${intakeAdded?` · <b style="color:var(--green)">+${intakeAdded}</b> <span title="Invoices pulled live from the Printavo API that the Power Scheduler export doesn't carry yet${intakeStale?` (${intakeStale} more skipped: parked in a paid/production status with a customer due date >60 days past — clean those up in Printavo)`:''}">via Printavo API</span>`:''}`;}
   else stampEl.innerHTML=`DATA <b>export_July 6.csv</b> · embedded sample (live feed loading…)`;
   updateChangesBtn();
   if(typeof renderHistBanner==='function')renderHistBanner();
@@ -2024,6 +2066,7 @@ if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar')
 renderAll();
 loadMockups();
 loadLiveCsv();
+loadIntakeFeed();
 loadSharedStore();
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
