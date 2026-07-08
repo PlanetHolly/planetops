@@ -583,6 +583,36 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .ff-billing-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:12px;font-weight:600;color:var(--tonal-black)}
 .ff-billing-row:last-child{border-bottom:none;font-weight:800;font-size:13px}
 .ff-billing-amt{font-family:var(--font-head);font-weight:800}
+
+/* ── NAV SHELL: hamburger + section directory (Board-overhaul #1) ── */
+.hamburger-btn{width:38px;height:38px;margin-right:12px;border:1.5px solid rgba(0,0,0,.14);border-radius:9px;background:var(--white);font-size:16px;line-height:1;color:var(--tonal-black);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.hamburger-btn:active{background:rgba(0,0,0,.05)}
+.nav-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:900;display:none}
+.nav-menu-overlay.open{display:block}
+.nav-menu{position:fixed;top:calc(var(--header-h) + 6px);left:10px;width:264px;max-height:calc(100dvh - var(--header-h) - 24px);overflow-y:auto;background:var(--white);border-radius:14px;box-shadow:var(--shadow-lg);z-index:901;padding:8px;display:none}
+.nav-menu.open{display:block}
+.nav-menu-item{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:none;border-radius:10px;background:transparent;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.nav-menu-item:active{background:rgba(0,0,0,.05)}
+.nav-menu-item.current{background:rgba(247,190,0,.13)}
+.nav-menu-icon{font-size:19px;width:26px;text-align:center;flex-shrink:0}
+.nav-menu-label{font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--tonal-black);line-height:1.1}
+.nav-menu-desc{font-size:10.5px;color:rgba(0,0,0,.42);margin-top:2px}
+.nav-menu-lock{margin-left:auto;font-size:12px;color:rgba(0,0,0,.3)}
+.nav-menu-div{height:1px;background:rgba(0,0,0,.07);margin:6px 10px}
+.home-wrap{padding:22px 18px 30px;max-width:920px;margin:0 auto}
+.home-title{font-family:var(--font-head);font-weight:900;font-size:24px;letter-spacing:.05em;text-transform:uppercase;color:var(--tonal-black)}
+.home-sub{font-size:12px;color:rgba(0,0,0,.42);margin:3px 0 18px}
+.home-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.home-tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px 16px 15px;background:var(--white);border:1px solid rgba(0,0,0,.09);border-radius:14px;box-shadow:var(--shadow-sm);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;transition:box-shadow .15s,transform .15s;position:relative;overflow:hidden}
+.home-tile:active{transform:scale(.98)}
+.home-tile::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--yellow);transform:scaleY(0);transition:transform .15s}
+.home-tile:hover::after{transform:scaleY(1)}
+.home-tile-icon{font-size:26px;line-height:1}
+.home-tile-label{font-family:var(--font-head);font-weight:900;font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--tonal-black);line-height:1.1}
+.home-tile-desc{font-size:11px;color:rgba(0,0,0,.42);line-height:1.35}
+.home-tile-lock{position:absolute;top:12px;right:12px;font-size:13px;color:rgba(0,0,0,.3)}
+.pin-input{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:10px;font-family:var(--font-head);font-weight:900;font-size:26px;text-align:center;letter-spacing:.4em}
+.pin-error{color:var(--red);font-size:12px;font-weight:700;text-align:center;margin-top:8px;min-height:16px}
 </style>
 </head>
 <body>
@@ -591,11 +621,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   <!-- HEADER -->
   <header class="app-header">
     <div style="display:flex;align-items:center">
-      <img class="header-logo" id="header-logo"
-        src="Reference_Images/Full Logo Black_Yellow_PA Logo.png"
-        alt="Planet Apparel"
-        onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
-      <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
+      <button class="hamburger-btn" onclick="toggleNavMenu()" title="All sections">☰</button>
+      <span style="display:flex;align-items:center;cursor:pointer" onclick="goSection('home')" title="Home — all sections">
+        <img class="header-logo" id="header-logo"
+          src="Reference_Images/Full Logo Black_Yellow_PA Logo.png"
+          alt="Planet Apparel"
+          onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
+        <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
+      </span>
     </div>
     <div class="header-center">
       <div class="header-date" id="header-date"></div>
@@ -624,6 +657,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 
   <!-- MAIN -->
   <div class="main-content">
+
+    <!-- HOME — section directory (nav shell #1). New sections register in SECTIONS
+         and appear here + in the ☰ menu WITHOUT adding bottom-nav girth. -->
+    <div class="tab-panel" id="panel-home">
+      <div class="home-wrap">
+        <div class="home-title">PlanetOps</div>
+        <div class="home-sub">Every section of the app — tap to jump in. The ☰ menu jumps between sections from anywhere.</div>
+        <div class="home-tiles" id="home-tiles"></div>
+      </div>
+    </div>
 
     <!-- BOARD -->
     <div class="tab-panel active" id="panel-board">
@@ -755,44 +798,66 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-tab active" onclick="switchTab('board',this)">
+    <button class="nav-tab active" data-tab="board" onclick="goSection('board')">
       <span class="nav-icon">🏭</span>
       <span class="nav-label">Board</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('prepress',this)">
+    <button class="nav-tab" data-tab="prepress" onclick="goSection('prepress')">
       <span class="nav-icon">🎞</span>
       <span class="nav-label">Pre-Press</span>
       <span class="nav-badge hidden" id="prepress-badge">0</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('active',this)">
+    <button class="nav-tab" data-tab="active" onclick="goSection('active')">
       <span class="nav-icon">⚡</span>
       <span class="nav-label">Running</span>
       <span class="nav-badge hidden" id="active-badge">0</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('reports',this)">
+    <button class="nav-tab" data-tab="reports" onclick="goSection('reports')">
       <span class="nav-icon">📊</span>
       <span class="nav-label">Reports</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('fulfillment',this)">
+    <button class="nav-tab" data-tab="fulfillment" onclick="goSection('fulfillment')">
       <span class="nav-icon">📦</span>
       <span class="nav-label">Fulfillment</span>
       <span class="nav-badge hidden" id="fulfillment-badge">0</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('schedule',this)">
+    <button class="nav-tab" data-tab="schedule" onclick="goSection('schedule')">
       <span class="nav-icon">🗓</span>
       <span class="nav-label">Schedule</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('availability',this)">
+    <button class="nav-tab" data-tab="availability" onclick="goSection('availability')">
       <span class="nav-icon">🔋</span>
       <span class="nav-label">Availability</span>
     </button>
-    <button class="nav-tab" onclick="window.location.href='clock/'">
+    <button class="nav-tab" onclick="goSection('clock')">
       <span class="nav-icon">⏱</span>
       <span class="nav-label">Clock</span>
     </button>
   </nav>
 
 </div><!-- /app-shell -->
+
+<!-- NAV MENU (☰ quick-jump — nav shell #1) -->
+<div class="nav-menu-overlay" id="nav-menu-overlay" onclick="closeNavMenu()"></div>
+<div class="nav-menu" id="nav-menu"></div>
+
+<!-- PIN GATE (infrastructure — which sections are gated is Holly's DECISION; inert until NAV_PIN is configured) -->
+<div class="modal-overlay" id="pin-modal" onclick="handleOverlayClick(event,'pin-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Restricted Section</div>
+    <div class="modal-sub" id="pin-modal-sub">Enter the PIN to continue.</div>
+    <div style="padding:14px 0 4px">
+      <input class="pin-input" id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••"
+        onkeydown="if(event.key==='Enter')submitPin()">
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('pin-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitPin()">Unlock</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div id="toast-container"></div>
@@ -1424,13 +1489,100 @@ function copyCustomerId(id){
 }
 
 /* ============================================================
+   NAV SHELL — section registry, ☰ quick-jump, Home tiles, PIN gate
+   (Board-overhaul #1). New sections: add one entry here — they show
+   on Home + in the ☰ menu without widening the bottom bar.
+   ============================================================ */
+const SECTIONS = [
+  { id:'home',         icon:'⌂',  label:'Home',         desc:'Directory of every section' },
+  { id:'board',        icon:'🏭', label:'Board',        desc:'Production floor — jobs by stage' },
+  { id:'prepress',     icon:'🎞', label:'Pre-Press',    desc:'Films · screens · inks' },
+  { id:'active',       icon:'⚡', label:'Running',      desc:'Live timers on press' },
+  { id:'reports',      icon:'📊', label:'Reports',      desc:'Completed projects & production data' },
+  { id:'fulfillment',  icon:'📦', label:'Fulfillment',  desc:'Iron & Velvet fulfillment ops' },
+  { id:'schedule',     icon:'🗓', label:'Schedule',     desc:'Scheduler · calendar · arrivals · estimator' },
+  { id:'availability', icon:'🔋', label:'Availability', desc:'Press capacity gauge' },
+  { id:'clock',        icon:'⏱', label:'Clock',        desc:'Time clock', href:'clock/' },
+];
+
+/* PIN gate — DECISION pending Holly: set NAV_PIN.code (digits, as a string)
+   and list section ids in NAV_PIN.gated. Inert until both are set.
+   Unlocks last for the browser session only. */
+const NAV_PIN = { code: null, gated: [] };
+const _pinUnlocked = new Set();
+let _pinPending = null;   // section id awaiting unlock
+
+function isGated(id){ return !!NAV_PIN.code && NAV_PIN.gated.includes(id) && !_pinUnlocked.has(id); }
+
+function goSection(id){
+  const s = SECTIONS.find(x => x.id === id);
+  if(!s) return;
+  if(isGated(id)){
+    _pinPending = id;
+    document.getElementById('pin-modal-sub').textContent = s.label + ' is PIN-restricted. Enter the PIN to continue.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-error').textContent = '';
+    openModal('pin-modal');
+    setTimeout(() => document.getElementById('pin-input').focus(), 80);
+    return;
+  }
+  closeNavMenu();
+  if(s.href){ window.location.href = s.href; return; }
+  switchTab(id);
+}
+
+function submitPin(){
+  const val = document.getElementById('pin-input').value.trim();
+  if(val === String(NAV_PIN.code)){
+    _pinUnlocked.add(_pinPending);
+    closeModal('pin-modal');
+    const id = _pinPending; _pinPending = null;
+    goSection(id);
+  } else {
+    document.getElementById('pin-error').textContent = 'Wrong PIN — try again.';
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+function toggleNavMenu(){
+  const menu = document.getElementById('nav-menu');
+  if(menu.classList.contains('open')){ closeNavMenu(); return; }
+  const current = document.querySelector('.tab-panel.active')?.id.replace('panel-','');
+  menu.innerHTML = SECTIONS.map((s, i) =>
+    (i === 1 ? '<div class="nav-menu-div"></div>' : '') +
+    `<button class="nav-menu-item ${s.id===current?'current':''}" onclick="goSection('${s.id}')">
+       <span class="nav-menu-icon">${s.icon}</span>
+       <span><div class="nav-menu-label">${s.label}</div><div class="nav-menu-desc">${s.desc}</div></span>
+       ${NAV_PIN.code && NAV_PIN.gated.includes(s.id) ? '<span class="nav-menu-lock">🔒</span>' : ''}
+     </button>`).join('');
+  menu.classList.add('open');
+  document.getElementById('nav-menu-overlay').classList.add('open');
+}
+function closeNavMenu(){
+  document.getElementById('nav-menu').classList.remove('open');
+  document.getElementById('nav-menu-overlay').classList.remove('open');
+}
+
+function renderHomeTiles(){
+  document.getElementById('home-tiles').innerHTML = SECTIONS.filter(s => s.id !== 'home').map(s =>
+    `<button class="home-tile" onclick="goSection('${s.id}')">
+       ${NAV_PIN.code && NAV_PIN.gated.includes(s.id) ? '<span class="home-tile-lock">🔒</span>' : ''}
+       <span class="home-tile-icon">${s.icon}</span>
+       <span class="home-tile-label">${s.label}</span>
+       <span class="home-tile-desc">${s.desc}</span>
+     </button>`).join('');
+}
+
+/* ============================================================
    TAB SWITCHING
    ============================================================ */
 function switchTab(id, btn){
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  btn.classList.add('active');
+  btn = btn || document.querySelector('.nav-tab[data-tab="'+id+'"]');
+  if(btn) btn.classList.add('active');   // Home has no bottom-nav tab by design (no bar girth)
+  if(id === 'home')        renderHomeTiles();
   if(id === 'active')      renderActiveTab();
   if(id === 'prepress')    renderPrepTab();
   if(id === 'fulfillment') renderFulfillmentTab();
