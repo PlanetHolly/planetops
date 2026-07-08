@@ -1,0 +1,683 @@
+{
+  "app": {
+    "name": "Planet Apparel",
+    "updated": "2026-07-08",
+    "authNote": "Auth is SERVER-SIDE (gate/index.js on Railway). No PIN ever belongs in this file — it is client-readable."
+  },
+  "tree": [
+    {
+      "id": "planetops",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "⚙️",
+      "name": "PlanetOps",
+      "blurb": "Production — back of house",
+      "children": [
+        {
+          "id": "floor",
+          "kind": "surface",
+          "name": "Floor App",
+          "blurb": "Board · Pre-Press · Running · Reports · Fulfillment",
+          "type": "live-app",
+          "url": "../index.html",
+          "status": "live",
+          "access": "open",
+          "dataSource": "Printavo GraphQL + Railway state-api",
+          "icon": "🎛️"
+        },
+        {
+          "id": "schedule",
+          "kind": "surface",
+          "name": "Schedule Board",
+          "blurb": "One board. Every station. Arrivals included.",
+          "type": "live-app",
+          "url": "../schedule/",
+          "status": "live",
+          "access": "open",
+          "dataSource": "Railway /webhook/estimate",
+          "icon": "🗓️"
+        },
+        {
+          "id": "capacity",
+          "kind": "surface",
+          "name": "Production Availability",
+          "blurb": "Press capacity, at a glance",
+          "type": "dashboard",
+          "url": "../capacity/",
+          "status": "live",
+          "access": "open",
+          "dataSource": "Power Scheduler CSV (/gauge skill)",
+          "icon": "🎚️"
+        },
+        {
+          "id": "estimator",
+          "kind": "surface",
+          "name": "Project Estimator",
+          "blurb": "Print-time & cost calculator",
+          "type": "tool",
+          "url": "../estimator/",
+          "status": "live",
+          "access": "open",
+          "icon": "🧮"
+        },
+        {
+          "id": "priority-guide",
+          "kind": "surface",
+          "name": "Priority Production (internal)",
+          "blurb": "Rush prioritization quick reference",
+          "type": "reference",
+          "url": "../priority-guide/",
+          "status": "live",
+          "access": "open",
+          "icon": "🚦"
+        },
+        {
+          "id": "rush",
+          "kind": "surface",
+          "name": "Rush Windows (customer-facing)",
+          "blurb": "Rush ship windows explained for customers",
+          "type": "reference",
+          "url": "../rush/",
+          "status": "wip",
+          "access": "open",
+          "note": "untracked — not pushed yet",
+          "icon": "⏱️"
+        },
+        {
+          "id": "boxes",
+          "kind": "surface",
+          "name": "Box Guide",
+          "blurb": "Fulfillment box sizes & stock levels",
+          "type": "reference",
+          "url": "../boxes/",
+          "status": "live",
+          "access": "open",
+          "icon": "📦"
+        },
+        {
+          "id": "prod-flow-map",
+          "kind": "surface",
+          "name": "Production Flow Map v3",
+          "blurb": "Status taxonomy + trigger layers",
+          "type": "system-map",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
+          "icon": "🗺️"
+        },
+        {
+          "id": "graphics-suite",
+          "kind": "surface",
+          "name": "Graphics Suite",
+          "blurb": "Dashboard · New Request · Order Detail · Templates · Mockup Studio",
+          "type": "tool",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetApparel/Graphics/",
+          "icon": "🎨"
+        },
+        {
+          "id": "qc-invoice",
+          "kind": "surface",
+          "name": "QC Interactive Invoice",
+          "blurb": "Malia's line-by-line QC trainer",
+          "type": "tool",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
+          "icon": "🔍"
+        },
+        {
+          "id": "time-labor",
+          "kind": "hub",
+          "icon": "🕐",
+          "name": "Time & Labor",
+          "blurb": "Clock, timesheets, roster (Daily Ops)",
+          "children": [
+            {
+              "id": "clock",
+              "kind": "surface",
+              "name": "Time Clock",
+              "blurb": "Floor kiosk punch in/out — CA overtime math",
+              "type": "live-app",
+              "url": "../clock/",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Railway /webhook/timesheets-admin",
+              "icon": "⏰"
+            },
+            {
+              "id": "timesheets-report",
+              "kind": "surface",
+              "name": "Timesheets Report",
+              "blurb": "Kelly's pay-period punch review",
+              "type": "report",
+              "url": "../clock/report.html",
+              "status": "live",
+              "access": "open",
+              "dataSource": "timesheets webhook",
+              "icon": "🧾"
+            },
+            {
+              "id": "team-admin",
+              "kind": "surface",
+              "name": "Team Admin",
+              "blurb": "Employee roster behind the time clock",
+              "type": "tool",
+              "url": "../clock/admin.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "👥"
+            },
+            {
+              "id": "screen-readiness",
+              "kind": "surface",
+              "name": "Screen Readiness Tracker",
+              "blurb": "Jean's screen prep control sheet",
+              "type": "report",
+              "url": "https://docs.google.com/spreadsheets/d/1PTs5sCXSBlhQ6G6j4jgSXcmcJjMEyhGDc7mN6K2QNmo/edit",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Drive sheet · Jean, daily",
+              "icon": "🖨️"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "revenue-house",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "🔁",
+      "name": "Revenue House",
+      "blurb": "Sales + Retention — front of house",
+      "children": [
+        {
+          "id": "rh-hub-page",
+          "kind": "surface",
+          "name": "Revenue House hub page",
+          "blurb": "The customer-side sub-hub (Retention · Signals · Pipeline)",
+          "type": "dashboard",
+          "url": "../revenue-house/",
+          "status": "live",
+          "access": "open",
+          "icon": "🏠"
+        },
+        {
+          "id": "signals",
+          "kind": "surface",
+          "name": "Planet Sales Signals",
+          "blurb": "Quotes, conversions, new-vs-return, tiers, ad ROI — by rep, by week",
+          "type": "dashboard",
+          "url": "../signals/",
+          "status": "live",
+          "access": "open",
+          "dataSource": "scoreboard-data.json ← Drive SoT 1PkA3UbiA0fmpwaAj6nRbuEzq2nrK9NhueELhBA4OhQM",
+          "icon": "📡"
+        },
+        {
+          "id": "retention-map",
+          "kind": "surface",
+          "name": "Retention — Live System Map",
+          "blurb": "Three cadence engines, every automation, the alarms",
+          "type": "system-map",
+          "url": "../revenue-house/retention/",
+          "status": "live",
+          "access": "open",
+          "dataSource": "status.json (hand-maintained)",
+          "icon": "🧲"
+        },
+        {
+          "id": "save-touch",
+          "kind": "surface",
+          "name": "The Save Touch",
+          "blurb": "Win-back / at-risk retention team playbook",
+          "type": "reference",
+          "url": "../save-touch/",
+          "status": "live",
+          "access": "open",
+          "icon": "🆘"
+        },
+        {
+          "id": "retention-playbook",
+          "kind": "surface",
+          "name": "Retention Playbook",
+          "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
+          "type": "reference",
+          "url": "../revenue-house/playbook/",
+          "status": "live",
+          "access": "open",
+          "icon": "📓"
+        },
+        {
+          "id": "ship-estimate",
+          "kind": "surface",
+          "name": "Bandana Shipping Estimator",
+          "blurb": "Shipping cost calculator for bandana quotes",
+          "type": "tool",
+          "url": "../ship-estimate/",
+          "status": "live",
+          "access": "open",
+          "icon": "🚚"
+        },
+        {
+          "id": "retention-registry",
+          "kind": "surface",
+          "name": "Retention — Master Script Registry",
+          "blurb": "36-row control sheet governing the retention n8n fleet",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
+          "status": "live",
+          "access": "open",
+          "dataSource": "Drive sheet · governs Systems A/B/C",
+          "icon": "📇"
+        },
+        {
+          "id": "pipeline-dashboard",
+          "kind": "surface",
+          "name": "Sales Pipeline Dashboard",
+          "blurb": "Older standalone pipeline dashboard",
+          "type": "dashboard",
+          "status": "stale",
+          "access": "open",
+          "note": "3/17 — superseded by Signals · Dropbox Sales/Dashboard/",
+          "icon": "🚰"
+        }
+      ]
+    },
+    {
+      "id": "planetiq",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "📊",
+      "name": "PlanetIQ",
+      "blurb": "Data · analysis · intelligence · knowledge · reporting",
+      "children": [
+        {
+          "id": "planetiq-panel",
+          "kind": "surface",
+          "name": "PlanetIQ Panel",
+          "blurb": "The business-intelligence foundation",
+          "type": "dashboard",
+          "url": "../planetiq/",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "datalayer.json / chartseries.json",
+          "icon": "📈"
+        },
+        {
+          "id": "pricing-dashboard",
+          "kind": "surface",
+          "name": "Bandana Pricing Dashboard",
+          "blurb": "Internal pricing engine — awaits real DATA feed",
+          "type": "dashboard",
+          "status": "wip",
+          "access": "pin",
+          "note": "stranded on file:// — Dropbox PlanetApparel/Pricing/pricing-dashboard.html",
+          "icon": "🏷️"
+        },
+        {
+          "id": "kpi-tracker",
+          "kind": "surface",
+          "name": "KPI Tracker",
+          "blurb": "Standing company KPI scoreboard",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1XQNS-93GLZxPYxK15xYIqKeF-Yv6P9jCuvC2rbnANjQ/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · weekly",
+          "icon": "🎯"
+        },
+        {
+          "id": "iq-data-layer",
+          "kind": "surface",
+          "name": "PlanetIQ Data Layer",
+          "blurb": "The auditable Sheet → snapshot → page layer",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1lvJ28bcid3e8FYNrT44bSbtxi_5U53QxdISiW95JuF0/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · automations read it",
+          "icon": "🗄️"
+        },
+        {
+          "id": "invoice-tracker",
+          "kind": "surface",
+          "name": "Planet Pulse Invoice Tracker",
+          "blurb": "Kelly's live AR / collections tracker",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1FT9vqCUD5MOyxjt30q8wQ5PumgdeXj7FtgP5ObdYX8U/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · month-end close automation",
+          "icon": "🏦"
+        },
+        {
+          "id": "employee-orders",
+          "kind": "surface",
+          "name": "Employee Order-Payment Tracker",
+          "blurb": "Kelly's employee personal-order registry",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1ElBiBXlBkwl5V5rFpIZOMtJsHPey3sc_7eJRs4xqOZU/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet",
+          "icon": "💳"
+        },
+        {
+          "id": "financial-dashboard",
+          "kind": "surface",
+          "name": "Financial Dashboard",
+          "blurb": "Older standalone financial dashboard",
+          "type": "dashboard",
+          "status": "stale",
+          "access": "pin",
+          "note": "4/29 — superseded by PlanetIQ · Dropbox Financial/",
+          "icon": "💹"
+        },
+        {
+          "id": "growth",
+          "kind": "hub",
+          "icon": "🌱",
+          "name": "Growth",
+          "blurb": "Bandana site, catalog & web marketing (was PlanetGrowth)",
+          "children": [
+            {
+              "id": "bandana-templates",
+              "kind": "surface",
+              "name": "Bandana Design Templates",
+              "blurb": "21 ready-to-print layouts, customer-facing",
+              "type": "tool",
+              "url": "../bandana-templates/",
+              "status": "live",
+              "access": "open",
+              "icon": "🧣"
+            },
+            {
+              "id": "bandana-revamp",
+              "kind": "surface",
+              "name": "2026 Bandana Revamp Plan",
+              "blurb": "Project plan + meeting snapshots",
+              "type": "reference",
+              "url": "../bandana-revamp/",
+              "status": "stale",
+              "access": "open",
+              "note": "historical project docs (6/17–18)",
+              "icon": "🪄"
+            },
+            {
+              "id": "bandana-web-pricing",
+              "kind": "surface",
+              "name": "Bandana Website Pricing",
+              "blurb": "Current bandana site pricing update",
+              "type": "reference",
+              "url": "../bandana-revamp/website-pricing.html",
+              "status": "live",
+              "access": "open",
+              "icon": "💰"
+            },
+            {
+              "id": "photo-tagger",
+              "kind": "surface",
+              "name": "Bandana Photo Tagger",
+              "blurb": "Catalog image tagging tool",
+              "type": "tool",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox Website/_Internal/ (localStorage: needs export before deploy)",
+              "icon": "📸"
+            },
+            {
+              "id": "mockup-vs-real",
+              "kind": "surface",
+              "name": "Mockup vs Real Gallery",
+              "blurb": "Catalog QA comparison grid",
+              "type": "tool",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox Website/_Internal/",
+              "icon": "🖼️"
+            }
+          ]
+        },
+        {
+          "id": "brain",
+          "kind": "hub",
+          "icon": "🧠",
+          "name": "The Brain",
+          "blurb": "Institutional knowledge & the meta layer",
+          "children": [
+            {
+              "id": "graphify",
+              "kind": "surface",
+              "name": "Graphify Knowledge Graph",
+              "blurb": "Interactive knowledge-graph viewer",
+              "type": "system-map",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox Claude_Holly/Knowledge_Graph/graphify-out/graph.html",
+              "icon": "🕸️"
+            },
+            {
+              "id": "decisions",
+              "kind": "hub",
+              "icon": "⚖️",
+              "name": "Decisions",
+              "blurb": "Leadership decisions — owner-only · coming later",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "systems",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "🔧",
+      "name": "Systems",
+      "blurb": "Automations · system maps · standards",
+      "children": [
+        {
+          "id": "agentic-os",
+          "kind": "surface",
+          "name": "Agent OS (Dashboard · Projects · Architecture)",
+          "blurb": "The AI-workforce layer that watches for failures — Fix Agent, heartbeats, 🚨 System Alerts",
+          "type": "dashboard",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox _Claude/AgenticOS/",
+          "icon": "🤖"
+        },
+        {
+          "id": "order-flow-map",
+          "kind": "surface",
+          "name": "Order Flow & Automations Map",
+          "blurb": "Status-by-status Printavo lifecycle + which automations fire",
+          "type": "system-map",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetApparel/Printavo_Automations/Order_Flow_Automation_Map.html",
+          "icon": "🔀"
+        },
+        {
+          "id": "bandana-bot-map",
+          "kind": "surface",
+          "name": "Bandana Quote Bot — System Map",
+          "blurb": "The quote-bot automation, mapped",
+          "type": "system-map",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox Sales/Bandana_Quote_Automation/System_Map/",
+          "icon": "💬"
+        },
+        {
+          "id": "planetpulse",
+          "kind": "surface",
+          "name": "PlanetPulse",
+          "blurb": "The project source-of-truth explainer",
+          "type": "reference",
+          "url": "../planetpulse/",
+          "status": "live",
+          "access": "open",
+          "icon": "💓"
+        },
+        {
+          "id": "planetpulse-audit",
+          "kind": "surface",
+          "name": "PlanetPulse Audit Guide",
+          "blurb": "Cell-by-cell column reference: audit & fix",
+          "type": "reference",
+          "url": "../planetpulse-audit/",
+          "status": "live",
+          "access": "open",
+          "icon": "🔬"
+        },
+        {
+          "id": "hashtags",
+          "kind": "surface",
+          "name": "Printavo Hashtag Standard",
+          "blurb": "Which 2–3 tags every job gets",
+          "type": "reference",
+          "url": "../hashtags/",
+          "status": "live",
+          "access": "open",
+          "icon": "#️⃣"
+        },
+        {
+          "id": "state-api",
+          "kind": "surface",
+          "name": "State API",
+          "blurb": "Express + Postgres backend persisting floor-board state (no page)",
+          "type": "reference",
+          "status": "live",
+          "access": "open",
+          "note": "backend infra on Railway — informational tile, nothing to open",
+          "dataSource": "Railway Postgres",
+          "icon": "🔌"
+        },
+        {
+          "id": "invoice-tracker-test",
+          "kind": "surface",
+          "name": "Invoice Tracker — TEST (sandbox)",
+          "blurb": "The sheet the invoice automation reads/writes in TEST — not the real AR ledger",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1-UEkjoamvt6p2tdf6vVETBwO3Nh7yNZTeM-3AE18muA/edit",
+          "status": "wip",
+          "access": "open",
+          "dataSource": "n8n invoice automation (sandbox)",
+          "icon": "🧪"
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "kind": "hub",
+      "group": "library",
+      "icon": "🎓",
+      "name": "Training",
+      "blurb": "How-tos & onboarding, team-wide",
+      "children": [
+        {
+          "id": "qc-gate",
+          "kind": "surface",
+          "name": "QC Gate Checklist",
+          "blurb": "The QC gate, step by step",
+          "type": "training",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox Training/Internal/QC_Gate/",
+          "icon": "☑️"
+        },
+        {
+          "id": "bandana-blanks",
+          "kind": "surface",
+          "name": "Bandana Blanks — Ordering Workflow",
+          "blurb": "Malia's blanks-ordering how-to",
+          "type": "training",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox Training/Internal/",
+          "icon": "🛒"
+        },
+        {
+          "id": "how-organized",
+          "kind": "surface",
+          "name": "How We're Organized",
+          "blurb": "The Claude/system organization explainer",
+          "type": "training",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox Training/Internal/Claude_Setup_Status/",
+          "icon": "🧭"
+        },
+        {
+          "id": "followup-gameplan",
+          "kind": "surface",
+          "name": "Customer Follow-Up Game Plan",
+          "blurb": "Shara/Cortney's follow-up playbook",
+          "type": "training",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox Sales/Customer_Retention/Team_Materials/",
+          "icon": "📞"
+        }
+      ]
+    },
+    {
+      "id": "references",
+      "kind": "hub",
+      "group": "library",
+      "icon": "📚",
+      "name": "References",
+      "blurb": "Standards & guides",
+      "children": [
+        {
+          "id": "file-naming",
+          "kind": "surface",
+          "name": "File Naming & Folder Guide",
+          "blurb": "Naming conventions for the whole team",
+          "type": "reference",
+          "url": "../file-naming/",
+          "status": "live",
+          "access": "open",
+          "icon": "🔤"
+        },
+        {
+          "id": "feed-guide",
+          "kind": "surface",
+          "name": "Feed Guide",
+          "blurb": "How the PlanetIQ feed folders work",
+          "type": "reference",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetIQ/Feed/",
+          "icon": "📥"
+        },
+        {
+          "id": "invoice-column-guide",
+          "kind": "surface",
+          "name": "Invoice Tracker — Column Guide",
+          "blurb": "Column-by-column tracker reference",
+          "type": "reference",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetIQ/Month_End_Close/",
+          "icon": "📋"
+        },
+        {
+          "id": "data-summary-2025",
+          "kind": "surface",
+          "name": "2025 Annual Data Summary & SoT Map",
+          "blurb": "Where every 2025 number lives",
+          "type": "reference",
+          "status": "wip",
+          "access": "open",
+          "note": "stranded on file:// — Dropbox PlanetIQ/Annual_Data_Summary/",
+          "icon": "🗒️"
+        }
+      ]
+    }
+  ]
+}

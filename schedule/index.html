@@ -409,8 +409,9 @@ function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=f
    remains the offline fallback; the pre-adoption store is snapshotted once
    to sbproto_v1_preShared. Per-person attribution + who-else-edits = the
    Group F / Holly conversation (Architecture §6b item 2). */
-const STATE_API='https://planetops-production.up.railway.app';
-const STATE_KEY='be6022c715f16a6b1bdecf74a030b852f05925fee556302d66254d00a170dd5d'; // same key the board page embeds; access control = roadmap #4
+/* Same-origin via the frontdoor-gate proxy — key lives ONLY in gate env vars (P0-1 fix). */
+const STATE_API='';
+const STATE_KEY=''; // retired: the gate session cookie is the auth; header kept harmless below
 const SHARED_DOC='schedule_board';
 const LOCAL_ONLY=['csvName','csvText','range','exported'];
 let _pushT=null,_lastRemoteAt=0;

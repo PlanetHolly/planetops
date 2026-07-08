@@ -1,0 +1,4876 @@
+{
+  "majorDimension": "ROWS",
+  "range": "'Data Layer'!A1:H600",
+  "values": [
+    [
+      "Section",
+      "Metric",
+      "Value",
+      "Period",
+      "Basis",
+      "Status",
+      "Source",
+      "Notes"
+    ],
+    [
+      "efficiency",
+      "2026 YTD CPC win rate",
+      "16.7% (down from 22.8% lifetime), n=318 leads",
+      "2026 YTD as of 2026-05-29",
+      "Printavo",
+      "current",
+      "Bottom line paragraph and table"
+    ],
+    [
+      "efficiency",
+      "Apparel 1c print rate",
+      "0.34 min/u (n=10)",
+      "Mar-May 2026",
+      "Printavo",
+      "current",
+      "Analysis_06 §Apparel Master Curve audit trace table"
+    ],
+    [
+      "efficiency",
+      "Apparel 2c print rate",
+      "0.51 min/u (n=12)",
+      "Mar-May 2026",
+      "Printavo",
+      "current",
+      "Analysis_06 §Apparel Master Curve audit trace table"
+    ],
+    [
+      "efficiency",
+      "Apparel 3c print rate",
+      "0.58 min/u (n=5)",
+      "Mar-May 2026",
+      "Printavo",
+      "reference",
+      "Analysis_06 §Apparel Master Curve audit trace table",
+      "thin sample (n=5) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "Apparel 4c print rate",
+      "0.76 min/u (n=2, very thin)",
+      "Mar-May 2026",
+      "Printavo",
+      "reference",
+      "Analysis_06 §Apparel Master Curve audit trace table",
+      "thin sample (n=2, very thin) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "Apparel 5c print rate",
+      "1.24 min/u (n=5, 5c+ routes to Bear anyway)",
+      "Mar-May 2026",
+      "Printavo",
+      "reference",
+      "Analysis_06 §Apparel Master Curve audit trace table",
+      "thin sample (n=5) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "Bandana 1c print rate",
+      "0.40 min/u (n=95)",
+      "5/28 reanalysis, Mar-May 2026 data",
+      "Printavo",
+      "current",
+      "Analysis_06 §Bandana Master Curve audit, number-by-number trace"
+    ],
+    [
+      "efficiency",
+      "Bandana 2c print rate",
+      "0.41 min/u (n=46)",
+      "Mar-May 2026",
+      "Printavo",
+      "current",
+      "Analysis_06 §Bandana Master Curve audit trace table"
+    ],
+    [
+      "efficiency",
+      "Bandana 3c print rate",
+      "0.48 min/u (n=15)",
+      "Mar-May 2026",
+      "Printavo",
+      "current",
+      "Analysis_06 §Bandana Master Curve audit trace table"
+    ],
+    [
+      "efficiency",
+      "Bandana 4c print rate",
+      "1.25 min/u (n=5, thin/contaminated)",
+      "Mar-May 2026",
+      "Printavo",
+      "reference",
+      "Analysis_06 §Bandana Master Curve audit trace table",
+      "thin sample (n=5, contaminated) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "Brian's kill-the-channel ROAS threshold",
+      "4-5x",
+      "as of 2026-05-15 report",
+      "Printavo",
+      "current",
+      "What this changes vs the win-rate-only read, point 1"
+    ],
+    [
+      "efficiency",
+      "CLAUDE.md stale press efficiency figure (superseded framing)",
+      "33% (STALE, superseded framing — rate now $140 via winter-idle denominator)",
+      "carried over from 2026-04-29/2026-04-28",
+      "Printavo",
+      "superseded",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md line 114 and line 101 (\"~$12,748 at 33%\")",
+      "draft-flagged STALE/superseded framing"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 1,000-4,999",
+      "36.4% (22 boxes, n=1 comparison)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "reference",
+      "CPC x Qty Band table",
+      "thin sample (n=1 comparison) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 1-49",
+      "20.0% (205 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 100-199",
+      "24.9% (169 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 200-499",
+      "36.4% (88 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 5,000+",
+      "12.5% (8 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 50-99",
+      "18.0% (122 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "CPC win rate by qty - 500-999",
+      "23.3% (30 boxes)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "CPC x Qty Band table"
+    ],
+    [
+      "efficiency",
+      "Calibration sample press-minutes (Apr 1 - May 15 2026)",
+      "Total press-minutes ≈ 14,326 ≈ 239 hrs ≈ 37 hrs/week (from 140 press-job rows of 197 unique scheduled rows, 3,982 raw rows, 313 unscheduled dropped)",
+      "2026-04-01 to 2026-05-15 (~6.5 weeks)",
+      "Printavo",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.1, 'Calibration sample (2026-05-19)'"
+    ],
+    [
+      "efficiency",
+      "Conversion-rate alert threshold",
+      "<18% conversion rate triggers Kelly's watch-line alert",
+      "as of 2026-07-01",
+      "Printavo",
+      "current",
+      "CLAUDE.md — Pointers section, 'Planet Sales Signals' bullet"
+    ],
+    [
+      "efficiency",
+      "Cross-check bandana 1c run rate (6/1 revalidation)",
+      "0.362 min/u median (n=90, pooled Mar-May 31) — 10% faster than locked 0.40",
+      "Mar-May 31 2026 pooled",
+      "Printavo",
+      "current",
+      "Analysis_07 §A3, Cross-check note"
+    ],
+    [
+      "efficiency",
+      "Cross-check bandana 2c run rate (6/1 revalidation)",
+      "0.369 min/u vs locked 0.41 (also ~10% faster)",
+      "Mar-May 31 2026 pooled",
+      "Printavo",
+      "current",
+      "Analysis_07 §A3, Cross-check note"
+    ],
+    [
+      "efficiency",
+      "Mar-May press-busy capture",
+      "~480 hrs over 10.5 weeks",
+      "2026-03-02 to 2026-05-15",
+      "Printavo",
+      "current",
+      "Analysis_06 §Cost floor audit table; also header 'Jean_Calculator_Adjustments_2026-05-20.md (217 imprints / 166 invoices Mar 2 → May 15)'"
+    ],
+    [
+      "efficiency",
+      "May 2026 implied actual printing at 33% baseline",
+      "~62 hrs (~3,750 min) actual printing",
+      "2026-05",
+      "Printavo",
+      "current",
+      "reference_payroll_hours_capture.md, 'Efficiency % denominator rule' section"
+    ],
+    [
+      "efficiency",
+      "May 2026 press-staffed minutes (proxy = 5/16 + 6/01 runs)",
+      "MAX(Javier, Fernando) per pay period summed ≈ 189 hrs (~11,350 min)",
+      "2026-05",
+      "Printavo",
+      "current",
+      "reference_payroll_hours_capture.md, 'Efficiency % denominator rule' section"
+    ],
+    [
+      "efficiency",
+      "Original efficiency target vs current (18K production-to-overhead)",
+      "$18K figure = original 59%-efficiency target (not current); current is ~$12,748 at 33% efficiency",
+      "as of 2026-04-28 verification",
+      "Printavo",
+      "current",
+      "CLAUDE.md — Context > Carryover from 2026-04-28 pricing audit, bullet on VERIFICATION_18K_overhead_contribution"
+    ],
+    [
+      "efficiency",
+      "Press efficiency (actual)",
+      "33%",
+      "as of March 3 Claude doc (still cited as current estimate)",
+      "Printavo",
+      "current",
+      "CLAUDE.md — Context > Carryover table, 'Press efficiency (actual)'; also Data_Source_Capture_and_Gaps.md §1.3"
+    ],
+    [
+      "efficiency",
+      "Productive press hours per month",
+      "53 hrs (of 160)",
+      "derived, undated",
+      "Printavo",
+      "current",
+      "CLAUDE.md — Context > Carryover table, 'Productive press hours/mo'"
+    ],
+    [
+      "efficiency",
+      "Straight-line annualized press hours",
+      "2,392 hrs",
+      "annualized from Mar-May capture",
+      "Printavo",
+      "current",
+      "Analysis_06 §Cost floor audit table (480 × 52/10.5)"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - ChatGPT",
+      "11.1% (1 won / 8 lost of 9 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x source table"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - Direct",
+      "50.6% (42 won / 41 lost of 83 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x source table"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - Organic",
+      "28.4% (90 won / 227 lost of 317 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x source table"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - Paid CPC",
+      "22.8% (153 won / 519 lost of 672 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x source table"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - Referral",
+      "28.3% (13 won / 33 lost of 46 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x source table"
+    ],
+    [
+      "efficiency",
+      "Win rate by acquisition method - Return Customer",
+      "100.0% (3 won / 0 lost of 3 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "reference",
+      "Win rate x source table",
+      "thin sample (n=3) - do not publish as firm"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 1,000-4,999",
+      "43.5% (57 won / 74 lost of 131 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 1-49",
+      "20.7% (142 won / 545 lost of 687 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 100-199",
+      "31.2% (202 won / 445 lost of 647 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 200-499",
+      "42.4% (169 won / 230 lost of 399 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 5,000+",
+      "24.0% (6 won / 19 lost of 25 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 50-99",
+      "30.2% (160 won / 370 lost of 530 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Win rate by qty band - 500-999",
+      "42.8% (74 won / 99 lost of 173 total)",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Win rate x qty band table"
+    ],
+    [
+      "efficiency",
+      "Winter-idle adjusted annual hours",
+      "~2,050 hrs (~14% reduction)",
+      "annual, winter-adjusted",
+      "Printavo",
+      "current",
+      "Analysis_06 §Cost floor audit table — Oct ~88% / Nov ~54% of Mar-May rate"
+    ],
+    [
+      "margin",
+      "2025 bandana SP recovered (modeled)",
+      "~$449K (also stated as $450K in B3 total)",
+      "2025 full year",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table and Section B3 total row"
+    ],
+    [
+      "margin",
+      "Annual bandana SP target (allocation)",
+      "$564K",
+      "2025 annual allocation",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table and B1"
+    ],
+    [
+      "margin",
+      "Annual bandana under-recovery",
+      "~$115K (80% of target achieved; ~$114K per B3 total)",
+      "2025 full year",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table; B3 total row shows −$114K"
+    ],
+    [
+      "margin",
+      "Bandana margin erosion estimate",
+      "Even a 5% bandana margin erosion = $55K/year of lost gross margin",
+      "n/a (estimate)",
+      "QB-accrual",
+      "scenario",
+      "project_2025_financial_reality.md, end of 'The strategic implication' section",
+      "hypothetical margin-erosion estimate"
+    ],
+    [
+      "margin",
+      "COGS % of revenue drop",
+      "59% → 44%",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 119 (flagged as recategorization artifact, referencing Analysis #1)"
+    ],
+    [
+      "margin",
+      "GP (Gross Profit)",
+      "$679,511 (41%)",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "margin",
+      "GP (Gross Profit)",
+      "$914,836 (56%)",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "margin",
+      "GP (Gross Profit)",
+      "$932,974 (53%)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 35"
+    ],
+    [
+      "margin",
+      "Modeled SP recovery rate as % of revenue",
+      "~58% of revenue (validated: $776K rev − $167K blank COGS − $160K production = $449K SP)",
+      "2025 full year",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B3 intro, referencing 5/27 layer-cake analysis"
+    ],
+    [
+      "margin",
+      "Monthly SP recovery vs target (full table)",
+      "Jan $28.8K(−$18.2K); Feb $24.0K(−$23.0K); Mar $33.2K(−$13.8K); Apr $38.9K(−$8.1K); May $36.9K(−$10.1K); Jun $53.4K(+$6.4K); Jul $50.3K(+$3.3K); Aug $44.0K(−$3.0K); Sep $40.3K(−$6.7K); Oct $51.7K(+$4.7K); Nov $26.9K(−$20.1K); Dec $22.3K(−$24.7K); TOTAL $450K vs $564K target (−$114K)",
+      "2025, month by month vs $47K/mo target",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B3 monthly SP recovery table"
+    ],
+    [
+      "margin",
+      "Monthly average profit",
+      "$1,129.19/mo",
+      "2025",
+      "n/a",
+      "current",
+      "CLAUDE.md — Context > Carryover table, 'razor-thin', KPI tracker"
+    ],
+    [
+      "margin",
+      "Net Income",
+      "-$23,702",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "margin",
+      "Net Income",
+      "-$105,721",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "margin",
+      "Net Income (QuickBooks, actual)",
+      "-$9,343 loss",
+      "2025",
+      "QB-accrual",
+      "current",
+      "TL;DR line 15; 3-Year P&L Summary table, line 35; Memory updates table, line 155"
+    ],
+    [
+      "margin",
+      "Net Income (memory/KPI-tracker view, flagged as inconsistent with QB)",
+      "$13,550 profit / 0.76% margin (Profit-First/KPI view, not QuickBooks Net Income)",
+      "2025 (per memory, pre-correction)",
+      "KPI-cash",
+      "current",
+      "TL;DR line 15; Memory updates table, line 155-156",
+      "KPI-cash parallel to QB net income; keep both bases labeled (X1) | provisional ruling 7/2"
+    ],
+    [
+      "margin",
+      "Net margin (actual, Net Income/Revenue)",
+      "-0.53%",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Memory updates table, line 156"
+    ],
+    [
+      "margin",
+      "Nov+Dec 2025 combined loss",
+      "-$88,000 combined",
+      "2025-11..2025-12",
+      "QB-accrual",
+      "current",
+      "'What jumps out in 2025' bullet, line 68"
+    ],
+    [
+      "margin",
+      "Peak month avg SP recovery (Jun/Jul/Oct)",
+      "~$48K/mo",
+      "2025 peak months",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table"
+    ],
+    [
+      "margin",
+      "Profit",
+      "-$20,015.30 (Jan), -$4,952.84 (Feb), TOTAL -$24,968.14",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2026 - Totals.csv, row 'Profit (Income-Expense/Production/Overhead/Labor)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "margin",
+      "Target profit",
+      "$13K/mo ($156K/yr) — Level 2 'Build', clears ~$300K debt in ~3 yrs + reserve",
+      "forward-looking",
+      "QB-accrual",
+      "scenario",
+      "Part 1.C, line 70",
+      "forward-looking target"
+    ],
+    [
+      "margin",
+      "Total COGS (grand rollup)",
+      "2023: $967,558; 2024: $710,022 (−$257,535 YoY)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 106-108, 'where these costs came FROM' table"
+    ],
+    [
+      "margin",
+      "Total for Contract Services (COGS)",
+      "2023: $505,834; 2024: $310,383 (−$195,452 YoY)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 109"
+    ],
+    [
+      "margin",
+      "Total for Services for the Bandana Department (COGS)",
+      "2023: $277,377; 2024: $82,060 (−$195,317 YoY)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 110"
+    ],
+    [
+      "margin",
+      "Winter month avg SP recovery (Nov-Feb)",
+      "~$25K/mo",
+      "2025 winter months",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table"
+    ],
+    [
+      "margin",
+      "Winter monthly gap",
+      "−$22K/mo (~$88K/yr from Nov-Feb alone; B4 states $86K)",
+      "Nov-Feb 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table and Section B4"
+    ],
+    [
+      "margin",
+      "annual profit",
+      "-$63,026.77",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2024 - Totals.csv, row 'Profit (Income-Expense/Production/Overhead/Labor)', TOTALS column",
+      "cash-basis, not accrual"
+    ],
+    [
+      "margin",
+      "annual profit",
+      "$13,550.33",
+      "2025",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2025 - Totals.csv, row 'Profit (Income-Expense/Production/Overhead/Labor)', TOTALS column",
+      "KPI-cash annual profit; parallel headline to QB -$9,343 (X1) | provisional ruling 7/2"
+    ],
+    [
+      "other",
+      "#bandana tag over-application",
+      "#bandana tag applied to ~$2.5M vs $928K real (use tags for slices, never totals)",
+      "undated, as of doc seeding 2026-05-30",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §2.5, 'Product / production tags'"
+    ],
+    [
+      "other",
+      "2023 processing fees / discount adjustments filtered out",
+      "~$52,000",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The remainder of the gap' section"
+    ],
+    [
+      "other",
+      "2026 facility expansion size and terms",
+      "+2,000 sq ft, first payment March 2026, 100% production; new total 8,000 sq ft",
+      "effective March 2026",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"Facts about the lease\" section"
+    ],
+    [
+      "other",
+      "April 2026 bandana vs overhead (unvalidated memory item, flagged to check)",
+      "bandana real revenue ~$100K vs overhead $103,278 (plausible, not yet validated)",
+      "2026-04 (pending validation)",
+      "QB-accrual",
+      "reference",
+      "Memory updates table, line 159",
+      "pending validation"
+    ],
+    [
+      "other",
+      "Bandana orders missing production-type tag",
+      "64% of bandana orders have no in-house/outsourced production-type tag",
+      "undated, as of doc seeding 2026-05-30",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §2.1, 'In-house vs outsourced'"
+    ],
+    [
+      "other",
+      "Bear (outsource) handoff threshold",
+      "6+ colors (screen print); 100% (embroidery)",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era carryover, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "other",
+      "Blank supplier costs (in-house COGS)",
+      "Tans $113K (import bandana blanks) · AS Colour $81K + SanMar $32K + S&S $48K (apparel blanks) · Bandanna Warehouse $74K (USA bandana blanks + digital) · Maiwa $23K (organic bandana blanks)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D, line 90"
+    ],
+    [
+      "other",
+      "CLAUDE.md stale Master Curve time formula (superseded)",
+      "Time = 0.75 + Qty/500 (STALE, superseded)",
+      "carried over from 2026-04-29",
+      "QB-accrual",
+      "superseded",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md line 119",
+      "draft-flagged STALE/superseded (Gemini-era Master Curve time formula)"
+    ],
+    [
+      "other",
+      "COGS",
+      "$967,558 (59%)",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "other",
+      "COGS",
+      "$710,022 (44%)",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "other",
+      "COGS",
+      "$819,215 (47%)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 35"
+    ],
+    [
+      "other",
+      "COGS (KPI)",
+      "$54,196.69 (Jan), $59,282.24 (Feb), TOTAL $113,478.93 (40% of total)",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'COGS (KPI)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "other",
+      "Current Master Curve job-time formula",
+      "JobTime = (8 + 12×colors) + print_rate[colors] × qty",
+      "as of 2026-05-27 (Annual_Data_Summary basis)",
+      "QB-accrual",
+      "current",
+      "_AUDIT_findings §C1 table, referencing Annual_Data_Summary L64"
+    ],
+    [
+      "other",
+      "Loss months",
+      "6 of 12 months in red",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "other",
+      "Loss months",
+      "8 of 12 months in red",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "other",
+      "Loss months",
+      "8 of 12 months in red",
+      "2025",
+      "QB-accrual",
+      "current",
+      "TL;DR line 14; 3-Year P&L Summary table, line 35"
+    ],
+    [
+      "other",
+      "PPH Supplies & Materials",
+      "2023: $9,435; 2024: $26,209; 2025: $42,012",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 100"
+    ],
+    [
+      "other",
+      "Printavo #bandana tag over-application",
+      "attached to ~$2.5M of order value vs $928K real bandana revenue; 64% of bandana orders untagged for production type",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 2 table + Part 3 item 2, lines 117, 127"
+    ],
+    [
+      "other",
+      "Sales Tax",
+      "$0.00 total (all months blank/zero)",
+      "2026 YTD",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Sales Tax'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "other",
+      "Top keyword volume - custom bandanas",
+      "263 searches",
+      "as of 2026-05-29",
+      "Printavo",
+      "current",
+      "Top 10 keywords table"
+    ],
+    [
+      "other",
+      "Top vendor movers 2024→2025 (selected)",
+      "Tans Club $68,472→$112,670 (+$44,197); Ets Express $29,230→$4,125 (−$25,104); Independent Trading Co $21,204→$1,750 (−$19,454); Maiwa/Organic Cotton Bandanas $3,680→$22,878 (+$19,198); Printavo-Payments $25,737→$43,309 (+$17,571); FEDEX $41,094→$56,807 (+$15,713); Fairdeal Import & Export $60,800→$76,367 (+$15,567); SanMar $42,988→$32,480 (−$10,508); UPS $7,249→$20,119 (+$12,870)",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 167-183, vendor spend table"
+    ],
+    [
+      "other",
+      "Total cost (COGS+OpEx) YoY growth",
+      "+3.7% in 2024; +1.7% in 2025",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Net result' paragraph under PPH merger section"
+    ],
+    [
+      "other",
+      "Total vendor spend",
+      "2024: $988K; 2025: $1,028K (+$40K YoY)",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 192"
+    ],
+    [
+      "other",
+      "Uncategorized 'Total for Sales' line growth",
+      "$22K (2023) → $371K (2025)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, note under DWC Sportech table"
+    ],
+    [
+      "other",
+      "Vendor COGS — Bear Designz",
+      "$6,648 (Apparel — screen print)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D table, line 84"
+    ],
+    [
+      "other",
+      "Vendor COGS — Empowered Threads (ex-Authentic/KNB)",
+      "$27,409 (Apparel — embroidery)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D table, line 86"
+    ],
+    [
+      "other",
+      "Vendor COGS — Factory 1, LLC",
+      "$3,760 (Apparel — screen print)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D table, line 85"
+    ],
+    [
+      "other",
+      "Vendor COGS — Fiel / Fairdeal Import & Export",
+      "$76,367 (Bandana — sublimation)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D table, line 87"
+    ],
+    [
+      "other",
+      "Vendor COGS — Leemier Sports / Tom",
+      "$3,500 (Merch)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D table, line 88"
+    ],
+    [
+      "other",
+      "annual Sales Tax collected",
+      "$32,284.00",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Sales Tax', TOTALS column"
+    ],
+    [
+      "overhead",
+      "2025 CAM actual vs budget variance",
+      "1.45% over budget",
+      "2025",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"Facts about the lease\" — \"Recent CAM pattern\""
+    ],
+    [
+      "overhead",
+      "2025 OpEx monthly range",
+      "$45K (Mar) to $128K (Dec)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'The strategic implication' bullet list"
+    ],
+    [
+      "overhead",
+      "2025 months where bandana revenue ≥ OpEx",
+      "4 months: Mar, Jun, Jul, Sep",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, below Bandana-Covers-Overhead table"
+    ],
+    [
+      "overhead",
+      "Actual full OpEx figure (different concept from SP anchor)",
+      "$78.5K–$80K",
+      "as of Analysis_01 (2026-05-12)",
+      "QB-accrual",
+      "current",
+      "_AUDIT_findings §C-overhead, referencing Analysis_01_Overhead_Validation_2026-05-12.md"
+    ],
+    [
+      "overhead",
+      "Bandana monthly overhead share due",
+      "~$47K/mo",
+      "2025 annual, even-pace allocation",
+      "QB-accrual",
+      "current",
+      "Analysis_07 TL;DR table; also B1 ($564K/12)"
+    ],
+    [
+      "overhead",
+      "Bandana share of in-house overhead/profit",
+      "78% overhead + 75% profit",
+      "per 5/25 lock",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B1"
+    ],
+    [
+      "overhead",
+      "Bandana-Covers-Overhead coverage by year",
+      "2023: Bandana Rev $839,933 / OpEx $703,214 = 119% (surplus); 2024: $708,392 / $1,021,861 = 69% (−$313K shortfall); 2025: $928,436 / $942,029 = 99% (−$14K shortfall)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Bandana-Covers-Overhead theory' table",
+      "also cited: L409 TL;DR line 19; Bandana-Covers-Overhead table, line 98; L410 TL;DR line 20; Bandana-Covers-Overhead table, line 99; L411 TL;DR line 21; Bandana-Covers-Overhead table, line 100"
+    ],
+    [
+      "overhead",
+      "CAM / Triple Net facility-cost split",
+      "70% Production / 30% Overhead (prorated annual)",
+      "locked 2026-05-14, QB-effective 2026-06-01",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"The Final Rule\" table — CAM / Triple Net"
+    ],
+    [
+      "overhead",
+      "CLAUDE.md stale monthly overhead figure (superseded)",
+      "$90,000–95,000/mo (STALE, superseded)",
+      "carried over from 2026-04-29, flagged stale as of 2026-05-27",
+      "QB-accrual",
+      "superseded",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md line 108",
+      "draft-flagged STALE/superseded"
+    ],
+    [
+      "overhead",
+      "Current locked overhead anchor (SP anchor, production-stripped)",
+      "~$69.2K/mo",
+      "as of 2026-05-27",
+      "QB-accrual",
+      "current",
+      "_AUDIT_findings §C1/§C-overhead, referencing Annual_Data_Summary L69",
+      "production-stripped SP anchor - different concept from the full anchor (X4); ~$830K/yr | also cited: L141 Part 1.C, line 69"
+    ],
+    [
+      "overhead",
+      "December 2025 true baseline OpEx (ex payroll-tax catch-up)",
+      "~$60-80K",
+      "2025-12",
+      "QB-accrual",
+      "current",
+      "'What jumps out in 2025' bullet, line 70"
+    ],
+    [
+      "overhead",
+      "Energy (PPH)",
+      "2023: $0; 2024: $13,996; 2025: $15,120",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 98"
+    ],
+    [
+      "overhead",
+      "Energy Bucket (office side)",
+      "2023: $13,056; 2024: $5,429 (−$7,627 YoY)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 111"
+    ],
+    [
+      "overhead",
+      "Google ad spend (monthly)",
+      "~$6,300/mo",
+      "as of 2026-07-01",
+      "n/a",
+      "current",
+      "CLAUDE.md — Pointers section, 'Planet Sales Signals' bullet"
+    ],
+    [
+      "overhead",
+      "Monthly overhead (actual)",
+      "$58.6K/mo",
+      "2023",
+      "QB-accrual",
+      "current",
+      "TL;DR line 13; 3-Year P&L Summary table, line 33"
+    ],
+    [
+      "overhead",
+      "Monthly overhead (actual)",
+      "$85.2K/mo",
+      "2024",
+      "QB-accrual",
+      "current",
+      "TL;DR line 13; 3-Year P&L Summary table, line 34"
+    ],
+    [
+      "overhead",
+      "Monthly overhead (actual)",
+      "$78.5K/mo",
+      "2025",
+      "QB-accrual",
+      "current",
+      "TL;DR line 13; 3-Year P&L Summary table, line 35"
+    ],
+    [
+      "overhead",
+      "Monthly overhead anchor",
+      "$90-95K/mo",
+      "ongoing (as referenced 2026-04-28 audit)",
+      "QB-accrual",
+      "current",
+      "CLAUDE.md — Context > Carryover table, row 'Monthly overhead'; also referenced in Pointers (PlanetPulse col P) as ~$95K hard-coded constant",
+      "canonical full overhead anchor (X4) | also cited: L140 TL;DR, line 13"
+    ],
+    [
+      "overhead",
+      "OVERHEAD TOTAL",
+      "$106,300.34 (Jan), $87,981.48 (Feb), TOTAL $194,281.82",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'OVERHEAD TOTAL'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "overhead",
+      "OVERHEAD TOTAL annual",
+      "$1,029,489.44",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'OVERHEAD TOTAL', TOTALS column"
+    ],
+    [
+      "overhead",
+      "OpEx (annual)",
+      "$703,214",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "overhead",
+      "OpEx (annual)",
+      "$1,021,861",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "overhead",
+      "OpEx (annual)",
+      "$942,029",
+      "2025",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 35"
+    ],
+    [
+      "overhead",
+      "OpEx (headline, uncorrected)",
+      "$703K (2023) → $1,022K (2024), +45%",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 6 — the original question posed, later shown to be a QB recategorization artifact"
+    ],
+    [
+      "overhead",
+      "OpEx 2025 vs 2023 baseline",
+      "34% above 2023 baseline",
+      "2025 vs 2023",
+      "QB-accrual",
+      "current",
+      "Key trend signals, line 40"
+    ],
+    [
+      "overhead",
+      "OpEx bucket total",
+      "$952,606 annual / $79,384 per mo avg / 100%",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 82"
+    ],
+    [
+      "overhead",
+      "OpEx bucket — Energy Bucket (Office)",
+      "$4,908 annual / $409 per mo avg / <1% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 80"
+    ],
+    [
+      "overhead",
+      "OpEx bucket — Overhead Bucket",
+      "$205,134 annual / $17,095 per mo avg / 22% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 78"
+    ],
+    [
+      "overhead",
+      "OpEx bucket — Taxes",
+      "$840 annual / $70 per mo avg / <1% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 81"
+    ],
+    [
+      "overhead",
+      "OpEx jump 2023→2024",
+      "+45% ($703K → $1,022K)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Key trend signals, line 40"
+    ],
+    [
+      "overhead",
+      "Outsourced-with-in-house-QC cost impact",
+      "$1,287 over 2 months ≈ $7.7K/year (71 imprints)",
+      "Apr-May 2026",
+      "n/a",
+      "current",
+      "Analysis_06 §Outsourced-with-in-house-QC rule, Cost impact table"
+    ],
+    [
+      "overhead",
+      "Overhead Costs (Expenses - Production Cost)",
+      "$27,648.09 (Jan), $21,324.92 (Feb), TOTAL $48,973.01",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Overhead Costs (Expenses (from KPI) - Production Cost)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "overhead",
+      "Overhead allocation levers",
+      "in/out overhead 69/31 · in-house overhead 78/22 bandana/apparel · in-house profit 75/25 bandana/apparel",
+      "2026",
+      "QB-accrual",
+      "current",
+      "Part 1.C, line 74"
+    ],
+    [
+      "overhead",
+      "Overhead allocation — outsourced vs in-house",
+      "Outsourced lines carry ~$257K overhead via markup; in-house carries $573K overhead + $156K profit = $729K",
+      "2026 (Option C, locked 2026-05-25)",
+      "QB-accrual",
+      "current",
+      "Part 1.C, line 73"
+    ],
+    [
+      "overhead",
+      "Overhead line item — Riverdale lease",
+      "$91K",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.D, line 90"
+    ],
+    [
+      "overhead",
+      "Overhead+profit pool allocated to in-house (5/25 Option C lock)",
+      "Total annual pool $986K; apportioned to in-house $573K overhead + $156K profit = $729K",
+      "2025/annual, per 5/25 lock",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B1 Allocated overhead burden"
+    ],
+    [
+      "overhead",
+      "Phone + Cable facility-cost split",
+      "0% Production / 100% Overhead",
+      "locked 2026-05-14, QB-effective 2026-06-01",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"The Final Rule\" table — Phone + Cable"
+    ],
+    [
+      "overhead",
+      "PlanetPulse tracker overhead constant",
+      "$95,000 (hard-coded in col P formula =SUM($X$3:Xn)-95000)",
+      "as of 2026-06-19 (system live), 2026-06-21 (guide)",
+      "n/a",
+      "current",
+      "CLAUDE.md — Pointers section, 'PlanetPulse' bullet"
+    ],
+    [
+      "overhead",
+      "Post-expansion 2026 overhead figure (unreconciled second anchor, lever c)",
+      "~$64K/mo",
+      "post-expansion 2026 (unreconciled vs $69.2K anchor)",
+      "QB-accrual",
+      "scenario",
+      "_AUDIT_findings §C-overhead, referencing Production/Volume_Firmup_2026-05-18.md L17",
+      "unreconciled post-expansion scenario - not for pricing/Panel math (X4)"
+    ],
+    [
+      "overhead",
+      "Production Bucket increase (PPH costs migrated)",
+      "$35K → $286K, +$251K",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 102"
+    ],
+    [
+      "overhead",
+      "Production pool (QB)",
+      "$284,000",
+      "2025 (QB P&L production bucket)",
+      "QB-accrual",
+      "current",
+      "Analysis_06 §Cost floor ($140) audit — number-by-number trace table",
+      "also cited: L165 _AUDIT_findings §(d) Duplication, referencing Production_Rate.md, Production_Data_Log.md, Annual_Summary (exact figure not independently re-stated in these 3 audited files beyond this cross-reference); L150 Part 1.B, line 62"
+    ],
+    [
+      "overhead",
+      "Production pool breakdown",
+      "labor $179K + consumables $42K + energy $15K + equipment $2K + production rent share $45K",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.B, line 63"
+    ],
+    [
+      "overhead",
+      "Proposed flat-default QC cost (superseded)",
+      "$1,508 (flat-default, ~15% higher than qty-banded)",
+      "Apr-May 2026",
+      "n/a",
+      "superseded",
+      "Analysis_06 §Outsourced-with-in-house-QC rule, note after cost impact table"
+    ],
+    [
+      "overhead",
+      "Recommended overhead anchor for 2026 pricing math",
+      "$80K/mo",
+      "2026 (recommendation, revisit quarterly)",
+      "QB-accrual",
+      "superseded",
+      "'What this means for PlanetIQ + pricing' section, item 1, line 137",
+      "superseded by $90-95K/mo anchor ruling (X4)"
+    ],
+    [
+      "overhead",
+      "Rent facility-cost split (Production/Overhead)",
+      "70% Production / 30% Overhead",
+      "locked 2026-05-14, QB-effective 2026-06-01",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"The Final Rule\" table — Rent (base monthly)"
+    ],
+    [
+      "overhead",
+      "Rent split by square footage (rationale basis, not the applied split)",
+      "Office 25% (1,500 sq ft) / Production 75% (4,500 sq ft) of 6,000 sq ft total",
+      "current lease, as of 2026-05-14 lock",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"Rent — 70/30\" rationale and \"Facts about the lease\" section"
+    ],
+    [
+      "overhead",
+      "Rent/Lease (PPH)",
+      "2023: $0; 2024: $43,854; 2025: $45,370",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 97"
+    ],
+    [
+      "overhead",
+      "SDG&E effective split on sample bills",
+      "~2.3% Overhead / 97.7% Production",
+      "sample bill reviewed at 2026-05-14 meeting",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"SDG&E — unit-based designation\" section"
+    ],
+    [
+      "overhead",
+      "SDG&E unit 6314 (Overhead) sample bill",
+      "$35.61",
+      "sample bill reviewed at 2026-05-14 meeting",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"SDG&E — unit-based designation\" table"
+    ],
+    [
+      "overhead",
+      "SDG&E units 6316+6318 (Production) sample bill",
+      "$1,242.00 + $240.00 = $1,482.00",
+      "sample bill reviewed at 2026-05-14 meeting",
+      "n/a",
+      "current",
+      "Allocation_Methodology.md, \"SDG&E — unit-based designation\" table"
+    ],
+    [
+      "overhead",
+      "Total Cost (COGS+OpEx combined)",
+      "2023: $1,670,772; 2024: $1,731,883 (+$61,111, +3.7%); 2025: $1,761,244 (+$29,361, +1.7%)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 70-74, table 'Real total cost growth'"
+    ],
+    [
+      "overhead",
+      "Winter gap risk if under-estimated",
+      "up to ~$10/hr × ~2,050 hr ≈ ~$20K/yr under-recovery risk",
+      "annual, hypothetical",
+      "n/a",
+      "scenario",
+      "Analysis_06 §Weak spots ranked by pricing-impact risk, Risk #1",
+      "hypothetical winter under-recovery risk (~$20K)"
+    ],
+    [
+      "overhead",
+      "annual COGS",
+      "$709,459.02 (43% of income)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'COGS (KPI)', TOTALS column + % column"
+    ],
+    [
+      "overhead",
+      "annual COGS",
+      "$743,214.31 (42% of income)",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'COGS (KPI)', TOTALS + % column"
+    ],
+    [
+      "overhead",
+      "annual Overhead Costs",
+      "$201,575.80",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Overhead Costs (KPI - Production Cost)', TOTALS column"
+    ],
+    [
+      "overhead",
+      "annual overhead costs (Expenses minus Production Cost)",
+      "$273,621.23",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Overhead Costs (Expenses (from KPI) - Production Cost)', TOTALS column"
+    ],
+    [
+      "payroll",
+      "2025 production hours (payroll summary export)",
+      "Fernando 1,806 hrs · Javier 1,790 hrs · Luis 2,061 hrs · all-production total 7,674 hrs",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.2, 'Where we find it today'"
+    ],
+    [
+      "payroll",
+      "2025 production payroll hours by person",
+      "Fernando 1,806 hrs / Javier 1,790 hrs / Luis 2,061 hrs / all production 7,674 hrs",
+      "2025",
+      "n/a",
+      "current",
+      "reference_payroll_hours_capture.md, 'Regular payroll' section — source file PlanetIQ/Source_Data/Kelly_Reports_2026-05/PlanetApparelEnt.Inc._PayrollSummary_2025-Production.xls"
+    ],
+    [
+      "payroll",
+      "2026 crew raise (pending fold into rate)",
+      "+5%, +$9,334/yr",
+      "2026 (pending)",
+      "QB-accrual",
+      "reference",
+      "Part 1.B, line 66",
+      "pending fold into rate"
+    ],
+    [
+      "payroll",
+      "5/10-5/25 OT posting note",
+      "$3,689 OT (work-basis) pays 6/1, lands in June's payroll report",
+      "2026-05-10 to 2026-05-25, paid 2026-06-01",
+      "QB-accrual",
+      "reference",
+      "Data_Source_Capture_and_Gaps.md §1.4, table footnote",
+      "OT posting timing note"
+    ],
+    [
+      "payroll",
+      "December 2025 payroll-tax catch-up (one-time)",
+      "$47,826 booked in December alone (vs ~$0 most other months)",
+      "2025-12",
+      "QB-accrual",
+      "one-time",
+      "'What jumps out in 2025' bullet, line 70",
+      "one-time payroll-tax catch-up - NEVER chart as recurring"
+    ],
+    [
+      "payroll",
+      "Fair owner pay included in overhead anchor",
+      "$112K (detail in private vault)",
+      "2025/2026",
+      "QB-accrual",
+      "current",
+      "Part 1.C, line 69"
+    ],
+    [
+      "payroll",
+      "Finishing tier labor rate (QC/packaging)",
+      "$26/hr",
+      "locked 5/28/2026",
+      "n/a",
+      "current",
+      "Analysis_06 §3-Tier QC Time Rule LOCKED, table note"
+    ],
+    [
+      "payroll",
+      "Gift-card OT unrecorded labor",
+      "~$2,700/yr (adds ~$1.30/hr to rate if included)",
+      "annual",
+      "n/a",
+      "scenario",
+      "Analysis_06 §Cost floor audit, Hidden assumptions #2",
+      "gift-card OT hypothetical"
+    ],
+    [
+      "payroll",
+      "Jan-May 2026 cumulative payroll (pay-date basis, excl. 6/1 period)",
+      "total hours 9,233.42 hrs; gross $272,554.86; total payroll cost $300,280.54; OT 119 hrs / $5,532.35 gross",
+      "2026-01..2026-05",
+      "n/a",
+      "current",
+      "reference_payroll_hours_capture.md, 'Payroll Summary by Employee' report section"
+    ],
+    [
+      "payroll",
+      "KPI tracker Production labor (Feb 2026, fully-loaded)",
+      "$22,168.76 (Labor PRODUCTION, KPI breakdown, fully-loaded payroll cost incl. employer taxes)",
+      "2026-02",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.4, 'Two gaps worth naming' item 2"
+    ],
+    [
+      "payroll",
+      "Kelly's Labor ALL Cost - EOM (Feb 2026)",
+      "$56,553.93 — matches QuickBooks Payroll Summary by Employee (by-month) Total payroll cost for Feb exactly",
+      "2026-02",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.4, 'What the tracker captures' bullet"
+    ],
+    [
+      "payroll",
+      "Labor share of total OpEx (Labor+Production+Payroll Tax buckets)",
+      "73% of total OpEx is labor-related",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition section note, line 86"
+    ],
+    [
+      "payroll",
+      "OT concentration by person, Jan-May 2026",
+      "Shara $3,513 (64% of all OT); then Luis $591, Javier $412, Marisol $411, Fernando $365, Cortney $238, Kelly $3",
+      "2026-01..2026-05",
+      "n/a",
+      "current",
+      "reference_payroll_hours_capture.md, 'Payroll Summary by Employee' report section"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support by pay-date month",
+      "Apr $2,266.50 · May $1,489",
+      "2026-04 and 2026-05",
+      "QB-accrual",
+      "one-time",
+      "Data_Source_Capture_and_Gaps.md §1.4, 'Off-books Production Support' subsection",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support by pay-date month",
+      "April $2,266.50 ($1,678.50 paid 4/2 + $588 on 4/17); May $1,489 ($436 + $1,053); Jan/Feb: none",
+      "2026-04..2026-05",
+      "n/a",
+      "one-time",
+      "reference_payroll_hours_capture.md, 'Off-books Production Support payments' section",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support by payment batch",
+      "Mar $1,678.50 (94 hrs, Venmo ~4/2); Apr 17 $588 (32 hrs, Zelle); May 8 $436 (24 hrs, Zelle); May 29 $1,053 (57 hrs, Zelle/US Bank)",
+      "2026-03..2026-05",
+      "n/a",
+      "one-time",
+      "reference_payroll_hours_capture.md, 'Off-books Production Support payments' section",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support by person",
+      "Denise 102 hrs / $1,810.50; Karen 65 hrs / $1,235; Vanessa 40 hrs / $710. Rates: Denise & Vanessa $17.75/hr, Karen $19/hr",
+      "2026-03..2026-05",
+      "n/a",
+      "one-time",
+      "reference_payroll_hours_capture.md, 'Off-books Production Support payments' section",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support total (2026, complete set)",
+      "$3,755.50 total / 207 hrs",
+      "2026-03..2026-05",
+      "n/a",
+      "one-time",
+      "reference_payroll_hours_capture.md, 'Off-books Production Support payments' section",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "Off-books Production Support total (Mar-May 2026)",
+      "≈$3,755.50 / ~207 hrs total (Mar $1,678.50/94h · Apr17 $588/32h · May8 $436/24h · May29 $1,053/57h); ended 2026-05-29, moves to regular payroll from June",
+      "2026-03 to 2026-05-29",
+      "QB-accrual",
+      "one-time",
+      "Data_Source_Capture_and_Gaps.md §1.2, 'Off-books Production Support — and its end'",
+      "one-time off-books Mar-May 2026 support (ended, moved to payroll)"
+    ],
+    [
+      "payroll",
+      "OpEx bucket — Labor Bucket (no production)",
+      "$407,047 annual / $33,921 per mo avg / 43% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 76"
+    ],
+    [
+      "payroll",
+      "OpEx bucket — Payroll Taxes",
+      "$48,286 annual / $4,024 per mo avg / 5% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 79"
+    ],
+    [
+      "payroll",
+      "OpEx bucket — Production Bucket (PPH)",
+      "$287,231 annual / $23,936 per mo avg / 30% of OpEx",
+      "2025",
+      "QB-accrual",
+      "current",
+      "OpEx bucket composition table, line 77"
+    ],
+    [
+      "payroll",
+      "P&L wages line Production Costs-PPH (Feb 2026)",
+      "$10,102.63 (raw P&L wages line, ~2x apart from KPI figure)",
+      "2026-02",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.4, 'Two gaps worth naming' item 2"
+    ],
+    [
+      "payroll",
+      "Payroll period 5/10-5/25/2026",
+      "Total payroll cost $33,359 (up 17% vs prior period); gross $30,848.44; 1,014.64 hrs",
+      "2026-05-10 to 2026-05-25",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.2, 'Latest period captured'"
+    ],
+    [
+      "payroll",
+      "Predicted vs Actual OT (2026, all staff, gross)",
+      "Jan: pred $1,707.55 / actual $503.24 (+$1,204 over); Feb: pred $0.00 / actual $1,622.58 (-$1,623 missed); Mar: pred $456.00 / actual $736.11 (-$280 under); Apr: pred $2,266.50 / actual $1,324.35 (+$942 over); May: pred blank / actual $1,346.07; Jan-Apr total: pred $4,430.05 / actual $4,186.28 (+$244, ~6% over)",
+      "2026-01 to 2026-05",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.4, 'Predicted vs Actual OT (2026)' table"
+    ],
+    [
+      "payroll",
+      "Production Costs-PPH (Wages)",
+      "$9,868.69 (Jan), $10,102.63 (Feb), TOTAL $19,971.32",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Production Costs-PPH (P&L Report: Prodiction Bucket - Wages)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "payroll",
+      "Production OT (5/10-5/25/2026 period)",
+      "95 hrs / $3,689 (Marisol, Javier, Fernando, Shara)",
+      "2026-05-10 to 2026-05-25",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §1.2, 'Latest period captured'"
+    ],
+    [
+      "payroll",
+      "Wages From Payroll (PPH) — production wages sub-account",
+      "2023: $22,312; 2024: $181,525; 2025: $172,252",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 94-100, PPH recategorization evidence table"
+    ],
+    [
+      "payroll",
+      "Workers Compensation (PPH)",
+      "2023: $0; 2024: $10,952; 2025: $7,040",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 99"
+    ],
+    [
+      "payroll",
+      "annual Labor ALL Cost",
+      "$696,136.86 (42% of income)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor ALL Cost (Dollar Amount)(KPI)', TOTALS column + % column"
+    ],
+    [
+      "payroll",
+      "annual Labor ALL Cost",
+      "$640,981.28 (36% of income)",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor ALL Cost (Dollar Amount)(KPI)', TOTALS + % column"
+    ],
+    [
+      "payroll",
+      "annual Labor LEADERSHIP",
+      "$252,549.20",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Labor LEADERSHIP Cost",
+      "$262,764.23",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Labor PRODUCTION",
+      "$216,553.14",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Labor PRODUCTION Cost",
+      "$193,167.02",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Labor SALES",
+      "$171,877.94",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Labor SALES Cost",
+      "$240,205.31",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', TOTALS column"
+    ],
+    [
+      "payroll",
+      "annual Production Costs-PPH wages",
+      "$104,795.13 (annual col), $306,370.93 (adjacent column, likely P&L bucket total)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Production Costs-PPH (P&L Report: Production Bucket - Wages)', TOTALS and next column"
+    ],
+    [
+      "payroll",
+      "annual production costs-PPH",
+      "$114,886.93",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Production Costs-PPH (P&L Report: Production Bucket - Wages)', TOTALS column"
+    ],
+    [
+      "payroll",
+      "average monthly Labor ALL Cost",
+      "$53,415.11/mo",
+      "2025 (Monthly Average)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor ALL Cost (Dollar Amount)(KPI)', Monthly Averages column"
+    ],
+    [
+      "payroll",
+      "payroll ALL (dollar amount)",
+      "$68,783.56 (Jan), $56,553.93 (Feb), TOTAL $125,337.49",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Labor ALL Cost (Dollar Amount)(KPI)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$19,669.00",
+      "2025-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$24,263.40 (Jan), $19,871.49 (Feb), TOTAL $44,134.89",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Labor LEADERSHIP'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$19,126.65",
+      "2025-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,588.85",
+      "2025-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$21,336.96",
+      "2025-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$18,110.10",
+      "2025-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$17,912.49",
+      "2025-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$21,982.92",
+      "2025-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,159.99",
+      "2025-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,503.17",
+      "2025-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', SEPTEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,139.65",
+      "2025-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,101.38",
+      "2025-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll LEADERSHIP",
+      "$22,918.04",
+      "2025-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$11,082.00",
+      "2025-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$26,618.87 (Jan), $22,168.76 (Feb), TOTAL $48,787.63",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Labor PRODUCTION'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$13,268.53",
+      "2025-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$14,316.48",
+      "2025-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$17,304.44",
+      "2025-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$15,691.34",
+      "2025-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$16,908.75",
+      "2025-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$18,149.45",
+      "2025-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$22,160.04",
+      "2025-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$21,254.79",
+      "2025-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', SEPTEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$23,377.90",
+      "2025-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$21,328.80",
+      "2025-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll PRODUCTION",
+      "$21,710.62",
+      "2025-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$9,660.00",
+      "2025-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$17,901.29 (Jan), $14,513.68 (Feb), TOTAL $32,414.97",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Labor SALES'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$12,551.62",
+      "2025-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$13,764.61",
+      "2025-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$17,897.25",
+      "2025-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$17,514.71",
+      "2025-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$10,243.95",
+      "2025-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$12,283.14",
+      "2025-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$11,102.52",
+      "2025-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$16,816.45",
+      "2025-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', SEPTEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$17,377.37",
+      "2025-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$16,296.06",
+      "2025-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll SALES",
+      "$16,370.26",
+      "2025-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll leadership April",
+      "$17,398.40",
+      "2024-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll leadership August",
+      "$34,777.45",
+      "2024-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll leadership December",
+      "$21,038.67",
+      "2024-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll leadership February",
+      "$18,903.94",
+      "2024-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll leadership January",
+      "$19,276.49",
+      "2024-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll leadership July",
+      "$20,079.52",
+      "2024-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll leadership June",
+      "$19,461.16",
+      "2024-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll leadership March",
+      "$28,105.07",
+      "2024-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll leadership May",
+      "$16,951.36",
+      "2024-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll leadership November",
+      "$21,731.00",
+      "2024-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll leadership October",
+      "$22,333.12",
+      "2024-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll leadership September",
+      "$22,708.05",
+      "2024-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor LEADERSHIP Cost Per Day (Daily)', SEPTEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll production April",
+      "$16,129.00",
+      "2024-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll production August",
+      "$24,461.93",
+      "2024-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll production December",
+      "$11,143.44",
+      "2024-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll production February",
+      "$12,533.56",
+      "2024-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll production January",
+      "$12,697.44",
+      "2024-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll production July",
+      "$14,159.90",
+      "2024-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll production June",
+      "$14,697.78",
+      "2024-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll production March",
+      "$21,121.63",
+      "2024-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll production May",
+      "$19,424.12",
+      "2024-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll production November",
+      "$13,353.23",
+      "2024-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll production October",
+      "$16,700.83",
+      "2024-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll production September",
+      "$16,744.16",
+      "2024-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor PRODUCTION Cost Per Day (Daily)', SEPTEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll sales April",
+      "$20,099.25",
+      "2024-04",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', APRIL column"
+    ],
+    [
+      "payroll",
+      "payroll sales August",
+      "$28,644.88",
+      "2024-08",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', AUGUST column"
+    ],
+    [
+      "payroll",
+      "payroll sales December",
+      "$13,109.62",
+      "2024-12",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', DECEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll sales February",
+      "$18,232.53",
+      "2024-02",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', FEBRUARY column"
+    ],
+    [
+      "payroll",
+      "payroll sales January",
+      "$14,508.92",
+      "2024-01",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', JANUARY column"
+    ],
+    [
+      "payroll",
+      "payroll sales July",
+      "$19,785.93",
+      "2024-07",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', JULY column"
+    ],
+    [
+      "payroll",
+      "payroll sales June",
+      "$19,976.95",
+      "2024-06",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', JUNE column"
+    ],
+    [
+      "payroll",
+      "payroll sales March",
+      "$29,237.00",
+      "2024-03",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', MARCH column"
+    ],
+    [
+      "payroll",
+      "payroll sales May",
+      "$19,575.25",
+      "2024-05",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', MAY column"
+    ],
+    [
+      "payroll",
+      "payroll sales November",
+      "$18,973.02",
+      "2024-11",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', NOVEMBER column"
+    ],
+    [
+      "payroll",
+      "payroll sales October",
+      "$19,001.69",
+      "2024-10",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', OCTOBER column"
+    ],
+    [
+      "payroll",
+      "payroll sales September",
+      "$19,060.27",
+      "2024-09",
+      "KPI-cash",
+      "current",
+      "CSV row 'Labor SALES Cost Per Day (Daily)', SEPTEMBER column"
+    ],
+    [
+      "pricing",
+      "48-tier SP trim proposal",
+      "trim from $7 to ~$5.50-6.00 (also 72-tier)",
+      "proposed as of 2026-05-29",
+      "n/a",
+      "reference",
+      "Implications for the SP curve, point 1"
+    ],
+    [
+      "pricing",
+      "600u/800u added price tiers",
+      "600u → $4.05/u all-in (SP $2.10); 800u → $3.85/u all-in (SP $1.92)",
+      "added 2026-06-01",
+      "n/a",
+      "current",
+      "Analysis_07 §A2, added-tier note"
+    ],
+    [
+      "pricing",
+      "Ad engine lifetime ROAS",
+      "10.53x ($223,583 sales / $21,234 spend)",
+      "Sept 2025 - May 2026",
+      "Printavo",
+      "current",
+      "Bottom line + Lifetime row of CPC monthly table"
+    ],
+    [
+      "pricing",
+      "Apparel & Merch Dept Average Order Value",
+      "$1,768.71 (Jan), $1,741.49 (Feb), TOTAL $1,751.49",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Average Order Value' under Apparel & Merch Dept",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "pricing",
+      "Apparel & Merch Dept average order value",
+      "$1,846.23 avg (annual col)",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under Apparel & Merch Dept section, TOTALS column"
+    ],
+    [
+      "pricing",
+      "Apparel & Merch Dept average order value",
+      "$2,302.07",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under Apparel & Merch Dept, TOTALS column"
+    ],
+    [
+      "pricing",
+      "Average Order Value (company-wide)",
+      "$2,625.83 (Jan), $2,140.01 (Feb), TOTAL $2,337.13",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Average Order Value' (first instance, under Recieved Payments)",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "pricing",
+      "Average garment COG",
+      "$21.30",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era estimate, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Bandana Dept Average Order Value",
+      "$2,718.22 (Jan), $2,140.66 (Feb), TOTAL $2,406.72",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Average Order Value' under Bandana Dept",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "pricing",
+      "Bandana Dept average order value",
+      "$1,606.57 avg (annual col)",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under Bandana Dept section, TOTALS column"
+    ],
+    [
+      "pricing",
+      "Bandana Dept average order value",
+      "$1,781.76",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under Bandana Dept, TOTALS column"
+    ],
+    [
+      "pricing",
+      "Bandana SP theoretical Option-C allocation (not the live target)",
+      "$564,000 (÷177,800 units = $3.17/unit) — theoretical ceiling market caps below",
+      "as of 2026-05-27",
+      "n/a",
+      "reference",
+      "_AUDIT_findings §C4, referencing Source_Data/_SOURCE_OF_TRUTH.md L55 and Annual_Data_Summary/…SoT_Map.md L75",
+      "theoretical Option-C ceiling, not the live target"
+    ],
+    [
+      "pricing",
+      "Bandana Sales Profit (SP) market-achievable pool",
+      "≈$442,000–450,000",
+      "as of 2026-05-27 (Silver-curve/12-tier rebuild)",
+      "n/a",
+      "current",
+      "_AUDIT_findings_2026-05-27.md ground-truth line"
+    ],
+    [
+      "pricing",
+      "Bandana adder stack costs (unaudited)",
+      "Opening/unfolding $0.05/pc; Organic blank COG $3.70/pc; Organic reject 10%/$0.37/pc; Oversize/edge $0.50/pc; Double-dry ×1.12 interim",
+      "2022/PPH-era estimates, still in use as of 2026-06-01",
+      "n/a",
+      "current",
+      "Analysis_06 §NOT IN THE MASTER CURVE — but baked into bandana pricing"
+    ],
+    [
+      "pricing",
+      "Bandana blended average SP target per unit",
+      "$3.17/u (annual blended average; $564K ÷ 177,800 units)",
+      "2025 annual",
+      "n/a",
+      "current",
+      "Analysis_07 §B1"
+    ],
+    [
+      "pricing",
+      "Bandana matrix stale print-cost math",
+      "$0.30 x $225 stale math, ~20% conservative on print-cost",
+      "as of 2026-05-29",
+      "n/a",
+      "reference",
+      "How this sharpens the SP-curve call section"
+    ],
+    [
+      "pricing",
+      "Blank COG figures",
+      "Import blank (PL2219) $0.94; USA blank (US2219) $2.00 sliding to $1.43 at high qty; Organic blank (ORG2422) $3.70",
+      "as of 2026-05-29 refresh",
+      "n/a",
+      "current",
+      "Analysis_07 §A4 Blank COG"
+    ],
+    [
+      "pricing",
+      "CLAUDE.md stale MPH floor/target/combined figures (superseded)",
+      "Floor $350 / Target $425-475 / Combined $550-650 (STALE, superseded by $140 rate + SP rebuild)",
+      "carried over from 2026-04-29",
+      "n/a",
+      "superseded",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md lines 120-122",
+      "draft-flagged STALE/superseded MPH figures (X5)"
+    ],
+    [
+      "pricing",
+      "CLAUDE.md stale minimum order price (MOP) at 48 units (superseded)",
+      "$336 (STALE, superseded — min order now 48u, SP rebuilt per-unit)",
+      "carried over from 2026-04-29",
+      "n/a",
+      "superseded",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md line 118",
+      "draft-flagged STALE/superseded MOP (X5)"
+    ],
+    [
+      "pricing",
+      "Color adders",
+      "$0.40 at 12u, decreasing to $0.20 at 288u",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era estimate, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "DWC Dept Average Order Value",
+      "$3,747.56 (Jan), $4,188.75 (Feb), TOTAL $3,951.18",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Average Order Value' under DWC Dept",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "pricing",
+      "DWC Dept average order value",
+      "$5,236.06 avg (annual col)",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under DWC Dept section, TOTALS column"
+    ],
+    [
+      "pricing",
+      "DWC Dept average order value",
+      "$2,663.86",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' under DWC Dept, TOTALS column"
+    ],
+    [
+      "pricing",
+      "Hidden buffer per unit",
+      "~$3.03 ($2.13 garment + $0.90 service) at $21.30 COG",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era estimate, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "MOP (Minimum Order Price) at 48 units",
+      "$336 (bottom-up: $7 SP x 48u)",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era estimate, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "MPH combined contribution target",
+      "$550-650+/hr",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era MPH target, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "MPH growth target",
+      "$425-475/hr",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era MPH target, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "MPH survival floor",
+      "$350/hr",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era MPH floor, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Master Curve formula",
+      "JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty; cost/unit = (JobTime÷60)×$140÷qty",
+      "2025 (current)",
+      "n/a",
+      "current",
+      "Part 1.B, line 64"
+    ],
+    [
+      "pricing",
+      "Master Curve formula",
+      "Time = 0.75 + Qty/500",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era Master Curve time formula, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Minimum order",
+      "48 units (12/24 VIP-gated), buffer ~5% (noise-only)",
+      "2026",
+      "n/a",
+      "current",
+      "Part 1.C, line 76"
+    ],
+    [
+      "pricing",
+      "Per-unit Sales Profit (SP), average",
+      "Bandana $3.17/u ($564K) · Apparel $6.49/u ($165K)",
+      "2025 volume basis",
+      "n/a",
+      "current",
+      "Part 1.C, line 75"
+    ],
+    [
+      "pricing",
+      "Pricing rate anchor referenced (load-bearing for payroll doc)",
+      "$225/hr rate re-check",
+      "2026 pricing matrix rebuild",
+      "mixed",
+      "superseded",
+      "reference_payroll_hours_capture.md, intro paragraph",
+      "references old $225/hr; superseded by $140/hr (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Print rates apparel (min/unit by color count)",
+      "1c .34 · 2c .51 · 3c .58 · 4c .76 · 5c 1.24",
+      "2025",
+      "mixed",
+      "current",
+      "Part 1.B, line 65"
+    ],
+    [
+      "pricing",
+      "Print rates bandana (min/unit, flat single-pass)",
+      "1c .33 · 2c .35 · 3c .40 · 4c .42",
+      "2025",
+      "mixed",
+      "current",
+      "Part 1.B, line 65"
+    ],
+    [
+      "pricing",
+      "Priority/rush fee target burdened rate",
+      "~$130/hr burdened crew OT rate; standard price already covers $140/hr loaded rate (rush fee = pure incremental contribution)",
+      "live 2026-06-03",
+      "mixed",
+      "current",
+      "CLAUDE.md — Pointers section, 'Priority Production rush-fee policy' bullet"
+    ],
+    [
+      "pricing",
+      "Production cost rate ($140/hr)",
+      "$140/hr",
+      "2026 (current, Mar-May-derived)",
+      "mixed",
+      "current",
+      "Analysis_06 §Cost floor audit; TL;DR — $284K production pool ÷ ~2,050 winter-adjusted hrs",
+      "QB-verified numerator; winter-adjustment inferred, true range $130-150/hr | $140/hr current production rate; QB-verified numerator / winter-adj hours (X5 supersedes $225,$415) | provisional ruling 7/2 | also cited: L319 Part 1.B, line 62; L320 _AUDIT_findings_2026-05-27.md, ground-truth line + Production/Production_Rate.md (locked 2026-05-25, corrected 2026-05-27)"
+    ],
+    [
+      "pricing",
+      "Production rate — superseded value #1",
+      "$225/press hr (superseded)",
+      "locked 2026-05-17, superseded by 2026-05-27",
+      "mixed",
+      "superseded",
+      "_AUDIT_findings §C2, referencing Production/Apparel_Master_Curve_2026-05-17.md L8-9",
+      "superseded by $140/hr (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Production rate — superseded value #2",
+      "$415/productive hr (superseded)",
+      "2026-05-17, superseded (worst-case, oldest)",
+      "mixed",
+      "superseded",
+      "_AUDIT_findings §C3, referencing Bandana_Master_Curve_Comparison_2026-05-17.md L6",
+      "superseded by $140/hr (X5) | provisional ruling 7/2"
+    ],
+    [
+      "pricing",
+      "Proposed all-in bandana price at 50u vs Pine comp",
+      "proposed $9.68 @ 50u vs Pine comp $8.50 @ 50u",
+      "as of 2026-05-29",
+      "n/a",
+      "reference",
+      "How this sharpens the SP-curve call section"
+    ],
+    [
+      "pricing",
+      "Rate sensitivity range",
+      "$130-150/hr",
+      "2026, depending on winter reality",
+      "mixed",
+      "current",
+      "Analysis_06 §Cost floor audit, Hidden assumptions #1"
+    ],
+    [
+      "pricing",
+      "Required revenue/price lift to hit $47K SP in winter",
+      "Jan $81.0K needed (+63% price lift); Feb $81.0K (+96%); Nov $81.0K (+75%); Dec $81.0K (+111%)",
+      "2025 winter months, hypothetical",
+      "n/a",
+      "scenario",
+      "Analysis_07 §B5 table",
+      "hypothetical required price lift"
+    ],
+    [
+      "pricing",
+      "Rush fee sliding scale",
+      "1-Day +100% down to 5-Day +10%; $1,500 eligibility floor; Jean approval gate at ≤3 day / ≥25%",
+      "live 2026-06-03",
+      "n/a",
+      "current",
+      "CLAUDE.md — Pointers section, 'Priority Production rush-fee policy' bullet"
+    ],
+    [
+      "pricing",
+      "SP-curve anchor (bandana order size)",
+      "100 units (median and mode, confirmed 2 years)",
+      "2024-2025",
+      "n/a",
+      "current",
+      "Part 1.A, line 58"
+    ],
+    [
+      "pricing",
+      "Setup actuals at 3c/4c/5c vs formula",
+      "formula gives 44/56/68 min; actuals 48/58/86 min",
+      "current data",
+      "n/a",
+      "current",
+      "Analysis_06 TL;DR ACCEPTABLE bullet"
+    ],
+    [
+      "pricing",
+      "Setup formula intercept/slope",
+      "8 + 12 × colors (min)",
+      "current Master Curve",
+      "n/a",
+      "current",
+      "Analysis_06 §Apparel Master Curve audit — formula line and trace table (n=78 for 1c apparel median)"
+    ],
+    [
+      "pricing",
+      "Silver SP curve tiers (pre/post 5/29 trim)",
+      "12u $28.00; 24u $14.00; 48u $7.00→$6.00; 72u $5.50→$4.80; 144u $4.00; 288u $2.60; 576u $2.15; 1152u $1.70; 2304u $1.35; 4608u $1.10; 9216u $0.85; 18432u $0.70",
+      "as of 2026-05-29 trim, tiers live 2026-06-01",
+      "n/a",
+      "current",
+      "Analysis_07 §A1 Anchor table"
+    ],
+    [
+      "pricing",
+      "Total Sales Profit (SP) pool",
+      "~$986K/yr",
+      "2025/2026",
+      "n/a",
+      "current",
+      "Part 1.C, line 71"
+    ],
+    [
+      "pricing",
+      "Whale-tier flat-m pricing at 10,000u",
+      "~$4.46/u all-in vs ~$2.30/u import floor; SP taper target ~$3/u all-in @10K",
+      "as of 2026-05-29",
+      "n/a",
+      "reference",
+      "Implications for the SP curve, point 2"
+    ],
+    [
+      "pricing",
+      "average order value (company-wide)",
+      "$2,124.92 avg (annual col), $177.08 avg col",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' (first instance), TOTALS + AVG columns"
+    ],
+    [
+      "pricing",
+      "average order value (company-wide)",
+      "$1,980.33",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Average Order Value' (top-level), TOTALS column"
+    ],
+    [
+      "revenue",
+      "2's Day Collections revenue",
+      "$14,866",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "2023 A&M customers (filtered) count and total",
+      "100 customers, $733,166",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "2023 A&M filtered total (Holly's export) vs 2024 by-dept total (Kelly's) reconciliation gap",
+      "$733K (2023) vs $723K (2024) — not apples-to-apples",
+      "2023 vs 2024",
+      "Printavo",
+      "current",
+      "Analysis_04, 'Caveats' section"
+    ],
+    [
+      "revenue",
+      "2023→2024 A&M ex-DWC customer continuity",
+      "81 of 100 A&M customers from 2023 did not carry forward to 2024 (−$336K); 31 new customers won (+$148K); 19 retained but mostly flat (only DWC grew, +$188K)",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'The 2023→2024 A&M ex-DWC −$349K mystery is SOLVED' paragraph"
+    ],
+    [
+      "revenue",
+      "2023→2024 A&M ex-DWC drop (unexplained in Analysis 03)",
+      "-$349,000",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'What's NOT explained from this data'"
+    ],
+    [
+      "revenue",
+      "2024 A&M customers count and total",
+      "50 customers, $723,228",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "2025 3-year QuickBooks P&L headline (2023)",
+      "Revenue $1,647,069; COGS $967,558 (59%); GP $679,511 (41%); OpEx $703,214; Net Income −$23,702; OpEx/mo $58,601; loss months 6/12",
+      "2023",
+      "QB-accrual",
+      "reference",
+      "project_2025_financial_reality.md, 'Headline numbers — 3-year QuickBooks P&L' table"
+    ],
+    [
+      "revenue",
+      "2025 3-year QuickBooks P&L headline (2024)",
+      "Revenue $1,624,858; COGS $710,022 (44%); GP $914,836 (56%); OpEx $1,021,861; Net Income −$105,721; OpEx/mo $85,155; loss months 8/12",
+      "2024",
+      "QB-accrual",
+      "reference",
+      "project_2025_financial_reality.md, 'Headline numbers — 3-year QuickBooks P&L' table"
+    ],
+    [
+      "revenue",
+      "2025 3-year QuickBooks P&L headline (2025)",
+      "Revenue $1,752,189; COGS $819,215 (47%); GP $932,974 (53%); OpEx $942,029; Net Income −$9,343; OpEx/mo $78,502; loss months 8/12",
+      "2025",
+      "QB-accrual",
+      "reference",
+      "project_2025_financial_reality.md, 'Headline numbers — 3-year QuickBooks P&L' table",
+      "QB-accrual headline P&L; per-metric atomic rows are canonical/chartable | provisional ruling 7/2"
+    ],
+    [
+      "revenue",
+      "2025 Bandana revenue monthly range",
+      "$39K (Dec) to $122K (Jun) — 3.1× swing",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'The strategic implication' bullet list"
+    ],
+    [
+      "revenue",
+      "2025 annual avg monthly revenue",
+      "$146K annual avg",
+      "2025",
+      "QB-accrual",
+      "current",
+      "'What jumps out in 2025' bullet, line 68"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Apr",
+      "$74,866 bandana rev / $76,672 OpEx / 98% coverage",
+      "2025-04",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 119"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Aug",
+      "$86,374 bandana rev / $103,779 OpEx / 83% coverage",
+      "2025-08",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 123"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Dec",
+      "$39,356 bandana rev / $127,773 OpEx / 31% coverage",
+      "2025-12",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 127"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Feb",
+      "$61,867 bandana rev / $68,910 OpEx / 90% coverage",
+      "2025-02",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 117"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Jan",
+      "$56,944 bandana rev / $85,034 OpEx / 67% coverage",
+      "2025-01",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 116"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Jul",
+      "$104,937 bandana rev / $77,983 OpEx / 135% coverage",
+      "2025-07",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 122"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Jun",
+      "$121,574 bandana rev / $50,062 OpEx / 243% coverage",
+      "2025-06",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 121"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Mar",
+      "$71,395 bandana rev / $45,048 OpEx / 158% coverage",
+      "2025-03",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 118"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — May",
+      "$77,193 bandana rev / $88,454 OpEx / 87% coverage",
+      "2025-05",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 120"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Nov",
+      "$48,897 bandana rev / $57,009 OpEx / 86% coverage",
+      "2025-11",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 126"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Oct",
+      "$96,828 bandana rev / $117,251 OpEx / 83% coverage",
+      "2025-10",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 125"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana coverage — Sep",
+      "$88,204 bandana rev / $54,630 OpEx / 161% coverage",
+      "2025-09",
+      "QB-accrual",
+      "current",
+      "2025 monthly bandana coverage table, line 124"
+    ],
+    [
+      "revenue",
+      "2025 monthly bandana revenue/units (full table)",
+      "Jan $49,673/8,985u; Feb $41,318/8,574u; Mar $57,168/12,487u; Apr $67,136/13,786u; May $63,720/13,824u; Jun $91,960/16,448u; Jul $86,799/21,681u; Aug $75,811/14,437u; Sep $69,411/21,227u; Oct $89,116/30,796u; Nov $46,406/8,029u; Dec $38,431/7,526u; TOTAL $776,949/177,800u/527 invoices, avg $4.37/u, avg $1,474/inv",
+      "2025 full year, month by month",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B2, QB 'Sales by Product Detail 2025' table"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Feb $109,629 income / $71,865 OpEx / -$10,172 NetOp",
+      "2025-02",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 52"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Mar $167,714 income / $46,979 OpEx / +$48,540 NetOp",
+      "2025-03",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 53"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Apr $114,463 income / $82,123 OpEx / -$22,996 NetOp",
+      "2025-04",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 54"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "May $132,201 income / $94,356 OpEx / -$10,922 NetOp",
+      "2025-05",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 55"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Jun $186,134 income / $52,013 OpEx / +$81,152 NetOp",
+      "2025-06",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 56"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Jul $176,143 income / $83,106 OpEx / +$8,400 NetOp",
+      "2025-07",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 57"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Aug $221,360 income / $114,538 OpEx / -$6,889 NetOp",
+      "2025-08",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 58"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Sep $144,803 income / $58,685 OpEx / +$18,106 NetOp",
+      "2025-09",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 59"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Oct $200,424 income / $125,917 OpEx / -$9,485 NetOp",
+      "2025-10",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 60"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Nov $92,288 income / $59,593 OpEx / -$45,137 NetOp",
+      "2025-11",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 61"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Dec $97,660 income / $60,670 OpEx / -$43,123 NetOp",
+      "2025-12",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 62"
+    ],
+    [
+      "revenue",
+      "2025 monthly income/OpEx/NetOp",
+      "Jan $109,371 income / $92,183 OpEx / -$16,529 NetOp",
+      "2025-01",
+      "QB-accrual",
+      "current",
+      "2025 Monthly Detail table, line 51",
+      "draft mislabeled '2026-01 (Jan 2025)'; is Jan 2025 (part of 2025 Jan-Dec series)"
+    ],
+    [
+      "revenue",
+      "2026 YTD profit swing",
+      "End of 2025: −$6K profit; End of April 2026: +$37K profit (~$43K YoY swing in 4 months)",
+      "2025-12..2026-04",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, '2026 YTD signals' section"
+    ],
+    [
+      "revenue",
+      "A&M % of total revenue trend",
+      "48% → 26% over 2 years",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, note under DWC Sportech table"
+    ],
+    [
+      "revenue",
+      "A&M (Apparel & Merch) Revenue",
+      "2023: $785,113 (47.7% of total); 2024: $613,442 (37.7%); 2025: $454,562 (25.9%)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 149-153, and corrected table lines 39-43 (A&M Total column)"
+    ],
+    [
+      "revenue",
+      "A&M Total Revenue",
+      "$644,045",
+      "2024",
+      "QB-accrual",
+      "reference",
+      "Analysis_03, 'Headline numbers (from by-dept workbook)' table"
+    ],
+    [
+      "revenue",
+      "A&M Total Revenue",
+      "$583,198",
+      "2025",
+      "QB-accrual",
+      "reference",
+      "Analysis_03, 'Headline numbers (from by-dept workbook)' table"
+    ],
+    [
+      "revenue",
+      "A&M Total vs DWC vs ex-DWC (2024)",
+      "A&M Total $644,045; DWC $467,285 (73%); A&M ex-DWC $176,760",
+      "2024",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Apparel & Merch is NOT in structural decline' table"
+    ],
+    [
+      "revenue",
+      "A&M Total vs DWC vs ex-DWC (2025)",
+      "A&M Total $583,198; DWC $145,180 (25%); A&M ex-DWC $438,018 (+$261K growth)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Apparel & Merch is NOT in structural decline' table"
+    ],
+    [
+      "revenue",
+      "A&M decline over 2 years",
+      "-42% / -$330K (2023→2025)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 155"
+    ],
+    [
+      "revenue",
+      "A&M ex-DWC",
+      "2023: $501,170; 2024: $152,105 (YoY -$349,065); 2025: $281,041 (YoY +$128,936)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 39-43, 'Corrected A&M Story' table"
+    ],
+    [
+      "revenue",
+      "A&M ex-DWC growth 2024→2025",
+      "+$261,000",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Critical observation' note"
+    ],
+    [
+      "revenue",
+      "A&M ex-DWC revenue",
+      "$176,760",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "revenue",
+      "A&M ex-DWC revenue",
+      "$438,018",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "revenue",
+      "A&M new VIP-track wins",
+      "Won 8 substantial new VIP-track accounts, $295K total (ClickHouse $95K, I&V $92K, Rancho Valencia $53K, Julian Pie recovery $13K, plus Brightview, Moon Valley, others)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'A&M ex-DWC GREW' bullet list"
+    ],
+    [
+      "revenue",
+      "A&M small-account churn",
+      "Lost 15 small accounts ($2K-$12K each, total $78K)",
+      "2024",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'A&M ex-DWC GREW' bullet list"
+    ],
+    [
+      "revenue",
+      "A&M topline decline 2024→2025",
+      "-$61,000",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03 TL;DR"
+    ],
+    [
+      "revenue",
+      "A&M/DWC revenue by year (3-yr, corrected)",
+      "2023: A&M $785,113, DWC $283,943 (17.2%), A&M ex-DWC $501,170; 2024: A&M $613,442, DWC $461,337 (28.4% peak), A&M ex-DWC $152,105 (YoY −$349,065); 2025: A&M $454,562, DWC $173,521 (9.9%), A&M ex-DWC $281,041 (YoY +$128,936)",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Apparel & Merch decline — DWC Sportech move' table"
+    ],
+    [
+      "revenue",
+      "All County Fire, Inc. lost account",
+      "$8,665 (2024) -> $0 (2025)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table"
+    ],
+    [
+      "revenue",
+      "Apparel % of revenue",
+      "30% (~$44K/mo)",
+      "2025",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "stale 60/30/10 product-mix carryover, superseded (see dept actuals)"
+    ],
+    [
+      "revenue",
+      "Apparel & Merch Dept annual revenue",
+      "$300,935.90 (18% of income)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Apparel & Merch Dept', TOTALS + % column"
+    ],
+    [
+      "revenue",
+      "Apparel & Merch Dept annual revenue",
+      "$529,476.57 (30% of income)",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Apparel & Merch Dept', TOTALS + % column"
+    ],
+    [
+      "revenue",
+      "Apparel & Merch Dept revenue",
+      "$15,918.39 (Jan), $26,993.05 (Feb), TOTAL $42,911.44 (15% of total)",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Apparel & Merch Dept'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "revenue",
+      "Apparel In-house bucket revenue",
+      "$303,182 (19.4%, 25,436 units)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 42"
+    ],
+    [
+      "revenue",
+      "Apparel Outsourced (embroidery) bucket revenue",
+      "$152,383 (9.7%, 6,856 units)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 43"
+    ],
+    [
+      "revenue",
+      "Apparel vs bandana per-unit SP and revenue share (in-house production)",
+      "Bandana 71% of in-house production revenue, apparel 29%; apparel per-unit SP $6.49 vs bandana $3.17",
+      "per 5/25 5-bucket allocation",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §A6 Apparel SP formally flagged as parked gap"
+    ],
+    [
+      "revenue",
+      "April 2026 CPC sales crash",
+      "$7,799 (vs March reconciled $40,308)",
+      "2026-04",
+      "Printavo",
+      "current",
+      "Bottom line paragraph; CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Bandana % of revenue",
+      "60% (~$87K/mo actual)",
+      "2025",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "stale 60/30/10 product-mix carryover, superseded (see dept actuals)"
+    ],
+    [
+      "revenue",
+      "Bandana Dept annual revenue",
+      "$887,630.02 (54% of income)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Bandana Dept', TOTALS + % column"
+    ],
+    [
+      "revenue",
+      "Bandana Dept annual revenue",
+      "$1,111,817.36 (62% of income)",
+      "2025",
+      "KPI-cash",
+      "superseded",
+      "CSV row 'Bandana Dept', TOTALS + % column",
+      "tag-inflated (#bandana over-application); superseded (X3) | provisional ruling 7/2"
+    ],
+    [
+      "revenue",
+      "Bandana Dept revenue",
+      "$111,446.89 (Jan), $102,751.58 (Feb), TOTAL $214,198.47 (76% of total)",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Bandana Dept'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "revenue",
+      "Bandana Outsourced bucket revenue",
+      "$156,281 (10.0%, 24,920 units)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 41"
+    ],
+    [
+      "revenue",
+      "Bandana Revenue",
+      "2023: $839,933; 2024: $708,392; 2025: $928,436",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 149-153, 'Apparel & Merch is in structural decline' table",
+      "canonical all-bandana (in+out) revenue series; 2025 headline $928,436 (X3) | provisional ruling 7/2 | also cited: L405 Bandana-Covers-Overhead table, line 98; L406 Bandana-Covers-Overhead table, line 99; implications section line 104; L407 Bandana-Covers-Overhead table, line 100; implications section line 105/110"
+    ],
+    [
+      "revenue",
+      "Bandana subset match rate vs QB revenue share",
+      "regex-matched bandana subset 73% of boxes vs QB's 67% bandana revenue share",
+      "as of 2026-05-29",
+      "Printavo",
+      "current",
+      "Caveats section"
+    ],
+    [
+      "revenue",
+      "Banque Chocolate lost account",
+      "$6,493 (2024) -> $0 (2025)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table"
+    ],
+    [
+      "revenue",
+      "Brightview Tree Care revenue",
+      "$12,748",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "CLAUDE.md stale product-mix split (superseded)",
+      "Bandana 60% / Apparel 30% / Promo 10% (STALE, superseded)",
+      "carried over from 2026-04-29",
+      "QB-accrual",
+      "current",
+      "_AUDIT_findings §C1, referencing PlanetIQ/CLAUDE.md lines 110-112 and line 29 (\"60/30/10 division split\")"
+    ],
+    [
+      "revenue",
+      "Captain Morgan | TOTC lost account",
+      "$11,319 (2024) -> $0 (2025)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table"
+    ],
+    [
+      "revenue",
+      "ClickHouse Top Tier revenue (2026 YTD)",
+      "$42,207",
+      "2026 YTD as of 2026-05-13",
+      "Printavo",
+      "current",
+      "Analysis_03, 'Top Tier accounts' section"
+    ],
+    [
+      "revenue",
+      "ClickHouse, Inc. revenue",
+      "$94,927",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Climate Reality Project (walked, 2023 revenue)",
+      "$20,931",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table"
+    ],
+    [
+      "revenue",
+      "Create Church revenue",
+      "$5,403",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Cumulative 3-year Net Income",
+      "−$138,766",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, below headline table",
+      "also cited: L47 Analysis_02 line 51 (also referenced in MEMORY.md project_2025_financial_reality); derivable from NI figures in lines 129-131 (-$23,702 + -$105,721 + -$9,343 = -$138,766); L48 Part 1.A line 49; L87 TL;DR line 25; also referenced in item 5, line 145"
+    ],
+    [
+      "revenue",
+      "DWC (Death Wish Coffee) revenue by year",
+      "2023: $283,943 (17.2% of total rev); 2024: $461,337 (28.4%, peak concentration); 2025: $173,521 (9.9%); 2026 YTD through 5/13: $95,565 (~13% annualized)",
+      "2023-2026 YTD (5/13)",
+      "QB-accrual",
+      "current",
+      "Analysis_02 lines 27-31, correction #2 section"
+    ],
+    [
+      "revenue",
+      "DWC Dept annual revenue",
+      "$460,773.04 (28% of income)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'DWC Dept', TOTALS + % column",
+      "Death Wish Coffee VIP client"
+    ],
+    [
+      "revenue",
+      "DWC Dept annual revenue",
+      "$145,180.15 (8% of income)",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'DWC Dept', TOTALS + % column"
+    ],
+    [
+      "revenue",
+      "DWC Dept revenue",
+      "$13,116.45 (Jan), $12,566.25 (Feb), TOTAL $25,682.70 (9% of total)",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'DWC Dept'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "revenue",
+      "DWC Top Tier revenue (2026 YTD)",
+      "$59,670",
+      "2026 YTD as of 2026-05-13",
+      "Printavo",
+      "current",
+      "Analysis_03, 'Top Tier accounts' section"
+    ],
+    [
+      "revenue",
+      "DWC apparel exit impact",
+      "-$322,000",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03 TL;DR"
+    ],
+    [
+      "revenue",
+      "DWC decline 2024→2025",
+      "-$288K (DWC alone), more than fully explaining the $159K A&M decline that period (other A&M customers +$129K offsetting)",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 33"
+    ],
+    [
+      "revenue",
+      "DWC retained-account growth 2023→2024",
+      "$279,274 -> $467,285 (+$188,000)",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Retained customers (19 of 100)' section"
+    ],
+    [
+      "revenue",
+      "DWC revenue within A&M",
+      "$467,285 (73% of A&M total)",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "revenue",
+      "DWC revenue within A&M",
+      "$145,180 (25% of A&M total)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "revenue",
+      "Department breakdown 2025 actuals vs targets",
+      "Bandana $92,651/mo (target $96K, near); Apparel & Merch $44,123/mo (target $48K, near); DWC $12,098/mo (target $16K, below)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Department breakdown' table"
+    ],
+    [
+      "revenue",
+      "Digital Bandanas revenue",
+      "$43,620 (4,910 units, $8.88 avg price)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A table, line 29"
+    ],
+    [
+      "revenue",
+      "Existing customers ex-DWC net change",
+      "~+$43,000 growth",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03 TL;DR"
+    ],
+    [
+      "revenue",
+      "Feb 2026 reconciliation shift",
+      "first-pass 3.4x ROAS shifted to 6.82x after reconciliation",
+      "2026-02",
+      "QB-accrual",
+      "current",
+      "What this changes vs the win-rate-only read, point 4"
+    ],
+    [
+      "revenue",
+      "Foothills Christian Church lost account",
+      "$12,281 (2024) -> $0 (2025)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table"
+    ],
+    [
+      "revenue",
+      "Google CPC lifetime totals",
+      "sales $223,583, spend $21,234, ROAS 10.53x, 717 records",
+      "Sept 2025 - May 2026",
+      "Printavo",
+      "current",
+      "Google CPC monthly table, Lifetime row"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2025-09",
+      "sales $16,531, spend $3,243, ROAS 5.10x, 86 records",
+      "2025-09",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2025-10",
+      "sales $30,591, spend $3,243, ROAS 9.43x, 73 records",
+      "2025-10",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2025-11",
+      "sales $29,736, spend $2,823, ROAS 10.53x, 74 records",
+      "2025-11",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2025-12",
+      "sales $10,231, spend $1,652, ROAS 6.19x, 35 records",
+      "2025-12",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2026-01",
+      "sales $58,700 (Kelly reconciled $59,275), spend $3,918, ROAS 14.98x, 123 records",
+      "2026-01",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2026-02",
+      "sales $27,283 (reconciled), spend $3,998, ROAS 6.82x, 106 records",
+      "2026-02",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2026-03",
+      "sales $40,308 reconciled (Brian first-pass $38,375), spend $2,357, ROAS ~17x, 76 records",
+      "2026-03",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2026-04",
+      "sales $7,799 (not yet reconciled), spend TBD, ROAS ~3.3x, 102 records",
+      "2026-04",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "Google CPC monthly - 2026-05",
+      "sales $2,403 (partial-month, not reconciled), spend TBD, 40 records",
+      "2026-05 partial",
+      "Printavo",
+      "current",
+      "Google CPC monthly table"
+    ],
+    [
+      "revenue",
+      "GraceLaced new win 2024",
+      "$32,704",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'New customer wins in 2024' table"
+    ],
+    [
+      "revenue",
+      "In-house revenue",
+      "$1,080,131 (69%)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 46"
+    ],
+    [
+      "revenue",
+      "Income (KPI)",
+      "$140,481.73 (Jan), $142,310.88 (Feb), TOTAL $282,792.61",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Income (KPI)'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "revenue",
+      "Industrial Metal Supply Co. (walked, 2023 revenue)",
+      "$17,168",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table"
+    ],
+    [
+      "revenue",
+      "Iron and Velvet (I&V) revenue",
+      "$92,389",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Iron and Velvet Top Tier revenue (2026 YTD)",
+      "$32,326",
+      "2026 YTD as of 2026-05-13",
+      "Printavo",
+      "current",
+      "Analysis_03, 'Top Tier accounts' section"
+    ],
+    [
+      "revenue",
+      "Jamie Gillooly retained-account growth 2023→2024",
+      "$54 -> $3,954 (+$3.9K)",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Retained customers (19 of 100)' section"
+    ],
+    [
+      "revenue",
+      "Julian Pie Company (walked, 2023 revenue)",
+      "$67,305",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table"
+    ],
+    [
+      "revenue",
+      "Julian Pie Company Top Tier revenue (2026 YTD)",
+      "$13,155",
+      "2026 YTD as of 2026-05-13",
+      "Printavo",
+      "current",
+      "Analysis_03, 'Top Tier accounts' section"
+    ],
+    [
+      "revenue",
+      "Julian Pie Company revenue",
+      "$13,155",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Julian Pie Company revenue (credit/refund year)",
+      "-$5,167.07",
+      "2024",
+      "QB-accrual",
+      "one-time",
+      "Analysis_03, 'Julian Pie Company — the art mishap data trail'",
+      "one-time Julian Pie refund/credit year"
+    ],
+    [
+      "revenue",
+      "Julian Pie recovery",
+      "2024: −$5,167 (refund issued); 2025: $13,155",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Julian Pie Company' section"
+    ],
+    [
+      "revenue",
+      "Levain Bakery (walked, 2023 revenue)",
+      "$63,780",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table"
+    ],
+    [
+      "revenue",
+      "Lost A&M customers (churn)",
+      "-$77,917 (15 customers)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table + total"
+    ],
+    [
+      "revenue",
+      "Merch Outsourced (promo) bucket revenue",
+      "$176,267 (11.3%, 59,984 units)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 44"
+    ],
+    [
+      "revenue",
+      "Merch/Promo revenue mis-mapping",
+      "Merch reads ~$0 in QB when actual is ~$202K (~21% of revenue un-departmentized due to 'Promo' mapped to generic Sales account)",
+      "undated, as of doc seeding 2026-05-30",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §2.1, 'Per product line (5 buckets)'"
+    ],
+    [
+      "revenue",
+      "Months in 2025 where bandana revenue ≥ monthly OpEx",
+      "4 of 12 months (Mar, Jun, Jul, Sep)",
+      "2025",
+      "n/a",
+      "current",
+      "line 129"
+    ],
+    [
+      "revenue",
+      "Moon Valley Nurseries revenue",
+      "$8,745",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Net delta from customer moves",
+      "-$208,397",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "New customers in 2024",
+      "31 customers, +$148,298",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "New substantial A&M customer wins",
+      "+$295,638 (8 customers)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins in 2025' table + total"
+    ],
+    [
+      "revenue",
+      "New wins total 2024 (all)",
+      "$148,298",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'New customer wins in 2024' section total"
+    ],
+    [
+      "revenue",
+      "Order size by acq method - Direct",
+      "n=75, avg $1,271, median $778",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Order size doesn't separate the segments table"
+    ],
+    [
+      "revenue",
+      "Order size by acq method - Organic",
+      "n=289, avg $1,481, median $735",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Order size doesn't separate the segments table"
+    ],
+    [
+      "revenue",
+      "Order size by acq method - Paid CPC",
+      "n=597, avg $1,588, median $754",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Order size doesn't separate the segments table"
+    ],
+    [
+      "revenue",
+      "Order size by acq method - Referral",
+      "n=43, avg $1,209, median $707",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Order size doesn't separate the segments table"
+    ],
+    [
+      "revenue",
+      "Outsourced revenue",
+      "$484,931 (31%)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 47"
+    ],
+    [
+      "revenue",
+      "Peak avg monthly revenue (Jun-Oct)",
+      "$82K/month",
+      "2025 peak season",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B2, Seasonality bullets"
+    ],
+    [
+      "revenue",
+      "Projected 2026 bandana revenue if +31% YoY trajectory continues",
+      "~$1.22M (projection, not actual)",
+      "2026 (projection)",
+      "QB-accrual",
+      "scenario",
+      "Implications for the strategic frame, line 110",
+      "projection, not actual"
+    ],
+    [
+      "revenue",
+      "Promo/Merch % of revenue",
+      "10%",
+      "2025",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "stale 60/30/10 product-mix carryover, superseded"
+    ],
+    [
+      "revenue",
+      "Rancho Valencia Resort and Spa revenue",
+      "$53,405",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 8 substantial new A&M wins' table"
+    ],
+    [
+      "revenue",
+      "Received Payments - Actual",
+      "$140,481.73 (Jan), $142,310.88 (Feb), TOTAL $282,792.61 (100% of total)",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Recieved Payments - Actual'",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "revenue",
+      "Received Payments-Actual annual",
+      "$1,786,254.08 (100%)",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Recieved Payments - Actual', TOTALS column",
+      "KPI-cash revenue (=Received Payments); parallel to QB revenue $1,752,189 (X1) | provisional ruling 7/2 | also cited: L496 CLAUDE.md — Context > Carryover table, 'KPI tracker'; L503 CSV row 'Income (KPI)', TOTALS column"
+    ],
+    [
+      "revenue",
+      "Retained customers 2023→2024",
+      "19 customers, $396,716 (2023) -> $574,929 (2024)",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "Revenue",
+      "$1,647,069",
+      "2023",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 33"
+    ],
+    [
+      "revenue",
+      "Revenue",
+      "$1,624,858",
+      "2024",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 34"
+    ],
+    [
+      "revenue",
+      "Revenue",
+      "$1,752,189",
+      "2025",
+      "QB-accrual",
+      "current",
+      "3-Year P&L Summary table, line 35",
+      "also cited: L494 Part 1.A line 49"
+    ],
+    [
+      "revenue",
+      "Revenue YoY change",
+      "−1.3% in 2024; +7.8% in 2025",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Net result' paragraph under PPH merger section"
+    ],
+    [
+      "revenue",
+      "Revenue vs Total Cost vs Net Income",
+      "2023: Rev $1,647,069 / Cost $1,670,772 (101.4%) / NI -$23,702; 2024: Rev $1,624,858 / Cost $1,731,883 (106.6%) / NI -$105,721; 2025: Rev $1,752,189 / Cost $1,761,244 (100.5%) / NI -$9,343",
+      "2023-2025",
+      "QB-accrual",
+      "reference",
+      "Analysis_02 lines 127-131, table under 'What's the REAL 2024 story?'"
+    ],
+    [
+      "revenue",
+      "Screen Printed Apparel revenue",
+      "$608 (114 units, $5.33 avg price)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A table, line 31"
+    ],
+    [
+      "revenue",
+      "Screen Printed Bandanas revenue",
+      "$776,949 (177,800 units, $4.37 avg price)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A table, line 27",
+      "screen-print in-house bandana sub-metric; 49.6% of revenue bucket; $4.37/u avg (X3) | provisional ruling 7/2 | also cited: L346 Analysis_07 TL;DR table; also B2 QB 'Sales by Product Detail 2025' table (177,800 units / 527 invoices); L372 _AUDIT_findings_2026-05-27.md ground-truth line; L402 Part 1.A 5-bucket rollup, line 40"
+    ],
+    [
+      "revenue",
+      "Screen Printing (apparel) revenue",
+      "$273,874 (23,487 units, $11.66 avg price)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A table, line 30"
+    ],
+    [
+      "revenue",
+      "Screen-print bandana growth 2024→2025",
+      "orders +89%, units +122%, revenue +103%",
+      "2024-2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A, line 58"
+    ],
+    [
+      "revenue",
+      "Shrunk retained customers (≥$2K decrease)",
+      "4 customers, -$20,245",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "Stuck-premium savings from 600/800 tiers",
+      "~$600/yr given up (closes 9 of 17 stuck zones)",
+      "annualized, post 2026-06-01 change",
+      "QB-accrual",
+      "reference",
+      "Analysis_07 §A2",
+      "annualized estimate"
+    ],
+    [
+      "revenue",
+      "Sublimated Bandanas (Fiel) revenue",
+      "$112,662 (20,010 units, $5.63 avg price)",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A table, line 28"
+    ],
+    [
+      "revenue",
+      "Top 5 walked customers combined 2023 revenue",
+      "$210,326 (63% of all walked revenue)",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table + note"
+    ],
+    [
+      "revenue",
+      "Top A&M customer departures (2023→2024)",
+      "Levain Bakery $64K; Julian Pie $67K (art mishap); Yay Lunch $41K; Climate Reality Project $21K; Industrial Metal Supply $17K",
+      "2023-2024",
+      "QB-accrual",
+      "current",
+      "project_2025_financial_reality.md, 'Top departures' sentence"
+    ],
+    [
+      "revenue",
+      "Total product revenue",
+      "~$1,565,061",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A 5-bucket rollup, line 45"
+    ],
+    [
+      "revenue",
+      "Uncategorized 'Total for Sales' line",
+      "2023: $22K; 2024: $277K; 2025: $371K",
+      "2023-2025",
+      "QB-accrual",
+      "current",
+      "Analysis_02 line 224, Open Questions section"
+    ],
+    [
+      "revenue",
+      "Walked customers (in 2023, gone in 2024)",
+      "81 customers, -$336,450",
+      "2023 to 2024",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'The numbers' table"
+    ],
+    [
+      "revenue",
+      "Waterhorse Charters lost account",
+      "$8,830 (2024) -> $0 (2025)",
+      "2024 to 2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'The 15 customers we lost' table"
+    ],
+    [
+      "revenue",
+      "Winter avg monthly revenue (Nov-Feb)",
+      "$44K/month (53% of peak rate)",
+      "2025 winter season",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §B2, Seasonality bullets"
+    ],
+    [
+      "revenue",
+      "Yay Lunch! (walked, 2023 revenue)",
+      "$41,143",
+      "2023",
+      "QB-accrual",
+      "current",
+      "Analysis_04, 'Top 25 customers who walked' table"
+    ],
+    [
+      "revenue",
+      "annual income",
+      "$1,648,940.04",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Income (KPI)', TOTALS column",
+      "cash-basis"
+    ],
+    [
+      "revenue",
+      "average monthly income",
+      "$148,854.51",
+      "2025 (Monthly Average)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Income (KPI)', Monthly Averages column"
+    ],
+    [
+      "revenue",
+      "received payments actual",
+      "$1,648,940.04 (100%)",
+      "2024 (full year total)",
+      "KPI-cash",
+      "current",
+      "CSV row 'Received Payments - Actual', TOTALS + % column"
+    ],
+    [
+      "volume",
+      "18,432-tier order volume",
+      "zero orders at that tier in 2025",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §A1, Silver anchor table note"
+    ],
+    [
+      "volume",
+      "2025 actual volumes by category",
+      "bandana ~202,795 (in+out) · apparel ~32,292 · merch ~59,984",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.E, line 93",
+      "total bandana volume headline in+out (X3) | provisional ruling 7/2"
+    ],
+    [
+      "volume",
+      "2025 bandana volume — Printavo-derived (non-SoT, conflicting)",
+      "177,995 units (Printavo Total Quantity, NOT QB — flagged as wrong source)",
+      "2025",
+      "QB-accrual",
+      "superseded",
+      "_AUDIT_findings §C5, referencing Production/Volume_Firmup_2026-05-18.md L23-31, L71",
+      "Printavo wrong source; superseded by QB-verified 177,800u (X3) | provisional ruling 7/2"
+    ],
+    [
+      "volume",
+      "2025 screen-print bandana volume (QB-verified)",
+      "177,800 units",
+      "2025",
+      "QB-accrual",
+      "current",
+      "_AUDIT_findings_2026-05-27.md ground-truth line; cross-referenced in Annual_Data_Summary and _SOURCE_OF_TRUTH.md",
+      "QB-verified screen-print in-house volume sub-metric (X3) | provisional ruling 7/2"
+    ],
+    [
+      "volume",
+      "2026 forward volume projection",
+      "bandana ~294K · apparel ~74K (lumped) · total ~368K",
+      "2026 (projection)",
+      "QB-accrual",
+      "scenario",
+      "Part 1.E, line 94",
+      "forward volume projection"
+    ],
+    [
+      "volume",
+      "A&M ex-DWC customer count",
+      "34 customers",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "volume",
+      "A&M ex-DWC customer count",
+      "43 customers",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_03, 'Headline numbers' table"
+    ],
+    [
+      "volume",
+      "Apparel & Merch Dept Total Number Of Orders",
+      "9 (Jan), 15.5 (Feb), TOTAL 24.5",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Total Number Of Orders' under Apparel & Merch Dept",
+      "KPI averaging artifact (fractional order counts) | period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "volume",
+      "Apparel & Merch Dept total orders",
+      "163 orders (annual), avg 14/mo",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under Apparel & Merch Dept section, TOTALS + AVG"
+    ],
+    [
+      "volume",
+      "Apparel & Merch Dept total orders",
+      "230 orders",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under Apparel & Merch Dept, TOTALS column"
+    ],
+    [
+      "volume",
+      "Bandana Dept Total Number Of Orders",
+      "41 (Jan), 48 (Feb), TOTAL 89",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Total Number Of Orders' under Bandana Dept",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "volume",
+      "Bandana Dept total orders",
+      "553 orders (annual), avg 46/mo",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under Bandana Dept section, TOTALS + AVG"
+    ],
+    [
+      "volume",
+      "Bandana Dept total orders",
+      "624 orders",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under Bandana Dept, TOTALS column"
+    ],
+    [
+      "volume",
+      "Bandana boxes analyzed (subset)",
+      "2,791 of 3,847 total boxes (73%)",
+      "as of 2026-05-29",
+      "n/a",
+      "current",
+      "header, run 2026-05-29"
+    ],
+    [
+      "volume",
+      "Bandana inbound premium/warm share (Direct + Referral)",
+      "129 boxes, 11% of attributed leads, win rate 50.6%/28.3%",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Bottom line table"
+    ],
+    [
+      "volume",
+      "Bandana inbound price-shopper share (Paid CPC + Organic)",
+      "989 boxes, 88% of attributed leads, win rate 22.8%/28.4%",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Bottom line table"
+    ],
+    [
+      "volume",
+      "CPC leads in 50-199u price-shopper zone",
+      "291 of 672 CPC leads (43%), winning ~20-25%",
+      "lifetime through 2026-05-29",
+      "Printavo",
+      "current",
+      "Read note under CPC x Qty Band table"
+    ],
+    [
+      "volume",
+      "DWC Dept Total Number Of Orders",
+      "3.5 (Jan), 3 (Feb), TOTAL 6.5",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Total Number Of Orders' under DWC Dept",
+      "KPI averaging artifact (fractional order counts) | period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "volume",
+      "DWC Dept total orders",
+      "88 orders (annual), avg 7/mo",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under DWC Dept section, TOTALS + AVG"
+    ],
+    [
+      "volume",
+      "DWC Dept total orders",
+      "54.5 orders",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' under DWC Dept, TOTALS column",
+      "KPI averaging artifact (fractional order counts)"
+    ],
+    [
+      "volume",
+      "Historical job corpus underlying tag dictionary",
+      "5,125 historical jobs",
+      "through source CSV dated 2026-04-28",
+      "Printavo",
+      "current",
+      "tag_dictionary.md header, \"Purpose\" line"
+    ],
+    [
+      "volume",
+      "Import blank share of 2025 bandana volume",
+      "~75%",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §A4 Blank COG, Audit verdict"
+    ],
+    [
+      "volume",
+      "Inside Neck Print imprints identified",
+      "19 press-side imprints across 14 invoices",
+      "Apr-May 2026 Printavo pull",
+      "n/a",
+      "current",
+      "Analysis_06 §Separate Decoration Category Flagged — Inside Neck Print"
+    ],
+    [
+      "volume",
+      "Median apparel order size",
+      "50 units",
+      "undated (Gemini #2)",
+      "n/a",
+      "superseded",
+      "CLAUDE.md — Context > Carryover table",
+      "Gemini-era median-50u, superseded (X5) | provisional ruling 7/2"
+    ],
+    [
+      "volume",
+      "Order-size distribution / bandana anchor",
+      "522 screen-print bandana invoices (2025); anchor = 100 units",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Data_Source_Capture_and_Gaps.md §2.5, 'Order-size distribution'"
+    ],
+    [
+      "volume",
+      "Outsourced jobs with in-house QC touch",
+      "83% (45 of 54 outsourced invoices)",
+      "Apr-May 2026 Printavo pull",
+      "n/a",
+      "current",
+      "Analysis_06 §OUTSOURCED-WITH-IN-HOUSE-QC rule intro"
+    ],
+    [
+      "volume",
+      "Pin-in-neck-seam finishing labor rows",
+      "8 rows (Finishing tier, $26/hr, not press time)",
+      "Apr-May 2026",
+      "n/a",
+      "current",
+      "Analysis_06 §Separate Decoration Category Flagged — Inside Neck Print"
+    ],
+    [
+      "volume",
+      "Press day capacity",
+      "420 press-min Standard / 600 press-min OT (single press)",
+      "scoping as of 2026-06-03",
+      "n/a",
+      "current",
+      "CLAUDE.md — Pointers section, 'Schedule Capacity Indicator' bullet"
+    ],
+    [
+      "volume",
+      "Printavo historical tag corpus size (tag dictionary scope)",
+      "194 unique tags; 16,510 total tag uses",
+      "as of tag_dictionary.md creation, mid-May 2026 (unfinished)",
+      "Printavo",
+      "current",
+      "tag_dictionary.md header, \"Total tags found\" / \"Total tag uses\""
+    ],
+    [
+      "volume",
+      "Screen Printed Bandanas — orders/units/revenue/$-unit/median/mode",
+      "2024: 276 orders, 80,188 units, $383,151, $4.78/unit, median 100, mode 100",
+      "2024",
+      "QB-accrual",
+      "current",
+      "Part 1.A trend table, line 55"
+    ],
+    [
+      "volume",
+      "Screen Printed Bandanas — orders/units/revenue/$-unit/median/mode",
+      "2025: 522 orders, 177,800 units, $776,949, $4.37/unit, median 100, mode 100",
+      "2025",
+      "QB-accrual",
+      "current",
+      "Part 1.A trend table, line 56"
+    ],
+    [
+      "volume",
+      "Stuck-zone order concentration (500-1000u)",
+      "17 of 54 orders (32%) in 500-1000 zone; concentrated 600u (4 orders), 800u (5 orders)",
+      "2025 order distribution",
+      "QB-accrual",
+      "current",
+      "Analysis_07 §A2"
+    ],
+    [
+      "volume",
+      "Tag #apparel (Product-Type) count",
+      "902 uses",
+      "historical Printavo job corpus",
+      "Printavo",
+      "current",
+      "tag_dictionary.md, Tag Mapping Table row 4"
+    ],
+    [
+      "volume",
+      "Tag #newclient count",
+      "2,101 uses",
+      "historical Printavo job corpus",
+      "Printavo",
+      "current",
+      "tag_dictionary.md, Tag Mapping Table row 3"
+    ],
+    [
+      "volume",
+      "Tag #returnclient count",
+      "816 uses",
+      "historical Printavo job corpus",
+      "Printavo",
+      "current",
+      "tag_dictionary.md, Tag Mapping Table row 5"
+    ],
+    [
+      "volume",
+      "Tag #shara (Owner) count",
+      "2,766 uses",
+      "historical Printavo job corpus",
+      "Printavo",
+      "current",
+      "tag_dictionary.md, Tag Mapping Table row 2"
+    ],
+    [
+      "volume",
+      "Top tag by count: #bandana",
+      "3,440 uses",
+      "historical Printavo job corpus (5,125 jobs), as of source CSV 2026-04-28",
+      "Printavo",
+      "current",
+      "tag_dictionary.md, Tag Mapping Table row 1"
+    ],
+    [
+      "volume",
+      "Total Number Of Orders (company-wide)",
+      "54 (Jan), 67 (Feb), TOTAL 121",
+      "2026-01..2026-02",
+      "KPI-cash",
+      "current",
+      "...Totals.csv, row 'Total Number Of Orders' (first instance, under Recieved Payments)",
+      "period corrected from mislabeled draft; source header stale; snapshot 3/11/26"
+    ],
+    [
+      "volume",
+      "Untracked/legacy bandana boxes",
+      "1,660 boxes, win rate 36.2%",
+      "mostly pre-2025",
+      "Printavo",
+      "current",
+      "Bottom line table"
+    ],
+    [
+      "volume",
+      "total number of orders",
+      "902 orders",
+      "2025",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' (top-level, before dept breakdowns), TOTALS column"
+    ],
+    [
+      "volume",
+      "total number of orders (company-wide)",
+      "776 orders (annual), avg 65/mo",
+      "2024",
+      "KPI-cash",
+      "current",
+      "CSV row 'Total Number Of Orders' (first instance, under company-level section), TOTALS + AVG"
+    ],
+    [
+      "efficiency",
+      "$ per staffed idle press-minute (Q7, definition B)",
+      "$1.96/min ($117.7/hr)",
+      "2025 cost basis",
+      "QB-accrual",
+      "current",
+      "Ruled by Holly 2026-07-02 (definition B); derivation: $226K fixed-when-idle production costs / 1,920 staffed hrs",
+      "Companion note: $140/hr running rate already recovers the pool over busy hours — never add idle cost into quotes"
+    ],
+    [
+      "margin",
+      "2026 YTD profit (Jan–May)",
+      "$42,502.01",
+      "2026 YTD (through May; June not closed)",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2026 - Totals.csv (fresh export 7/2, Holly; header fixed to 2026)",
+      "First profitable YTD after 2025 loss year; monthly: −20,015 / −4,953 / +23,855 / +36,197 / +7,418"
+    ],
+    [
+      "revenue",
+      "2026 YTD income (Jan–May)",
+      "$955,877.46",
+      "2026 YTD (through May)",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2026 - Totals.csv (fresh export 7/2, Holly; header fixed to 2026)",
+      "COGS YTD $409,804.08 (42.9%) → Real Revenue ~57%"
+    ],
+    [
+      "overhead",
+      "2026 OVERHEAD TOTAL monthly (KPI definition)",
+      "$87,981–$106,300/mo (avg ~$100.7K Jan–May)",
+      "2026-01..2026-05",
+      "KPI-cash",
+      "current",
+      "Strategic Document_KPI tracking - 2026 - Totals.csv (fresh export 7/2, Holly; header fixed to 2026)",
+      "KPI 'OVERHEAD TOTAL' row (broader than the ruled $90–95K anchor definition) — running above the anchor; watch, don't re-litigate the anchor without a definition reconcile"
+    ],
+    [
+      "payroll",
+      "Payroll 6/10–6/25 (paid 7/1)",
+      "total cost $35,227.51 (gross $32,515.06 · OT $2,592.35 · net $25,455.62 · employer taxes $2,712.45) + tax withdrawal $8,881.73 on 7/1",
+      "2026-06-10..25",
+      "KPI-cash",
+      "current",
+      "Feed auto-ingest PDFs 7/1 (payroll summary + QB tax receipt)",
+      "Same docs consumed by the Kelly payroll briefing wf 4ppJB2qXDhL2cLBn"
+    ]
+  ]
+}

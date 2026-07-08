@@ -43,15 +43,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .tab-panel.active{display:flex}
 
 /* ── BOTTOM NAV ── */
-.bottom-nav{height:var(--nav-h);background:var(--white);display:flex;align-items:stretch;border-top:1px solid rgba(0,0,0,.07);flex-shrink:0;z-index:100}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;padding:8px 4px;position:relative;-webkit-tap-highlight-color:transparent;user-select:none}
+/* content sits in a row: collapsible left rail + main panel */
+.content-row{flex:1;display:flex;min-height:0;overflow:hidden}
+.side-nav{order:-1;flex:0 0 auto;width:62px;background:var(--white);display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:8px 0;border-right:1px solid rgba(0,0,0,.07);z-index:100;overflow:hidden;transition:width .18s ease}
+.side-nav:hover{width:190px;box-shadow:3px 0 16px rgba(0,0,0,.09)}
+.nav-tab{display:flex;flex-direction:row;align-items:center;gap:12px;cursor:pointer;border:none;background:transparent;padding:8px 13px;position:relative;-webkit-tap-highlight-color:transparent;user-select:none;white-space:nowrap}
 .nav-tab:active{background:rgba(0,0,0,.03)}
-.nav-icon{font-size:20px;line-height:1}
-.nav-label{font-family:var(--font-head);font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);transition:color .15s}
+.nav-icon{width:36px;height:36px;flex:0 0 auto;border-radius:50%;background:#232323;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow .15s}
+.nav-label{font-family:var(--font-head);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);opacity:0;transition:color .15s,opacity .15s}
+.side-nav:hover .nav-label{opacity:1}
 .nav-tab.active .nav-label{color:var(--tonal-black)}
-.nav-tab::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--yellow);border-radius:3px 3px 0 0;transform:scaleX(0);transition:transform .2s ease}
-.nav-tab.active::after{transform:scaleX(1)}
-.nav-badge{position:absolute;top:6px;right:calc(50% - 20px);background:var(--red);color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.nav-tab.active .nav-icon{box-shadow:0 0 0 2.5px var(--yellow)}
+.nav-tab::after{content:'';position:absolute;left:0;top:14%;bottom:14%;width:3px;background:var(--yellow);border-radius:0 3px 3px 0;transform:scaleY(0);transition:transform .2s ease}
+.nav-tab.active::after{transform:scaleY(1)}
+.nav-badge{position:absolute;top:5px;left:34px;background:var(--red);color:white;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 3px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 
 /* ── BOARD TOOLBAR ── */
 .board-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:transparent;border-bottom:none;flex-shrink:0;gap:10px}
@@ -623,6 +628,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   </header>
 
   <!-- MAIN -->
+  <div class="content-row">
   <div class="main-content">
 
     <!-- BOARD -->
@@ -760,7 +766,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   </div>
 
   <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
+  <nav class="side-nav" id="floorNav" title="Sections — hover to expand">
     <button class="nav-tab active" onclick="switchTab('board',this)">
       <span class="nav-icon">🏭</span>
       <span class="nav-label">Board</span>
@@ -796,11 +802,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       <span class="nav-icon">🔋</span>
       <span class="nav-label">Availability</span>
     </button>
-    <button class="nav-tab" onclick="window.location.href='clock/'">
-      <span class="nav-icon">⏱</span>
-      <span class="nav-label">Clock</span>
-    </button>
   </nav>
+  </div><!-- /content-row -->
 
 </div><!-- /app-shell -->
 
@@ -1259,8 +1262,7 @@ const state = {
     billingCycleStart: '2026-04-13',
     lastOrderSyncAt: null,
     subView: 'orders',         // 'orders' | 'bins' | 'log'
-    shipStationApiKey: '',
-    shipStationApiSecret: '',
+    /* ShipStation creds removed from client state entirely — gate env vars only (P0-2). */
   },
 };
 
@@ -4283,8 +4285,9 @@ function checkGateAutoUpdate(wuId){
    every device and station reads and writes the same data.
    Deployed 2026-05-19 — see "Planet Ops Master Build Brief" §2C.
    ============================================================ */
-const STATE_API_URL = 'https://planetops-production.up.railway.app';
-const STATE_API_KEY = 'be6022c715f16a6b1bdecf74a030b852f05925fee556302d66254d00a170dd5d';
+/* Same-origin via the frontdoor-gate proxy — the API key now lives ONLY in the
+   gate's Railway env vars (P0-1 fix, see PLAN.md). Never embed keys here again. */
+const STATE_API_URL = '';
 
 /* True only after a successful loadState(). saveState() refuses to
    write until this is set — this stops an empty board from
@@ -4610,8 +4613,8 @@ function buildStatePayload(){
       sessions:             state.fulfillment.sessions,
       billingCycleStart:    state.fulfillment.billingCycleStart,
       lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
-      shipStationApiKey:    state.fulfillment.shipStationApiKey,
-      shipStationApiSecret: state.fulfillment.shipStationApiSecret,
+      /* ShipStation creds intentionally NOT in the payload — they live only in
+         the gate's env vars now (P0-2 fix); the gate also scrubs them on read. */
     },
   };
 }
@@ -4629,7 +4632,7 @@ async function pushStateToServer(){
   try {
     const res = await fetch(STATE_API_URL + '/api/state', {
       method:  'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key': STATE_API_KEY },
+      headers: { 'Content-Type':'application/json' },   /* gate session cookie = the auth */
       body:    JSON.stringify(buildStatePayload()),
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
@@ -4673,8 +4676,7 @@ function applyLoadedState(saved){
     // One-time migration: shift launch cycle from Apr 9 to Apr 13
     if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
     if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
-    if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
-    if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
+    /* ShipStation creds no longer restored from state — server-side only (P0-2). */
     // Always re-sync bin metadata from defaults (preserves live qty)
     initFulfillmentBins();
   } else {
@@ -4688,9 +4690,7 @@ function applyLoadedState(saved){
    the shared backend (the one-time migration — brief §2C step 7). */
 async function loadState(){
   try {
-    const res = await fetch(STATE_API_URL + '/api/state', {
-      headers: { 'x-api-key': STATE_API_KEY },
-    });
+    const res = await fetch(STATE_API_URL + '/api/state');   /* gate session cookie = the auth */
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const saved = await res.json();          // state object, or null if empty
 
@@ -5922,24 +5922,17 @@ function saveBinEdit(binId){
 }
 
 // ── ShipStation sync ─────────────────────────────────────────
-const SS_PROXY = 'https://primary-production-079f9.up.railway.app/webhook/shipstation-proxy';
+/* Same-origin via the gate — ShipStation creds live ONLY in the gate's env vars (P0-2). */
+const SS_PROXY = '/api/shipstation/sync';
 
 async function syncShipStationOrders(){
   const btn = document.getElementById('ff-sync-btn');
   if(btn) btn.textContent = '⟳ Syncing…';
   try {
-    const key    = state.fulfillment.shipStationApiKey;
-    const secret = state.fulfillment.shipStationApiSecret;
-    if(!key || !secret){
-      showToast('⚠ ShipStation API credentials not set — open Settings');
-      if(btn) btn.textContent = '⟳ Sync Orders';
-      openFulfillmentSettings();
-      return;
-    }
     const resp = await fetch(SS_PROXY, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ apiKey: key, apiSecret: secret, orderStatus: 'awaiting_shipment' })
+      body: JSON.stringify({ orderStatus: 'awaiting_shipment' })
     });
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -5973,9 +5966,9 @@ async function syncShipStationOrders(){
   }
 }
 
-// Auto-sync ShipStation every 20 min during work hours
-if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders();
-setInterval(() => { if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
+// Auto-sync ShipStation every 20 min during work hours (creds are server-side; no client gate)
+if(isWorkHours()) syncShipStationOrders();
+setInterval(() => { if(isWorkHours()) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
 
 // ── Settings modal ───────────────────────────────────────────
 function openFulfillmentSettings(){
@@ -5983,10 +5976,7 @@ function openFulfillmentSettings(){
   const html = `
     <div style="padding:16px">
       <div style="font-family:var(--font-head);font-size:15px;font-weight:900;margin-bottom:12px">Fulfillment Settings</div>
-      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Key</label>
-      <input id="ff-ss-key" type="text" value="${ff.shipStationApiKey||''}" placeholder="API Key" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
-      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Secret</label>
-      <input id="ff-ss-secret" type="password" value="${ff.shipStationApiSecret||''}" placeholder="API Secret" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <div style="font-size:11px;color:#666;background:#f4f4f5;border-radius:5px;padding:8px 10px;margin-bottom:12px;line-height:1.5">🔒 ShipStation credentials live on the server now — nothing to enter here. If sync fails, check the gate service (Railway) env vars.</div>
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Billing Cycle Start</label>
       <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-13'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
       <div style="display:flex;gap:8px">
@@ -6008,8 +5998,6 @@ function openFulfillmentSettings(){
 }
 
 function saveFulfillmentSettings(){
-  state.fulfillment.shipStationApiKey    = document.getElementById('ff-ss-key').value.trim();
-  state.fulfillment.shipStationApiSecret = document.getElementById('ff-ss-secret').value.trim();
   state.fulfillment.billingCycleStart    = document.getElementById('ff-cycle-start').value;
   saveState();
   const modal = document.getElementById('ff-settings-modal');

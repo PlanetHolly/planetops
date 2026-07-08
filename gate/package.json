@@ -1,0 +1,16 @@
+{
+  "name": "planetops-frontdoor-gate",
+  "version": "1.0.0",
+  "description": "The gate: PIN auth + static serving + credential-holding proxies for the PlanetOps app (Codex-reviewed design — see PLAN.md at repo root)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3"
+  }
+}

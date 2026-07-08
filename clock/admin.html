@@ -64,8 +64,8 @@ input,select{font:inherit;width:100%;padding:.5rem;border:1px solid #000;border-
 </div></div>
 <script>
 const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-admin';
-const qk=new URLSearchParams(location.search).get('k');
-if(qk) sessionStorage.setItem('ts_admin_key',qk);
+/* SECURITY (P0-3): admin keys are no longer accepted via ?k= — URLs leak through
+   history, screenshots and referrers. Managers use the Manager-PIN flow below. */
 localStorage.removeItem('ts_admin_key'); // manager access is per-session only (shared devices)
 const KEY=sessionStorage.getItem('ts_admin_key')||'';
 const $=id=>document.getElementById(id);

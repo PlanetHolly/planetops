@@ -1,0 +1,1973 @@
+{
+  "majorDimension": "ROWS",
+  "range": "'Chart Series'!A1:E300",
+  "values": [
+    [
+      "Series",
+      "Basis",
+      "Period",
+      "Value",
+      "Unit"
+    ],
+    [
+      "A&M ex-DWC revenue annual",
+      "QB-accrual",
+      "2023",
+      "501170.0",
+      "USD"
+    ],
+    [
+      "A&M ex-DWC revenue annual",
+      "QB-accrual",
+      "2024",
+      "152105.0",
+      "USD"
+    ],
+    [
+      "A&M ex-DWC revenue annual",
+      "QB-accrual",
+      "2025",
+      "281041.0",
+      "USD"
+    ],
+    [
+      "A&M revenue annual",
+      "QB-accrual",
+      "2023",
+      "785113.0",
+      "USD"
+    ],
+    [
+      "A&M revenue annual",
+      "QB-accrual",
+      "2024",
+      "613442.0",
+      "USD"
+    ],
+    [
+      "A&M revenue annual",
+      "QB-accrual",
+      "2025",
+      "454562.0",
+      "USD"
+    ],
+    [
+      "AOV annual A&M",
+      "KPI-cash",
+      "2024",
+      "1846.23",
+      "USD"
+    ],
+    [
+      "AOV annual A&M",
+      "KPI-cash",
+      "2025",
+      "2302.07",
+      "USD"
+    ],
+    [
+      "AOV annual Bandana",
+      "KPI-cash",
+      "2024",
+      "1606.57",
+      "USD"
+    ],
+    [
+      "AOV annual Bandana",
+      "KPI-cash",
+      "2025",
+      "1781.76",
+      "USD"
+    ],
+    [
+      "AOV annual Company",
+      "KPI-cash",
+      "2024",
+      "2124.92",
+      "USD"
+    ],
+    [
+      "AOV annual Company",
+      "KPI-cash",
+      "2025",
+      "1980.33",
+      "USD"
+    ],
+    [
+      "AOV annual DWC",
+      "KPI-cash",
+      "2024",
+      "5236.06",
+      "USD"
+    ],
+    [
+      "AOV annual DWC",
+      "KPI-cash",
+      "2025",
+      "2663.86",
+      "USD"
+    ],
+    [
+      "Bandana revenue annual",
+      "QB-accrual",
+      "2023",
+      "839933.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue annual",
+      "QB-accrual",
+      "2024",
+      "708392.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue annual",
+      "QB-accrual",
+      "2025",
+      "928436.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-01",
+      "49673.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-02",
+      "41318.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-03",
+      "57168.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-04",
+      "67136.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-05",
+      "63720.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-06",
+      "91960.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-07",
+      "86799.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-08",
+      "75811.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-09",
+      "69411.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-10",
+      "89116.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-11",
+      "46406.0",
+      "USD"
+    ],
+    [
+      "Bandana revenue monthly",
+      "QB-accrual",
+      "2025-12",
+      "38431.0",
+      "USD"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-01",
+      "8985.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-02",
+      "8574.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-03",
+      "12487.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-04",
+      "13786.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-05",
+      "13824.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-06",
+      "16448.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-07",
+      "21681.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-08",
+      "14437.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-09",
+      "21227.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-10",
+      "30796.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-11",
+      "8029.0",
+      "units"
+    ],
+    [
+      "Bandana units monthly",
+      "QB-accrual",
+      "2025-12",
+      "7526.0",
+      "units"
+    ],
+    [
+      "COGS annual",
+      "QB-accrual",
+      "2023",
+      "967558.0",
+      "USD"
+    ],
+    [
+      "COGS annual",
+      "QB-accrual",
+      "2024",
+      "710022.0",
+      "USD"
+    ],
+    [
+      "COGS annual",
+      "KPI-cash",
+      "2024",
+      "709459.02",
+      "USD"
+    ],
+    [
+      "COGS annual",
+      "QB-accrual",
+      "2025",
+      "819215.0",
+      "USD"
+    ],
+    [
+      "COGS annual",
+      "KPI-cash",
+      "2025",
+      "743214.31",
+      "USD"
+    ],
+    [
+      "DWC revenue annual",
+      "QB-accrual",
+      "2023",
+      "283943.0",
+      "USD"
+    ],
+    [
+      "DWC revenue annual",
+      "QB-accrual",
+      "2024",
+      "461337.0",
+      "USD"
+    ],
+    [
+      "DWC revenue annual",
+      "QB-accrual",
+      "2025",
+      "173521.0",
+      "USD"
+    ],
+    [
+      "DWC revenue annual",
+      "QB-accrual",
+      "2026",
+      "95565.0",
+      "USD"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2025-09",
+      "5.1",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2025-10",
+      "9.43",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2025-11",
+      "10.53",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2025-12",
+      "6.19",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2026-01",
+      "14.98",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2026-02",
+      "6.82",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2026-03",
+      "17.0",
+      "x"
+    ],
+    [
+      "Google CPC ROAS monthly",
+      "mixed",
+      "2026-04",
+      "3.3",
+      "x"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2025-09",
+      "16531.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2025-10",
+      "30591.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2025-11",
+      "29736.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2025-12",
+      "10231.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2026-01",
+      "58700.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2026-02",
+      "27283.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2026-03",
+      "40308.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2026-04",
+      "7799.0",
+      "USD"
+    ],
+    [
+      "Google CPC sales monthly",
+      "mixed",
+      "2026-05",
+      "2403.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2025-09",
+      "3243.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2025-10",
+      "3243.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2025-11",
+      "2823.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2025-12",
+      "1652.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2026-01",
+      "3918.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2026-02",
+      "3998.0",
+      "USD"
+    ],
+    [
+      "Google CPC spend monthly",
+      "mixed",
+      "2026-03",
+      "2357.0",
+      "USD"
+    ],
+    [
+      "Gross Profit annual",
+      "QB-accrual",
+      "2023",
+      "679511.0",
+      "USD"
+    ],
+    [
+      "Gross Profit annual",
+      "QB-accrual",
+      "2024",
+      "914836.0",
+      "USD"
+    ],
+    [
+      "Gross Profit annual",
+      "QB-accrual",
+      "2025",
+      "932974.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-01",
+      "109371.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-02",
+      "109629.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-03",
+      "167714.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-04",
+      "114463.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-05",
+      "132201.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-06",
+      "186134.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-07",
+      "176143.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-08",
+      "221360.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-09",
+      "144803.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-10",
+      "200424.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-11",
+      "92288.0",
+      "USD"
+    ],
+    [
+      "Income monthly",
+      "QB-accrual",
+      "2025-12",
+      "97660.0",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-01",
+      "19276.49",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-02",
+      "18903.94",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-03",
+      "28105.07",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-04",
+      "17398.4",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-05",
+      "16951.36",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-06",
+      "19461.16",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-07",
+      "20079.52",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-08",
+      "34777.45",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-09",
+      "22708.05",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-10",
+      "22333.12",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-11",
+      "21731.0",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2024-12",
+      "21038.67",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-01",
+      "19669.0",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-02",
+      "19126.65",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-03",
+      "22588.85",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-04",
+      "21336.96",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-05",
+      "18110.1",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-06",
+      "17912.49",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-07",
+      "21982.92",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-08",
+      "22159.99",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-09",
+      "22503.17",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-10",
+      "22139.65",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-11",
+      "22101.38",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2025-12",
+      "22918.04",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2026-01",
+      "24263.4",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2026-02",
+      "19871.49",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-01",
+      "12697.44",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-02",
+      "12533.56",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-03",
+      "21121.63",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-04",
+      "16129.0",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-05",
+      "19424.12",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-06",
+      "14697.78",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-07",
+      "14159.9",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-08",
+      "24461.93",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-09",
+      "16744.16",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-10",
+      "16700.83",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-11",
+      "13353.23",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2024-12",
+      "11143.44",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-01",
+      "11082.0",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-02",
+      "13268.53",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-03",
+      "14316.48",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-04",
+      "17304.44",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-05",
+      "15691.34",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-06",
+      "16908.75",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-07",
+      "18149.45",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-08",
+      "22160.04",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-09",
+      "21254.79",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-10",
+      "23377.9",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-11",
+      "21328.8",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2025-12",
+      "21710.62",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2026-01",
+      "26618.87",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2026-02",
+      "22168.76",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-01",
+      "14508.92",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-02",
+      "18232.53",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-03",
+      "29237.0",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-04",
+      "20099.25",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-05",
+      "19575.25",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-06",
+      "19976.95",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-07",
+      "19785.93",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-08",
+      "28644.88",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-09",
+      "19060.27",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-10",
+      "19001.69",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-11",
+      "18973.02",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2024-12",
+      "13109.62",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-01",
+      "9660.0",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-02",
+      "12551.62",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-03",
+      "13764.61",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-04",
+      "17897.25",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-05",
+      "17514.71",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-06",
+      "10243.95",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-07",
+      "12283.14",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-08",
+      "11102.52",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-09",
+      "16816.45",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-10",
+      "17377.37",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-11",
+      "16296.06",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2025-12",
+      "16370.26",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2026-01",
+      "17901.29",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2026-02",
+      "14513.68",
+      "USD"
+    ],
+    [
+      "Loss months per year",
+      "QB-accrual",
+      "2023",
+      "6.0",
+      "months"
+    ],
+    [
+      "Loss months per year",
+      "QB-accrual",
+      "2024",
+      "8.0",
+      "months"
+    ],
+    [
+      "Loss months per year",
+      "QB-accrual",
+      "2025",
+      "8.0",
+      "months"
+    ],
+    [
+      "Net Income annual",
+      "QB-accrual",
+      "2023",
+      "-23702.0",
+      "USD"
+    ],
+    [
+      "Net Income annual",
+      "QB-accrual",
+      "2024",
+      "-105721.0",
+      "USD"
+    ],
+    [
+      "Net Income annual",
+      "QB-accrual",
+      "2025",
+      "-9343.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-01",
+      "-16529.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-02",
+      "-10172.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-03",
+      "48540.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-04",
+      "-22996.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-05",
+      "-10922.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-06",
+      "81152.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-07",
+      "8400.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-08",
+      "-6889.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-09",
+      "18106.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-10",
+      "-9485.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-11",
+      "-45137.0",
+      "USD"
+    ],
+    [
+      "Net Operating monthly",
+      "QB-accrual",
+      "2025-12",
+      "-43123.0",
+      "USD"
+    ],
+    [
+      "OpEx annual",
+      "QB-accrual",
+      "2023",
+      "703214.0",
+      "USD"
+    ],
+    [
+      "OpEx annual",
+      "QB-accrual",
+      "2024",
+      "1021861.0",
+      "USD"
+    ],
+    [
+      "OpEx annual",
+      "QB-accrual",
+      "2025",
+      "942029.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-01",
+      "92183.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-02",
+      "71865.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-03",
+      "46979.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-04",
+      "82123.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-05",
+      "94356.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-06",
+      "52013.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-07",
+      "83106.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-08",
+      "114538.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-09",
+      "58685.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-10",
+      "125917.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-11",
+      "59593.0",
+      "USD"
+    ],
+    [
+      "OpEx monthly",
+      "QB-accrual",
+      "2025-12",
+      "60670.0",
+      "USD"
+    ],
+    [
+      "OpEx per month actual",
+      "QB-accrual",
+      "2023",
+      "58601.0",
+      "USD"
+    ],
+    [
+      "OpEx per month actual",
+      "QB-accrual",
+      "2024",
+      "85155.0",
+      "USD"
+    ],
+    [
+      "OpEx per month actual",
+      "QB-accrual",
+      "2025",
+      "78502.0",
+      "USD"
+    ],
+    [
+      "Orders annual A&M",
+      "KPI-cash",
+      "2024",
+      "163.0",
+      "orders"
+    ],
+    [
+      "Orders annual A&M",
+      "KPI-cash",
+      "2025",
+      "230.0",
+      "orders"
+    ],
+    [
+      "Orders annual Bandana",
+      "KPI-cash",
+      "2024",
+      "553.0",
+      "orders"
+    ],
+    [
+      "Orders annual Bandana",
+      "KPI-cash",
+      "2025",
+      "624.0",
+      "orders"
+    ],
+    [
+      "Orders annual Company",
+      "KPI-cash",
+      "2024",
+      "776.0",
+      "orders"
+    ],
+    [
+      "Orders annual Company",
+      "KPI-cash",
+      "2025",
+      "902.0",
+      "orders"
+    ],
+    [
+      "Orders annual DWC",
+      "KPI-cash",
+      "2024",
+      "88.0",
+      "orders"
+    ],
+    [
+      "Orders annual DWC",
+      "KPI-cash",
+      "2025",
+      "54.5",
+      "orders"
+    ],
+    [
+      "Revenue annual",
+      "QB-accrual",
+      "2023",
+      "1647069.0",
+      "USD"
+    ],
+    [
+      "Revenue annual",
+      "QB-accrual",
+      "2024",
+      "1624858.0",
+      "USD"
+    ],
+    [
+      "Revenue annual",
+      "QB-accrual",
+      "2025",
+      "1752189.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-01",
+      "28800.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-02",
+      "24000.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-03",
+      "33200.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-04",
+      "38900.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-05",
+      "36900.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-06",
+      "53400.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-07",
+      "50300.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-08",
+      "44000.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-09",
+      "40300.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-10",
+      "51700.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-11",
+      "26900.0",
+      "USD"
+    ],
+    [
+      "SP recovery monthly",
+      "QB-accrual",
+      "2025-12",
+      "22300.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-01",
+      "-18200.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-02",
+      "-23000.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-03",
+      "-13800.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-04",
+      "-8100.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-05",
+      "-10100.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-06",
+      "6400.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-07",
+      "3300.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-08",
+      "-3000.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-09",
+      "-6700.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-10",
+      "4700.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-11",
+      "-20100.0",
+      "USD"
+    ],
+    [
+      "SP recovery vs target delta monthly",
+      "QB-accrual",
+      "2025-12",
+      "-24700.0",
+      "USD"
+    ],
+    [
+      "Total Cost annual",
+      "QB-accrual",
+      "2023",
+      "1670772.0",
+      "USD"
+    ],
+    [
+      "Total Cost annual",
+      "QB-accrual",
+      "2024",
+      "1731883.0",
+      "USD"
+    ],
+    [
+      "Total Cost annual",
+      "QB-accrual",
+      "2025",
+      "1761244.0",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2026-03",
+      "22840.43",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2026-04",
+      "23015.11",
+      "USD"
+    ],
+    [
+      "Labor LEADERSHIP monthly",
+      "KPI-cash",
+      "2026-05",
+      "23885.0",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2026-03",
+      "12631.72",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2026-04",
+      "14317.01",
+      "USD"
+    ],
+    [
+      "Labor SALES monthly",
+      "KPI-cash",
+      "2026-05",
+      "13478.09",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2026-03",
+      "20827.77",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2026-04",
+      "26377.8",
+      "USD"
+    ],
+    [
+      "Labor PRODUCTION monthly",
+      "KPI-cash",
+      "2026-05",
+      "23489.17",
+      "USD"
+    ],
+    [
+      "Income monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-01",
+      "140481.73",
+      "USD"
+    ],
+    [
+      "Income monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-02",
+      "142310.88",
+      "USD"
+    ],
+    [
+      "Income monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-03",
+      "257404.56",
+      "USD"
+    ],
+    [
+      "Income monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-04",
+      "234292.97",
+      "USD"
+    ],
+    [
+      "Income monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-05",
+      "181387.32",
+      "USD"
+    ],
+    [
+      "Profit monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-01",
+      "-20015.3",
+      "USD"
+    ],
+    [
+      "Profit monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-02",
+      "-4952.84",
+      "USD"
+    ],
+    [
+      "Profit monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-03",
+      "23855.27",
+      "USD"
+    ],
+    [
+      "Profit monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-04",
+      "36196.93",
+      "USD"
+    ],
+    [
+      "Profit monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-05",
+      "7417.95",
+      "USD"
+    ],
+    [
+      "Bandana Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-01",
+      "111446.89",
+      "USD"
+    ],
+    [
+      "Bandana Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-02",
+      "102751.58",
+      "USD"
+    ],
+    [
+      "Bandana Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-03",
+      "173683.43",
+      "USD"
+    ],
+    [
+      "Bandana Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-04",
+      "145167.49",
+      "USD"
+    ],
+    [
+      "Bandana Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-05",
+      "110663.17",
+      "USD"
+    ],
+    [
+      "A&M Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-01",
+      "15918.39",
+      "USD"
+    ],
+    [
+      "A&M Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-02",
+      "26993.05",
+      "USD"
+    ],
+    [
+      "A&M Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-03",
+      "63127.4",
+      "USD"
+    ],
+    [
+      "A&M Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-04",
+      "52953.38",
+      "USD"
+    ],
+    [
+      "A&M Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-05",
+      "40128.73",
+      "USD"
+    ],
+    [
+      "DWC Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-01",
+      "13116.45",
+      "USD"
+    ],
+    [
+      "DWC Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-02",
+      "12566.25",
+      "USD"
+    ],
+    [
+      "DWC Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-03",
+      "20593.73",
+      "USD"
+    ],
+    [
+      "DWC Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-04",
+      "36191.25",
+      "USD"
+    ],
+    [
+      "DWC Dept revenue monthly 2026",
+      "KPI-cash",
+      "2026-05",
+      "30648.92",
+      "USD"
+    ],
+    [
+      "Overhead Total monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-01",
+      "106300.34",
+      "USD"
+    ],
+    [
+      "Overhead Total monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-02",
+      "87981.48",
+      "USD"
+    ],
+    [
+      "Overhead Total monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-03",
+      "100578.82",
+      "USD"
+    ],
+    [
+      "Overhead Total monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-04",
+      "103278.84",
+      "USD"
+    ],
+    [
+      "Overhead Total monthly 2026 (KPI)",
+      "KPI-cash",
+      "2026-05",
+      "105431.89",
+      "USD"
+    ]
+  ]
+}
