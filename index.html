@@ -19,7 +19,7 @@
   --blue:#2196F3;--purple:#8E24AA;--orange:#FF9800;--green:#43A047;--red:#E53935;--teal:#00ACC1;--gray:#9E9E9E;
   --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.13);
   --radius:8px;--radius-lg:16px;--radius-pill:999px;
-  --header-h:58px;--nav-h:68px;
+  --header-h:58px;
   --font-head:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--font-body);color:var(--tonal-black);-webkit-font-smoothing:antialiased}
@@ -42,16 +42,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .tab-panel{display:none;flex:1;overflow:hidden;flex-direction:column;position:absolute;inset:0}
 .tab-panel.active{display:flex}
 
-/* ── BOTTOM NAV ── */
-.bottom-nav{height:var(--nav-h);background:var(--white);display:flex;align-items:stretch;border-top:1px solid rgba(0,0,0,.07);flex-shrink:0;z-index:100}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;padding:8px 4px;position:relative;-webkit-tap-highlight-color:transparent;user-select:none}
-.nav-tab:active{background:rgba(0,0,0,.03)}
-.nav-icon{font-size:20px;line-height:1}
-.nav-label{font-family:var(--font-head);font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);transition:color .15s}
-.nav-tab.active .nav-label{color:var(--tonal-black)}
-.nav-tab::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--yellow);border-radius:3px 3px 0 0;transform:scaleX(0);transition:transform .2s ease}
-.nav-tab.active::after{transform:scaleX(1)}
-.nav-badge{position:absolute;top:6px;right:calc(50% - 20px);background:var(--red);color:white;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+/* ── BOTTOM NAV (removed 7/8 — sidebar is the navigation; .nav-badge kept: badge
+      elements now live in the sidebar and the old update code still targets them) ── */
+.nav-badge{position:absolute;top:5px;right:7px;background:var(--red);color:white;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 
 /* ── BOARD TOOLBAR ── */
 .board-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:transparent;border-bottom:none;flex-shrink:0;gap:10px}
@@ -677,7 +670,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   <div class="main-content">
 
     <!-- HOME — section directory (nav shell #1). New sections register in SECTIONS
-         and appear here + in the ☰ menu WITHOUT adding bottom-nav girth. -->
+         and appear here + in the sidebar automatically. -->
     <div class="tab-panel" id="panel-home">
       <div class="home-wrap">
         <div class="home-title">PlanetOps</div>
@@ -803,57 +796,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     <!-- PRODUCTION AVAILABILITY (embedded; single source lives at /capacity/) -->
     <div class="tab-panel" id="panel-availability" style="padding:0;">
       <iframe id="availability-frame" title="Production Availability"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
+        style="width:100%;flex:1;border:0;display:block;background:#fff;"></iframe>
     </div>
 
     <!-- SCHEDULE (embedded; single source lives at /schedule/) -->
     <div class="tab-panel" id="panel-schedule" style="padding:0;">
       <iframe id="schedule-frame" title="Schedule"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
+        style="width:100%;flex:1;border:0;display:block;background:#fff;"></iframe>
     </div>
 
   </div><!-- /main-content -->
 
   </div><!-- /body-row -->
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-tab active" data-tab="board" onclick="goSection('board')">
-      <span class="nav-icon">🏭</span>
-      <span class="nav-label">Board</span>
-    </button>
-    <button class="nav-tab" data-tab="prepress" onclick="goSection('prepress')">
-      <span class="nav-icon">🎞</span>
-      <span class="nav-label">Pre-Press</span>
-      <span class="nav-badge hidden" id="prepress-badge">0</span>
-    </button>
-    <button class="nav-tab" data-tab="active" onclick="goSection('active')">
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Running</span>
-      <span class="nav-badge hidden" id="active-badge">0</span>
-    </button>
-    <button class="nav-tab" data-tab="reports" onclick="goSection('reports')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Reports</span>
-    </button>
-    <button class="nav-tab" data-tab="fulfillment" onclick="goSection('fulfillment')">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">Fulfillment</span>
-      <span class="nav-badge hidden" id="fulfillment-badge">0</span>
-    </button>
-    <button class="nav-tab" data-tab="schedule" onclick="goSection('schedule')">
-      <span class="nav-icon">🗓</span>
-      <span class="nav-label">Schedule</span>
-    </button>
-    <button class="nav-tab" data-tab="availability" onclick="goSection('availability')">
-      <span class="nav-icon">🔋</span>
-      <span class="nav-label">Availability</span>
-    </button>
-    <button class="nav-tab" onclick="goSection('clock')">
-      <span class="nav-icon">⏱</span>
-      <span class="nav-label">Clock</span>
-    </button>
-  </nav>
+  <!-- Bottom tab bar removed 7/8 (Jean) — the collapsible sidebar is the app's navigation. -->
 
 </div><!-- /app-shell -->
 
@@ -1512,10 +1468,10 @@ function copyCustomerId(id){
 const SECTIONS = [
   { id:'home',         icon:'⌂',  label:'Home',         desc:'Directory of every section' },
   { id:'board',        icon:'🏭', label:'Board',        desc:'Production floor — jobs by stage' },
-  { id:'prepress',     icon:'🎞', label:'Pre-Press',    desc:'Films · screens · inks' },
-  { id:'active',       icon:'⚡', label:'Running',      desc:'Live timers on press' },
+  { id:'prepress',     icon:'🎞', label:'Pre-Press',    desc:'Films · screens · inks', badge:'prepress-badge' },
+  { id:'active',       icon:'⚡', label:'Running',      desc:'Live timers on press', badge:'active-badge' },
   { id:'reports',      icon:'📊', label:'Reports',      desc:'Completed projects & production data' },
-  { id:'fulfillment',  icon:'📦', label:'Fulfillment',  desc:'Iron & Velvet fulfillment ops' },
+  { id:'fulfillment',  icon:'📦', label:'Fulfillment',  desc:'Iron & Velvet fulfillment ops', badge:'fulfillment-badge' },
   { id:'schedule',     icon:'🗓', label:'Schedule',     desc:'Scheduler · calendar · arrivals · estimator' },
   { id:'availability', icon:'🔋', label:'Availability', desc:'Press capacity gauge' },
   { id:'clock',        icon:'⏱', label:'Clock',        desc:'Time clock', href:'clock/' },
@@ -1560,16 +1516,24 @@ function submitPin(){
   }
 }
 
+/* Renders ONCE at boot — the badge elements inside must stay stable because the
+   header-KPI / fulfillment code updates them by id. Highlight sync is separate. */
 function renderSideNav(){
   const nav = document.getElementById('side-nav');
-  const current = document.querySelector('.tab-panel.active')?.id.replace('panel-','');
   nav.innerHTML = SECTIONS.map((s, i) =>
     (i === 1 ? '<div class="side-div"></div>' : '') +
-    `<button class="side-item ${s.id===current?'current':''}" onclick="goSection('${s.id}')" title="${s.label} — ${s.desc}">
+    `<button class="side-item" data-section="${s.id}" onclick="goSection('${s.id}')" title="${s.label} — ${s.desc}">
        <span class="side-icon">${s.icon}</span>
        <span class="side-text"><div class="side-label">${s.label}</div><div class="side-desc">${s.desc}</div></span>
        ${NAV_PIN.code && NAV_PIN.gated.includes(s.id) ? '<span class="side-lock">🔒</span>' : ''}
+       ${s.badge ? `<span class="nav-badge hidden" id="${s.badge}">0</span>` : ''}
      </button>`).join('');
+  updateSideNavCurrent();
+}
+function updateSideNavCurrent(){
+  const current = document.querySelector('.tab-panel.active')?.id.replace('panel-','');
+  document.querySelectorAll('#side-nav .side-item').forEach(el =>
+    el.classList.toggle('current', el.dataset.section === current));
 }
 /* ☰: wide screens toggle collapse (icons-only rail, remembered per device);
    narrow screens (≤700px) slide the sidebar in as a drawer. */
@@ -1601,19 +1565,16 @@ function renderHomeTiles(){
 /* ============================================================
    TAB SWITCHING
    ============================================================ */
-function switchTab(id, btn){
+function switchTab(id){
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  btn = btn || document.querySelector('.nav-tab[data-tab="'+id+'"]');
-  if(btn) btn.classList.add('active');   // Home has no bottom-nav tab by design (no bar girth)
   if(id === 'home')        renderHomeTiles();
   if(id === 'active')      renderActiveTab();
   if(id === 'prepress')    renderPrepTab();
   if(id === 'fulfillment') renderFulfillmentTab();
   if(id === 'availability'){ const f=document.getElementById('availability-frame'); if(f && !f.getAttribute('src')) f.src='./capacity/?mode=jean'; }
   if(id === 'schedule'){ const f=document.getElementById('schedule-frame'); if(f && !f.getAttribute('src')) f.src='./schedule/'; }
-  renderSideNav();   // keep the sidebar's current-section highlight in sync
+  updateSideNavCurrent();
 }
 
 /* ============================================================
@@ -4509,7 +4470,7 @@ function renderActiveTab(){
       </div>
       <div class="awu-timer" id="awu-t-${task.id}">${fmtTime(getLivePtElapsed(task.timer))}</div>
       <div class="awu-planned">${task.placement} · ${task.timer.operator||'—'}</div>`;
-    card.onclick = () => switchTab('prepress', document.querySelector('.nav-tab:nth-child(2)'));
+    card.onclick = () => switchTab('prepress');
     grid.appendChild(card);
   });
 }
