@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retention Playbook — Team Guide</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.65;
+  --line: #C9CED8;
+  --node-border: #D8DCE3;
+  --yes: #1B7F3B;
+  --yes-border: #3FA45C;
+  --no: #B00020;
+  --no-border: #D4626F;
+}
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: #F4F6F9; line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+.pa-wrap { max-width: 1020px; margin: 0 auto; background: var(--pa-white); padding: 1.5rem 1.6rem 2rem; }
+@media (min-width: 720px) { .pa-wrap { margin: 1.5rem auto; box-shadow: 0 2px 24px rgba(0,0,0,0.08); } body { padding: 0; } }
+h1, h2, h3 { font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.2; color: var(--pa-black); }
+h1 { font-size: 1.9rem; margin: 0.3em 0 0.1em; }
+h2 { font-size: 1.05rem; font-weight: 700; margin: 1.8em 0 0.6em; padding-bottom: 0.2em; border-bottom: 2px solid var(--pa-yellow); }
+p { margin: 0.5em 0; }
+.pa-sub { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pa-tonal); margin: 0 0 0.5rem; font-weight: 700; }
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0 1rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 1.25rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; }
+.pa-header .pa-header-title a { color: inherit; text-decoration: none; }
+.pa-header .pa-header-title a:hover { text-decoration: underline; }
+.pa-icon { height: 36px; width: auto; color: var(--pa-black); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 2.25rem; padding-top: 0.75rem; border-top: 1px solid var(--pa-black); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { height: 22px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.88em; background: #F3F3F3; padding: 0 0.3em; border-radius: 3px; }
+mark { background: var(--pa-yellow); color: var(--pa-black); padding: 0 0.08em; border-radius: 2px; }
+
+/* ---------- search bar ---------- */
+.searchwrap { position: sticky; top: 0; z-index: 30; background: var(--pa-white); padding: 0.7rem 0 0.75rem; border-bottom: 1px solid #EEE; margin-bottom: 0.75rem; }
+.searchwrap input { width: 100%; box-sizing: border-box; font-family: inherit; font-size: 1rem; padding: 0.6rem 0.85rem; border: 2px solid var(--pa-black); border-radius: 6px; background: #FCFCFC; }
+.searchwrap input:focus { outline: none; border-color: var(--pa-yellow); background: var(--pa-white); box-shadow: 0 0 0 3px rgba(247,190,0,0.25); }
+#data-status { font-size: 0.8rem; color: #b45309; margin: 0.4rem 0 0; }
+#search-results { display: none; margin: 0 0 1.25rem; }
+.sr-count { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pa-tonal); margin: 0.5rem 0 0.35rem; }
+
+/* ---------- flow canvas ---------- */
+.canvas { border: 1px solid #E5E7EB; border-radius: 12px; background: #FBFCFE; padding: 1.4rem 0.8rem 1.6rem; overflow-x: auto; }
+.col { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.conn { width: 1px; height: 22px; background: var(--line); flex-shrink: 0; }
+.conn.short { height: 14px; }
+
+.trigger { border-radius: 999px; background: var(--pa-black); color: var(--pa-white); font-weight: 800; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.5rem 1.2rem; text-align: center; max-width: 90%; }
+.trigger .tr-sub { display: block; font-weight: 600; text-transform: none; letter-spacing: 0.02em; font-size: 0.74rem; color: #E8E8E8; }
+
+.node { background: var(--pa-white); border: 1px solid var(--node-border); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 0.65rem 0.85rem 0.75rem; width: 100%; max-width: 360px; box-sizing: border-box; font-size: 0.88rem; }
+.node h4 { margin: 0 0 0.25rem; font-size: 0.9rem; font-weight: 800; text-transform: none; letter-spacing: 0.01em; line-height: 1.35; }
+.node p { margin: 0.2rem 0; font-size: 0.83rem; color: var(--pa-tonal); }
+.node.guard { background: #FFF1F3; border-color: #F2B8C2; max-width: 420px; }
+.node.amber { background: #FFF8E6; border-color: #F0D48A; max-width: 240px; text-align: center; }
+.node.linkout { background: #FCFCFC; text-align: center; max-width: 420px; }
+.node.linkout a { font-weight: 800; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.3rem 0 0.1rem; }
+.badge { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.03em; background: #F1F3F6; border: 1px solid #DDE1E7; border-radius: 3px; padding: 0.05rem 0.4rem; color: #444; }
+.badge b { text-transform: uppercase; color: #777; font-size: 0.6rem; margin-right: 0.2em; }
+
+.decision { position: relative; background: #E9ECF2; color: #333; font-weight: 800; font-size: 0.85rem; padding: 0.55rem 2.1rem; text-align: center; clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0 50%); }
+.decision .dq { display: inline-flex; align-items: center; justify-content: center; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: #7A8496; color: #fff; font-size: 0.72rem; font-weight: 900; margin-right: 0.4rem; vertical-align: -0.15em; }
+
+.branches { display: flex; flex-wrap: wrap; gap: 1.1rem; align-items: flex-start; justify-content: center; width: 100%; }
+.branch { display: flex; flex-direction: column; align-items: center; flex: 1 1 230px; min-width: 215px; max-width: 380px; }
+.branch.wide { flex: 2 1 460px; max-width: 660px; }
+.branch .branches { gap: 0.9rem; }
+.branch .branches .branch { min-width: 200px; }
+
+.bchip { border: 1.5px solid; border-radius: 999px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.12rem 0.75rem; background: var(--pa-white); white-space: nowrap; }
+.bchip.yes { color: var(--yes); border-color: var(--yes-border); }
+.bchip.no { color: var(--no); border-color: var(--no-border); }
+.bchip.amber { color: #8A6400; border-color: #D9B44A; }
+
+.loopbox { border: 1.5px dashed var(--line); border-radius: 12px; background: #F7F9FC; padding: 0.7rem 0.55rem 0.85rem; display: flex; flex-direction: column; align-items: center; width: 100%; box-sizing: border-box; }
+.loop-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #7A8496; margin-bottom: 0.4rem; }
+
+.end { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--no); border: 1.5px solid var(--no-border); border-radius: 4px; padding: 0.18rem 0.6rem; background: #FFF5F6; text-align: center; }
+.end.good { color: var(--yes); border-color: var(--yes-border); background: #F2FAF4; }
+.end.loop { color: #555; border-color: #AAB2BF; background: #F1F3F6; }
+
+/* ---------- script cards ---------- */
+.scard { width: 100%; box-sizing: border-box; border: 1px solid #E3E6EB; border-radius: 6px; margin-top: 0.5rem; background: var(--pa-white); overflow: hidden; text-align: left; font-size: 0.84rem; }
+.scard-head { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; width: 100%; box-sizing: border-box; padding: 0.45rem 0.6rem; cursor: pointer; background: #FAFAFB; border: 0; font-family: inherit; font-size: 0.8rem; text-align: left; }
+.scard-head:hover { background: #FFFBEC; }
+.scard-head .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; background: #F3F3F3; border: 1px solid #E4E4E4; padding: 0 0.35em; border-radius: 3px; }
+.scard-head .nm { font-weight: 800; }
+.scard-head .sbadge { font-size: 0.66rem; font-weight: 700; background: #F1F3F6; border: 1px solid #DDE1E7; border-radius: 3px; padding: 0.02rem 0.4rem; color: #555; }
+.scard-head .tw { margin-left: auto; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #777; white-space: nowrap; }
+.scard.open .scard-head .tw .arr { display: inline-block; transform: rotate(90deg); }
+.scard-body { display: none; padding: 0.55rem 0.6rem 0.75rem; border-top: 1px solid #EEE; }
+.scard.open .scard-body { display: block; }
+.scard-sub { font-weight: 700; font-size: 0.82rem; margin: 0 0 0.35rem; }
+.paste { position: relative; background: #FFFBEC; border: 1px solid #F2E2A0; border-left: 4px solid var(--pa-yellow); border-radius: 4px; padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+.copybtn { position: absolute; top: 0.35rem; right: 0.35rem; font-family: inherit; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--pa-white); border: 1.5px solid var(--pa-black); border-radius: 4px; padding: 0.12rem 0.5rem; cursor: pointer; }
+.copybtn:hover { background: var(--pa-yellow); }
+.fills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.45rem; }
+.fill-chip { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.68rem; background: #EFEFEF; border: 1px solid #DDD; border-radius: 3px; padding: 0 0.35rem; }
+.snotes { font-size: 0.76rem; color: var(--pa-tonal); font-style: italic; margin: 0.4rem 0 0; }
+.pending-tag { display: inline-block; background: #B00020; color: #fff; font-weight: 800; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.08rem 0.45rem; border-radius: 3px; }
+.smount .missing { font-size: 0.78rem; color: #b45309; margin: 0.4rem 0 0; }
+
+/* ---------- routine + strip ---------- */
+.stepno { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; border-radius: 50%; background: var(--pa-black); color: var(--pa-white); font-weight: 900; font-size: 0.72rem; margin-right: 0.45rem; flex-shrink: 0; }
+.strip { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0.6rem 0; }
+.scell { flex: 1 1 240px; border: 1px solid #E3E6EB; border-left: 4px solid var(--pa-yellow); border-radius: 8px; background: var(--pa-white); padding: 0.55rem 0.8rem; font-size: 0.85rem; }
+.scell b { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+@media print {
+  body { background: #fff; }
+  .pa-wrap { box-shadow: none; margin: 0; max-width: 100%; }
+  .searchwrap, #search-results { display: none !important; }
+  .scard-body { display: block !important; }
+  .scard-head .tw { display: none; }
+  .canvas { overflow: visible; border: none; padding: 0; }
+  .branches { display: block; }
+  .branch, .branch.wide { max-width: 420px; margin: 0.9rem auto; }
+  .node, .scard, .decision, .trigger, .loopbox, .scell { page-break-inside: avoid; break-inside: avoid; }
+  .copybtn { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="pa-wrap">
+
+<header class="pa-header">
+  <div class="pa-header-title"><a href="../index.html">← Revenue House</a> · Retention Playbook</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+<p class="pa-sub">Customer Retention · Kelly / Shara / Cortney</p>
+<h1>Retention Playbook</h1>
+<p>Every retention touch that isn't a save, as a workflow: follow it top-down, click <em>view script</em> on any step to get the exact copy. For AT-RISK / win-back, see <a href="../../save-touch/index.html">The Save Touch</a>.</p>
+
+<div class="searchwrap">
+  <input id="q" type="search" placeholder="Search scripts… (code, name, body, who sends it)" autocomplete="off" aria-label="Search scripts">
+  <p id="data-status"></p>
+</div>
+<div id="search-results"></div>
+
+<h2>Cross-Sell Desk — what happens when</h2>
+<div class="canvas">
+  <div class="col">
+
+    <div class="node guard">🛑 <strong>Never send</strong> if the pre-flight sheet flags the box: <strong>duplicate&nbsp;· T3&nbsp;· open-deal&nbsp;· bad email</strong>. Skip it and flag anything that looks wrong to Holly — don't override the sheet by hand.</div>
+    <div class="conn"></div>
+
+    <div class="trigger">When: a first order is delivered<span class="tr-sub">Streak queues the Activation ladder</span></div>
+    <div class="conn"></div>
+
+    <div class="node">
+      <h4>Week 1 — Quality Check</h4>
+      <div class="badges"><span class="badge"><b>Who</b>Shara / Kelly</span><span class="badge"><b>From</b>bandanas@</span><span class="badge"><b>How</b>auto-draft, human sends</span></div>
+      <div class="smount" data-code="/qc"></div>
+    </div>
+    <div class="conn"></div>
+
+    <div class="node">
+      <h4>Week 2 — Cross-Sell Intro</h4>
+      <p>Introduces Cortney, cc <span class="mono">team@</span>.</p>
+      <div class="badges"><span class="badge"><b>Who</b>Shara / Kelly</span><span class="badge"><b>From</b>bandanas@</span><span class="badge"><b>How</b>auto-draft, human sends</span></div>
+      <div class="smount" data-code="^xsell"></div>
+    </div>
+    <div class="conn"></div>
+
+    <div class="decision"><span class="dq">?</span>Did they reply?</div>
+    <div class="conn short"></div>
+
+    <div class="branches">
+
+      <div class="branch">
+        <span class="bchip no">No</span>
+        <div class="conn short"></div>
+        <div class="node"><h4>Nothing — the ladder continues</h4><p>No chase. The next rung arrives on schedule.</p></div>
+        <div class="conn short"></div>
+        <div class="loopbox">
+          <span class="loop-label">Activation ladder keeps running</span>
+          <div class="node">
+            <h4>~Month 4 — Value Mockup</h4>
+            <p>The 4-month check-in.</p>
+            <div class="badges"><span class="badge"><b>Who</b>Shara</span><span class="badge"><b>From</b>bandanas@</span></div>
+            <div class="smount" data-code="/nc4"></div>
+          </div>
+          <div class="conn short"></div>
+          <div class="node">
+            <h4>~Month 8–10 — Reorder reach-out</h4>
+            <div class="badges"><span class="badge"><b>Who</b>Shara</span><span class="badge"><b>From</b>bandanas@</span></div>
+            <div class="smount" data-code="/reorderban"></div>
+          </div>
+          <div class="conn short"></div>
+          <span class="end loop">↻ cycle continues</span>
+        </div>
+      </div>
+
+      <div class="branch wide">
+        <span class="bchip yes">Yes — interested</span>
+        <div class="conn short"></div>
+        <div class="node">
+          <h4>Cortney responds within 1 business day</h4>
+          <div class="badges"><span class="badge"><b>Who</b>Cortney</span><span class="badge"><b>From</b>team@</span><span class="badge"><b>How</b>auto-draft in team@ Drafts, Cortney sends</span></div>
+          <div class="smount" data-code="^xsellresponse"></div>
+        </div>
+        <div class="conn short"></div>
+        <div class="decision"><span class="dq">?</span>Did they answer Cortney?</div>
+        <div class="conn short"></div>
+        <div class="branches">
+          <div class="branch">
+            <span class="bchip yes">Yes</span>
+            <div class="conn short"></div>
+            <div class="node">
+              <h4>Mockup goes out → quote → Shara sends the warm handoff when it converts</h4>
+              <div class="badges"><span class="badge"><b>Who</b>Shara, cc Cortney</span><span class="badge"><b>From</b>bandanas@</span></div>
+              <div class="smount" data-code="^handoff"></div>
+            </div>
+            <div class="conn short"></div>
+            <span class="end good">customer now BOTH — box flips to Cortney</span>
+          </div>
+          <div class="branch">
+            <span class="bchip no">No — quiet ~1 week</span>
+            <div class="conn short"></div>
+            <div class="node">
+              <h4>One ghost follow-up, then STOP</h4>
+              <p>No third attempt, ever.</p>
+              <div class="badges"><span class="badge"><b>Who</b>Cortney</span><span class="badge"><b>From</b>team@</span></div>
+              <div class="smount" data-code="^xsellghost"></div>
+            </div>
+            <div class="conn short"></div>
+            <span class="end">stop — no chain</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <span class="bchip yes">Yes — not interested</span>
+        <div class="conn short"></div>
+        <div class="node"><h4>Thank them, mark the box</h4><p>No more cross-sell touches this cycle.</p></div>
+        <div class="conn short"></div>
+        <span class="end">End</span>
+      </div>
+
+      <div class="branch">
+        <span class="bchip amber">High-$ signal</span>
+        <div class="conn short"></div>
+        <div class="node amber">💰 <strong>Flag Holly immediately</strong></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<p style="font-size:0.8rem;color:var(--pa-tonal);margin-top:0.6rem;">Replies are <strong>always</strong> answered by a human, same day — never automated. Nothing on this page auto-sends.</p>
+
+<h2>Kelly's morning routine</h2>
+<div class="canvas">
+  <div class="col">
+    <div class="node"><h4><span class="stepno">1</span>Run the pre-flight audit</h4><p><span class="mono">crosssell_preflight.py</span> — before touching a single draft.</p></div>
+    <div class="conn"></div>
+    <div class="node"><h4><span class="stepno">2</span>Scan the review sheet</h4><p>Skip every flagged box (duplicate / T3 / open-deal / bad email).</p></div>
+    <div class="conn"></div>
+    <div class="node"><h4><span class="stepno">3</span>Drafts appear in bandanas@ Drafts</h4><p>Claude drafts personalized copy — reply-in-thread when the project chain is fresh, otherwise a new email with the project name in the subject.</p></div>
+    <div class="conn"></div>
+    <div class="node"><h4><span class="stepno">4</span>Read, tweak, SEND</h4><p>10–12 per morning, max.</p></div>
+    <div class="conn"></div>
+    <div class="node"><h4><span class="stepno">5</span>Mark the Streak "Cross-sell intro" task DONE</h4><p>On the box, as each one goes out.</p></div>
+    <div class="conn"></div>
+    <div class="node"><h4><span class="stepno">6</span>Check the follow-up task exists</h4><p>Value-Mockup task on the box (Touch 3, ~Month 4).</p></div>
+  </div>
+</div>
+
+<h2>Where scripts live</h2>
+<div class="strip">
+  <div class="scell"><b>scripts.json — the single source</b>Edit it once; this page and the draft generator both update. <span id="scripts-meta"></span></div>
+  <div class="scell"><b>Gmail drafts, human send</b>Drafts arrive pre-filled. A human always hits send — nothing auto-sends.</div>
+  <div class="scell"><b>Text Blaze / Streak snippets</b>Optional manual mirrors of the same copy, nothing more.</div>
+</div>
+
+<h2>At-risk &amp; win-back</h2>
+<div class="canvas"><div class="col">
+  <div class="node linkout">Win-back / at-risk (<span class="mono">^atrisk1</span>, <span class="mono">^atrisk2</span>, <span class="mono">^inactive</span>) lives in <a href="../../save-touch/index.html">The Save Touch guide →</a></div>
+</div></div>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · Internal Reference</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</div>
+<script>
+const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const esc = s => (s==null?'':String(s)).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+// escape + wrap case-insensitive matches of q in <mark>
+function hl(text, q){
+  text = (text==null?'':String(text));
+  if(!q) return esc(text);
+  const lower = text.toLowerCase(), ql = q.toLowerCase();
+  let out='', i=0, j;
+  while((j = lower.indexOf(ql, i)) !== -1){
+    out += esc(text.slice(i,j)) + '<mark>' + esc(text.slice(j, j+q.length)) + '</mark>';
+    i = j + q.length;
+  }
+  return out + esc(text.slice(i));
+}
+
+let SCRIPTS = [], byCode = {};
+
+function scriptCard(s, o){
+  o = o || {};
+  const q = o.q || '';
+  const isLive = (s.status||'live')==='live';
+  const card = el('div','scard'+(o.open?' open':''));
+
+  const head = el('button','scard-head');
+  head.type = 'button';
+  head.innerHTML =
+    '<span class="code">'+hl(s.code,q)+'</span>'+
+    '<span class="nm">'+hl(s.name,q)+'</span>'+
+    '<span class="sbadge">sent by: '+hl(s.sentBy,q)+'</span>'+
+    (s.channel ? '<span class="sbadge">'+esc(s.channel)+'</span>' : '')+
+    (!isLive ? '<span class="pending-tag">'+esc((s.status||'').toUpperCase())+'</span>' : '')+
+    '<span class="tw">view script <span class="arr">▸</span></span>';
+  head.addEventListener('click', ()=>card.classList.toggle('open'));
+  card.appendChild(head);
+
+  const body = el('div','scard-body');
+  if(s.subject) body.appendChild(el('p','scard-sub','Subject: '+hl(s.subject,q)));
+  const paste = el('div','paste', (s.body||'').split('\n').map(l=>hl(l,q)).join('<br>'));
+  const btn = el('button','copybtn','Copy');
+  btn.type = 'button';
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    const txt = (s.subject ? 'Subject: '+s.subject+'\n\n' : '') + (s.body||'');
+    navigator.clipboard.writeText(txt).then(()=>{
+      btn.textContent = 'Copied ✓';
+      setTimeout(()=>{ btn.textContent = 'Copy'; }, 1400);
+    });
+  });
+  paste.appendChild(btn);
+  body.appendChild(paste);
+  if(s.fills && s.fills.length){
+    const f = el('div','fills');
+    s.fills.forEach(x=>f.appendChild(el('span','fill-chip','['+esc(x)+']')));
+    body.appendChild(f);
+  }
+  if(s.notes) body.appendChild(el('p','snotes',hl(s.notes,q)));
+  card.appendChild(body);
+  return card;
+}
+
+function mountFlowCards(){
+  document.querySelectorAll('.smount').forEach(m=>{
+    m.innerHTML = '';
+    const s = byCode[m.dataset.code];
+    if(s){ m.appendChild(scriptCard(s)); }
+    else { m.appendChild(el('p','missing','<span class="mono">'+esc(m.dataset.code)+'</span> — script text unavailable (scripts.json not loaded)')); }
+  });
+}
+
+const FIELDS = ['code','name','subject','body','sentBy','notes'];
+function doSearch(){
+  const q = document.getElementById('q').value.trim();
+  const box = document.getElementById('search-results');
+  box.innerHTML = '';
+  if(!q){ box.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  const hits = SCRIPTS.filter(s => FIELDS.some(f => String(s[f]||'').toLowerCase().includes(ql)));
+  box.style.display = 'block';
+  box.appendChild(el('p','sr-count',
+    hits.length
+      ? hits.length+' script'+(hits.length>1?'s':'')+' match “'+esc(q)+'”'
+      : 'No scripts match “'+esc(q)+'”'+(SCRIPTS.length ? '' : ' — scripts.json not loaded')));
+  hits.forEach(s=>box.appendChild(scriptCard(s,{open:true,q})));
+}
+
+async function boot(){
+  try{
+    const r = await fetch('./scripts.json?_='+Math.floor(Date.now()/60000));
+    const D = await r.json();
+    SCRIPTS = D.scripts||[];
+    const m = D.meta||{};
+    document.getElementById('scripts-meta').textContent = m.updated ? '(live, updated '+m.updated+')' : '';
+  }catch(e){
+    document.getElementById('data-status').innerHTML =
+      'Could not load <code>scripts.json</code>. This page reads it live — open this page via the deployed URL (github.io), not a local file:// path.';
+  }
+  SCRIPTS.forEach(s=>{ byCode[s.code] = s; });
+  mountFlowCards();
+  document.getElementById('q').addEventListener('input', doSearch);
+}
+boot();
+</script>
+</body>
+</html>

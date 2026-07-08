@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "updated": "2026-07-08",
+    "howToMaintain": "Edit this file only. The playbook page and the draft generator both read it."
+  },
+  "scripts": [
+    {
+      "id": "xsell",
+      "code": "^xsell",
+      "name": "Cross-Sell Intro",
+      "sentBy": "the box owner (bandana→apparel default; flip brackets for apparel→bandana)",
+      "channel": "either",
+      "subject": "a thought on your [PROJECT NAME] run",
+      "body": "Hi [FIRST NAME],\nYour [PRODUCT] came out great. If you ever want [matching APPAREL/MERCH] to go with it, I can pull a quick mockup so you can see it. No pressure, just a thought.\nEither way, glad we got to make these for you.",
+      "fills": ["FIRST NAME", "PRODUCT", "APPAREL/MERCH", "PROJECT NAME"],
+      "notes": "reply-in-thread mode inherits the project thread subject",
+      "status": "live"
+    },
+    {
+      "id": "handoff",
+      "code": "^handoff",
+      "name": "Warm Handoff (Shara → Cortney)",
+      "sentBy": "Shara, cc Cortney, before the box moves to Cortney",
+      "channel": "new-email",
+      "subject": "Putting you in good hands",
+      "body": "Hi [FIRST NAME],\nNow that you're doing [APPAREL/MERCH] too, I want you with the right person for it. That's Cortney. She runs our apparel side and she's the best at it, so I've copied her here to get you two connected.\nI'm still your go-to for anything bandana. You're in good hands either way.",
+      "fills": ["FIRST NAME", "APPAREL/MERCH"],
+      "notes": "cc Cortney so they're connected",
+      "status": "live"
+    },
+    {
+      "id": "qc",
+      "code": "/qc",
+      "name": "QC (Text Blaze)",
+      "sentBy": "the box owner",
+      "channel": "new-email",
+      "subject": "how'd the [Project Name] turn out?",
+      "body": "Hi [first name],\nYour [Project Name] just landed, and I want to make sure we got it right. Did everything turn out the way you pictured?\nIf anything's off, tell me and I'll fix it. That's the whole job.",
+      "fills": ["first name", "Project Name"],
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "status": "live"
+    },
+    {
+      "id": "nc4",
+      "code": "/nc4",
+      "name": "NewCust_Check4mo_Ban",
+      "sentBy": "Shara",
+      "channel": "new-email",
+      "subject": "the [Project Name] run, and what's next for you?",
+      "body": "Hi [first name],\nIt's been a few months since your [Project Name] run went out. How did they go over?\nAnd whatever's next for you, we'd love to be part of it. Bandanas are how most people meet us, but we do apparel and branded merch too, so there's more we can do whenever you're ready.\nNo pressure at all. Just glad we got to make these for you.",
+      "fills": ["first name", "Project Name"],
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "status": "live"
+    },
+    {
+      "id": "reorderban",
+      "code": "/reorderban",
+      "name": "Reorder_Ban",
+      "sentBy": "Shara",
+      "channel": "new-email",
+      "subject": "the [Project Name] run, same as last year or switch it up?",
+      "body": "Hi [first name],\nYour [Project Name] project from last [Month of last order] is coming up on a year, and I wanted to get ahead of your next one so it's handled before you need it.\nI've still got everything from that run on file, so if something's on the horizon I can have it lined up with priority turnaround. And if you're planning anything past bandanas, we do apparel and branded merch too, so I can get ahead of that for you the same way.\nWhen does the next one usually land for you?\nNo rush at all. Just point me at the timing and I'll plan around it.",
+      "fills": ["first name", "Project Name", "Month of last order"],
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "status": "live"
+    },
+    {
+      "id": "xsellresponse",
+      "code": "^xsellresponse",
+      "name": "Cross-Sell Response",
+      "sentBy": "Cortney (team@)",
+      "channel": "reply-in-thread",
+      "subject": null,
+      "body": "Hi [FIRST NAME],\n\nCortney here, I run the apparel side at Planet Apparel. Shara passed your note over and that mockup offer is real, I'd love to put it together for you.\n\nOne question so it's worth your time: what would your crew actually use, shirts, hats, hoodies, something else? Tell me that and I'll have your [PROJECT NAME] art worked up on it within a couple days.\n\nNo cost and no commitment. If it looks right, we'll talk numbers.",
+      "fills": ["FIRST NAME", "PROJECT NAME"],
+      "notes": "sent within 1 business day of an interested reply",
+      "status": "live"
+    },
+    {
+      "id": "xsellghost",
+      "code": "^xsellghost",
+      "name": "Cross-Sell Ghost Follow-Up",
+      "sentBy": "Cortney (team@)",
+      "channel": "reply-in-thread",
+      "subject": null,
+      "body": "Hi [FIRST NAME],\n\nThat apparel mockup is still yours if you want it. One line back gets it moving.\n\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\n\nGlad we got to be part of the [PROJECT NAME] run either way.",
+      "fills": ["FIRST NAME", "PROJECT NAME"],
+      "notes": "one light touch ~1 week after ^xsellresponse goes unanswered, then stop",
+      "status": "live"
+    }
+  ]
+}

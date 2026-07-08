@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "title": "Retention",
+    "parent": "Revenue House",
+    "updated": "2026-07-07",
+    "joinKey": "Printavo Customer ID  ·  Sale box 1068  ↔  Retention box 1003",
+    "canonical": true,
+    "supersedes": [
+      "Retention_Master_Flow_Map.html (Dropbox)",
+      "Retention_Strategy_NORTH_STAR.md (Dropbox)",
+      "Retention — Master Script Registry (Google Sheet)"
+    ],
+    "howToMaintain": "Edit this file only. The page renders itself from it. When a workflow flips state, change its node.status here and (if it's an alarm) update the alarms[] array."
+  },
+
+  "alarms": [
+    {
+      "level": "red",
+      "title": "④ Save-Touch is OFF",
+      "detail": "The AT-Risk save-email/call engine is INACTIVE + DRY_RUN. Every 'we miss you' touch is sent by hand today. This is the single biggest automation hole.",
+      "owner": "Shara / Cortney sign-off, then flip",
+      "action": "Later sprint: ~2-day ② Open-Deal Guard burn-in → activate + set DRY_RUN=false. First run = ~27 backlog tasks."
+    },
+    {
+      "level": "red",
+      "title": "System B dies 2026-09-12",
+      "detail": "The ~305-day annual reorder email lives in Automations.io on the Printavo integration token, which expires 2026-09-12. Its firing is UNCONFIRMED — we can't tell from our side if it sends.",
+      "owner": "Holly",
+      "action": "Verify it fires; migrate the annual reorder email into n8n before the token expires."
+    },
+    {
+      "level": "red",
+      "title": "A, B, and C don't talk",
+      "detail": "Three cadence engines run in parallel. System A (n8n) can mark a customer LOST while System C (manual bandana ladder) is still hand-emailing them an annual reorder. No single cadence source of truth exists.",
+      "owner": "Holly",
+      "action": "Absorb B + C into A ('formalize what already works'). Stated intent; not yet done."
+    },
+    {
+      "level": "amber",
+      "title": "System C has no engine",
+      "detail": "The bandana 'Annual Check-In' ladder (1st check-in → /nc4 4-month → /reorderban reorder) is 100% manual Streak tasks in Shara's inbox. Copy exists (Scripts/Retention.csv); nothing fires it.",
+      "owner": "Shara",
+      "action": "Highest-leverage build: an auto-send layer that reads the Retention pipeline."
+    },
+    {
+      "level": "amber",
+      "title": "Daily Recompute may time out",
+      "detail": "Drift audit (7/2): the nightly recompute risks hitting n8n's 300s execution cap on a full Printavo history pull → a partial re-band that night.",
+      "owner": "Holly / Jean",
+      "action": "Paginate or shard the recompute so it can't exceed the cap."
+    },
+    {
+      "level": "amber",
+      "title": "Open-Deal Guard stage gaps",
+      "detail": "Drift audit (7/2): the Guard's suppression stage-set omits several live Sale stages (5022, 5013…). Once ④ Save-Touch goes live, a mid-quote customer in those stages could get a cold 'save' touch.",
+      "owner": "Holly / Jean",
+      "action": "Add the missing Sale stage IDs to ② Open-Deal Guard before flipping ④ live."
+    },
+    {
+      "level": "amber",
+      "title": "2 crons are mislabeled",
+      "detail": "③ Enrich node says '2am PT' but fires 6am PT. Relabel node says '~6am PT' but fires 10am PT. Behavior is fine; the labels lie, so the cadence map on the wall won't match reality.",
+      "owner": "Holly / Jean",
+      "action": "30-second rename of the two schedule nodes in n8n."
+    },
+    {
+      "level": "amber",
+      "title": "North Star has one stale clause",
+      "detail": "The 5/21 sales-team walk-through softened 'Both → Cortney' from an auto-transfer to auto-flip-with-manual-override. The North Star doc (the tie-breaker) was never updated to match.",
+      "owner": "Holly",
+      "action": "One-line reconciliation in the strategy layer."
+    }
+  ],
+
+  "systems": [
+    {
+      "id": "A",
+      "name": "n8n Retention lifecycle",
+      "status": "live",
+      "summary": "Enrich → Convert → band → AT-Risk save, across the Sale + Retention pipelines. Data-true and mostly automated. Every node below except System B/C rows is System A."
+    },
+    {
+      "id": "B",
+      "name": "Automations.io / Printavo emails",
+      "status": "unverified",
+      "summary": "Form-to-Printavo, quote chasing, invoice approval, post-delivery review request, and a ~305-day annual reorder email — all Printavo-triggered, outside n8n.",
+      "flag": "Annual reorder firing UNCONFIRMED · integration token expires 2026-09-12"
+    },
+    {
+      "id": "C",
+      "name": "Manual bandana task ladder",
+      "status": "manual",
+      "summary": "The 'Annual Check-In' tasks in Shara's inbox. Hand-created Streak tasks on Sale-pipeline boxes — 1st check-in → 4-month → annual reorder — laddered forward by hand on each order.",
+      "flag": "Task creation, email send, AND cadence-reset all manual. This is the inbox backlog."
+    }
+  ],
+
+  "cadence": [
+    { "when": "Hourly :00", "items": "① Convert · ② Open-Deal Guard" },
+    { "when": "Hourly :30 (5:30a–5:30p PT)", "items": "Pass 1 · PM-Box Enrich" },
+    { "when": "Hourly :40 (5:40a–5:40p PT)", "items": "④ AT-Risk Save-Touch — OFF, fires nothing", "dead": true },
+    { "when": "Hourly :50 (5:50a–5:50p PT)", "items": "Pass 2a · Conversion Finalize" },
+    { "when": "Daily 1:00 AM PT", "items": "Daily Recompute + Band-Updater + Single-Order Sweep" },
+    { "when": "Daily 6:00 AM PT", "items": "③ Enrich · ID Heal", "note": "node mislabeled '2am'" },
+    { "when": "Daily 10:00 AM PT", "items": "Relabel · Relationship Status", "note": "node mislabeled '~6am'" },
+    { "when": "On event", "items": "Web Intake (form submit) · Fix Agent (any workflow failure)" }
+  ],
+
+  "stages": [
+    { "id": "prospect",    "name": "PROSPECT",    "sub": "quote open / not yet paid", "color": "#64748b" },
+    { "id": "paid",        "name": "PAID",        "sub": "order converts",           "color": "#F7BE00", "ink": "#000" },
+    { "id": "new",         "name": "NEW",         "sub": "1 order, <12mo",           "color": "#0ea5e9" },
+    { "id": "active",      "name": "ACTIVE",      "sub": "ordering on cadence",      "color": "#10b981" },
+    { "id": "atrisk",      "name": "AT-RISK",     "sub": "overdue vs cadence",       "color": "#ea580c" },
+    { "id": "inactive",    "name": "INACTIVE",    "sub": "failed save (human-only)", "color": "#94a3b8" },
+    { "id": "lost",        "name": "LOST",        "sub": "no reorder, 12mo",         "color": "#dc2626" },
+    { "id": "reactivated", "name": "REACTIVATED", "sub": "a LOST customer returns",  "color": "#8b5cf6" }
+  ],
+
+  "nodes": [
+    { "id": "web-intake", "name": "Web Intake", "system": "A", "stage": "prospect", "owner": "n8n", "status": "live", "cadence": "on form submit", "trigger": "customer submits the site form", "script": "LZt6xpY8", "what": "Creates the Sale box, stamps Intake = Form, sets first Relationship Status", "next": "" },
+    { "id": "pass1", "name": "Pass 1 · PM-Box Enrich", "system": "A", "stage": "prospect", "owner": "n8n", "status": "live", "cadence": "hourly :30 (biz hrs)", "trigger": "blank-Intake box ≤2 days old", "script": "YcoYks1H", "what": "Stamps Intake = Direct; name-matches Printavo → Customer ID, $, city. Confidence Gate (7/2) writes CID only on a strong match, else skips + Chat alert.", "next": "Fuzzy matcher is the weakest link in the fleet — watch it." },
+    { "id": "opendeal", "name": "② Open-Deal Guard", "system": "A", "stage": "prospect", "owner": "n8n", "status": "live", "cadence": "hourly :00", "trigger": "on quote · while a deal is live", "script": "55A9MBqc", "what": "Stamps Date of Last Quote or Activity; suppresses ALL retention outreach while a deal is open (the suppressor).", "next": "Stage-set omits live Sale stages 5022/5013 — fix before ④ goes live." },
+    { "id": "relabel", "name": "Relabel · Relationship Status", "system": "A", "stage": "prospect", "owner": "n8n", "status": "live", "cadence": "daily 10am PT", "trigger": "daily", "script": "bcCZgNjk", "what": "Counts paid invoices → advances New Prospect → Returning → New → Repeat (forward-only).", "next": "Schedule node mislabeled '~6am' — actually 10am PT." },
+    { "id": "enrich", "name": "③ Enrich · ID Heal", "system": "A", "stage": "paid", "owner": "n8n", "status": "live", "cadence": "daily 6am PT", "trigger": "blank join-key + invoice #", "script": "PbX2qwEi", "what": "Fills the join key from invoice → customer when blank/wrong. Confidence gate; both backfill and daily self-heal.", "next": "Schedule node mislabeled '2am' — actually 6am PT." },
+    { "id": "pass2a", "name": "Pass 2a · Conversion Finalize", "system": "A", "stage": "paid", "owner": "n8n", "status": "live", "cadence": "hourly :50 (biz hrs)", "trigger": "box hits Paid / In Production", "script": "g9PmJGOo", "what": "Sets Conversion Date; finalizes exact Customer ID, $, geo, New-vs-Return. LIMIT=15/run. The gold-standard enricher.", "next": "" },
+    { "id": "convert", "name": "① Convert · Sale → Retention", "system": "A", "stage": "paid", "owner": "n8n", "status": "live", "cadence": "hourly :00", "trigger": "paid Sale box detected", "script": "YAok99Zq", "what": "Find-or-create the Retention box (tier, dept, cadence, stage). Sets NEW / ACTIVE / REACTIVATED. 7/5 twin-prevention fix indexes linked-sale CIDs.", "next": "Dedup fix (CID backfill + email-domain tier) designed, held for supervised deploy. Streak key is INLINE — edit in n8n UI, not via API." },
+    { "id": "recompute", "name": "Daily Recompute (Layer A.1)", "system": "A", "stage": "active", "owner": "n8n", "status": "live", "cadence": "nightly 1am PT", "trigger": "nightly", "script": "OXvkbVIE", "what": "Rebuilds #orders, spend, last-order-date, cadence from full Printavo history (21-day occasion clustering, dead-CID re-resolve).", "next": "Risks the 300s execution cap on a full pull → partial re-band. Paginate/shard." },
+    { "id": "band", "name": "Band-Updater", "system": "A", "stage": "atrisk", "owner": "n8n", "status": "live", "cadence": "nightly (in Recompute)", "trigger": "nightly", "script": "OXvkbVIE", "what": "Moves ACTIVE ↔ AT-RISK by cadence (BAND_MULT 1.25×). Never auto-sets INACTIVE.", "next": "" },
+    { "id": "sweep", "name": "Single-Order Sweep", "system": "A", "stage": "lost", "owner": "n8n", "status": "live", "cadence": "nightly (in Recompute)", "trigger": "nightly", "script": "OXvkbVIE", "what": "1-order boxes → NEW (<12mo) or LOST (>12mo).", "next": "" },
+    { "id": "savetouch", "name": "④ AT-Risk Save-Touch (Layer B.1)", "system": "A", "stage": "atrisk", "owner": "n8n", "status": "dry", "cadence": "hourly :40 (8a–8p)", "trigger": "box turns AT-RISK", "script": "ujU81mGJ", "what": "The outreach: T1 → SAVE CALL task · T2 → SAVE EMAIL task (paste-ready copy) · T3 → skip. Reads ② Guard to mute mid-deal; stamps Save Touch 1.", "next": "OFF (inactive + DRY_RUN). The single biggest hole — every save touch is hand-sent today." },
+    { "id": "pass2b", "name": "Pass 2b · AI Profile + Type", "system": "A", "stage": "paid", "owner": "n8n", "status": "planned", "cadence": "at conversion", "trigger": "at conversion", "script": "—", "what": "AI fills Profile + the 100-option customer Type.", "next": "Designed, not built." },
+
+    { "id": "b-form", "name": "Form to Printavo", "system": "B", "stage": "prospect", "owner": "Automations.io", "status": "live", "cadence": "on form submit", "trigger": "web form", "script": "Automations.io", "what": "Pushes the web form into Printavo as an order/quote.", "next": "" },
+    { "id": "b-quote", "name": "Quote Chasing", "system": "B", "stage": "prospect", "owner": "Automations.io", "status": "live", "cadence": "on inbound email", "trigger": "quote status", "script": "Automations.io", "what": "Chases open quotes toward close.", "next": "" },
+    { "id": "b-review", "name": "Ask Review (post-delivery)", "system": "B", "stage": "new", "owner": "Automations.io", "status": "live", "cadence": "~5 days after delivery", "trigger": "delivery date", "script": "Automations.io", "what": "Post-delivery review request email.", "next": "" },
+    { "id": "b-annual", "name": "Annual Reorder Email (~305 day)", "system": "B", "stage": "active", "owner": "Automations.io", "status": "alarm", "cadence": "~305 days after order", "trigger": "delivery date + 305d", "script": "Automations.io", "what": "The annual reorder nudge — core to reorder retention.", "next": "Firing UNCONFIRMED. Token expires 2026-09-12. Verify + migrate to n8n." },
+
+    { "id": "c-checkin1", "name": "1st Check-In", "system": "C", "stage": "new", "owner": "Shara (manual)", "status": "manual", "cadence": "hand-laddered", "trigger": "after 1st bandana order", "script": "^qc_new (Text Blaze)", "what": "First relationship touch on a new bandana customer.", "next": "No engine — hand-created Streak task." },
+    { "id": "c-nc4", "name": "4-Month Check-In (/nc4)", "system": "C", "stage": "active", "owner": "Shara (manual)", "status": "manual", "cadence": "hand-laddered", "trigger": "~4 months after order", "script": "/nc4 (Text Blaze)", "what": "Cadence check-in / free-mockup gift touch.", "next": "No engine — manual." },
+    { "id": "c-reorder", "name": "Annual Reorder (/reorderban)", "system": "C", "stage": "atrisk", "owner": "Shara (manual)", "status": "manual", "cadence": "hand-laddered", "trigger": "~annual", "script": "/reorderban (Text Blaze)", "what": "Reorder reach-out on the bandana ladder.", "next": "No engine — manual. Overlaps System B's annual email (unreconciled)." }
+  ],
+
+  "sources": [
+    { "label": "Master Flow Map (superseded)", "path": "Dropbox › PlanetApparel/Sales/Customer_Retention/Retention_Master_Flow_Map.html" },
+    { "label": "North Star strategy (strategy layer)", "path": "Dropbox › PlanetApparel/Sales/Customer_Retention/Strategy/Retention_Strategy_NORTH_STAR.md" },
+    { "label": "Gap Analysis & backlog", "path": "Dropbox › PlanetApparel/Sales/Customer_Retention/Retention_System_Gap_Analysis_2026-07-05.md" },
+    { "label": "Master Script Registry (superseded)", "path": "Google Drive › My Drive › Retention — Master Script Registry (Sheet)" },
+    { "label": "Drift Audit 7/2", "path": "Dropbox › PlanetApparel/PlanetIQ/Drift_Audits/Drift_Audit_retention_2026-07-02.md" }
+  ]
+}
