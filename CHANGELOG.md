@@ -2,6 +2,27 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-08 — Bottom tab bar REMOVED — sidebar is the app's sole navigation
+- Who:    Jean (via Claude, Fable 5; Jean's explicit call)
+- What:   Deleted the 68px bottom tab bar (markup + CSS) — it duplicated the new
+          sidebar section-for-section and ate vertical space on the floor iPad.
+          Main content now reaches the viewport bottom; the Schedule and
+          Availability iframes size to their panel (were hard-coded
+          `calc(100vh - 120px)` around the bar). The Pre-Press / Running /
+          Fulfillment count badges MOVED into the sidebar items keeping their
+          element ids (`prepress-badge` etc.) so the existing KPI updaters work
+          unchanged; the sidebar renders once at boot and only the highlight
+          updates on switch, so badges stay stable. On phones the ☰ drawer is
+          now the only nav — by design. This closes Holly's original "bottom bar
+          getting girthy" complaint from the 7/7 walkthrough.
+- Why:    With the sidebar always visible, the bar was pure redundancy; Jean
+          ordered the strip-out.
+- Proof:  Commit afd0cba, pushed to Pages. Headless: zero `.nav-tab`/`.bottom-nav`
+          elements; all 3 badges inside the sidebar (Running badge populated from
+          live state at boot); all 8 sections switch with highlight sync; main
+          content + schedule iframe reach the viewport bottom (0px gap).
+- Build doc updated?  no — this entry is the record.
+
 ## 2026-07-08 — Nav shell v2: dropdown → collapsible LEFT SIDEBAR (Jean's direction)
 - Who:    Jean (via Claude, Fable 5)
 - What:   Replaced the ☰ dropdown menu (same-day v1, below) with a persistent
