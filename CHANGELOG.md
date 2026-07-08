@@ -2,6 +2,42 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-07 — P0 bugs from Holly's Board walkthrough: inventory loading + scheduler date range
+- Who:    Jean (via Claude, Fable 5)
+- What:   (1) **Blanks inventory loading** — `fetchBandanaInventory()` was only
+          called at the very end of `syncFromPrintavo()`, so three paths left
+          `state.inventory` null forever: the 7/6 cross-device fresh-sync skip
+          (most devices return early and never reach the fetch), any mid-sync
+          Printavo error, and off-hours page loads (sync doesn't run at all).
+          Inventory now loads independently at init and whenever a Blanks sheet
+          opens (the 5-min localStorage cache keeps this cheap), keeps a stale
+          cache as fallback when the Railway proxy is down, and an already-open
+          sheet updates its stock lines in place by element id — a full
+          re-render would wipe quantities Rosa is mid-typing. A SKU that is
+          loaded but unmatched now reads "no live stock record for this SKU"
+          instead of the misleading "inventory not loaded yet".
+          (2) **Scheduler date range** — two device-local failure modes, both
+          reload-proof because `range` is intentionally LOCAL_ONLY (never
+          healed by shared-state sync): an inverted custom range (start after
+          end) rendered ZERO day rows, and scheduling a job outside the visible
+          window silently flips the device into custom mode forever — weeks
+          later the stored window is entirely in the past and the board shows
+          no current dates. Fixes: inverted ranges swap, degenerate ranges fall
+          back to Work Week, and boot resets a custom window that is entirely
+          past with no scheduled jobs inside it. A deliberate current custom
+          range is untouched.
+- Why:    Holly's 7/7 Board walkthrough flagged both as live bugs (plan doc
+          #12); the inventory one blocks the Blanks-stage overhaul (#4).
+- Proof:  Commit b7a2ac4, pushed to Pages. Proxy verified healthy (HTTP 200,
+          CORS *, ~12 s response — the latency is why late-arriving data must
+          refresh an open sheet). Headless-Edge repro: seeded a stuck June
+          custom range → board self-healed to the current work week; seeded a
+          current custom range → preserved; board page renders 92 job cards
+          post-change. NOTE for later: the inventory proxy returns no
+          `organic` section, so ORG SKUs show "no live stock record" — n8n
+          workflow / sheet side, not the app.
+- Build doc updated?  no — behavior fix only; this entry is the record.
+
 ## 2026-07-07 — Top-level Estimator tab removed (UI/aesthetic pass)
 - Who:    Jean (via Claude, Fable 5)
 - What:   Removed the 🧮 Estimator tab from the main dashboard's bottom nav,
