@@ -2130,6 +2130,9 @@ function openJobSheet(jobId){
   renderSheet();
   document.getElementById('detail-overlay').classList.add('open');
   document.getElementById('detail-sheet').classList.add('open');
+  // Blanks sheet: refresh live stock before use (5-min cache makes this cheap)
+  const j = getJob(jobId);
+  if(j && j.station === 'blanks') fetchBandanaInventory().then(refreshBlanksStockLines);
 }
 function openImprintDetail(wuId){
   state.sheet.level = 'imprint';
@@ -2320,16 +2323,7 @@ function renderJobLevel(){
       bl.style.cssText = 'margin-top:14px';
 
       // Group by description+color
-      const garmentGroups = [];
-      const garmentMap = {};
-      job.blanksList.forEach((li, idx) => {
-        const gKey = `${li.description}||${li.color}`;
-        if(!garmentMap[gKey]){
-          garmentMap[gKey] = { gKey, description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
-          garmentGroups.push(garmentMap[gKey]);
-        }
-        garmentMap[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
-      });
+      const garmentGroups = groupBlanks(job);
 
       const garmentHtml = garmentGroups.map((g, gi) => {
         window._receiptForms[gi] = { jobId: job.id, gKey: g.gKey, sizes: g.sizes.map(s=>({idx:s.idx,size:s.size})) };
@@ -2395,12 +2389,7 @@ function renderJobLevel(){
 
         // In-house section
         const remaining = invQty !== null ? invQty - totalInHouse : null;
-        const stockLine = invQty !== null
-          ? `<div style="font-size:11px;font-weight:700;margin-top:2px;color:${remaining<=0?'#E53935':remaining<totalOrdered?'#FF8F00':'#2E7D32'}">
-               ${invLabel||'In-House'} · <span style="font-size:14px">${remaining.toLocaleString()}</span> remaining
-               <span style="color:rgba(0,0,0,.3);font-weight:500"> (${invQty.toLocaleString()} total · ${totalInHouse} pulled)</span>
-             </div>`
-          : (invLabel ? `<div style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · inventory not loaded yet</div>` : '');
+        const stockLine = stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel);
         const inHouseSection = `
           <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(0,0,0,.07)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -5029,7 +5018,7 @@ async function syncFromPrintavo(force = false){
 
     state.lastSyncAt = Date.now();
     // Fetch live inventory in parallel (non-blocking — renders board first, then re-renders if inventory loads)
-    fetchBandanaInventory().then(() => buildBoard());
+    fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
     saveState();
     buildBoard();
     const msg = added > 0 ? `+${added} new` : stationChanged > 0 ? `↩ ${stationChanged} moved` : 'Up to date';
@@ -5044,23 +5033,72 @@ async function syncFromPrintavo(force = false){
 
 const INVENTORY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 async function fetchBandanaInventory(){
+  let staleCache = null; // expired but valid — better than nothing if the proxy is down
   try {
     const cached = localStorage.getItem('planetops_inventory_cache');
     if(cached){
       const { ts, data } = JSON.parse(cached);
-      if(Date.now() - ts < INVENTORY_CACHE_TTL_MS){
-        if(data.import || data.usa){ state.inventory = data; }
-        return;
+      if(data && (data.import || data.usa)){
+        if(Date.now() - ts < INVENTORY_CACHE_TTL_MS){ state.inventory = data; return; }
+        staleCache = data;
       }
     }
     const res = await fetch(INVENTORY_PROXY);
-    if(!res.ok) return;
+    if(!res.ok){ if(!state.inventory && staleCache) state.inventory = staleCache; return; }
     const data = await res.json();
     if(data.import || data.usa){
       state.inventory = data;
       localStorage.setItem('planetops_inventory_cache', JSON.stringify({ ts: Date.now(), data }));
     }
-  } catch(e){ /* silent fail — inventory display is optional */ }
+  } catch(e){ if(!state.inventory && staleCache) state.inventory = staleCache; }
+}
+
+// Group a job's blanksList by description+color (shared by renderJobLevel + stock refresh)
+function groupBlanks(job){
+  const groups = [];
+  const map = {};
+  (job.blanksList || []).forEach((li, idx) => {
+    const gKey = `${li.description}||${li.color}`;
+    if(!map[gKey]){
+      map[gKey] = { gKey, description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
+      groups.push(map[gKey]);
+    }
+    map[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
+  });
+  return groups;
+}
+
+function stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel){
+  if(invQty !== null){
+    const remaining = invQty - totalInHouse;
+    return `<div id="stockline-${gi}" style="font-size:11px;font-weight:700;margin-top:2px;color:${remaining<=0?'#E53935':remaining<totalOrdered?'#FF8F00':'#2E7D32'}">
+               ${invLabel||'In-House'} · <span style="font-size:14px">${remaining.toLocaleString()}</span> remaining
+               <span style="color:rgba(0,0,0,.3);font-weight:500"> (${invQty.toLocaleString()} total · ${totalInHouse} pulled)</span>
+             </div>`;
+  }
+  const msg = state.inventory ? 'no live stock record for this SKU' : 'inventory not loaded yet';
+  return `<div id="stockline-${gi}" style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · ${msg}</div>`;
+}
+
+// Update only the stock lines of an open Blanks sheet in place — a full renderSheet()
+// would wipe quantities being typed into the check-in inputs.
+function refreshBlanksStockLines(){
+  if(!state.sheet || !state.sheet.open || state.sheet.level !== 'job') return;
+  const job = getJob(state.sheet.jobId);
+  if(!job || job.station !== 'blanks' || !job.blanksList || !job.blanksList.length) return;
+  groupBlanks(job).forEach((g, gi) => {
+    const el = document.getElementById(`stockline-${gi}`);
+    if(!el) return;
+    const invQty = lookupBandanaStock(g.itemNumber, g.color, g.description);
+    const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
+    const totalInHouse = g.sizes.reduce((sum, s) => {
+      const raw = (job.inHouseCount||{})[s.idx];
+      return sum + (parseInt(raw ? (typeof raw==='object'?raw.qty:raw) : 0)||0);
+    }, 0);
+    const _inum = (g.itemNumber||'').toUpperCase().trim();
+    const invLabel = /^PL/.test(_inum)?'Import':/^US/.test(_inum)?'USA Made':/^ORG/.test(_inum)?'Organic':'In-House';
+    el.outerHTML = stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel);
+  });
 }
 
 // Look up live bandana stock: returns qty or null if not a known bandana SKU / color not found
@@ -6255,6 +6293,9 @@ document.getElementById('header-date').textContent = todayStr();
 (async () => {
   await loadState();          // shared state must finish loading before the board is built
   buildBoard();
+  // Inventory load is independent of the Printavo sync — the sync's fresh-window early
+  // return (another device pulled) and any mid-sync error used to leave inventory unloaded.
+  fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
   if(isWorkHours()) syncFromPrintavo();
   setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
 })();

@@ -715,10 +715,12 @@ function scheduledDates(){return [...new Set(jobs.filter(j=>j.date).map(j=>j.dat
 function dateRange(){
   const sched=scheduledDates();
   if(store.range.mode==='custom'&&store.range.start&&store.range.end){
-    const out=[];let d=new Date(store.range.start+'T12:00:00');const end=new Date(store.range.end+'T12:00:00');
+    let s=store.range.start,e=store.range.end;
+    if(s>e){const t=s;s=e;e=t;}   // inverted picks used to render ZERO day rows ("no date range")
+    const out=[];let d=new Date(s+'T12:00:00');const end=new Date(e+'T12:00:00');
     let guard=0;
     while(d<=end&&guard++<42){out.push(iso(d));d.setDate(d.getDate()+1);}
-    return out;
+    if(out.length)return out;   // degenerate custom range (bad dates) → fall through to Work Week
   }
   const anchor=sched[0]?new Date(sched[0]+'T12:00:00'):new Date('2026-07-06T12:00:00');
   const mon=new Date(anchor);mon.setDate(anchor.getDate()-((anchor.getDay()+6)%7));
@@ -2005,6 +2007,18 @@ document.getElementById('resetBtn').onclick=()=>{
 window.addEventListener('beforeunload',e=>{
   if(!store.exported&&changeList().length){e.preventDefault();e.returnValue='';}
 });
+
+/* Self-heal a stale custom range: scheduling outside the visible range silently flips a
+   device into custom mode and it never returns to Work Week on its own. If the whole
+   stored window is in the past AND holds no scheduled job, it's stuck — reset to week. */
+if(store.range.mode==='custom'&&store.range.end&&store.range.end<todayISO()){
+  buildModel();
+  const sched=scheduledDates();
+  if(!sched.some(d=>d>=store.range.start&&d<=store.range.end)){
+    store.range={mode:'week',start:null,end:null};
+    localStorage.setItem(KEY,JSON.stringify(store));
+  }
+}
 
 if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar');
 renderAll();
