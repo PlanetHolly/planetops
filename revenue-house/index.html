@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue House</title>
+<style>
+  :root{--gold:#F7BE00;--ink:#111;--line:#dcdce0;--bg:#f4f4f5}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:26px 20px 60px}
+  header{background:var(--ink);color:#fff;border-radius:14px;padding:22px 26px;position:relative}
+  header .o{position:absolute;top:16px;right:20px}
+  header .o svg{height:26px;width:auto;color:var(--gold);display:block}
+  .crumb{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#9aa4b2;font-weight:800}
+  .crumb a{color:#9aa4b2;text-decoration:none}
+  header h1{margin:4px 0 0;font-size:28px}header h1 .y{color:var(--gold)}
+  header p{margin:9px 0 0;color:#cfcfcf;font-size:13px;max-width:640px;line-height:1.55}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:18px}
+  .tile{display:block;background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px 18px 16px;
+    text-decoration:none;color:inherit;transition:transform .1s,box-shadow .1s,border-color .1s;position:relative}
+  .tile:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08);border-color:#c7c7cc}
+  .tile.soon{opacity:.6;pointer-events:none}
+  .tile .ico{font-size:26px}
+  .tile h2{margin:8px 0 4px;font-size:17px}
+  .tile p{margin:0;font-size:12.5px;color:#555;line-height:1.5}
+  .tile .st{position:absolute;top:14px;right:14px;font-size:9.5px;font-weight:800;letter-spacing:.5px;
+    text-transform:uppercase;border-radius:999px;padding:3px 9px;color:#fff}
+  .st.live{background:#047857}.st.soon{background:#94a3b8}
+  footer{margin-top:26px;font-size:11px;color:#8a8a8a;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="o"><svg viewBox="-270 -185 3237 2226" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg></div>
+    <div class="crumb"><a href="../index.html">PlanetOps</a> › Revenue House</div>
+    <h1>Revenue <span class="y">House</span></h1>
+    <p>The customer side of the house — winning the order, keeping the customer, and knowing the score. One home for the pieces that used to live as scattered links.</p>
+  </header>
+
+  <div class="grid">
+    <a class="tile" href="./retention/index.html">
+      <span class="st live">Live</span>
+      <div class="ico">🔁</div>
+      <h2>Retention</h2>
+      <p>The full retention system in one live map — three cadence engines, every automation, and the alarms that need action. Reads status.json.</p>
+    </a>
+    <a class="tile" href="../signals/index.html">
+      <span class="st live">Live</span>
+      <div class="ico">📊</div>
+      <h2>Signals</h2>
+      <p>The sales scoreboard — quotes, conversions, new-vs-return, tier counts, and ad ROI, by rep and by week.</p>
+    </a>
+    <a class="tile" href="./playbook/index.html">
+      <span class="st live">Live</span>
+      <div class="ico">📖</div>
+      <h2>Playbook</h2>
+      <p>The retention outreach playbook — who sends what, the scripts, and Kelly's morning cross-sell routine.</p>
+    </a>
+    <span class="tile soon">
+      <span class="st soon">Soon</span>
+      <div class="ico">🗂️</div>
+      <h2>Pipeline</h2>
+      <p>The Streak Sale Pipeline view — stages, cleanup status, and Printavo reconciliation. Coming next.</p>
+    </span>
+  </div>
+
+  <footer>Planet Apparel · PlanetOps › Revenue House · a sub-hub, not a separate app</footer>
+</div>
+</body>
+</html>
