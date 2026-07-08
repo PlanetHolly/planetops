@@ -2,6 +2,27 @@
 
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
+## 2026-07-08 — Nav shell v2: dropdown → collapsible LEFT SIDEBAR (Jean's direction)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Replaced the ☰ dropdown menu (same-day v1, below) with a persistent
+          collapsible left sidebar rendered from the same `SECTIONS` registry:
+          always visible beside the main content on wide screens; ☰ now toggles
+          collapse to a 58px icons-only rail (remembered per device via
+          localStorage `planetops_sidenav_collapsed`); current section carries a
+          yellow marker; PIN-gated sections will show 🔒. On narrow screens
+          (≤700px) the sidebar becomes an off-canvas drawer with a scrim, and
+          navigating closes it. Home panel, `goSection()` routing, PIN-gate
+          infra, and the bottom tab bar are unchanged. NOTE for Holly: this
+          supersedes the icon-bar-vs-hamburger DECISION — Jean chose sidebar.
+- Why:    Jean's call after seeing v1: a sidebar is the better long-term nav as
+          sections multiply — always visible, scales vertically, collapses out
+          of the way on the floor iPad.
+- Proof:  Commit 70ad052, pushed to Pages. Headless test at 1280px and 620px:
+          9 items render; collapse toggle + saved preference; current-highlight
+          syncs on jump; drawer hidden at boot, opens with scrim, closes on
+          navigate. All 7 script blocks syntax-clean.
+- Build doc updated?  no — this entry is the record.
+
 ## 2026-07-08 — Nav shell: Home directory + ☰ quick-jump + PIN-gate infrastructure (overhaul #1)
 - Who:    Jean (via Claude, Fable 5)
 - What:   Main dashboard gains an app navigation shell so the bottom tab bar stops
