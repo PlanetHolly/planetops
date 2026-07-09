@@ -32,13 +32,30 @@ PlanetOps Feed lane (future, this spec).
   sheet. Chosen over Dropbox because: vendor-isolated external access; n8n Google (tech@) creds
   reach Shared Drives while Dropbox app-folder creds cannot reach shared `PlanetApparel/` paths.
 
+## Conversion gate (authoritative — do not re-derive)
+Only work that went forward may reach the website. seps.io produces mockups for jobs that never
+convert, so `~/Dropbox/ART/` is NOT a safe source on its own.
+
+**Truth = Printavo `status.type` + which connection the record lives in:**
+- exact `visualId` in `invoices` with `status.type == "INVOICE"` → **converted**
+- exact `visualId` in `quotes` → **never converted** (e.g. `🔵 Art (Seps.io)` is a QUOTE-type status)
+- in neither, or Printavo unreachable → **unverifiable**
+
+The gate **fails closed**: process only on `converted is True`. Every skip is reported with a reason.
+
+Two verified traps:
+- **`paidInFull` is NOT conversion.** Inv 20200 = "Delivered / Picked up", `paidInFull: false` (net terms).
+  Gating on payment silently drops delivered work.
+- **`invoices(query:"5")` does not return quote 5** — that arg is a fuzzy search returning unrelated
+  invoices. Match `visualId` exactly, and query both connections.
+
 ## Flow — NOW (CLI lane, live)
-1. Holly points at converted bandana project folder(s) in `~/Dropbox/ART/…` (she knows what converted).
-2. `python3 cli.py <folder> --sku PL2216 [--vision vision.json]` — vision facts (color/shape
-   confirmation) come from a Claude vision pass over the images, merged via JSON.
-3. Holly reviews `art_contact_sheet.html` (click-to-cut) → pastes APPROVED list.
-4. Approved files upload to `Website_Ready/Bandanas/` via `gws`; rows go to Phelan's import sheet
-   (`WORK_` columns ONLY — never his formula columns); Phelan imports to WordPress.
+1. Point at bandana project folder(s) in `~/Dropbox/ART/…`.
+2. `python3 cli.py <folder> --upload` — conversion gate + SKU auto-fetched from Printavo per invoice,
+   proof sheet auto-cropped, named, cataloged, uploaded. (`--sku` overrides; `--vision` merges facts.)
+3. Holly reviews `art_contact_sheet.html` (click-to-cut).
+4. Rows go to Phelan's import sheet (`WORK_` columns ONLY — never his formula columns);
+   Phelan imports to WordPress.
 
 ## Flow — FUTURE (Feed lane; implements when Front Door Part C is built)
 1. In-app Feed drop (mockup image + optional note) → gate `POST /api/upload` (session-gated,
@@ -53,7 +70,11 @@ PlanetOps Feed lane (future, this spec).
 
 ## Roadmap hooks (not built)
 - **Auto-harvest:** seps.io "Order updated" emails / Printavo imprint mockups per converted invoice.
-- **Conversion filter:** Printavo `paidInFull` / production status by invoice# (via Railway proxy).
+- **Vision pass:** `--vision` is a hook only. Implement to confirm color/shape and to fix auto-crop
+  on white/cream bandanas (current crop is tuned for dark art on white proof sheets; light art
+  flags `crop:none` rather than cropping wrong).
 - **Apparel/promo extension:** schema keeps the `sku` field; apparel uses garment style numbers
   (no encoded SKU system exists for apparel — see SKU_Dictionary §9b split-out note).
 - **Scheduler surfacing:** once named assets carry invoice#, the scheduler can show artwork per job.
+
+✅ **Conversion filter is BUILT** (see gate above) — was a roadmap item, now live in `cli.py`.

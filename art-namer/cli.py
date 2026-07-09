@@ -14,17 +14,103 @@ Scans mockup JPGs (internally-filed names), applies the naming engine, then:
 Nothing is uploaded anywhere by this script; Shared-Drive upload happens after
 Holly approves the contact sheet (see SPEC.md handoff step).
 """
-import argparse, html, json, os, re, shutil, sys
+import argparse, html, json, os, re, shutil, subprocess, sys, time
 from PIL import Image
-from engine import parse_internal, build_name
+from engine import parse_internal, build_name, decode_sku
 
 STAGING = os.path.expanduser("~/Dropbox/PlanetApparel/Website/Bandana_Images")
 WORKDIR = os.path.expanduser("~/Dropbox/PlanetApparel/Website/_Internal/Art_Namer")
 CATALOG = os.path.join(WORKDIR, "art_catalog.md")
 SHEET = os.path.join(WORKDIR, "art_contact_sheet.html")
 
+# Printavo read-only GraphQL proxy (office IP is WAF-blocked; proxy is the working path)
+PRINTAVO_PROXY = "https://primary-production-079f9.up.railway.app/webhook/printavo-proxy"
+# Google Shared Drive "Planet Apparel Website" -> Website_Ready/Bandanas/ (Phelan-visible)
+DRIVE_ID = "0AKztajy-cjm8Uk9PVA"
+BANDANAS_FOLDER = "1KuCQT6K-EDIJ_4Ke-_lbNFiIg1RNGlb7"
+
 FIELDS = ["slug", "filename", "title", "alt", "color", "fabric", "shape", "method",
-          "made_in_usa", "eco", "sku", "invoice", "design", "client", "source", "crop"]
+          "made_in_usa", "eco", "sku", "invoice", "design", "client", "source", "crop",
+          "converted", "paid_in_full", "printavo_status", "drive_id"]
+
+
+def _gws(args):
+    """Run gws, return parsed JSON from stdout (gws logs its keyring line to stderr)."""
+    out = subprocess.run(["gws"] + args, capture_output=True, text=True).stdout
+    i = out.find("{")
+    return json.loads(out[i:]) if i >= 0 else {}
+
+
+_pv_cache = {}
+
+
+def printavo_lookup(invoice):
+    """visualId -> {converted, status, status_type, paid_in_full, sku}.
+    converted is TRI-STATE: True (went forward) / False (still a quote) / None (can't tell).
+
+    CONVERSION TRUTH = status.type, and WHICH connection the record lives in.
+      * Printavo tags every status QUOTE or INVOICE. A job that went forward carries
+        an INVOICE-type status and lives in the `invoices` connection.
+      * A job that never converted lives in `quotes` — and `invoices(query:...)` will
+        NOT find it (that query is a fuzzy search; asking it for quote "5" returns
+        unrelated invoices). So we MUST query both connections and match visualId exactly.
+      * Do NOT use paidInFull: inv 20200 is 'Delivered / Picked up' with paidInFull=false
+        (terms/net accounts). And '🔵 Art (Seps.io)' is a QUOTE-type status — seps.io
+        makes mockups for jobs that never convert, which is what this filter must exclude.
+
+    sku = first line item whose itemNumber decodes as a known bandana SKU prefix.
+    Cached; rate-limit friendly (10 req / 5s ceiling)."""
+    if invoice in _pv_cache:
+        return _pv_cache[invoice]
+    q = ('query { invoices(query: "%s", first: 8) { nodes { visualId paidInFull '
+         'status { name type } lineItemGroups { nodes { lineItems { nodes { itemNumber } } } } } } '
+         'quotes(query: "%s", first: 8) { nodes { visualId status { name type } } } }' % (invoice, invoice))
+    try:
+        r = subprocess.run(["curl", "-s", "--max-time", "30", "-X", "POST", PRINTAVO_PROXY,
+                            "-H", "Content-Type: application/json",
+                            "-d", json.dumps({"query": q})], capture_output=True, text=True).stdout
+        data = json.loads(r)["data"]
+    except Exception:
+        return _pv_cache.setdefault(invoice, dict(converted=None, reason="lookup failed"))
+    time.sleep(0.6)
+
+    def exact(conn):
+        return next((n for n in (data.get(conn) or {}).get("nodes", [])
+                     if str(n.get("visualId")) == str(invoice)), None)
+
+    node = exact("invoices")
+    if node:
+        st = node.get("status") or {}
+        skus = [li["itemNumber"] for g in node["lineItemGroups"]["nodes"]
+                for li in g["lineItems"]["nodes"] if li.get("itemNumber")]
+        info = dict(converted=(st.get("type") == "INVOICE"), status=st.get("name", "").strip(),
+                    status_type=st.get("type", ""), paid_in_full=node.get("paidInFull"),
+                    sku=next((s for s in skus if decode_sku(s)), None))  # reuse engine prefix table
+        return _pv_cache.setdefault(invoice, info)
+
+    node = exact("quotes")
+    if node:                                   # lives in quotes = never converted
+        st = node.get("status") or {}
+        return _pv_cache.setdefault(invoice, dict(
+            converted=False, status=st.get("name", "").strip(), status_type=st.get("type", ""),
+            paid_in_full=None, sku=None))
+
+    return _pv_cache.setdefault(invoice, dict(converted=None, reason="not found in Printavo"))
+
+
+def drive_upload(path, name):
+    """Upload to Website_Ready/Bandanas/. Idempotent: existing name -> reuse id."""
+    esc = name.replace("'", r"\'")
+    found = _gws(["drive", "files", "list", "--params", json.dumps({
+        "q": f"name = '{esc}' and '{BANDANAS_FOLDER}' in parents and trashed = false",
+        "supportsAllDrives": True, "includeItemsFromAllDrives": True,
+        "corpora": "drive", "driveId": DRIVE_ID, "fields": "files(id,name)"})])
+    if found.get("files"):
+        return found["files"][0]["id"]
+    created = _gws(["drive", "files", "create", "--upload", path,
+                    "--json", json.dumps({"name": name, "parents": [BANDANAS_FOLDER]}),
+                    "--params", json.dumps({"supportsAllDrives": True})])
+    return created.get("id", "")
 
 
 def autocrop(src, dst, pad=0.02, thresh=235, density=0.30):
@@ -138,8 +224,12 @@ upd();</script></body></html>"""
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("inputs", nargs="+", help="project folder(s) or mockup JPG path(s)")
-    ap.add_argument("--sku", default=None, help="SKU for the whole batch (e.g. PL2216)")
+    ap.add_argument("--sku", default=None, help="override SKU for the batch (default: auto from Printavo)")
     ap.add_argument("--vision", default=None, help="JSON of per-file vision facts")
+    ap.add_argument("--no-printavo", action="store_true", help="skip Printavo lookup (offline)")
+    ap.add_argument("--allow-unconverted", action="store_true",
+                    help="process jobs that are NOT paidInFull (default: skip them)")
+    ap.add_argument("--upload", action="store_true", help="upload to Website_Ready/Bandanas/ on the Shared Drive")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -154,34 +244,64 @@ def main():
 
     recs = load_catalog()
     taken = {r["slug"] for r in recs.values() if "slug" in r}
-    done, skipped = 0, []
+    done, skipped, unconverted, uploaded = 0, [], [], 0
     for path in files:
         fn = os.path.basename(path)
         parsed = parse_internal(fn)
         if not parsed:
             skipped.append(fn)
             continue
+
+        pv = {} if args.no_printavo else printavo_lookup(parsed["invoice"])
+        # Conversion gate: FAIL CLOSED. Only capture jobs positively confirmed as gone
+        # forward (converted is True). False = still a quote. None = couldn't verify.
+        # Neither is silently processed — Holly only wants converted work on the website.
+        if not args.no_printavo and not args.allow_unconverted and pv.get("converted") is not True:
+            why = pv.get("reason") or pv.get("status") or "unknown"
+            unconverted.append(f"{fn}  (inv {parsed['invoice']}: {why})")
+            continue
+
         v = vision.get(fn, {})
-        rec = build_name(parsed, sku=v.get("sku") or args.sku, vision=v, taken=taken)
+        sku = v.get("sku") or args.sku or pv.get("sku")   # explicit > batch > Printavo
+        rec = build_name(parsed, sku=sku, vision=v, taken=taken)
         rec["source"] = path
-        if rec["key"] in recs:                    # idempotent update, keep original slug
+        rec["converted"] = pv.get("converted", "unknown")
+        rec["paid_in_full"] = pv.get("paid_in_full", "unknown")
+        rec["printavo_status"] = pv.get("status", "")
+        if rec["key"] in recs:                    # idempotent update, keep original slug + drive id
             rec["slug"] = recs[rec["key"]]["slug"]
             rec["filename"] = recs[rec["key"]]["filename"]
+            rec["drive_id"] = recs[rec["key"]].get("drive_id", "")
         recs[rec["key"]] = rec
+
         if not args.dry_run:
             os.makedirs(STAGING, exist_ok=True)
-            rec["crop"] = autocrop(path, os.path.join(STAGING, rec["filename"]))
+            staged = os.path.join(STAGING, rec["filename"])
+            rec["crop"] = autocrop(path, staged)
+            if args.upload:
+                rec["drive_id"] = drive_upload(staged, rec["filename"])
+                uploaded += 1
         done += 1
-        crop_note = "" if args.dry_run else f"  crop:{rec['crop']}" + (
+        notes = "" if args.dry_run else f"  crop:{rec['crop']}" + (
             "  ⚠️ CHECK (kept full proof sheet)" if rec["crop"] == "none" else "")
-        print(f"  {fn}\n    -> {rec['filename']}  [sku {rec['sku']}]{crop_note}")
+        if not args.dry_run and args.upload:
+            notes += "  ⬆ drive" if rec.get("drive_id") else "  ❌ upload failed"
+        if rec["sku"] == "TBD":
+            notes += "  ⚠️ NO SKU"
+        if rec["converted"] == "unknown" and not args.no_printavo:
+            notes += "  ⚠️ CONVERSION UNVERIFIED"   # lookup failed; never silently assume converted
+        print(f"  {fn}\n    -> {rec['filename']}  [sku {rec['sku']}]{notes}")
 
     if not args.dry_run:
         save_catalog(recs)
         build_sheet(recs)
-    print(f"\n{done} named, {len(skipped)} skipped (non-mockup or unparseable), catalog {len(recs)} records")
+    print(f"\n{done} named · {len(unconverted)} skipped (not converted) · "
+          f"{len(skipped)} skipped (unparseable) · catalog {len(recs)} records"
+          + (f" · {uploaded} uploaded" if args.upload else ""))
+    for u in unconverted:
+        print(f"  not converted: {u}")
     for s in skipped:
-        print(f"  skipped: {s}")
+        print(f"  unparseable:   {s}")
     if not args.dry_run:
         print(f"catalog: {CATALOG}\nreview:  {SHEET}\nstaged:  {STAGING}")
 
