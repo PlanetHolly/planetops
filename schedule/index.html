@@ -1317,12 +1317,12 @@ function renderCalendar(){
 /* ───────── Tabs ───────── */
 const TABS=[
   {label:'Board',render:()=>renderBoard(null)},
+  {label:'Queue',render:renderList},              // Jean 7/9: renamed from 'List', moved right of Board — fill → verify ⏱ → station, then place on Board (supersedes the 7/7 right-of-Estimator order)
   {label:'Calendar',render:renderCalendar},
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
   ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
   {label:'⏱ Estimator',est:true,render:()=>''},   // persistent iframe (estWrap) — keeps a dropped export alive across tab switches
-  {label:'List',render:renderList},               // Jean 7/7: List lives right of Estimator
   {label:'Changes',render:renderChanges},
 ];
 let activeTab=0;
