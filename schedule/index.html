@@ -616,7 +616,7 @@ function estBadge(j){
   }
   const csv=j.minutes||0, near=csv&&Math.abs(e.total-csv)<=Math.max(3,csv*0.12);
   const flag=csv&&!near?' Δ':'';
-  return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → writes to your calculator">⏱ ${e.total}m${flag}</span>`;
+  return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → becomes the job's scheduling minutes (when it has none) + writes to your calculator">⏱ ${e.total}m${flag}</span>`;
 }
 function statusPill(j){
   const e=mockEntry(j);
@@ -1127,7 +1127,7 @@ function renderBoard(filterLane){
     </section>`:''}
     ${rows}`;
 }
-let listSort={key:null,dir:1};
+let listSort={key:null,dir:1},listShowAll=false;
 const SORTVAL={
   imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
   station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
@@ -1135,38 +1135,47 @@ const SORTVAL={
   screens:j=>+j.screens||0, pallet:j=>j.pallet==='N/A'?'~':j.pallet,
   ptype:j=>['Bandana','Apparel','Promo'].includes(j.projectType)?j.projectType:'~',
   prodDue:j=>j.prodDue||'~', printed:j=>isPrinted(j)?0:1, custDue:j=>j.custDue||'~',
-  status:j=>cleanStatus(j.status).toLowerCase(),
+  status:j=>cleanStatus(j.status).toLowerCase(), strokes:j=>store.strokes[j.imprint]||2,
 };
 function renderList(){
-  let list=[...jobs];
+  const all=[...jobs];
+  let list=listShowAll?all:all.filter(j=>!j.placeholder&&!j.station);   // QUEUE mode: only jobs still needing enrichment + a station
+  const queueN=all.filter(j=>!j.placeholder&&!j.station).length;
   if(listSort.key&&SORTVAL[listSort.key]){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
   }
   const PPOPTS=['Hang Tag','Packaging (Bandana)','Packaging (Apparel)','Fold & Bag'];
+  const strokeCell=j=>[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}" title="Print strokes ×${n} — squeegee passes per unit (screen print; ×2 is standard). Changing it re-charts the time.">×${n}</button>`).join('');
+  const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rows=list.map(j=>j.placeholder
-    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
-      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
-    <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
-    <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
-    <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
-    <td><select data-aink="${j.imprint}" title="Ink / application type (#7 — editable)"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Screen count / # colors (#7 — editable)"></td>
-    <td><select data-apal="${j.imprint}" title="Pallet size (#7 — editable)"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
-    <td><select data-ptype="${j.imprint}" title="Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Step 3 — colors / screen count"></td>
+    <td><select data-apal="${j.imprint}" title="Step 4 — pallet size"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
+    <td><select data-pptype="${j.imprint}" title="Step 5 — post-production, if any"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td style="white-space:nowrap">${strokeCell(j)}</td>
+    <td style="white-space:nowrap">${estCell(j)}</td>
+    <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
+    <td><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
+    <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
     <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="16">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="18">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
   };
-  return `<div class="hint" style="margin-bottom:8px">Jean's workbench — every cell is LIVE: set the date (or clear it to unschedule), assign the station, click minutes, set Project Type + post-production. Same jobs as the Board, list-shaped. Sort by any header.</div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('date','Sched')}${H('station','Station')}${H('minutes','Min')}${H('qty','Qty')}${H('ink','Ink')}${H('screens','Scr')}${H('pallet','Pallet')}${H('ptype','Type')}${H('postpro','Post-Pro')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div class="hint" style="margin-bottom:8px">${listShowAll
+    ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
+    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b> Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
+    <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${H('date','Sched')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
@@ -1447,6 +1456,9 @@ function wireMain(){
       renderAll();
     });
   });
+  // List queue ⇄ show-all toggle
+  const lsa=document.getElementById('listShowAll');
+  if(lsa)lsa.addEventListener('change',()=>{listShowAll=lsa.checked;renderAll();});
   // mockup → 90% lightbox
   main.querySelectorAll('.mock').forEach(m=>{
     m.addEventListener('click',e=>{
@@ -1625,6 +1637,12 @@ function wireMain(){
       }
       const j=jobs.find(x=>x.imprint===imp);const est=estimateFor(j);if(!est)return;
       store.timeVerified[imp]={min:est.total,at:todayISO()};
+      // Verify ADOPTS the estimate as the job's scheduling minutes when the job has no real
+      // Power Scheduler minutes (API-intake + thin rows arrive at 0 — without this, capacity
+      // counts them as zero and ⚡ placement refuses them). Rows whose CSV brought real
+      // minutes are never overwritten — the estimate stays advisory there.
+      const baseMin=j.minutesOrig!=null?j.minutesOrig:j.minutes;
+      if(!baseMin)store.minutesEdit[imp]=est.total;
       save();renderAll();
       sendWriteback(j,imp);
     });
