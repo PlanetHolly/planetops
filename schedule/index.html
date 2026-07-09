@@ -274,7 +274,8 @@
   td{padding:7px 10px;border-bottom:1px solid var(--grey-line);font-size:12.5px;vertical-align:middle}
   td.custcol{background:#f2f2f2;color:#000;font-weight:700}
   tr:last-child td{border-bottom:none}
-  .tablewrap{overflow-x:auto;border-radius:10px}
+  .tablewrap{overflow:auto;border-radius:10px;max-height:calc(100vh - 230px)}
+  .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
   .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
@@ -1139,7 +1140,7 @@ const SORTVAL={
   ink:j=>j.ink==='N/A'?'~':j.ink, postpro:j=>j.postProdType==='N/A'?'~':j.postProdType,
   screens:j=>+j.screens||0, pallet:j=>j.pallet==='N/A'?'~':j.pallet,
   ptype:j=>['Bandana','Apparel','Promo'].includes(j.projectType)?j.projectType:'~',
-  prodDue:j=>j.prodDue||'~', printed:j=>isPrinted(j)?0:1, custDue:j=>j.custDue||'~',
+  prodDue:j=>j.prodDue||'~', custDue:j=>j.custDue||'~',
   status:j=>cleanStatus(j.status).toLowerCase(), strokes:j=>store.strokes[j.imprint]||2,
 };
 function renderList(){
@@ -1156,7 +1157,7 @@ function renderList(){
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rows=list.map(j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
@@ -1170,9 +1171,9 @@ function renderList(){
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
     <td><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
-    <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
+    <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?18:17}">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?17:16}">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
@@ -1181,7 +1182,7 @@ function renderList(){
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
     :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b> Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
