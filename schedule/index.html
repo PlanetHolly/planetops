@@ -517,6 +517,11 @@ const LANES=[
 ];
 const laneOf=s=>LANES.find(l=>l.match(s||''))||null;
 const OUTSOURCED=/Outsourced|In Transit to PA|Goods Received/i;
+/* Outsourced = status says so OR Printavo's imprint typeOfWork says so ("Outsource") —
+   catches digital/sublimated bandanas + embroidery still sitting in early statuses
+   (e.g. Paid/Terms) that the status regex alone can't see. CSV rows carry no
+   typeOfWork, so they fall back to the status test. */
+const isOut=j=>OUTSOURCED.test(j.status)||/outsourc/i.test(j.typeOfWork||'');
 function outBadge(st){
   if(/In Transit to PA/i.test(st))return{cls:'arr-transit',txt:'✈ IN TRANSIT'};
   if(/Goods Received/i.test(st))return{cls:'arr-received',txt:'✓ RECEIVED'};
@@ -694,7 +699,7 @@ function apiToJob(a){
     projectType:'', screens:a.screens!=null?String(a.screens):'', inkChange:'None',
     ink:a.ink||'N/A', pallet:'N/A', postProdType:'N/A',
     steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
-    status:(a.invoiceStatus||'').trim(), localSplit:false, moved:false, apiIntake:true,
+    status:(a.invoiceStatus||'').trim(), typeOfWork:String(a.typeOfWork||''), localSplit:false, moved:false, apiIntake:true,
   };
 }
 const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[]};
@@ -750,7 +755,7 @@ function buildModel(){
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
-  arrivals=jobs.filter(j=>OUTSOURCED.test(j.status));
+  arrivals=jobs.filter(j=>isOut(j));
 }
 function scheduledDates(){return [...new Set(jobs.filter(j=>j.date).map(j=>j.date))].sort();}
 function dateRange(){
@@ -841,7 +846,7 @@ function jobCard(j){
     <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
     <div class="cship">${shipChip(j)}</div>
     <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
-    ${(OUTSOURCED.test(j.status)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
+    ${(isOut(j)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
     ${isX?xPanel(j):''}
   </div>`;
 }
@@ -1117,7 +1122,7 @@ function renderPickups(){
 }
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
-  const un=unscheduled.filter(j=>!OUTSOURCED.test(j.status)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
+  const un=unscheduled.filter(j=>!isOut(j)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
   return rangeControls()+`
     ${!filterLane?arrivalsSection(false):''}
     ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
@@ -1139,7 +1144,7 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  const inQueue=j=>!j.placeholder&&!j.station&&!OUTSOURCED.test(j.status);   // QUEUE mode: actionable only — outsourced waits in Arrivals (same rule as the Board pool)
+  const inQueue=j=>!j.placeholder&&!j.station&&!isOut(j);   // QUEUE mode: actionable only — outsourced waits in Arrivals (same rule as the Board pool)
   let list=listShowAll?all:all.filter(inQueue);
   const queueN=all.filter(inQueue).length;
   if(listSort.key&&SORTVAL[listSort.key]){
@@ -1991,7 +1996,7 @@ function jumpTo(imp){
       localStorage.setItem(KEY,JSON.stringify(store));
     }
   }
-  if(OUTSOURCED.test(j.status)){
+  if(isOut(j)){
     const ad=store.arrived[j.imprint];
     if(ad)collapsedArrDates.delete('a:'+ad);
     else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
@@ -2019,7 +2024,7 @@ document.getElementById('searchbox').addEventListener('keydown',e=>{
       localStorage.setItem(KEY,JSON.stringify(store));
     }
   }
-  if(OUTSOURCED.test(j.status)){
+  if(isOut(j)){
     const ad=store.arrived[j.imprint];
     if(ad)collapsedArrDates.delete('a:'+ad);
     else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
