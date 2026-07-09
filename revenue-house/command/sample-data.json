@@ -1,0 +1,1882 @@
+{
+  "scripts": [
+    {
+      "code": "^qc_new",
+      "name": "Quality Check - New Customer",
+      "channel": "email",
+      "aliases": [
+        "/qcnew",
+        "QC_New",
+        "quality check new",
+        "/qc"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "how'd they come out?",
+      "bodyText": "Hi [FIRST NAME],\nFirst run with us, so I want to be sure we nailed it. Did your [DESIGN] turn out the way you pictured?\nIf anything's not right, tell me and I'll fix it. That's the whole job.",
+      "bodyHtml": "",
+      "firesWhen": "Week 1 after a first paid order. T2/T3 = automated email; T1 = personal call variant (T1-QC-call).",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "No sign-off line (Gmail signature carries the name). NEW-customer variant of the QC.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 2
+    },
+    {
+      "code": "^qc_repeat",
+      "name": "Quality Check - Repeat Customer",
+      "channel": "email",
+      "aliases": [
+        "/qcreturn",
+        "QC_Return",
+        "quality check repeat"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "how'd this one come out?",
+      "bodyText": "Hi [FIRST NAME],\nAlways good to wrap another project with you. Did the [PRODUCT] turn out the way you pictured?\nYou know how I work. Anything's off, I'm on it.",
+      "bodyHtml": "",
+      "firesWhen": "Week 1 after any subsequent paid order (repeat customer). T1 = call, T2 = email, T3 = skip.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "No order/year count on purpose - a wrong number breaks trust. Warmth without the risk.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 3
+    },
+    {
+      "code": "^xsell",
+      "name": "Cross-Sell Intro",
+      "channel": "email",
+      "aliases": [
+        "/xsellam",
+        "Xsell_AM",
+        "cross sell intro",
+        "cross-sell intro"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "team@planetapparel.com",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "a thought on your [PROJECT NAME] run",
+      "bodyText": "Hi [FIRST NAME],\nYour [PRODUCT] came out great. If you ever want [matching APPAREL/MERCH] to go with it, my teammate Cortney runs our apparel side, and she can pull a quick mockup so you can see it. I've copied her here so you have her.\nNo pressure, just a thought. Either way, glad we got to make these for you.",
+      "bodyHtml": "",
+      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "v2 (2026-07-08): names Cortney + always cc team@. Live Gmail thread search decides reply-vs-new per send. Reverse = Xsell_Ban for apparel->bandana.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 4
+    },
+    {
+      "code": "^xsellresponse",
+      "name": "Cross-Sell Response",
+      "channel": "email",
+      "aliases": [
+        "Xsell_Response",
+        "cross sell response",
+        "mockup offer reply"
+      ],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Cortney sends when a customer bites on the intro, within 1 business day.",
+      "cc": "",
+      "replyMode": "reply-in-thread",
+      "departmentScope": "Apparel",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME],\nCortney here, I run the apparel side at Planet Apparel. Shara passed your note over and that mockup offer is real, I'd love to put it together for you.\nOne question so it's worth your time: what would your crew actually use, shirts, hats, hoodies, something else? Tell me that and I'll have your [PROJECT NAME] art worked up on it within a couple days.\nNo cost and no commitment. If it looks right, we'll talk numbers.",
+      "bodyHtml": "",
+      "firesWhen": "When a customer replies to the Cross-Sell Intro. Reply in the intro thread, no new subject.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Approved 2026-07-08. Shelby angle: speak-their-own-sale + game-plan clarity + reason-first opener.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 5
+    },
+    {
+      "code": "^xsellghost",
+      "name": "Cross-Sell Ghost Follow-Up",
+      "channel": "email",
+      "aliases": [
+        "Xsell_Ghost",
+        "cross sell ghost",
+        "one-touch follow-up"
+      ],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Cortney sends ONE light touch ~1 week after a bite goes quiet, then stops.",
+      "cc": "",
+      "replyMode": "reply-in-thread",
+      "departmentScope": "Apparel",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME],\nThat apparel mockup is still yours if you want it. One line back gets it moving.\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\nGlad we got to be part of the [PROJECT NAME] run either way.",
+      "bodyHtml": "",
+      "firesWhen": "~1 week after a cross-sell bite goes quiet. One touch only; if no reply, mark the box and stop.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Approved 2026-07-08. Anti-sell pull-back; we honor the 'no follow-up chain' promise by actually stopping.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 6
+    },
+    {
+      "code": "^mockup",
+      "name": "Value Mockup",
+      "channel": "email",
+      "aliases": [
+        "/mockup",
+        "Mockup",
+        "free mockup",
+        "value touch"
+      ],
+      "fromMailbox": "team@planetapparel.com (usually Cortney)",
+      "sentByRule": "Box owner sends; usually Cortney (it's an apparel mockup).",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "Apparel",
+      "subject": "Made you something",
+      "bodyText": "Hi [FIRST NAME],\nNo ask here. I had some fun and mocked up what your [DESIGN] would look like on [APPAREL/MERCH]. It's attached.\nKeep it for fun, or tell me to make it real. Either way I figured you'd enjoy seeing it.",
+      "bodyHtml": "",
+      "firesWhen": "~Month 4 for New Customers with cross-sell potential (T1; T2 only if cross-sell potential is clear). A gift, not a pitch.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Attach the actual mockup image when sending.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 7
+    },
+    {
+      "code": "^reorder",
+      "name": "Reorder Reach-Out",
+      "channel": "email",
+      "aliases": [
+        "/reorder",
+        "Reorder",
+        "reorder reach out",
+        "reorder email"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "Time to run [PRODUCT] again?",
+      "bodyText": "Hi [FIRST NAME],\nIt's about the same time of year you usually reorder. Want me to set up the same run as last time so it's ready before you need it? Takes me about five minutes on my end.\nIf the timing's off, no worries. Just tell me when and I'll plan around it.",
+      "bodyHtml": "",
+      "firesWhen": "~Month 8 (T1 call) / ~Month 10 (T2 email). For event customers, time ~2 months before the event.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Generic (apparel/product-neutral) reorder. Bandana uses /reorderban.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 8
+    },
+    {
+      "code": "^atrisk1",
+      "name": "At-Risk Touch 1",
+      "channel": "email",
+      "aliases": [
+        "/atrisk1",
+        "AtRisk_1",
+        "at risk touch 1",
+        "you crossed my mind"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "you crossed my mind",
+      "bodyText": "Hi [FIRST NAME],\nIt's been a bit longer than usual since your last run, so you crossed my mind. Anything coming up I could help you get ahead of?\nNo agenda here. Didn't want you flying solo if something's on the horizon.",
+      "bodyHtml": "",
+      "firesWhen": "At entry into AT RISK. T1 = call (atrisk1-call); T2 = this email within two weeks; T3 = skip. Feeds Mail Merge auto-follow-up to Touch 2.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Shelby angle: pattern-interrupt subject, one probing question, anti-sell, one ask.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 9
+    },
+    {
+      "code": "^atrisk2",
+      "name": "At-Risk Touch 2",
+      "channel": "email",
+      "aliases": [
+        "/atrisk2",
+        "AtRisk_2",
+        "at risk touch 2",
+        "should I stop bugging you"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "should I stop bugging you?",
+      "bodyText": "Hi [FIRST NAME],\nI sent a note a couple weeks back and didn't hear, which is totally fine. So let me ask straight: are you good for now, or is something coming up I can help line up?\nEither answer works. Just point me the right way.",
+      "bodyHtml": "",
+      "firesWhen": "Midpoint of the AT RISK window; fires only if Touch 1 got no reply. A different shape, not a repeat.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Genericized (no typed blank) so it runs as a Mail Merge auto-follow-up.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 10
+    },
+    {
+      "code": "^handoff",
+      "name": "Warm Handoff (Shara -> Cortney)",
+      "channel": "email",
+      "aliases": [
+        "/handoff",
+        "Handoff",
+        "warm handoff",
+        "putting you in good hands"
+      ],
+      "fromMailbox": "bandanas@planetapparel.com (Shara)",
+      "sentByRule": "Shara sends before the box moves to Cortney (Dept -> Both).",
+      "cc": "team@planetapparel.com (Cortney)",
+      "replyMode": "new-email",
+      "departmentScope": "Both",
+      "subject": "Putting you in good hands",
+      "bodyText": "Hi [FIRST NAME],\nNow that you're doing [APPAREL/MERCH] too, I want you with the right person for it. That's Cortney. She runs our apparel side and she's the best at it, so I've copied her here to get you two connected.\nI'm still your go-to for anything bandana. You're in good hands either way.",
+      "bodyHtml": "",
+      "firesWhen": "When a bandana customer crosses into apparel (Department -> BOTH). Sent before the CRM ownership flip.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "North Star Round 8: the handoff is a warm, named ritual, never a silent CRM flip.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 11
+    },
+    {
+      "code": "T1-QC-call",
+      "name": "T1 Quality Check Call",
+      "channel": "call",
+      "aliases": [
+        "QC call",
+        "T1 QC call",
+        "quality check call"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner calls (T1 only). Folds the cross-sell intro into the same call.",
+      "cc": "",
+      "replyMode": "n/a",
+      "departmentScope": "All",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME], it's [PM] at Planet Apparel. Your [PRODUCT] should've landed by now. Did it come out the way you pictured?\nReact like a person, name a real detail (\"honestly the [COLOR] came out crisp, I was hoping it would\"), then fold the cross-sell in naturally (\"if you ever want [other line] to go with them, I can pull a quick mockup, no pressure\").",
+      "bodyHtml": "",
+      "firesWhen": "Week 1 for T1 New Customers - the personal call that replaces the QC email and folds in the cross-sell intro.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Talking points, not a script to read verbatim.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 12
+    },
+    {
+      "code": "reorder-T1-call",
+      "name": "T1 Reorder Call",
+      "channel": "call",
+      "aliases": [
+        "reorder call",
+        "T1 reorder call",
+        "month 8 call"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner calls (T1). For event customers, anchor 2-3 months before the event.",
+      "cc": "",
+      "replyMode": "n/a",
+      "departmentScope": "All",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME], [PM] at Planet Apparel. It's about the time of year you usually reorder. Want me to get the same run set up so you're covered?\nIf it's for an event: \"let's lock it in now so it's ready before [EVENT].\" If not yet: \"no rush, I'll keep your specs on file so the next one's quick.\"",
+      "bodyHtml": "",
+      "firesWhen": "~Month 8 for T1 New Customers - the personal reorder call.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Talking points.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 13
+    },
+    {
+      "code": "atrisk1-call",
+      "name": "At-Risk Touch 1 Call",
+      "channel": "call",
+      "aliases": [
+        "at risk call",
+        "save call",
+        "T1 at risk call"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner calls (T1) within one week of entering AT RISK.",
+      "cc": "",
+      "replyMode": "n/a",
+      "departmentScope": "All",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME], [PM] at Planet Apparel. It's been a while since your last run, so I wanted to check in. Anything on the horizon I can help you line up?\nThen let them talk. If they're unsure: \"no rush, didn't want you flying solo.\"",
+      "bodyHtml": "",
+      "firesWhen": "AT RISK Touch 1 for T1 customers - the personal save call.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Talking points. Save-Touch (workflow 4) creates this as a task when live.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 14
+    },
+    {
+      "code": "atrisk2-call",
+      "name": "At-Risk Touch 2 Call",
+      "channel": "call",
+      "aliases": [
+        "at risk touch 2 call",
+        "save call follow-up"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner calls (T1) at the midpoint of the AT RISK window - a different shape than Touch 1.",
+      "cc": "",
+      "replyMode": "n/a",
+      "departmentScope": "All",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME], [PM] again. I don't want to be the one who keeps calling, so I'll be straight: are we still good, or has something changed? Either way works, just tell me where you're at.",
+      "bodyHtml": "",
+      "firesWhen": "AT RISK Touch 2 for T1 customers - the honest pull-back call.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Talking points.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 15
+    },
+    {
+      "code": "/qc",
+      "name": "QC - Bandana (Text Blaze)",
+      "channel": "email",
+      "aliases": [
+        "QC",
+        "bandana qc",
+        "/qc",
+        "text blaze qc"
+      ],
+      "fromMailbox": "bandanas@planetapparel.com (Shara)",
+      "sentByRule": "Shara (bandana). Kelly covers as overflow.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "Bandana",
+      "subject": "how'd the [PROJECT NAME] turn out?",
+      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] just landed, and I want to make sure we got it right. Did everything turn out the way you pictured?\nIf anything's off, tell me and I'll fix it. That's the whole job.",
+      "bodyHtml": "",
+      "firesWhen": "1st check-in on a new bandana order (System C manual ladder). Text Blaze fill-in form.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Text Blaze source: Retention.csv. {formtext} fields converted to [BRACKETS].",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 16
+    },
+    {
+      "code": "/nc4",
+      "name": "4-Month Bandana Check-In (Text Blaze)",
+      "channel": "email",
+      "aliases": [
+        "NewCust_Check4mo_Ban",
+        "/nc4",
+        "nc4",
+        "4 month check in"
+      ],
+      "fromMailbox": "bandanas@planetapparel.com (Shara)",
+      "sentByRule": "Sent by Kelly as the bandwidth-overflow lane for Shara's bandana list.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "Bandana",
+      "subject": "the [PROJECT NAME] run, and what's next for you?",
+      "bodyText": "Hi [FIRST NAME],\nIt's been a few months since your [PROJECT NAME] run went out. How did they go over?\nAnd whatever's next for you, we'd love to be part of it. Bandanas are how most people meet us, but we do apparel and branded merch too, so there's more we can do whenever you're ready.\nNo pressure at all. Just glad we got to make these for you.",
+      "bodyHtml": "",
+      "firesWhen": "~Month 4, Activation only, fires once (T1/T2; T3 skipped). Outcome check + plants apparel/merch, not a durability check.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Renamed from legacy '3-month' to 4 months. Text Blaze source: Retention.csv.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 17
+    },
+    {
+      "code": "/reorderban",
+      "name": "Reorder Reach-Out - Bandana (Text Blaze)",
+      "channel": "email",
+      "aliases": [
+        "Reorder_Ban",
+        "/reorderban",
+        "reorderban",
+        "bandana reorder"
+      ],
+      "fromMailbox": "bandanas@planetapparel.com (Shara)",
+      "sentByRule": "Sent by Kelly (overflow lane). Serves BOTH Activation Touch-4 and Retention annual/event reorder.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "Bandana",
+      "subject": "the [PROJECT NAME] run, same as last year or switch it up?",
+      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] project from last [MONTH OF LAST ORDER] is coming up on a year, and I wanted to get ahead of your next one so it's handled before you need it.\nI've still got everything from that run on file, so if something's on the horizon I can have it lined up with priority turnaround. And if you're planning anything past bandanas, we do apparel and branded merch too, so I can get ahead of that for you the same way.\nWhen does the next one usually land for you?\nNo rush at all. Just point me at the timing and I'll plan around it.",
+      "bodyHtml": "",
+      "firesWhen": "~Month 10 (Activation) and annual/event (Retention). One shared template, both lines. T1/T2 only.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "Text Blaze source: Retention.csv. Overlaps System B annual email (unreconciled).",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 18
+    },
+    {
+      "code": "^review",
+      "name": "Post-Delivery Review Request",
+      "channel": "email",
+      "aliases": [
+        "review",
+        "review request",
+        "ask review",
+        "google review"
+      ],
+      "fromMailbox": "box-owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Auto-sent by n8n from the box owner's mailbox. VIP + same-day multi-order flagged to draft for PM review.",
+      "cc": "",
+      "replyMode": "new-email",
+      "departmentScope": "All",
+      "subject": "How did your [PROJECT NAME] turn out?",
+      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] shipped a few days ago, and we want to make sure everything arrived looking great.\nIf you have a minute, a quick Google review would mean a lot. It helps other teams find us, and you can add a photo of your order right in the same window.\nLeave a Review: https://g.page/r/CQhn52SlLBoeEBM/review\nThank you for working with us.\n\n[OWNER SIGNATURE]",
+      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px\"><p>Hi [FIRST NAME],</p><p>Your [PROJECT NAME] shipped a few days ago, and we want to make sure everything arrived looking great.</p><p>If you have a minute, a quick Google review would mean a lot. It helps other teams find us, and you can add a photo of your order right in the same window.</p><p style=\"text-align:center;margin:28px 0\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block\" rel=\"noopener noreferrer\" target=\"_blank\">Leave a Review</a></p><p>Thank you for working with us.</p><p>[OWNER SIGNATURE]</p></div>",
+      "firesWhen": "5 business days after an order enters a black fulfillment status (delivered). Hourly poll + daily 9am sender.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-08",
+      "notes": "n8n workflow ymSBJ95Ah8t30Y0B (currently DRY_RUN). bodyHtml renders the live yellow Leave-a-Review button.",
+      "lastUpdated": "2026-07-08",
+      "sheetRow": 19
+    }
+  ],
+  "script_fields": [
+    {
+      "scriptCode": "^qc_new",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^qc_new",
+      "fieldName": "[DESIGN]",
+      "sampleValue": "Trailhead 5K logo",
+      "source": "typed",
+      "required": true,
+      "fallback": "design"
+    },
+    {
+      "scriptCode": "^qc_repeat",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^qc_repeat",
+      "fieldName": "[PRODUCT]",
+      "sampleValue": "bandanas",
+      "source": "typed",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsell",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^xsell",
+      "fieldName": "[PRODUCT]",
+      "sampleValue": "bandanas",
+      "source": "typed",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsell",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsell",
+      "fieldName": "[matching APPAREL/MERCH]",
+      "sampleValue": "matching shirts or hats",
+      "source": "typed",
+      "required": false,
+      "fallback": "matching apparel or merch"
+    },
+    {
+      "scriptCode": "^xsellresponse",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^xsellresponse",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsellghost",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^xsellghost",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^mockup",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^mockup",
+      "fieldName": "[DESIGN]",
+      "sampleValue": "Trailhead 5K logo",
+      "source": "typed",
+      "required": true,
+      "fallback": "design"
+    },
+    {
+      "scriptCode": "^mockup",
+      "fieldName": "[APPAREL/MERCH]",
+      "sampleValue": "shirts",
+      "source": "typed",
+      "required": true,
+      "fallback": "apparel or merch"
+    },
+    {
+      "scriptCode": "^reorder",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^reorder",
+      "fieldName": "[PRODUCT]",
+      "sampleValue": "bandanas",
+      "source": "typed",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^atrisk1",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^atrisk2",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^handoff",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^handoff",
+      "fieldName": "[APPAREL/MERCH]",
+      "sampleValue": "shirts",
+      "source": "typed",
+      "required": true,
+      "fallback": "apparel or merch"
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[PRODUCT]",
+      "sampleValue": "bandanas",
+      "source": "typed",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[PM]",
+      "sampleValue": "Shara",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "your rep"
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[COLOR]",
+      "sampleValue": "forest green",
+      "source": "typed",
+      "required": false,
+      "fallback": ""
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[other line]",
+      "sampleValue": "apparel",
+      "source": "typed",
+      "required": false,
+      "fallback": "apparel or merch"
+    },
+    {
+      "scriptCode": "reorder-T1-call",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "reorder-T1-call",
+      "fieldName": "[PM]",
+      "sampleValue": "Shara",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "your rep"
+    },
+    {
+      "scriptCode": "reorder-T1-call",
+      "fieldName": "[EVENT]",
+      "sampleValue": "the Trailhead 5K",
+      "source": "typed",
+      "required": false,
+      "fallback": "your event"
+    },
+    {
+      "scriptCode": "atrisk1-call",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "atrisk1-call",
+      "fieldName": "[PM]",
+      "sampleValue": "Shara",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "your rep"
+    },
+    {
+      "scriptCode": "atrisk2-call",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "atrisk2-call",
+      "fieldName": "[PM]",
+      "sampleValue": "Shara",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "your rep"
+    },
+    {
+      "scriptCode": "/qc",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "/qc",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "/nc4",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "/nc4",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "/reorderban",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "/reorderban",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "/reorderban",
+      "fieldName": "[MONTH OF LAST ORDER]",
+      "sampleValue": "March",
+      "source": "printavo",
+      "required": true,
+      "fallback": "last year"
+    },
+    {
+      "scriptCode": "^review",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^review",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^review",
+      "fieldName": "[OWNER SIGNATURE]",
+      "sampleValue": "Shara Hildebrand, Planet Apparel",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "Planet Apparel"
+    },
+    {
+      "scriptCode": "^didntproceed",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^didntproceed",
+      "fieldName": "[PROJECT / QUOTE]",
+      "sampleValue": "Trailhead 5K quote",
+      "source": "printavo",
+      "required": true,
+      "fallback": "quote"
+    },
+    {
+      "scriptCode": "^cadencein",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^review",
+      "fieldName": "OWNER SIGNATURE",
+      "sampleValue": "Shara Hildebrand\nProject Manager\nPlanet Apparel\n858-569-2090 x 400\nbandanas@planetapparel.com",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "box owner's standard signature block"
+    }
+  ],
+  "touchpoints": [
+    {
+      "id": "web-intake",
+      "name": "Web Intake",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "customer submits the site form",
+      "schedule": "on form submit",
+      "workflowId": "LZt6xpY8",
+      "notes": "Creates the Sale box, stamps Intake=Form, sets first Relationship Status."
+    },
+    {
+      "id": "pass1",
+      "name": "Pass 1 - PM-Box Enrich",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "blank-Intake box <=2 days old",
+      "schedule": "hourly :30 (biz hrs)",
+      "workflowId": "YcoYks1H",
+      "notes": "Stamps Intake=Direct; name-matches Printavo -> Customer ID, $, city. Confidence gate. Fuzzy matcher is the weakest link."
+    },
+    {
+      "id": "opendeal",
+      "name": "Open-Deal Guard (2)",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "on quote / while a deal is live",
+      "schedule": "hourly :00",
+      "workflowId": "55A9MBqc",
+      "notes": "The suppressor: stamps Date of Last Quote/Activity; mutes ALL retention outreach while a deal is open. Stage-set omits 5022/5013 - fix before Save-Touch goes live."
+    },
+    {
+      "id": "relabel",
+      "name": "Relabel - Relationship Status",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "daily",
+      "schedule": "daily 10am PT",
+      "workflowId": "bcCZgNjk",
+      "notes": "Counts paid invoices -> advances New Prospect -> Returning -> New -> Repeat (forward-only). Node mislabeled '~6am'."
+    },
+    {
+      "id": "enrich",
+      "name": "Enrich - ID Heal (3)",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "blank join-key + invoice #",
+      "schedule": "daily 6am PT",
+      "workflowId": "PbX2qwEi",
+      "notes": "Fills the join key from invoice->customer. Confidence gate; backfill + daily self-heal. Node mislabeled '2am'."
+    },
+    {
+      "id": "pass2a",
+      "name": "Pass 2a - Conversion Finalize",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "box hits Paid / In Production",
+      "schedule": "hourly :50 (biz hrs)",
+      "workflowId": "g9PmJGOo",
+      "notes": "Sets Conversion Date; finalizes Customer ID, $, geo, New-vs-Return. LIMIT=15/run. The gold-standard enricher."
+    },
+    {
+      "id": "convert",
+      "name": "Convert - Sale -> Retention (1)",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "paid Sale box detected",
+      "schedule": "hourly :00",
+      "workflowId": "YAok99Zq",
+      "notes": "Find-or-create the Retention box (tier, dept, cadence, stage). Sets NEW/ACTIVE/REACTIVATED. 7/5 twin-prevention fix indexes linked-sale CIDs."
+    },
+    {
+      "id": "recompute",
+      "name": "Daily Recompute (Layer A.1)",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "nightly",
+      "schedule": "nightly 1am PT",
+      "workflowId": "OXvkbVIE",
+      "notes": "Rebuilds #orders, spend, last-order-date, cadence from full Printavo history. Risks the 300s cap -> partial re-band; paginate/shard."
+    },
+    {
+      "id": "band",
+      "name": "Band-Updater",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "nightly",
+      "schedule": "nightly (in Recompute)",
+      "workflowId": "OXvkbVIE",
+      "notes": "Moves ACTIVE <-> AT-RISK by cadence (BAND_MULT 1.25x). Never auto-sets INACTIVE."
+    },
+    {
+      "id": "sweep",
+      "name": "Single-Order Sweep",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "nightly",
+      "schedule": "nightly (in Recompute)",
+      "workflowId": "OXvkbVIE",
+      "notes": "1-order boxes -> NEW (<12mo) or LOST (>12mo)."
+    },
+    {
+      "id": "savetouch",
+      "name": "AT-Risk Save-Touch (4, Layer B.1)",
+      "system": "n8n",
+      "autoLevel": "auto-draft",
+      "healthStatus": "dry",
+      "trigger": "box turns AT-RISK",
+      "schedule": "hourly :40 (8a-8p)",
+      "workflowId": "ujU81mGJ",
+      "notes": "The outreach engine: T1 -> SAVE CALL task; T2 -> SAVE EMAIL task; T3 -> skip. Reads Open-Deal Guard to mute mid-deal. OFF (inactive + DRY_RUN) - the single biggest hole; every save touch is hand-sent today."
+    },
+    {
+      "id": "pass2b",
+      "name": "Pass 2b - AI Profile + Type",
+      "system": "n8n",
+      "autoLevel": "planned",
+      "healthStatus": "n/a",
+      "trigger": "at conversion",
+      "schedule": "at conversion",
+      "workflowId": "",
+      "notes": "AI fills Profile + the 100-option customer Type. Designed, not built."
+    },
+    {
+      "id": "b-form",
+      "name": "Form to Printavo",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "web form",
+      "schedule": "on form submit",
+      "workflowId": "",
+      "notes": "Pushes the web form into Printavo as an order/quote."
+    },
+    {
+      "id": "b-quote",
+      "name": "Quote Chasing",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "quote status",
+      "schedule": "on inbound email",
+      "workflowId": "",
+      "notes": "Chases open quotes toward close."
+    },
+    {
+      "id": "b-review",
+      "name": "Ask Review (post-delivery, legacy)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "live",
+      "trigger": "delivery date",
+      "schedule": "~5 days after delivery",
+      "workflowId": "",
+      "notes": "Post-delivery review request email. Superseded by the n8n postdelivery-review workflow."
+    },
+    {
+      "id": "b-annual",
+      "name": "Annual Reorder Email (~305 day)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "alarm",
+      "trigger": "delivery date + 305d",
+      "schedule": "~305 days after order",
+      "workflowId": "",
+      "notes": "The annual reorder nudge. Firing UNCONFIRMED. Integration token expires 2026-09-12 - verify + migrate to n8n."
+    },
+    {
+      "id": "c-checkin1",
+      "name": "1st Check-In (bandana)",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "after 1st bandana order",
+      "schedule": "hand-laddered",
+      "workflowId": "",
+      "notes": "First relationship touch on a new bandana customer. No engine - hand-created Streak task."
+    },
+    {
+      "id": "c-nc4",
+      "name": "4-Month Check-In (bandana)",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "~4 months after order",
+      "schedule": "hand-laddered",
+      "workflowId": "",
+      "notes": "Cadence check-in / free-mockup gift touch. No engine - manual."
+    },
+    {
+      "id": "c-reorder",
+      "name": "Annual Reorder (bandana)",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "~annual",
+      "schedule": "hand-laddered",
+      "workflowId": "",
+      "notes": "Reorder reach-out on the bandana ladder. No engine - manual. Overlaps System B annual email (unreconciled)."
+    },
+    {
+      "id": "postdelivery-review",
+      "name": "Post-Delivery Review Request",
+      "system": "n8n",
+      "autoLevel": "auto-send",
+      "healthStatus": "dry",
+      "trigger": "order enters a black fulfillment status",
+      "schedule": "hourly poll + daily 9am sender",
+      "workflowId": "ymSBJ95Ah8t30Y0B",
+      "notes": "5 business days after delivery. VIP + same-day multi-order flagged to draft for PM review. Currently DRY_RUN. Sends ^review from the box owner's mailbox."
+    },
+    {
+      "id": "aio-chase",
+      "name": "Quote Chase (mail bridge)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "unverified",
+      "trigger": "open quote ages without response",
+      "schedule": "Printavo-triggered",
+      "workflowId": "",
+      "notes": "Automations.io mail bridge that emails a chase on aging open quotes."
+    },
+    {
+      "id": "aio-daily-sales",
+      "name": "Daily Sales (mail bridge)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "unverified",
+      "trigger": "daily sales summary event",
+      "schedule": "daily",
+      "workflowId": "",
+      "notes": "Automations.io mail bridge for the daily sales digest email."
+    },
+    {
+      "id": "aio-review-request",
+      "name": "Review Request (mail bridge)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "unverified",
+      "trigger": "order marked delivered",
+      "schedule": "Printavo-triggered",
+      "workflowId": "",
+      "notes": "Automations.io mail bridge for the review-request email (legacy path; superseded by postdelivery-review)."
+    },
+    {
+      "id": "aio-art-bcc",
+      "name": "Art BCC (mail bridge)",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "unverified",
+      "trigger": "art/approval email sent",
+      "schedule": "Printavo-triggered",
+      "workflowId": "",
+      "notes": "Automations.io mail bridge that BCCs art/approval correspondence for tracking."
+    },
+    {
+      "id": "crosssell",
+      "name": "Cross-Sell Intro/Response batch",
+      "system": "n8n",
+      "autoLevel": "auto-draft",
+      "healthStatus": "live",
+      "trigger": "new customer Week 2 / customer bites on intro",
+      "schedule": "batch (crosssell_draft_batch.py)",
+      "workflowId": "",
+      "notes": "The cross-sell draft generator: drafts ^xsell intros and Cortney's response/ghost follow-ups. Reads scripts.json id=xsell."
+    },
+    {
+      "id": "qc",
+      "name": "Week-1 Quality Check",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "1 week after delivery",
+      "schedule": "Week 1",
+      "workflowId": "",
+      "notes": "North Star Week-1 QC touch. T2/T3 = automated email; T1 = personal call. Bandana check-ins reminded via c-checkin1."
+    },
+    {
+      "id": "mockup",
+      "name": "Value Mockup (Month 4)",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "~Month 4, cross-sell potential",
+      "schedule": "Month 4",
+      "workflowId": "",
+      "notes": "North Star Value Touch - complimentary apparel mockup, designed to land like a gift."
+    },
+    {
+      "id": "reorder",
+      "name": "Reorder Reach-Out",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "~Month 8 (call) / Month 10 (email)",
+      "schedule": "Month 8-10 / annual",
+      "workflowId": "",
+      "notes": "North Star reorder reach-out (generic/apparel). Bandana reorder runs via c-reorder / b-annual."
+    },
+    {
+      "id": "inactive-call",
+      "name": "Inactive Save Call",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "enters INACTIVE",
+      "schedule": "within 4 weeks",
+      "workflowId": "",
+      "notes": "North Star INACTIVE touch - Cortney calls (Holly may join), direct not apologetic."
+    },
+    {
+      "id": "lost-annual",
+      "name": "Lost Annual Check-In",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "annual, T1 Lost only",
+      "schedule": "annual",
+      "workflowId": "",
+      "notes": "North Star LOST touch - one annual check-in attempt per year, T1 only."
+    },
+    {
+      "id": "react-qc",
+      "name": "Reactivated QC (+1wk from win-back delivery)",
+      "system": "manual",
+      "autoLevel": "manual",
+      "healthStatus": "n/a",
+      "trigger": "reactivation order delivered +1 week",
+      "schedule": "per reactivation",
+      "workflowId": "",
+      "notes": "North Star touch; script ^reactqc not yet written"
+    }
+  ],
+  "touchpoint_scripts": [
+    {
+      "touchpointId": "savetouch",
+      "scriptCode": "^atrisk1",
+      "role": "touch1-email",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "savetouch",
+      "scriptCode": "atrisk1-call",
+      "role": "touch1-call",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "savetouch",
+      "scriptCode": "^atrisk2",
+      "role": "touch2-email",
+      "sequence": "2",
+      "tier": "T2",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "savetouch",
+      "scriptCode": "atrisk2-call",
+      "role": "touch2-call",
+      "sequence": "2",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsell",
+      "role": "intro",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsellresponse",
+      "role": "response",
+      "sequence": "2",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsellghost",
+      "role": "ghost-followup",
+      "sequence": "3",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "c-checkin1",
+      "scriptCode": "^qc_new",
+      "role": "qc-email",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "c-checkin1",
+      "scriptCode": "T1-QC-call",
+      "role": "qc-call",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "c-nc4",
+      "scriptCode": "/nc4",
+      "role": "checkin",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "c-reorder",
+      "scriptCode": "/reorderban",
+      "role": "reorder",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "c-reorder",
+      "scriptCode": "^reorder",
+      "role": "reorder-generic",
+      "sequence": "2",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "postdelivery-review",
+      "scriptCode": "^review",
+      "role": "review-request",
+      "sequence": "1",
+      "tier": "all",
+      "sendMode": "auto-send"
+    },
+    {
+      "touchpointId": "qc",
+      "scriptCode": "^qc_new",
+      "role": "qc-email-new",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "auto-send"
+    },
+    {
+      "touchpointId": "qc",
+      "scriptCode": "^qc_repeat",
+      "role": "qc-email-repeat",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "qc",
+      "scriptCode": "T1-QC-call",
+      "role": "qc-call",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "mockup",
+      "scriptCode": "^mockup",
+      "role": "mockup",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "reorder",
+      "scriptCode": "^reorder",
+      "role": "reorder-email",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "reorder",
+      "scriptCode": "reorder-T1-call",
+      "role": "reorder-call",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "inactive-call",
+      "scriptCode": "^inactive",
+      "role": "inactive-call",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "lost-annual",
+      "scriptCode": "^annual",
+      "role": "annual-checkin",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "manual"
+    },
+    {
+      "touchpointId": "react-qc",
+      "scriptCode": "^reactqc",
+      "role": "qc",
+      "sequence": "1",
+      "tier": "T1,T2",
+      "sendMode": "manual"
+    }
+  ],
+  "journeys": [
+    {
+      "customerType": "bandana-t1",
+      "stepOrder": "1",
+      "touchpointId": "c-checkin1",
+      "timingLabel": "Week 1",
+      "tier": "T1",
+      "department": "Bandana",
+      "condition": "Personal QC call; cross-sell intro folded into the same call",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t1",
+      "stepOrder": "2",
+      "touchpointId": "c-nc4",
+      "timingLabel": "Month 4",
+      "tier": "T1",
+      "department": "Bandana",
+      "condition": "Learning-cadence check-in (bandanas are handed out, not a durability check)",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t1",
+      "stepOrder": "3",
+      "touchpointId": "c-reorder",
+      "timingLabel": "Month 8",
+      "tier": "T1",
+      "department": "Bandana",
+      "condition": "Personal reorder call",
+      "eventOverride": "anchor 2-3 months before the event anniversary (event customers)",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t1",
+      "stepOrder": "4",
+      "touchpointId": "lost-annual",
+      "timingLabel": "Month 12",
+      "tier": "T1",
+      "department": "Bandana",
+      "condition": "Only if no 2nd order -> LOST; T1 keeps one annual check-in",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "LOST"
+    },
+    {
+      "customerType": "bandana-t2",
+      "stepOrder": "1",
+      "touchpointId": "c-checkin1",
+      "timingLabel": "Week 1",
+      "tier": "T2",
+      "department": "Bandana",
+      "condition": "Automated QC email",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t2",
+      "stepOrder": "2",
+      "touchpointId": "crosssell",
+      "timingLabel": "Week 2",
+      "tier": "T2",
+      "department": "Bandana",
+      "condition": "Cross-sell intro email (^xsell)",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t2",
+      "stepOrder": "3",
+      "touchpointId": "c-nc4",
+      "timingLabel": "Month 4",
+      "tier": "T2",
+      "department": "Bandana",
+      "condition": "4-month bandana check-in (/nc4)",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t2",
+      "stepOrder": "4",
+      "touchpointId": "c-reorder",
+      "timingLabel": "Month 10",
+      "tier": "T2",
+      "department": "Bandana",
+      "condition": "Reorder email (/reorderban)",
+      "eventOverride": "anchor to the event anniversary (event customers)",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "bandana-t3",
+      "stepOrder": "1",
+      "touchpointId": "c-checkin1",
+      "timingLabel": "Week 1",
+      "tier": "T3",
+      "department": "Bandana",
+      "condition": "Automated QC email only; nothing else until Lost",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t1",
+      "stepOrder": "1",
+      "touchpointId": "qc",
+      "timingLabel": "Week 1",
+      "tier": "T1",
+      "department": "Apparel",
+      "condition": "Personal QC call; cross-sell intro folded into the same call",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t1",
+      "stepOrder": "2",
+      "touchpointId": "mockup",
+      "timingLabel": "Month 4",
+      "tier": "T1",
+      "department": "Apparel",
+      "condition": "Complimentary apparel mockup, designed as a gift",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t1",
+      "stepOrder": "3",
+      "touchpointId": "reorder",
+      "timingLabel": "Month 8",
+      "tier": "T1",
+      "department": "Apparel",
+      "condition": "Personal reorder call",
+      "eventOverride": "anchor 2-3 months before the event anniversary (event customers)",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t1",
+      "stepOrder": "4",
+      "touchpointId": "lost-annual",
+      "timingLabel": "Month 12",
+      "tier": "T1",
+      "department": "Apparel",
+      "condition": "Only if no 2nd order -> LOST; T1 keeps one annual check-in",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "LOST"
+    },
+    {
+      "customerType": "apparel-t2",
+      "stepOrder": "1",
+      "touchpointId": "qc",
+      "timingLabel": "Week 1",
+      "tier": "T2",
+      "department": "Apparel",
+      "condition": "Automated QC email",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t2",
+      "stepOrder": "2",
+      "touchpointId": "crosssell",
+      "timingLabel": "Week 2",
+      "tier": "T2",
+      "department": "Apparel",
+      "condition": "Cross-sell intro email (^xsell)",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t2",
+      "stepOrder": "3",
+      "touchpointId": "mockup",
+      "timingLabel": "Month 4",
+      "tier": "T2",
+      "department": "Apparel",
+      "condition": "Complimentary mockup - only if cross-sell potential is clear",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t2",
+      "stepOrder": "4",
+      "touchpointId": "reorder",
+      "timingLabel": "Month 10",
+      "tier": "T2",
+      "department": "Apparel",
+      "condition": "Reorder email (^reorder)",
+      "eventOverride": "anchor to the event anniversary (event customers)",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "apparel-t3",
+      "stepOrder": "1",
+      "touchpointId": "qc",
+      "timingLabel": "Week 1",
+      "tier": "T3",
+      "department": "Apparel",
+      "condition": "Automated QC email only; nothing else until Lost",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "NEW"
+    },
+    {
+      "customerType": "at-risk",
+      "stepOrder": "1",
+      "touchpointId": "savetouch",
+      "timingLabel": "Touch 1 - at entry",
+      "tier": "T1",
+      "department": "Both",
+      "condition": "Personal call within one week (atrisk1-call)",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "AT RISK"
+    },
+    {
+      "customerType": "at-risk",
+      "stepOrder": "1",
+      "touchpointId": "savetouch",
+      "timingLabel": "Touch 1 - at entry",
+      "tier": "T2",
+      "department": "Both",
+      "condition": "Personal email within two weeks (^atrisk1)",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "AT RISK"
+    },
+    {
+      "customerType": "at-risk",
+      "stepOrder": "2",
+      "touchpointId": "savetouch",
+      "timingLabel": "Touch 2 - midpoint",
+      "tier": "T1",
+      "department": "Both",
+      "condition": "Different shape - follow-up call (atrisk2-call)",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "AT RISK"
+    },
+    {
+      "customerType": "at-risk",
+      "stepOrder": "2",
+      "touchpointId": "savetouch",
+      "timingLabel": "Touch 2 - midpoint",
+      "tier": "T2",
+      "department": "Both",
+      "condition": "Templated follow-up email (^atrisk2)",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "AT RISK"
+    },
+    {
+      "customerType": "at-risk",
+      "stepOrder": "3",
+      "touchpointId": "savetouch",
+      "timingLabel": "T3",
+      "tier": "T3",
+      "department": "Both",
+      "condition": "Skip - no AT RISK work for T3",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "AT RISK"
+    },
+    {
+      "customerType": "inactive",
+      "stepOrder": "1",
+      "touchpointId": "inactive-call",
+      "timingLabel": "At entry",
+      "tier": "T1",
+      "department": "Both",
+      "condition": "Cortney calls (Holly may join); direct, not apologetic (^inactive)",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "INACTIVE"
+    },
+    {
+      "customerType": "inactive",
+      "stepOrder": "2",
+      "touchpointId": "inactive-call",
+      "timingLabel": "Within 4 weeks",
+      "tier": "T2",
+      "department": "Both",
+      "condition": "Call within 4 weeks",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "INACTIVE"
+    },
+    {
+      "customerType": "inactive",
+      "stepOrder": "3",
+      "touchpointId": "inactive-call",
+      "timingLabel": "T3",
+      "tier": "T3",
+      "department": "Both",
+      "condition": "Skip",
+      "eventOverride": "",
+      "suppressionRule": "Open-Deal Guard mutes all retention outreach while a deal is open.",
+      "stage": "INACTIVE"
+    },
+    {
+      "customerType": "lost",
+      "stepOrder": "1",
+      "touchpointId": "lost-annual",
+      "timingLabel": "Annual",
+      "tier": "T1",
+      "department": "Both",
+      "condition": "One annual check-in attempt per year (^annual); T2/T3 no further touches",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "LOST"
+    },
+    {
+      "customerType": "reactivated",
+      "stepOrder": "1",
+      "touchpointId": "react-qc",
+      "timingLabel": "Week 1 after win-back delivery",
+      "tier": "T1,T2",
+      "department": "all",
+      "condition": "",
+      "eventOverride": "",
+      "suppressionRule": "",
+      "stage": "REACT"
+    }
+  ],
+  "stages": [
+    {
+      "id": "new",
+      "name": "NEW",
+      "sortOrder": 10,
+      "entryRule": "A first paid order is marked Won/paid in Printavo, creating a box at NEW and flipping the customer to New Customer.",
+      "exitRule": "A 2nd paid order moves them to ACTIVE; 12 months with no 2nd order moves them to LOST.",
+      "automationOwner": "n8n Convert (1)",
+      "northStarAnchor": "North Star, Lifecycle Stage - NEW"
+    },
+    {
+      "id": "active",
+      "name": "ACTIVE",
+      "sortOrder": 20,
+      "entryRule": "They place a 2nd paid order (graduating from NEW) or recover from a save, and are within 1x their typical cadence.",
+      "exitRule": "Days since last order exceed 1.25x cadence (or an event customer misses their season-opening window) -> AT RISK.",
+      "automationOwner": "n8n Band-Updater",
+      "northStarAnchor": "North Star, Lifecycle Stage - ACTIVE"
+    },
+    {
+      "id": "atrisk",
+      "name": "AT RISK",
+      "sortOrder": 30,
+      "entryRule": "The band-updater flips them when they pass 1.25x-2x their normal cadence, or miss an expected season opening.",
+      "exitRule": "A new paid order returns them to ACTIVE; no response after Touch 2 (or >2x cadence) moves them to INACTIVE.",
+      "automationOwner": "n8n Band-Updater + Save-Touch (4)",
+      "northStarAnchor": "North Star, Lifecycle Stage - AT RISK"
+    },
+    {
+      "id": "inactive",
+      "name": "INACTIVE",
+      "sortOrder": 40,
+      "entryRule": "The band-updater moves them here after a failed AT RISK touch and days past 2x cadence.",
+      "exitRule": "A reorder commitment moves them to REACTIVATED; 90 days with no response, or a hard no, moves them to LOST.",
+      "automationOwner": "Manual (Cortney call; Holly may join)",
+      "northStarAnchor": "North Star, Lifecycle Stage - INACTIVE"
+    },
+    {
+      "id": "reactivated",
+      "name": "REACTIVATED",
+      "sortOrder": 50,
+      "entryRule": "A customer who was AT RISK or INACTIVE places a new order or makes a clear commitment; the PM moves them here manually.",
+      "exitRule": "90 days post-reactivation on rhythm -> ACTIVE; going cold again -> AT RISK or INACTIVE.",
+      "automationOwner": "Manual (PM) + n8n QC task",
+      "northStarAnchor": "North Star, Lifecycle Stage - REACTIVATED"
+    },
+    {
+      "id": "lost",
+      "name": "LOST",
+      "sortOrder": 60,
+      "entryRule": "12 months from NEW with no 2nd order, or 90 days in INACTIVE with no response, or a hard no from the customer.",
+      "exitRule": "They come back unprompted -> REACTIVATED.",
+      "automationOwner": "n8n Single-Order Sweep + manual",
+      "northStarAnchor": "North Star, Lifecycle Stage - LOST"
+    }
+  ],
+  "behavior_triggers": [
+    {
+      "trigger": "open",
+      "responseT1": "PM gets a Streak task: '[Customer] engaged - follow up personally'",
+      "responseT2": "An automated, pre-written re-engagement email sends from n8n",
+      "responseT3": "No action",
+      "recencyRule": "Fires only on engagement within the last 30 days (stale opens don't count)",
+      "throttle": "At most one behavior-triggered email per customer per 14 days",
+      "neverAutoReply": true
+    },
+    {
+      "trigger": "click",
+      "responseT1": "PM gets a Streak task: '[Customer] engaged - follow up personally'",
+      "responseT2": "An automated, pre-written re-engagement email sends from n8n",
+      "responseT3": "No action",
+      "recencyRule": "Fires only on engagement within the last 30 days (stale clicks don't count)",
+      "throttle": "At most one behavior-triggered email per customer per 14 days",
+      "neverAutoReply": true
+    },
+    {
+      "trigger": "reply",
+      "responseT1": "PM gets a same-day Streak task to respond personally",
+      "responseT2": "PM gets a same-day Streak task to respond personally",
+      "responseT3": "PM gets a same-day Streak task to respond personally",
+      "recencyRule": "Replies always matter (no recency cap)",
+      "throttle": "Replies always fire a PM task regardless of throttle",
+      "neverAutoReply": true
+    },
+    {
+      "trigger": "mention",
+      "responseT1": "PM tags manually while reading the reply, setting the event/season flag on the Streak box",
+      "responseT2": "PM tags manually while reading the reply, setting the event/season flag on the Streak box",
+      "responseT3": "PM tags manually while reading the reply, setting the event/season flag on the Streak box",
+      "recencyRule": "-",
+      "throttle": "-",
+      "neverAutoReply": true
+    }
+  ],
+  "gaps": [
+    {
+      "code": "^didntproceed",
+      "name": "Didn't-Proceed Follow-Up",
+      "channel": "email",
+      "publishStatus": "ready",
+      "reason": "awaiting Holly approval",
+      "notes": "Drafted in Script_Gap_Brief_2026-06-23 (Kelly). Awaiting Holly approval before going live. Two-touch script.",
+      "sheetRow": 20,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^cadencein",
+      "name": "Missed Cadence Check-In",
+      "channel": "email",
+      "publishStatus": "ready",
+      "reason": "awaiting Holly approval",
+      "notes": "Drafted in Script_Gap_Brief_2026-06-23 (Kelly). Awaiting Holly approval. Call talking points: 'Your usual window has come and gone - has your timing shifted this year?' New date -> update Streak, back to Active; 'not this year' -> Paused; no answer -> At-Risk.",
+      "sheetRow": 21,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^inactive",
+      "name": "Inactive Call",
+      "channel": "call",
+      "publishStatus": "draft",
+      "reason": "planned, not yet written",
+      "notes": "[TO WRITE] Direct, not apologetic. Phone, not email. Talking points still to be authored.",
+      "sheetRow": 22,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^reactqc",
+      "name": "Reactivated QC",
+      "channel": "email",
+      "publishStatus": "draft",
+      "reason": "planned, not yet written",
+      "notes": "[TO WRITE] Same spirit as the Activation QC, for a won-back customer.",
+      "sheetRow": 23,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^annual",
+      "name": "Annual T1 Check-In (Lost)",
+      "channel": "email",
+      "publishStatus": "draft",
+      "reason": "planned, not yet written",
+      "notes": "[TO WRITE] Annual reactivation pull for T1 Lost accounts. Runs as a Mail Merge to the T1 Lost list.",
+      "sheetRow": 24,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^backtobandana",
+      "name": "Cross-Purchase Back to Bandana",
+      "channel": "email",
+      "publishStatus": "draft",
+      "reason": "planned, not yet written",
+      "notes": "[TO WRITE] Reverse of ^xsell (apparel -> bandana). Routing + copy still being designed (holding item #18).",
+      "sheetRow": 25,
+      "kind": "script",
+      "errors": []
+    },
+    {
+      "code": "^xsellcap",
+      "name": "Apparel Capability Touch",
+      "channel": "email",
+      "publishStatus": "draft",
+      "reason": "planned, not yet written",
+      "notes": "[TO WRITE] Apparel capability touch - pending other session.",
+      "sheetRow": 26,
+      "kind": "script",
+      "errors": []
+    }
+  ],
+  "meta": {
+    "releaseVersion": "1",
+    "updated": "2026-07-08",
+    "validationErrors": 0,
+    "sheetId": "1DpCmsD1oQ7YkzpcmokQJKwB2npXga9gUn5YgkX44V4c",
+    "gids": {
+      "SCRIPTS": 1928933180,
+      "SCRIPT_FIELDS": 587243404,
+      "TOUCHPOINTS": 2017281093,
+      "TOUCHPOINT_SCRIPTS": 2005793588,
+      "JOURNEYS": 1616993564,
+      "LIFECYCLE_STAGES": 1276200909,
+      "BEHAVIOR_TRIGGERS": 1024055804,
+      "META": 403763985
+    },
+    "source": "command-center-api",
+    "note": "Static fallback snapshot — regenerated verbatim from the Command Center Data API transformer (workflow uVO85DuKcSzbEU4g) on 2026-07-09. Transformer-identical contract: same schemaVersion + staleness meta as the live payload. Used by index.html only when the live API is unreachable.",
+    "contentHash": "eff9054b",
+    "warnings": [],
+    "stale": false,
+    "servedFrom": "fresh",
+    "servedAt": "2026-07-09T07:31:10.380Z",
+    "lastRebuildOk": true,
+    "generatedAt": "2026-07-09T07:31:10.380Z",
+    "schemaVersion": 3
+  }
+}
