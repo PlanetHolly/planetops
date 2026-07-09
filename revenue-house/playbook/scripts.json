@@ -8,26 +8,42 @@
       "id": "xsell",
       "code": "^xsell",
       "name": "Cross-Sell Intro (introduces Cortney)",
-      "sentBy": "the box owner (bandana\u2192apparel default; flip brackets for apparel\u2192bandana)",
+      "sentBy": "Kelly/Shara from bandanas@ (cc team@); Cortney sends her share as ^xsellc from team@",
       "channel": "either",
       "subject": "a thought on your [PROJECT NAME] run",
-      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. If you ever want [matching APPAREL/MERCH] to go with it, my teammate Cortney runs our apparel side, and she can pull a quick mockup so you can see it. I've copied her here so you have her.\n\nNo pressure, just a thought. Either way, glad we got to make these for you.",
+      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it. Here's what we've been making lately if you want to look around: https://planetholly.github.io/lookbook-2026/\n\nMy teammate Cortney runs that side of the shop and she's copied here. If anything catches your eye or you've got something coming up, just reply and she'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
       "fills": [
         "FIRST NAME",
         "PRODUCT",
-        "APPAREL/MERCH",
         "PROJECT NAME"
       ],
-      "notes": "Always cc team@ so Cortney is on the thread. Reply-in-thread mode inherits the project thread subject; new-email mode uses the subject above. Live Gmail thread search decides the mode.",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim. Always cc team@ so Cortney is on the thread.",
       "status": "live",
       "cc": [
         "team@planetapparel.com"
       ]
     },
     {
+      "id": "xsellc",
+      "code": "^xsellc",
+      "name": "Cross-Sell Intro (Cortney first-person)",
+      "sentBy": "Cortney from team@ (first-person; she is a sender, not just cc)",
+      "channel": "either",
+      "subject": "a thought on your [PROJECT NAME] run",
+      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it. Here's what we've been making lately if you want to look around: https://planetholly.github.io/lookbook-2026/\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "fills": [
+        "FIRST NAME",
+        "PRODUCT",
+        "PROJECT NAME"
+      ],
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim. First-person variant of ^xsell for Cortney's own share. No cc.",
+      "status": "live",
+      "cc": []
+    },
+    {
       "id": "handoff",
       "code": "^handoff",
-      "name": "Warm Handoff (Shara \u2192 Cortney)",
+      "name": "Warm Handoff (Shara → Cortney)",
       "sentBy": "Shara, cc Cortney, before the box moves to Cortney",
       "channel": "new-email",
       "subject": "Putting you in good hands",
@@ -51,7 +67,7 @@
         "first name",
         "Project Name"
       ],
-      "notes": "Text Blaze fill-in form \u2014 Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
       "status": "live"
     },
     {
@@ -66,7 +82,7 @@
         "first name",
         "Project Name"
       ],
-      "notes": "Text Blaze fill-in form \u2014 Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
       "status": "live"
     },
     {
@@ -82,7 +98,7 @@
         "Project Name",
         "Month of last order"
       ],
-      "notes": "Text Blaze fill-in form \u2014 Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
+      "notes": "Text Blaze fill-in form — Text Blaze can't fill the subject, so paste the body's last line into the subject field per the source library's marker convention",
       "status": "live"
     },
     {
@@ -92,12 +108,12 @@
       "sentBy": "Cortney (team@)",
       "channel": "reply-in-thread",
       "subject": null,
-      "body": "Hi [FIRST NAME],\n\nCortney here, I run the apparel side at Planet Apparel. Shara passed your note over and that mockup offer is real, I'd love to put it together for you.\n\nOne question so it's worth your time: what would your crew actually use, shirts, hats, hoodies, something else? Tell me that and I'll have your [PROJECT NAME] art worked up on it within a couple days.\n\nNo cost and no commitment. If it looks right, we'll talk numbers.",
+      "body": "Hi [FIRST NAME],\n\nCortney here, I run the apparel and promo side at Planet Apparel. Shara passed your note over, happy to help.\n\nWhat's it for, the crew, an event, client gifts? Tell me what you're picturing and I'll put real numbers together. We've already got your [PROJECT NAME] art on file, so setup is the easy part.\n\nNo commitment. If the numbers look right, we'll go from there.",
       "fills": [
         "FIRST NAME",
         "PROJECT NAME"
       ],
-      "notes": "sent within 1 business day of an interested reply",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim. CONDITIONAL: when the intro was Cortney's own ^xsellc, delete 'Shara passed your note over, happy to help.'",
       "status": "live"
     },
     {
@@ -107,12 +123,12 @@
       "sentBy": "Cortney (team@)",
       "channel": "reply-in-thread",
       "subject": null,
-      "body": "Hi [FIRST NAME],\n\nThat apparel mockup is still yours if you want it. One line back gets it moving.\n\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\n\nGlad we got to be part of the [PROJECT NAME] run either way.",
+      "body": "Hi [FIRST NAME],\n\nJust closing the loop on the apparel and promo idea. Your art is still on file, so whenever you're ready it's a quick start.\n\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\n\nGlad we got to be part of the [PROJECT NAME] run either way.",
       "fills": [
         "FIRST NAME",
         "PROJECT NAME"
       ],
-      "notes": "one light touch ~1 week after ^xsellresponse goes unanswered, then stop",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim.",
       "status": "live"
     }
   ]

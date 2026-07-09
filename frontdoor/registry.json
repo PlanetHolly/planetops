@@ -273,7 +273,7 @@
           "kind": "surface",
           "name": "Retention Command Center",
           "blurb": "Kiosk for the whole retention system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
-          "type": "app",
+          "type": "live-app",
           "url": "../revenue-house/command/",
           "status": "live",
           "access": "open",

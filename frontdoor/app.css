@@ -42,19 +42,72 @@ button{font:inherit;cursor:pointer}
 
 /* ── layout ── */
 .body{display:flex;min-height:calc(100vh - 52px);position:relative}
-.rail{flex:0 0 224px;background:#fff;border-right:1px solid var(--line);padding:14px 0 30px;position:sticky;top:52px;align-self:flex-start;height:calc(100vh - 52px);overflow-y:auto;transition:transform .18s ease,flex-basis .18s ease;z-index:10}
+.rail{flex:0 0 80px;background:#fff;border-right:1px solid var(--line);padding:8px 0 30px;position:sticky;top:52px;align-self:flex-start;height:calc(100vh - 52px);overflow-y:auto;z-index:10}
 
 /* collapsed: rail slides out of the way; a thin hover strip on the far-left slides it back */
-.railHover{display:none}
-body.rail-collapsed .rail{flex-basis:0;transform:translateX(-232px);border-right:0}
-body.rail-collapsed .railHover{display:block;position:fixed;left:0;top:52px;width:10px;height:calc(100vh - 52px);z-index:11}
-body.rail-collapsed .railHover:hover ~ .rail,
-body.rail-collapsed .rail:hover{flex-basis:224px;transform:translateX(0);border-right:1px solid var(--line);box-shadow:2px 0 14px rgba(0,0,0,.12);position:fixed;left:0}
-.railGroup{margin:6px 0 4px;padding:8px 18px 4px;font-size:10px;font-weight:800;letter-spacing:1.2px;color:#9ca3af;text-transform:uppercase}
-.railItem{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;font-weight:600;color:#333;cursor:pointer;border-left:3px solid transparent}
+body.rail-collapsed .rail{display:none}
+
+/* ── hover flyout (QuickBooks "All Apps") ── */
+.railItem .riCaret{display:none}
+.flyout{position:fixed;z-index:40;min-width:252px;max-width:310px;max-height:420px;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.17);padding:7px}
+.flyHead{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;padding:6px 8px 8px;border-bottom:1px solid #f1f1f3;margin-bottom:4px}
+.flyGroupHead{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#9ca3af;padding:9px 8px 3px}
+.flyRow{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.flyRow:hover{background:#fffbeb}
+.flyRow.hasKids{font-weight:700}
+.flyCaret{margin-left:auto;color:#c4c4c8;font-weight:800;font-size:15px}
+.flyRow.hasKids:hover .flyCaret{color:var(--gold)}
+.subflyout{z-index:41}
+.flyName{flex:1;min-width:0;font-weight:600}
+.flyEmpty{color:#94a3b8;font-size:12.5px;padding:10px 8px}
+
+/* ── HOME canvas ── */
+.brand{cursor:pointer}
+.homeHint{color:#666;font-size:13.5px;margin:2px 0 14px}
+.homeWelcome{display:flex;align-items:center;gap:16px;margin:8px 0 20px}
+.homeWelcome .hwLogo svg{height:44px;width:auto;color:#000}
+.homeWelcome h2{margin:0;font-size:25px;letter-spacing:.2px}
+.hwDate{margin:2px 0 0;color:#6b7280;font-size:13px}
+.flagBoard{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 20px}
+.flag{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;background:#fff;border:1px solid var(--line)}
+.flag.ok{border-color:#bbf7d0;background:#f0fdf4;color:#166534}
+.flag.red{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+.flag.amber{border-color:#fde68a;background:#fffbeb;color:#92400e}
+.flag.notice{color:#57606a}
+.flag.info{color:#8a919b;font-weight:500}
+.flag.lockchip{cursor:pointer;color:#57606a}
+.flag.lockchip:hover{border-color:var(--gold)}
+.flagGo{color:#0969da;cursor:pointer;font-weight:700;white-space:nowrap}
+.flagGo:hover{text-decoration:underline}
+.noticeToggle{cursor:pointer}
+.noticeToggle:hover{border-color:var(--gold)}
+.noticeToggle.open .bhChev{transform:rotate(180deg)}
+.noticeDrawer{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px}
+.recentRow{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
+.recentLabel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#9ca3af;margin-right:2px}
+.recentRow .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 6px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer}
+.recentRow .chip:hover{border-color:var(--gold)}
+.feedCard{display:flex;align-items:center;gap:15px;padding:15px 18px;background:#232323;border-radius:14px;color:#fff;cursor:pointer;max-width:620px;margin-bottom:6px}
+.feedCard:hover{outline:2px solid var(--gold)}
+.feedCard h3{margin:0 0 2px;font-size:15.5px}
+.feedCard p{margin:0;font-size:12.5px;color:#c9cdd3}
+.feedGo{margin-left:auto;color:var(--gold);font-weight:800;font-size:13px;white-space:nowrap}
+.browse{display:flex;flex-direction:column;gap:6px;max-width:620px;margin-bottom:20px}
+.browseHub{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.browseHead{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-weight:700;font-size:13.5px}
+.browseHead:hover{background:#fafafa}
+.browseHead .bhName{flex:1}
+.bhCount{color:#9ca3af;font-size:11.5px;font-weight:700}
+.bhChev{color:#c4c4c8;transition:transform .15s}
+.browseHead.open .bhChev{transform:rotate(180deg)}
+.browseBody{padding:2px 8px 8px;border-top:1px solid #f1f1f3}
+.railGroup{margin:4px 0 2px;padding:9px 2px 3px;font-size:8px;font-weight:800;letter-spacing:.5px;color:#b0b4bb;text-transform:uppercase;text-align:center}
+.railItem{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;cursor:pointer;position:relative;text-align:center}
 .railItem:hover{background:#fafafa}
-.railItem.active{background:#fffbeb;border-left-color:var(--gold);color:#000}
-.railItem .riName{flex:1;min-width:0}
+.railItem.active{background:#fffbeb}
+.railItem.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--gold);border-radius:0 3px 3px 0}
+.railItem .riName{font-size:9.5px;font-weight:700;line-height:1.15;color:#555;max-width:100%;word-break:break-word}
+.railItem.active .riName{color:#000}
 
 .main{flex:1;padding:18px 22px 60px;min-width:0}
 
@@ -69,6 +122,15 @@ body.embedding .foot{display:none}
 .surfFull{margin-left:auto}
 .surfTitle{font-size:14px;font-weight:800;display:inline-flex;align-items:center;gap:8px}
 .surfFrame{flex:1;width:100%;border:0;background:#fff;min-height:0}
+
+/* ── section view: a sub-hub's keys (The Floor → Scheduler/Board/…) beside the frame ── */
+.sectionWrap{flex:1;display:flex;min-height:0}
+.sectionNav{flex:0 0 192px;border-right:1px solid var(--line);background:#fff;overflow-y:auto;padding:10px 7px}
+.snHead{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;padding:4px 8px 10px;border-bottom:1px solid #f1f1f3;margin-bottom:5px}
+.snKey{display:flex;align-items:center;gap:9px;padding:8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.snKey:hover{background:#fffbeb}
+.snKey.active{background:#fef3c7}
+.snName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .crumbs{font-size:12px;color:#6b7280;margin:2px 0 14px;min-height:16px}
 .crumbs a{color:#6b7280;text-decoration:none;cursor:pointer}
 .crumbs a:hover{color:#000;text-decoration:underline}

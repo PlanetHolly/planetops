@@ -195,16 +195,22 @@ function safeRedirect(r) {
 }
 
 /* ── Session lookup middleware ──────────────────────────────────────────── */
+const DB_DOWN = Symbol('session-store-unavailable');   // distinct from "not logged in"
 async function loadSession(req) {
+  const sid = parseSignedCookie(readCookies(req).pa_s);
+  if (!sid) return null;
   try {
-    const sid = parseSignedCookie(readCookies(req).pa_s);
-    if (!sid) return null;
     const r = await pool.query('SELECT sid, expires_at, finance_until FROM gate_sessions WHERE sid=$1 AND expires_at > NOW()', [sid]);
     return r.rows[0] || null;
   } catch (e) {
-    logEvent('session_lookup_failed', { error: e.message });   // DB down → treat as logged out, never crash the request
-    return null;
+    logEvent('session_lookup_failed', { error: e.message });   // DB down ≠ logged out — callers decide
+    return DB_DOWN;
   }
+}
+function hasFinanceUnlock(session) {
+  if (!session || session === DB_DOWN) return false;
+  const fu = session.finance_until && new Date(session.finance_until).getTime();
+  return !!fu && fu > Date.now();
 }
 
 /* ── Routes: health ─────────────────────────────────────────────────────── */
@@ -221,7 +227,8 @@ If it says 🟠, wait a few minutes; the system alerts the 🚨 channel automati
 });
 
 app.get('/readyz', async (req, res) => {                                                    // dependency detail — gated
-  if (!await loadSession(req)) return res.status(401).json({ error: 'auth required' });
+  const s = await loadSession(req);
+  if (!s || s === DB_DOWN) return res.status(401).json({ error: 'auth required' });
   const checks = {};
   try { await pool.query('SELECT 1'); checks.db = 'ok'; } catch (e) { checks.db = 'FAIL: ' + e.message; }
   try { const r = await fetch(process.env.STATE_API_URL + '/health', { signal: AbortSignal.timeout(5000) }); checks.stateApi = r.ok ? 'ok' : 'HTTP ' + r.status; } catch (e) { checks.stateApi = 'FAIL: ' + e.message; }
@@ -258,7 +265,7 @@ async function handlePinPost(req, res, { finance }) {
 
   if (finance) {
     const session = await loadSession(req);
-    if (!session) return res.redirect('/gate?r=' + encodeURIComponent(redirect));
+    if (!session || session === DB_DOWN) return res.redirect('/gate?r=' + encodeURIComponent(redirect));
     await pool.query('UPDATE gate_sessions SET finance_until = NOW() + $1::interval WHERE sid=$2', [`${FINANCE_IDLE_MIN} minutes`, session.sid]).catch(e => logEvent('finance_update_failed', { error: e.message }));
     logEvent('finance_unlock', { ip });
     return res.redirect(redirect);
@@ -283,6 +290,7 @@ app.post('/gate/finance', (req, res) => handlePinPost(req, res, { finance: true 
 /* ── Credential-holding proxies (P0 fixes) — require a team session ─────── */
 async function requireSession(req, res) {
   const s = await loadSession(req);
+  if (s === DB_DOWN) { res.status(503).json({ error: 'session_store_unavailable' }); return null; }
   if (!s) { res.status(401).json({ error: 'auth required' }); return null; }
   return s;
 }
@@ -311,6 +319,63 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
   } catch (e) { res.status(502).json({ error: 'state-api unreachable: ' + e.message }); }
 });
 
+/* ── Home summary: the ONE endpoint the front-door home reads ───────────────
+   v1 = gate health + state-api probe + registry STALE/WIP notices + finance
+   classification. Phase 2 enriches THIS payload server-side (schedule/arrivals/
+   goals/live alarms) — the client contract never changes shape. */
+let regCache = { mtime: 0, data: null };
+function readRegistry() {
+  const p = path.join(STATIC_ROOT, 'frontdoor', 'registry.json');
+  const mt = fs.statSync(p).mtimeMs;
+  if (mt !== regCache.mtime) regCache = { mtime: mt, data: JSON.parse(fs.readFileSync(p, 'utf8')) };
+  return regCache.data;
+}
+function walkNodes(nodes, fn) { for (const n of nodes || []) { fn(n); walkNodes(n.children, fn); } }
+function financeIdsFromRegistry(reg) {
+  // Authoritative: resolve each node URL relative to /frontdoor/ and apply the
+  // gate's own finance route rules. Registry `access` labels are display-only,
+  // but we UNION them in — over-redaction is fail-safe, the reverse leaks.
+  const ids = new Set();
+  walkNodes(reg.tree, n => {
+    if (n.access === 'pin') ids.add(n.id);
+    if (n.kind === 'surface' && n.url) {
+      try { if (isFinance(new URL(n.url, 'https://gate.local/frontdoor/').pathname)) ids.add(n.id); } catch { /* unparseable → skip */ }
+    }
+  });
+  return [...ids];
+}
+app.get('/api/home/summary', async (req, res) => {
+  res.set('Cache-Control', 'no-store, private');
+  res.set('Vary', 'Cookie');
+  const session = await requireSession(req, res);
+  if (!session) return;                                  // 401/503 already sent (headers above apply to those too)
+
+  const health = { gate: 'ok', stateApi: 'skipped' };
+  if (process.env.STATE_API_URL) {
+    try {
+      const r = await fetch(new URL('/health', process.env.STATE_API_URL), { signal: AbortSignal.timeout(2000) });
+      health.stateApi = r.ok ? 'ok' : 'down';
+    } catch { health.stateApi = 'down'; }
+  }
+
+  const financeUnlocked = hasFinanceUnlock(session);
+  let flags = [], financeSurfaceIds = [];
+  try {
+    const reg = readRegistry();
+    financeSurfaceIds = financeIdsFromRegistry(reg);
+    const finSet = new Set(financeSurfaceIds);
+    walkNodes(reg.tree, n => {
+      if (n.kind !== 'surface') return;
+      if (finSet.has(n.id) && !financeUnlocked) return; // redact: no finance names/labels for entry-only sessions
+      if (n.status === 'stale') flags.push({ tier: 'amber', label: `${n.name} — data is stale`, surfaceId: n.id });
+      else if (n.status === 'wip') flags.push({ tier: 'info', label: `${n.name} — work in progress`, surfaceId: n.id });
+    });
+  } catch (e) { logEvent('home_summary_registry_failed', { error: e.message }); }
+  if (health.stateApi === 'down') flags.unshift({ tier: 'red', label: 'The app’s data service (state-api) is unreachable — the board and schedule may not load', surfaceId: 'floor-board' });
+
+  res.json({ health, flags, financeUnlocked, financeSurfaceIds });
+});
+
 app.post('/api/shipstation/sync', async (req, res) => {
   if (!await requireSession(req, res)) return;
   const key = process.env.SHIPSTATION_KEY, secret = process.env.SHIPSTATION_SECRET;
@@ -336,14 +401,13 @@ app.use(async (req, res, next) => {
   }
 
   const session = await loadSession(req);
-  if (!session) {
+  if (!session || session === DB_DOWN) {           // DB down: can't verify → same as logged out for pages (login POST shows the trouble message)
     if (req.method === 'GET' && (req.headers.accept || '').includes('text/html')) return res.redirect('/gate?r=' + encodeURIComponent(p));
     return res.status(401).send('auth required');
   }
 
   if (isFinance(p)) {
-    const fu = session.finance_until && new Date(session.finance_until).getTime();
-    if (!fu || fu < Date.now()) {
+    if (!hasFinanceUnlock(session)) {
       if (req.method === 'GET' && (req.headers.accept || '').includes('text/html')) return res.redirect('/gate/finance?r=' + encodeURIComponent(p));
       return res.status(403).send('finance unlock required');
     }
