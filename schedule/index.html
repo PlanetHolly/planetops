@@ -1318,8 +1318,8 @@ function renderCalendar(){
 
 /* ───────── Tabs ───────── */
 const TABS=[
+  {label:'Queue',render:renderList},              // Jean 7/9 (after 20+ real jobs): Queue FIRST — it's where every scheduling session starts; also the landing tab (activeTab=0)
   {label:'Board',render:()=>renderBoard(null)},
-  {label:'Queue',render:renderList},              // Jean 7/9: renamed from 'List', moved right of Board — fill → verify ⏱ → station, then place on Board (supersedes the 7/7 right-of-Estimator order)
   {label:'Calendar',render:renderCalendar},
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
