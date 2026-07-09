@@ -1139,8 +1139,9 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  let list=listShowAll?all:all.filter(j=>!j.placeholder&&!j.station);   // QUEUE mode: only jobs still needing enrichment + a station
-  const queueN=all.filter(j=>!j.placeholder&&!j.station).length;
+  const inQueue=j=>!j.placeholder&&!j.station&&!OUTSOURCED.test(j.status);   // QUEUE mode: actionable only — outsourced waits in Arrivals (same rule as the Board pool)
+  let list=listShowAll?all:all.filter(inQueue);
+  const queueN=all.filter(inQueue).length;
   if(listSort.key&&SORTVAL[listSort.key]){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
