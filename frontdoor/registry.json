@@ -2,63 +2,116 @@
   "app": {
     "name": "Planet Apparel",
     "updated": "2026-07-08",
-    "authNote": "Auth is SERVER-SIDE (gate/index.js on Railway). No PIN ever belongs in this file — it is client-readable."
+    "authNote": "Auth is SERVER-SIDE (gate/index.js on Railway). No PIN ever belongs in this file \u2014 it is client-readable."
   },
   "tree": [
     {
       "id": "planetops",
       "kind": "hub",
       "group": "hubs",
-      "icon": "⚙️",
+      "icon": "\u2699\ufe0f",
       "name": "PlanetOps",
-      "blurb": "Production — back of house",
+      "blurb": "Production \u2014 back of house",
       "children": [
         {
           "id": "floor",
-          "kind": "surface",
-          "name": "Floor App",
-          "blurb": "Board · Pre-Press · Running · Reports · Fulfillment",
-          "type": "live-app",
-          "url": "../index.html",
-          "status": "live",
-          "access": "open",
-          "dataSource": "Printavo GraphQL + Railway state-api",
-          "icon": "🎛️"
-        },
-        {
-          "id": "schedule",
-          "kind": "surface",
-          "name": "Schedule Board",
-          "blurb": "One board. Every station. Arrivals included.",
-          "type": "live-app",
-          "url": "../schedule/",
-          "status": "live",
-          "access": "open",
-          "dataSource": "Railway /webhook/estimate",
-          "icon": "🗓️"
-        },
-        {
-          "id": "capacity",
-          "kind": "surface",
-          "name": "Production Availability",
-          "blurb": "Press capacity, at a glance",
-          "type": "dashboard",
-          "url": "../capacity/",
-          "status": "live",
-          "access": "open",
-          "dataSource": "Power Scheduler CSV (/gauge skill)",
-          "icon": "🎚️"
-        },
-        {
-          "id": "estimator",
-          "kind": "surface",
-          "name": "Project Estimator",
-          "blurb": "Print-time & cost calculator",
-          "type": "tool",
-          "url": "../estimator/",
-          "status": "live",
-          "access": "open",
-          "icon": "🧮"
+          "kind": "hub",
+          "name": "The Floor",
+          "blurb": "The live production board and its stations",
+          "icon": "\ud83c\udf9b\ufe0f",
+          "children": [
+            {
+              "id": "schedule",
+              "kind": "surface",
+              "name": "Scheduler",
+              "blurb": "One board. Every station. Arrivals included.",
+              "type": "live-app",
+              "url": "../schedule/",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Railway /webhook/estimate",
+              "icon": "\ud83d\uddd3\ufe0f"
+            },
+            {
+              "id": "floor-board",
+              "kind": "surface",
+              "name": "Board",
+              "blurb": "The live production board",
+              "type": "live-app",
+              "url": "../index.html",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Printavo GraphQL + Railway state-api",
+              "icon": "\ud83c\udf9b\ufe0f"
+            },
+            {
+              "id": "floor-prepress",
+              "kind": "surface",
+              "name": "Pre-Press",
+              "blurb": "Films \u00b7 screens \u00b7 inks",
+              "type": "live-app",
+              "url": "../index.html#prepress",
+              "status": "live",
+              "access": "open",
+              "icon": "\ud83d\udda8\ufe0f"
+            },
+            {
+              "id": "floor-running",
+              "kind": "surface",
+              "name": "Running",
+              "blurb": "On press now",
+              "type": "live-app",
+              "url": "../index.html#running",
+              "status": "live",
+              "access": "open",
+              "icon": "\u25b6\ufe0f"
+            },
+            {
+              "id": "floor-reports",
+              "kind": "surface",
+              "name": "Reports",
+              "blurb": "Production reporting",
+              "type": "dashboard",
+              "url": "../index.html#reports",
+              "status": "wip",
+              "access": "open",
+              "icon": "\ud83d\udcca"
+            },
+            {
+              "id": "floor-fulfillment",
+              "kind": "surface",
+              "name": "Fulfillment",
+              "blurb": "Pack \u00b7 ship",
+              "type": "live-app",
+              "url": "../index.html#fulfillment",
+              "status": "live",
+              "access": "open",
+              "icon": "\ud83d\ude9a"
+            },
+            {
+              "id": "estimator",
+              "kind": "surface",
+              "name": "Calculator",
+              "blurb": "Print-time & cost calculator",
+              "type": "tool",
+              "url": "../estimator/",
+              "status": "live",
+              "access": "open",
+              "icon": "\ud83e\uddee"
+            },
+            {
+              "id": "capacity",
+              "kind": "surface",
+              "name": "Availability",
+              "blurb": "Press capacity, at a glance",
+              "type": "dashboard",
+              "url": "../capacity/",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Power Scheduler CSV (/gauge skill)",
+              "icon": "\ud83c\udf9a\ufe0f"
+            }
+          ]
         },
         {
           "id": "priority-guide",
@@ -69,7 +122,7 @@
           "url": "../priority-guide/",
           "status": "live",
           "access": "open",
-          "icon": "🚦"
+          "icon": "\ud83d\udea6"
         },
         {
           "id": "rush",
@@ -80,8 +133,8 @@
           "url": "../rush/",
           "status": "wip",
           "access": "open",
-          "note": "untracked — not pushed yet",
-          "icon": "⏱️"
+          "note": "untracked \u2014 not pushed yet",
+          "icon": "\u23f1\ufe0f"
         },
         {
           "id": "boxes",
@@ -92,7 +145,7 @@
           "url": "../boxes/",
           "status": "live",
           "access": "open",
-          "icon": "📦"
+          "icon": "\ud83d\udce6"
         },
         {
           "id": "prod-flow-map",
@@ -102,19 +155,30 @@
           "type": "system-map",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
-          "icon": "🗺️"
+          "note": "stranded on file:// \u2014 Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
+          "icon": "\ud83d\uddfa\ufe0f"
         },
         {
           "id": "graphics-suite",
           "kind": "surface",
           "name": "Graphics Suite",
-          "blurb": "Dashboard · New Request · Order Detail · Templates · Mockup Studio",
+          "blurb": "Dashboard \u00b7 New Request \u00b7 Order Detail \u00b7 Templates \u00b7 Mockup Studio",
           "type": "tool",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Graphics/",
-          "icon": "🎨"
+          "note": "stranded on file:// \u2014 Dropbox PlanetApparel/Graphics/",
+          "icon": "\ud83c\udfa8"
+        },
+        {
+          "id": "art-namer",
+          "kind": "surface",
+          "name": "Art Namer",
+          "blurb": "Produced-job mockups \u2192 Google/LLM-optimized web assets + SKU",
+          "type": "tool",
+          "status": "live",
+          "access": "open",
+          "note": "CLI today (art-namer/cli.py); Feed lane per art-namer/SPEC.md. Output \u2192 Website Shared Drive Website_Ready/Bandanas/",
+          "icon": "\ud83c\udff7\ufe0f"
         },
         {
           "id": "qc-invoice",
@@ -124,13 +188,13 @@
           "type": "tool",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
-          "icon": "🔍"
+          "note": "stranded on file:// \u2014 Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
+          "icon": "\ud83d\udd0d"
         },
         {
           "id": "time-labor",
           "kind": "hub",
-          "icon": "🕐",
+          "icon": "\ud83d\udd50",
           "name": "Time & Labor",
           "blurb": "Clock, timesheets, roster (Daily Ops)",
           "children": [
@@ -138,13 +202,13 @@
               "id": "clock",
               "kind": "surface",
               "name": "Time Clock",
-              "blurb": "Floor kiosk punch in/out — CA overtime math",
+              "blurb": "Floor kiosk punch in/out \u2014 CA overtime math",
               "type": "live-app",
               "url": "../clock/",
               "status": "live",
               "access": "open",
               "dataSource": "Railway /webhook/timesheets-admin",
-              "icon": "⏰"
+              "icon": "\u23f0"
             },
             {
               "id": "timesheets-report",
@@ -156,7 +220,7 @@
               "status": "live",
               "access": "open",
               "dataSource": "timesheets webhook",
-              "icon": "🧾"
+              "icon": "\ud83e\uddfe"
             },
             {
               "id": "team-admin",
@@ -167,7 +231,7 @@
               "url": "../clock/admin.html",
               "status": "live",
               "access": "pin",
-              "icon": "👥"
+              "icon": "\ud83d\udc65"
             },
             {
               "id": "screen-readiness",
@@ -178,8 +242,8 @@
               "url": "https://docs.google.com/spreadsheets/d/1PTs5sCXSBlhQ6G6j4jgSXcmcJjMEyhGDc7mN6K2QNmo/edit",
               "status": "live",
               "access": "open",
-              "dataSource": "Drive sheet · Jean, daily",
-              "icon": "🖨️"
+              "dataSource": "Drive sheet \u00b7 Jean, daily",
+              "icon": "\ud83d\udda8\ufe0f"
             }
           ]
         }
@@ -189,44 +253,55 @@
       "id": "revenue-house",
       "kind": "hub",
       "group": "hubs",
-      "icon": "🔁",
+      "icon": "\ud83d\udd01",
       "name": "Revenue House",
-      "blurb": "Sales + Retention — front of house",
+      "blurb": "Sales + Retention \u2014 front of house",
       "children": [
         {
           "id": "rh-hub-page",
           "kind": "surface",
           "name": "Revenue House hub page",
-          "blurb": "The customer-side sub-hub (Retention · Signals · Pipeline)",
+          "blurb": "The customer-side sub-hub (Retention \u00b7 Signals \u00b7 Pipeline)",
           "type": "dashboard",
           "url": "../revenue-house/",
           "status": "live",
           "access": "open",
-          "icon": "🏠"
+          "icon": "\ud83c\udfe0"
+        },
+        {
+          "id": "command-center",
+          "kind": "surface",
+          "name": "Retention Command Center",
+          "blurb": "Kiosk for the whole retention system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
+          "type": "app",
+          "url": "../revenue-house/command/",
+          "status": "live",
+          "access": "open",
+          "icon": "\ud83c\udf9b\ufe0f"
         },
         {
           "id": "signals",
           "kind": "surface",
           "name": "Planet Sales Signals",
-          "blurb": "Quotes, conversions, new-vs-return, tiers, ad ROI — by rep, by week",
+          "blurb": "Quotes, conversions, new-vs-return, tiers, ad ROI \u2014 by rep, by week",
           "type": "dashboard",
           "url": "../signals/",
           "status": "live",
           "access": "open",
-          "dataSource": "scoreboard-data.json ← Drive SoT 1PkA3UbiA0fmpwaAj6nRbuEzq2nrK9NhueELhBA4OhQM",
-          "icon": "📡"
+          "dataSource": "scoreboard-data.json \u2190 Drive SoT 1PkA3UbiA0fmpwaAj6nRbuEzq2nrK9NhueELhBA4OhQM",
+          "icon": "\ud83d\udce1"
         },
         {
           "id": "retention-map",
           "kind": "surface",
-          "name": "Retention — Live System Map",
+          "name": "Retention \u2014 Live System Map",
           "blurb": "Three cadence engines, every automation, the alarms",
           "type": "system-map",
           "url": "../revenue-house/retention/",
           "status": "live",
           "access": "open",
           "dataSource": "status.json (hand-maintained)",
-          "icon": "🧲"
+          "icon": "\ud83e\uddf2"
         },
         {
           "id": "save-touch",
@@ -237,18 +312,18 @@
           "url": "../save-touch/",
           "status": "live",
           "access": "open",
-          "icon": "🆘"
+          "icon": "\ud83c\udd98"
         },
         {
           "id": "retention-playbook",
           "kind": "surface",
           "name": "Retention Playbook",
-          "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
+          "blurb": "Retention outreach playbook \u2014 who sends what, scripts, Kelly's morning routine",
           "type": "reference",
           "url": "../revenue-house/playbook/",
           "status": "live",
           "access": "open",
-          "icon": "📓"
+          "icon": "\ud83d\udcd3"
         },
         {
           "id": "ship-estimate",
@@ -259,19 +334,19 @@
           "url": "../ship-estimate/",
           "status": "live",
           "access": "open",
-          "icon": "🚚"
+          "icon": "\ud83d\ude9a"
         },
         {
           "id": "retention-registry",
           "kind": "surface",
-          "name": "Retention — Master Script Registry",
+          "name": "Retention \u2014 Master Script Registry",
           "blurb": "36-row control sheet governing the retention n8n fleet",
           "type": "report",
           "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
           "status": "live",
           "access": "open",
-          "dataSource": "Drive sheet · governs Systems A/B/C",
-          "icon": "📇"
+          "dataSource": "Drive sheet \u00b7 governs Systems A/B/C",
+          "icon": "\ud83d\udcc7"
         },
         {
           "id": "pipeline-dashboard",
@@ -281,8 +356,8 @@
           "type": "dashboard",
           "status": "stale",
           "access": "open",
-          "note": "3/17 — superseded by Signals · Dropbox Sales/Dashboard/",
-          "icon": "🚰"
+          "note": "3/17 \u2014 superseded by Signals \u00b7 Dropbox Sales/Dashboard/",
+          "icon": "\ud83d\udeb0"
         }
       ]
     },
@@ -290,9 +365,9 @@
       "id": "planetiq",
       "kind": "hub",
       "group": "hubs",
-      "icon": "📊",
+      "icon": "\ud83d\udcca",
       "name": "PlanetIQ",
-      "blurb": "Data · analysis · intelligence · knowledge · reporting",
+      "blurb": "Data \u00b7 analysis \u00b7 intelligence \u00b7 knowledge \u00b7 reporting",
       "children": [
         {
           "id": "planetiq-panel",
@@ -304,18 +379,18 @@
           "status": "live",
           "access": "pin",
           "dataSource": "datalayer.json / chartseries.json",
-          "icon": "📈"
+          "icon": "\ud83d\udcc8"
         },
         {
           "id": "pricing-dashboard",
           "kind": "surface",
           "name": "Bandana Pricing Dashboard",
-          "blurb": "Internal pricing engine — awaits real DATA feed",
+          "blurb": "Internal pricing engine \u2014 awaits real DATA feed",
           "type": "dashboard",
           "status": "wip",
           "access": "pin",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Pricing/pricing-dashboard.html",
-          "icon": "🏷️"
+          "note": "stranded on file:// \u2014 Dropbox PlanetApparel/Pricing/pricing-dashboard.html",
+          "icon": "\ud83c\udff7\ufe0f"
         },
         {
           "id": "kpi-tracker",
@@ -326,20 +401,20 @@
           "url": "https://docs.google.com/spreadsheets/d/1XQNS-93GLZxPYxK15xYIqKeF-Yv6P9jCuvC2rbnANjQ/edit",
           "status": "live",
           "access": "pin",
-          "dataSource": "Drive sheet · weekly",
-          "icon": "🎯"
+          "dataSource": "Drive sheet \u00b7 weekly",
+          "icon": "\ud83c\udfaf"
         },
         {
           "id": "iq-data-layer",
           "kind": "surface",
           "name": "PlanetIQ Data Layer",
-          "blurb": "The auditable Sheet → snapshot → page layer",
+          "blurb": "The auditable Sheet \u2192 snapshot \u2192 page layer",
           "type": "report",
           "url": "https://docs.google.com/spreadsheets/d/1lvJ28bcid3e8FYNrT44bSbtxi_5U53QxdISiW95JuF0/edit",
           "status": "live",
           "access": "pin",
-          "dataSource": "Drive sheet · automations read it",
-          "icon": "🗄️"
+          "dataSource": "Drive sheet \u00b7 automations read it",
+          "icon": "\ud83d\uddc4\ufe0f"
         },
         {
           "id": "invoice-tracker",
@@ -350,8 +425,8 @@
           "url": "https://docs.google.com/spreadsheets/d/1FT9vqCUD5MOyxjt30q8wQ5PumgdeXj7FtgP5ObdYX8U/edit",
           "status": "live",
           "access": "pin",
-          "dataSource": "Drive sheet · month-end close automation",
-          "icon": "🏦"
+          "dataSource": "Drive sheet \u00b7 month-end close automation",
+          "icon": "\ud83c\udfe6"
         },
         {
           "id": "employee-orders",
@@ -363,7 +438,7 @@
           "status": "live",
           "access": "pin",
           "dataSource": "Drive sheet",
-          "icon": "💳"
+          "icon": "\ud83d\udcb3"
         },
         {
           "id": "financial-dashboard",
@@ -373,13 +448,13 @@
           "type": "dashboard",
           "status": "stale",
           "access": "pin",
-          "note": "4/29 — superseded by PlanetIQ · Dropbox Financial/",
-          "icon": "💹"
+          "note": "4/29 \u2014 superseded by PlanetIQ \u00b7 Dropbox Financial/",
+          "icon": "\ud83d\udcb9"
         },
         {
           "id": "growth",
           "kind": "hub",
-          "icon": "🌱",
+          "icon": "\ud83c\udf31",
           "name": "Growth",
           "blurb": "Bandana site, catalog & web marketing (was PlanetGrowth)",
           "children": [
@@ -392,7 +467,7 @@
               "url": "../bandana-templates/",
               "status": "live",
               "access": "open",
-              "icon": "🧣"
+              "icon": "\ud83e\udde3"
             },
             {
               "id": "bandana-revamp",
@@ -403,8 +478,8 @@
               "url": "../bandana-revamp/",
               "status": "stale",
               "access": "open",
-              "note": "historical project docs (6/17–18)",
-              "icon": "🪄"
+              "note": "historical project docs (6/17\u201318)",
+              "icon": "\ud83e\ude84"
             },
             {
               "id": "bandana-web-pricing",
@@ -415,7 +490,7 @@
               "url": "../bandana-revamp/website-pricing.html",
               "status": "live",
               "access": "open",
-              "icon": "💰"
+              "icon": "\ud83d\udcb0"
             },
             {
               "id": "photo-tagger",
@@ -425,8 +500,8 @@
               "type": "tool",
               "status": "wip",
               "access": "open",
-              "note": "stranded on file:// — Dropbox Website/_Internal/ (localStorage: needs export before deploy)",
-              "icon": "📸"
+              "note": "stranded on file:// \u2014 Dropbox Website/_Internal/ (localStorage: needs export before deploy)",
+              "icon": "\ud83d\udcf8"
             },
             {
               "id": "mockup-vs-real",
@@ -436,15 +511,15 @@
               "type": "tool",
               "status": "wip",
               "access": "open",
-              "note": "stranded on file:// — Dropbox Website/_Internal/",
-              "icon": "🖼️"
+              "note": "stranded on file:// \u2014 Dropbox Website/_Internal/",
+              "icon": "\ud83d\uddbc\ufe0f"
             }
           ]
         },
         {
           "id": "brain",
           "kind": "hub",
-          "icon": "🧠",
+          "icon": "\ud83e\udde0",
           "name": "The Brain",
           "blurb": "Institutional knowledge & the meta layer",
           "children": [
@@ -456,15 +531,15 @@
               "type": "system-map",
               "status": "wip",
               "access": "open",
-              "note": "stranded on file:// — Dropbox Claude_Holly/Knowledge_Graph/graphify-out/graph.html",
-              "icon": "🕸️"
+              "note": "stranded on file:// \u2014 Dropbox Claude_Holly/Knowledge_Graph/graphify-out/graph.html",
+              "icon": "\ud83d\udd78\ufe0f"
             },
             {
               "id": "decisions",
               "kind": "hub",
-              "icon": "⚖️",
+              "icon": "\u2696\ufe0f",
               "name": "Decisions",
-              "blurb": "Leadership decisions — owner-only · coming later",
+              "blurb": "Leadership decisions \u2014 owner-only \u00b7 coming later",
               "children": []
             }
           ]
@@ -475,20 +550,20 @@
       "id": "systems",
       "kind": "hub",
       "group": "hubs",
-      "icon": "🔧",
+      "icon": "\ud83d\udd27",
       "name": "Systems",
-      "blurb": "Automations · system maps · standards",
+      "blurb": "Automations \u00b7 system maps \u00b7 standards",
       "children": [
         {
           "id": "agentic-os",
           "kind": "surface",
-          "name": "Agent OS (Dashboard · Projects · Architecture)",
-          "blurb": "The AI-workforce layer that watches for failures — Fix Agent, heartbeats, 🚨 System Alerts",
+          "name": "Agent OS (Dashboard \u00b7 Projects \u00b7 Architecture)",
+          "blurb": "The AI-workforce layer that watches for failures \u2014 Fix Agent, heartbeats, \ud83d\udea8 System Alerts",
           "type": "dashboard",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox _Claude/AgenticOS/",
-          "icon": "🤖"
+          "note": "stranded on file:// \u2014 Dropbox _Claude/AgenticOS/",
+          "icon": "\ud83e\udd16"
         },
         {
           "id": "order-flow-map",
@@ -498,19 +573,19 @@
           "type": "system-map",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Printavo_Automations/Order_Flow_Automation_Map.html",
-          "icon": "🔀"
+          "note": "stranded on file:// \u2014 Dropbox PlanetApparel/Printavo_Automations/Order_Flow_Automation_Map.html",
+          "icon": "\ud83d\udd00"
         },
         {
           "id": "bandana-bot-map",
           "kind": "surface",
-          "name": "Bandana Quote Bot — System Map",
+          "name": "Bandana Quote Bot \u2014 System Map",
           "blurb": "The quote-bot automation, mapped",
           "type": "system-map",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Sales/Bandana_Quote_Automation/System_Map/",
-          "icon": "💬"
+          "note": "stranded on file:// \u2014 Dropbox Sales/Bandana_Quote_Automation/System_Map/",
+          "icon": "\ud83d\udcac"
         },
         {
           "id": "planetpulse",
@@ -521,7 +596,7 @@
           "url": "../planetpulse/",
           "status": "live",
           "access": "open",
-          "icon": "💓"
+          "icon": "\ud83d\udc93"
         },
         {
           "id": "planetpulse-audit",
@@ -532,18 +607,18 @@
           "url": "../planetpulse-audit/",
           "status": "live",
           "access": "open",
-          "icon": "🔬"
+          "icon": "\ud83d\udd2c"
         },
         {
           "id": "hashtags",
           "kind": "surface",
           "name": "Printavo Hashtag Standard",
-          "blurb": "Which 2–3 tags every job gets",
+          "blurb": "Which 2\u20133 tags every job gets",
           "type": "reference",
           "url": "../hashtags/",
           "status": "live",
           "access": "open",
-          "icon": "#️⃣"
+          "icon": "#\ufe0f\u20e3"
         },
         {
           "id": "state-api",
@@ -553,21 +628,21 @@
           "type": "reference",
           "status": "live",
           "access": "open",
-          "note": "backend infra on Railway — informational tile, nothing to open",
+          "note": "backend infra on Railway \u2014 informational tile, nothing to open",
           "dataSource": "Railway Postgres",
-          "icon": "🔌"
+          "icon": "\ud83d\udd0c"
         },
         {
           "id": "invoice-tracker-test",
           "kind": "surface",
-          "name": "Invoice Tracker — TEST (sandbox)",
-          "blurb": "The sheet the invoice automation reads/writes in TEST — not the real AR ledger",
+          "name": "Invoice Tracker \u2014 TEST (sandbox)",
+          "blurb": "The sheet the invoice automation reads/writes in TEST \u2014 not the real AR ledger",
           "type": "report",
           "url": "https://docs.google.com/spreadsheets/d/1-UEkjoamvt6p2tdf6vVETBwO3Nh7yNZTeM-3AE18muA/edit",
           "status": "wip",
           "access": "open",
           "dataSource": "n8n invoice automation (sandbox)",
-          "icon": "🧪"
+          "icon": "\ud83e\uddea"
         }
       ]
     },
@@ -575,7 +650,7 @@
       "id": "training",
       "kind": "hub",
       "group": "library",
-      "icon": "🎓",
+      "icon": "\ud83c\udf93",
       "name": "Training",
       "blurb": "How-tos & onboarding, team-wide",
       "children": [
@@ -587,19 +662,19 @@
           "type": "training",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/QC_Gate/",
-          "icon": "☑️"
+          "note": "stranded on file:// \u2014 Dropbox Training/Internal/QC_Gate/",
+          "icon": "\u2611\ufe0f"
         },
         {
           "id": "bandana-blanks",
           "kind": "surface",
-          "name": "Bandana Blanks — Ordering Workflow",
+          "name": "Bandana Blanks \u2014 Ordering Workflow",
           "blurb": "Malia's blanks-ordering how-to",
           "type": "training",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/",
-          "icon": "🛒"
+          "note": "stranded on file:// \u2014 Dropbox Training/Internal/",
+          "icon": "\ud83d\uded2"
         },
         {
           "id": "how-organized",
@@ -609,8 +684,8 @@
           "type": "training",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/Claude_Setup_Status/",
-          "icon": "🧭"
+          "note": "stranded on file:// \u2014 Dropbox Training/Internal/Claude_Setup_Status/",
+          "icon": "\ud83e\udded"
         },
         {
           "id": "followup-gameplan",
@@ -620,8 +695,8 @@
           "type": "training",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Sales/Customer_Retention/Team_Materials/",
-          "icon": "📞"
+          "note": "stranded on file:// \u2014 Dropbox Sales/Customer_Retention/Team_Materials/",
+          "icon": "\ud83d\udcde"
         }
       ]
     },
@@ -629,7 +704,7 @@
       "id": "references",
       "kind": "hub",
       "group": "library",
-      "icon": "📚",
+      "icon": "\ud83d\udcda",
       "name": "References",
       "blurb": "Standards & guides",
       "children": [
@@ -642,7 +717,7 @@
           "url": "../file-naming/",
           "status": "live",
           "access": "open",
-          "icon": "🔤"
+          "icon": "\ud83d\udd24"
         },
         {
           "id": "feed-guide",
@@ -652,19 +727,19 @@
           "type": "reference",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Feed/",
-          "icon": "📥"
+          "note": "stranded on file:// \u2014 Dropbox PlanetIQ/Feed/",
+          "icon": "\ud83d\udce5"
         },
         {
           "id": "invoice-column-guide",
           "kind": "surface",
-          "name": "Invoice Tracker — Column Guide",
+          "name": "Invoice Tracker \u2014 Column Guide",
           "blurb": "Column-by-column tracker reference",
           "type": "reference",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Month_End_Close/",
-          "icon": "📋"
+          "note": "stranded on file:// \u2014 Dropbox PlanetIQ/Month_End_Close/",
+          "icon": "\ud83d\udccb"
         },
         {
           "id": "data-summary-2025",
@@ -674,8 +749,8 @@
           "type": "reference",
           "status": "wip",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Annual_Data_Summary/",
-          "icon": "🗒️"
+          "note": "stranded on file:// \u2014 Dropbox PlanetIQ/Annual_Data_Summary/",
+          "icon": "\ud83d\uddd2\ufe0f"
         }
       ]
     }

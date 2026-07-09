@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Sales · Retention Command Center</title>
+<style>
+  :root{
+    --gold:#F7BE00; --ink:#111; --line:#e2e2e6; --bg:#f4f4f5; --card:#fff;
+    --live:#047857; --draft:#b45309; --manual:#475569; --planned:#2563eb; --off:#dc2626;
+    --dry:#b45309; --alarm:#dc2626; --unver:#94a3b8; --amber:#d97706; --red:#dc2626;
+    --mut:#6b7280;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit}
+  .wrap{max-width:1240px;margin:0 auto;padding:16px 18px 80px;}
+
+  /* ── top nav bar (persistent) ── */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(244,244,245,.94);
+    backdrop-filter:saturate(1.4) blur(8px);display:flex;align-items:center;gap:10px;
+    padding:10px 18px;border-bottom:1px solid var(--line);}
+  .topbar .home,.topbar .srch{min-width:44px;min-height:44px;display:inline-flex;align-items:center;
+    justify-content:center;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    font-size:19px;cursor:pointer;font-weight:800}
+  .topbar .home:hover,.topbar .srch:hover{border-color:var(--gold)}
+  .crumbbar{flex:1;font-size:12.5px;letter-spacing:.4px;color:var(--mut);font-weight:700;
+    text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .crumbbar a{color:var(--mut)} .crumbbar a:hover{color:var(--ink)}
+  .crumbbar b{color:var(--ink)}
+  .fresh{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;
+    padding:5px 10px;border-radius:999px;white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
+  .fresh .fdot{width:9px;height:9px;border-radius:50%}
+  .fresh.green{background:#ecfdf5;color:#047857} .fresh.green .fdot{background:#047857}
+  .fresh.amber{background:#fffbeb;color:#b45309} .fresh.amber .fdot{background:#d97706}
+  .fresh.red{background:#fef2f2;color:#dc2626} .fresh.red .fdot{background:#dc2626}
+
+  /* ── header ── */
+  header{background:var(--ink);color:#fff;border-radius:16px;padding:22px 26px;position:relative;margin-top:14px}
+  header .o{position:absolute;top:18px;right:22px}
+  header .o svg{height:24px;width:auto;color:var(--gold);display:block}
+  .crumb{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);font-weight:800}
+  header h1{margin:5px 0 0;font-size:30px;letter-spacing:.3px;text-transform:uppercase;font-weight:800}
+  header .sub{margin:9px 0 0;color:#cfcfcf;font-size:13px;line-height:1.6;max-width:640px}
+
+  /* ── omnisearch ── */
+  .omni{position:relative;margin:20px 0 8px}
+  .omni input{width:100%;font-size:22px;font-weight:600;padding:20px 54px 20px 22px;border-radius:16px;
+    border:2px solid var(--line);background:var(--card);outline:none;color:var(--ink)}
+  .omni input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(247,190,0,.18)}
+  .omni input::placeholder{color:#9aa2ac;font-weight:500}
+  .omni .kbd{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:12px;color:#aab;
+    border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-weight:800;background:#fafafb}
+  .omni .clr{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:20px;color:#889;
+    cursor:pointer;background:none;border:0;display:none;min-width:34px;min-height:34px}
+
+  /* ── home tiles ── */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0 22px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 20px;
+    cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:132px;transition:.12s;position:relative}
+  .tile:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.06)}
+  .tile .ic{font-size:30px}
+  .tile .lab{font-size:19px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+  .tile .one{font-size:13px;color:var(--mut);line-height:1.4}
+  .tile .cnt{position:absolute;top:18px;right:20px;font-size:26px;font-weight:800;color:var(--ink)}
+  .tile .cnt small{font-size:12px;color:var(--mut);font-weight:700;display:block;text-align:right}
+
+  .homefoot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--mut)}
+  .homefoot a.edit{background:var(--gold);color:#000;font-weight:800;padding:9px 16px;border-radius:10px;
+    font-size:13px;white-space:nowrap}
+  .homefoot a.edit:hover{filter:brightness(.95)}
+
+  /* ── section heads ── */
+  h2.sec{font-size:14px;text-transform:uppercase;letter-spacing:1.2px;color:#333;margin:26px 0 12px;
+    border-bottom:2px solid var(--line);padding-bottom:7px;font-weight:800}
+  h2.sec .sub{text-transform:none;letter-spacing:0;font-weight:500;color:#8a8a8a;font-size:12.5px;margin-left:8px}
+
+  /* ── status chips ── */
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;border-radius:999px;
+    padding:3px 10px;color:#fff;white-space:nowrap;letter-spacing:.3px}
+  .chip.autosend{background:var(--live)} .chip.autodraft{background:var(--draft)}
+  .chip.manual{background:var(--manual)} .chip.planned{background:var(--planned)} .chip.off{background:var(--off)}
+  .chip.ghost{background:#eef0f2;color:#475569}
+  .hdot{display:inline-block;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+  .hdot.live{background:var(--live)} .hdot.dry{background:var(--dry)} .hdot.alarm{background:var(--alarm)}
+  .hdot.unverified{background:var(--unver)} .hdot.na{background:#d1d5db}
+  .sysbadge{font-size:9.5px;font-weight:800;color:#475569;border:1px solid var(--line);border-radius:5px;
+    padding:1px 7px;text-transform:uppercase;letter-spacing:.4px;background:#fafafb}
+  .avatar{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#334155;
+    background:#f1f5f9;border-radius:999px;padding:3px 10px 3px 4px}
+  .avatar .ini{width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;font-size:10px;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+
+  /* ── filter chips ── */
+  .filters{display:flex;flex-wrap:wrap;gap:9px;margin:2px 0 16px}
+  .fchip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:9px 16px;
+    font-size:13px;font-weight:700;cursor:pointer;min-height:40px;display:inline-flex;align-items:center;gap:6px}
+  .fchip:hover{border-color:#c9c9cf}
+  .fchip.on{background:var(--gold);border-color:var(--gold);color:#000}
+  .fchip .n{font-size:11px;color:var(--mut);font-weight:800}
+  .fchip.on .n{color:#000}
+
+  /* ── card grid ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .ecard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;cursor:pointer;
+    display:flex;flex-direction:column;gap:9px;min-height:120px;transition:.12s}
+  .ecard:hover{border-color:var(--gold);box-shadow:0 5px 16px rgba(0,0,0,.05);transform:translateY(-2px)}
+  .ecard .nm{font-size:16px;font-weight:800;line-height:1.2}
+  .ecard .cd{font-size:11.5px;color:var(--mut);font-weight:700}
+  .ecard .subj{font-size:13px;color:#374151;line-height:1.4;flex:1}
+  .ecard .row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:auto}
+  .ecard .cad{font-size:11px;font-weight:700;color:#7c4a03;background:#fff8eb;border:1px solid #fde3a7;
+    border-radius:6px;padding:2px 8px}
+  .ecard.gap{border-style:dashed;border-color:#f0c14b;background:#fffdf5}
+  .ecard.gap .nm{color:#7c4a03}
+  .gaptag{font-size:10.5px;font-weight:800;color:#b45309;background:#fef3c7;border-radius:6px;padding:2px 8px;text-transform:uppercase}
+
+  /* ── detail: email frame ── */
+  .detail{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:900px){.detail{grid-template-columns:1.7fr 1fr}}
+  .frame{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .frame .fh{background:#fbfbfc;border-bottom:1px solid var(--line);padding:16px 20px}
+  .frame .fh .ln{display:flex;gap:10px;font-size:13.5px;padding:3px 0;line-height:1.5;color:#374151}
+  .frame .fh .ln .k{width:64px;color:var(--mut);font-weight:700;flex:0 0 auto}
+  .frame .fh .ln .v{font-weight:600}
+  .frame .fh .subj{font-size:20px;font-weight:800;margin-top:8px;line-height:1.3}
+  .frame .body{padding:22px 24px;font-size:16px;line-height:1.68;color:#1f2430;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .frame .body p{margin:0 0 15px}
+  .frame .body p:last-child{margin-bottom:0}
+  .mg{background:rgba(247,190,0,.32);border-radius:4px;padding:0 3px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .mg.raw{background:#eef0f2;color:#475569;font-weight:700}
+  .frame iframe{width:100%;border:0;background:#fff;min-height:340px;display:block}
+  .frametoggle{display:flex;gap:9px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);
+    background:#fbfbfc;flex-wrap:wrap}
+  .togbtn{font-size:12.5px;font-weight:700;border:1.5px solid var(--line);background:#fff;border-radius:9px;
+    padding:8px 13px;cursor:pointer;min-height:40px}
+  .togbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .meta-side{display:flex;flex-direction:column;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .panel h3{margin:0 0 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800}
+  .panel .fires{font-size:14px;line-height:1.5;color:#1f2430}
+  .linklist{display:flex;flex-direction:column;gap:8px}
+  .lnk{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;background:#f7f7f9;
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;min-height:44px}
+  .lnk:hover{border-color:var(--gold);background:#fffdf3}
+  .lnk .ar{margin-left:auto;color:#b0b0b8;font-weight:800}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{font-size:14px;font-weight:800;border-radius:11px;padding:12px 18px;cursor:pointer;min-height:46px;border:0}
+  .btn.primary{background:var(--gold);color:#000} .btn.primary:hover{filter:brightness(.96)}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)} .btn.ghost:hover{border-color:#c9c9cf}
+  .sheetnote{font-size:11.5px;color:var(--mut);margin-top:8px;line-height:1.5}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;color:#475569;
+    background:#f1f5f9;border-radius:4px;padding:1px 6px}
+
+  /* ── call card ── */
+  .opener{background:var(--ink);color:#fff;border-radius:16px;padding:26px 28px;font-size:22px;line-height:1.5;font-weight:600}
+  .opener .mg{background:rgba(247,190,0,.42);color:#fff}
+  .talk{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .talk li{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:15px;
+    line-height:1.5;display:flex;gap:11px}
+  .talk li .bx{width:20px;height:20px;border-radius:6px;border:2px solid #cbd0d6;flex:0 0 auto;margin-top:2px}
+  .branch{background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .branch summary{cursor:pointer;padding:13px 15px;font-weight:700;font-size:14.5px;list-style:none;display:flex;gap:9px;align-items:center}
+  .branch summary::-webkit-details-marker{display:none}
+  .branch summary::before{content:"▸";color:var(--gold);font-weight:800}
+  .branch[open] summary::before{content:"▾"}
+  .branch .bc{padding:0 15px 14px 33px;font-size:14px;line-height:1.55;color:#374151}
+
+  /* ── journeys ── */
+  .jpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .jbig{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 22px;cursor:pointer;
+    display:flex;flex-direction:column;gap:8px;min-height:120px}
+  .jbig:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.06)}
+  .jbig .ic{font-size:28px}.jbig .lab{font-size:20px;font-weight:800;text-transform:uppercase}
+  .jbig .one{font-size:13px;color:var(--mut)}
+  .jbig.disabled{opacity:.5;cursor:not-allowed}
+  .summ{background:var(--ink);color:#fff;border-radius:14px;padding:18px 22px;font-size:17px;line-height:1.55;margin-bottom:16px}
+  .summ b{color:var(--gold)}
+  .timeline{position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--line)}
+  .tentry{position:relative;margin-bottom:14px}
+  .tentry::before{content:"";position:absolute;left:-22px;top:20px;width:12px;height:12px;border-radius:50%;
+    background:#fff;border:3px solid var(--gold)}
+  .tcard{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tcard summary{cursor:pointer;padding:15px 17px;list-style:none;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+  .tcard summary::-webkit-details-marker{display:none}
+  .tcard .when{font-size:12px;font-weight:800;color:#7c4a03;background:#fff8eb;border:1px solid #fde3a7;
+    border-radius:6px;padding:3px 9px;white-space:nowrap}
+  .tcard .tnm{font-size:16px;font-weight:800}
+  .tcard .cond{flex-basis:100%;font-size:13px;color:var(--mut);line-height:1.45}
+  .tcard .ev{flex-basis:100%;font-size:12.5px;color:#7c4a03;background:#fffaf0;border:1px dashed #f0c14b;
+    border-radius:7px;padding:7px 10px;line-height:1.45;font-weight:600}
+  .tcard .supp{flex-basis:100%;font-size:12px;color:#475569;line-height:1.4}
+  .texp{padding:0 17px 16px;border-top:1px solid var(--line)}
+
+  /* ── automations board ── */
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start}
+  .col{background:#fafafb;border:1px solid var(--line);border-radius:14px;padding:12px}
+  .col h4{margin:2px 4px 12px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;
+    display:flex;align-items:center;gap:8px}
+  .col h4 .n{margin-left:auto;font-size:11px;color:var(--mut)}
+  .acard{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 14px;margin-bottom:10px;cursor:pointer}
+  .acard:hover{border-color:var(--gold)}
+  .acard .anm{font-size:14.5px;font-weight:800;line-height:1.25;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .acard .meta2{font-size:12px;color:#475569;line-height:1.5;margin-top:7px}
+  .acard .meta2 b{color:#1f2430}
+  .acard .foot{margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--mut)}
+  .aiohead{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:14px;
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px;color:#374151}
+  .aiohead .mapbtn{margin-left:auto;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:9px 14px;
+    font-weight:800;font-size:12.5px;color:#1f2430}
+
+  /* ── lifecycle ── */
+  .stages{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin-bottom:8px}
+  .stnode{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:16px 14px;cursor:pointer;text-align:center;transition:.12s;position:relative}
+  .stnode:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .stnode.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(247,190,0,.2)}
+  .stnode .sname{font-size:16px;font-weight:800;text-transform:uppercase}
+  .stnode .sord{position:absolute;top:9px;left:12px;font-size:11px;color:#c4c4cc;font-weight:800}
+  .stnode .sown{font-size:11px;color:var(--mut);margin-top:5px;line-height:1.3}
+  .stnode .arrow{color:#c4c4cc;font-size:18px}
+  .stpanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:14px}
+  .rule{display:flex;gap:12px;margin:10px 0;font-size:14.5px;line-height:1.5}
+  .rule .tag{flex:0 0 auto;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    border-radius:6px;padding:4px 9px;height:fit-content}
+  .rule .tag.in{background:#ecfdf5;color:#047857} .rule .tag.out{background:#fef2f2;color:#dc2626}
+
+  /* ── validation ── */
+  .vbanner{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:12px;padding:14px 18px;
+    font-size:14px;font-weight:600;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+  .vbanner.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+  .vrow{background:var(--card);border:1px solid var(--line);border-left:5px solid #f0c14b;border-radius:11px;
+    padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .vrow .vnm{font-size:15px;font-weight:800}
+  .vrow .vcd{font-size:11.5px;color:var(--mut);font-weight:700}
+  .vrow .vwhy{flex-basis:100%;font-size:13px;color:#374151;line-height:1.45}
+  .vrow .vlink{margin-left:auto;font-size:12.5px;font-weight:800;color:#1f2430;background:#fff8eb;border:1px solid #fde3a7;
+    border-radius:8px;padding:8px 13px}
+
+  /* ── search results ── */
+  .sgroup{margin-bottom:22px}
+  .sgroup h3{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800;
+    margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .sgroup h3 .n{color:#c4c4cc}
+  .sres{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:9px;
+    cursor:pointer;display:flex;gap:12px;align-items:center}
+  .sres:hover{border-color:var(--gold)}
+  .sres .sic{font-size:20px;flex:0 0 auto}
+  .sres .stx{flex:1;min-width:0}
+  .sres .stt{font-size:15px;font-weight:800;line-height:1.2}
+  .sres .sct{font-size:12.5px;color:var(--mut);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .showall{font-size:12.5px;font-weight:800;color:#1f2430;cursor:pointer;padding:8px 2px;display:inline-block}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:40px 24px;text-align:center;color:var(--mut)}
+  .empty .big{font-size:19px;font-weight:800;color:#1f2430;margin-bottom:6px}
+
+  footer{margin-top:34px;font-size:11.5px;color:#9a9aa2;text-align:center;line-height:1.7;
+    border-top:1px solid var(--line);padding-top:18px}
+
+  @media(max-width:820px){
+    .tiles{grid-template-columns:1fr 1fr} .board{grid-template-columns:1fr}
+    header h1{font-size:24px} .omni input{font-size:18px}
+  }
+  @media(max-width:520px){ .tiles{grid-template-columns:1fr} }
+
+  @media print{
+    body{background:#fff}
+    .topbar,.omni,.actions,.frametoggle{display:none!important}
+    .ecard,.frame,.panel,.acard,.stpanel,.tcard,.vrow{break-inside:avoid}
+    .detail{grid-template-columns:1fr}
+    .grid{display:block} .grid .ecard{margin-bottom:10px}
+    details{display:block!important} details .texp,.branch .bc{display:block!important}
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="home" role="button" tabindex="0" title="Home" onclick="location.hash='#/'">⌂</div>
+  <div class="srch" role="button" tabindex="0" title="Search ( / )" onclick="goSearch()">⌕</div>
+  <div class="crumbbar" id="crumbbar">Command Center</div>
+  <div class="fresh amber" id="fresh"><span class="fdot"></span><span id="freshtxt">Loading…</span></div>
+</div>
+
+<div class="wrap">
+  <div id="app"><div class="empty"><div class="big">Loading the Command Center…</div><div>Reading the retention scripts.</div></div></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+"use strict";
+/* ─────────────────────────── constants & helpers ─────────────────────────── */
+const ENDPOINT = "https://primary-production-079f9.up.railway.app/webhook/command-center-data";
+const FETCH_TIMEOUT = 3000;
+const LS_KEY = "cc-lastgood-v1";
+
+const AUTO = {
+  "auto-send":{cls:"autosend", ic:"🟢", label:"AUTO-SEND"},
+  "auto-draft":{cls:"autodraft", ic:"✍️", label:"AUTO-DRAFT"},
+  "manual":{cls:"manual", ic:"👤", label:"MANUAL"},
+  "planned":{cls:"planned", ic:"🕓", label:"PLANNED"},
+  "off":{cls:"off", ic:"⛔", label:"OFF"}
+};
+const AUTO_ORDER = ["auto-send","auto-draft","manual","planned","off"];
+
+let DATA = null, IDX = null, SOURCE = null, SOURCE_TIME = null;
+
+const esc = s => (s==null?"":String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const $ = id => document.getElementById(id);
+
+function slugify(code){return String(code).toLowerCase().replace(/^[\^\/]+/,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
+function aliasStr(a){ return Array.isArray(a)?a.join(" "):(a||""); }
+function aliasArr(a){ return Array.isArray(a)?a:String(a||"").split(",").map(x=>x.trim()).filter(Boolean); }
+function initials(name){const p=String(name||"").trim().split(/\s+/); return ((p[0]||"?")[0]+(p[1]?p[1][0]:"")).toUpperCase();}
+
+function autoChip(level){
+  const a = AUTO[level]; if(!a) return "";
+  return '<span class="chip '+a.cls+'">'+a.ic+' '+a.label+'</span>';
+}
+function healthDot(h){
+  if(!h||h==="n/a") return "";
+  const lab={live:"Live",dry:"Dry-run",alarm:"Alarm",unverified:"Unverified"}[h]||h;
+  return '<span class="hdot '+esc(h)+'" title="'+esc(lab)+'"></span>';
+}
+
+/* owner detection from mailbox/rule text */
+function ownersOf(sc){
+  const t = ((sc.fromMailbox||"")+" "+(sc.sentByRule||"")).toLowerCase();
+  const out = [];
+  if(/shara|bandanas@|box owner/.test(t)) out.push("Shara");
+  if(/cortney|team@|box owner/.test(t)) out.push("Cortney");
+  if(/kelly/.test(t)) out.push("Kelly");
+  if(/holly/.test(t)) out.push("Holly");
+  return out.length?[...new Set(out)]:["PM"];
+}
+function primaryOwner(sc){
+  const fm=(sc.fromMailbox||"");
+  const m = fm.match(/\(([^)]+)\)/); // "(Cortney)"
+  if(m) return m[1].split("/")[0].trim();
+  if(/bandanas@/i.test(fm)) return "Shara";
+  if(/team@/i.test(fm)) return "Cortney";
+  if(/box owner/i.test(fm)) return "Box owner";
+  return ownersOf(sc)[0];
+}
+function mailboxOf(sc){
+  const m=(sc.fromMailbox||"").match(/[\w.+-]+@[\w.-]+/);
+  if(m) return m[0];
+  if(/bandanas@/i.test(sc.fromMailbox)) return "bandanas@planetapparel.com";
+  return "team@planetapparel.com";
+}
+
+/* ─────────────────────────── index build ─────────────────────────── */
+function buildIndex(D){
+  const byCode = {}, slugMap = {};
+  (D.scripts||[]).forEach(s=>{byCode[s.code]=s; slugMap[slugify(s.code)]=s.code;});
+  (D.gaps||[]).forEach(g=>{ if(g.kind==="script"){ slugMap[slugify(g.code)]=g.code; }});
+  const gapByCode={}; (D.gaps||[]).forEach(g=>gapByCode[g.code]=g);
+
+  const tpById = {}; (D.touchpoints||[]).forEach(t=>tpById[t.id]=t);
+  const fieldsByScript = {};
+  (D.script_fields||[]).forEach(f=>{ (fieldsByScript[f.scriptCode]=fieldsByScript[f.scriptCode]||[]).push(f); });
+
+  // touchpoint_scripts joins
+  const tsByScript = {}, tsByTouchpoint = {};
+  (D.touchpoint_scripts||[]).forEach(j=>{
+    (tsByScript[j.scriptCode]=tsByScript[j.scriptCode]||[]).push(j);
+    (tsByTouchpoint[j.touchpointId]=tsByTouchpoint[j.touchpointId]||[]).push(j);
+  });
+
+  // journeys grouped
+  const journeysByType = {};
+  (D.journeys||[]).forEach(j=>{ (journeysByType[j.customerType]=journeysByType[j.customerType]||[]).push(j); });
+  Object.values(journeysByType).forEach(arr=>arr.sort((a,b)=>(+a.stepOrder||0)-(+b.stepOrder||0)));
+
+  // derived script send level from memberships
+  function levelOf(code){
+    const rows = tsByScript[code]||[];
+    let best = null;
+    rows.forEach(r=>{
+      let lvl = r.sendMode;
+      if(lvl==="task") lvl="manual";
+      if(!AUTO[lvl]){ const tp=tpById[r.touchpointId]; lvl = tp?tp.autoLevel:"manual"; }
+      if(!AUTO[lvl]) lvl="manual";
+      if(best===null || AUTO_ORDER.indexOf(lvl) < AUTO_ORDER.indexOf(best)) best = lvl;
+    });
+    return best || "manual";
+  }
+  // derived cadence tag from journeys
+  function cadenceOf(code){
+    const tpIds = new Set((tsByScript[code]||[]).map(r=>r.touchpointId));
+    let hit=null;
+    (D.journeys||[]).some(j=>{ if(tpIds.has(j.touchpointId)){ hit=j; return true;} return false;});
+    return hit ? {label:hit.timingLabel, tier:hit.tier} : null;
+  }
+
+  // search index
+  const searchIdx = [];
+  (D.scripts||[]).forEach(s=>{
+    const grp = s.channel==="call" ? "Calls" : "Scripts";
+    searchIdx.push({
+      type: s.channel==="call"?"call":"script", group:grp, ic:s.channel==="call"?"📞":"📧",
+      id:s.code, title:s.name, code:s.code,
+      context: s.channel==="call" ? (s.firesWhen||"") : (s.subject||s.firesWhen||""),
+      status: autoChip(levelOf(s.code)),
+      route: (s.channel==="call"?"#/calls/":"#/scripts/")+slugify(s.code),
+      hay: [s.code, s.name, aliasStr(s.aliases), s.subject, s.bodyText, s.notes].join(" ").toLowerCase(),
+      name:(s.name||"").toLowerCase(), subj:(s.subject||"").toLowerCase()
+    });
+  });
+  (D.gaps||[]).filter(g=>g.kind==="script").forEach(g=>{
+    const isCall = g.channel==="call";
+    searchIdx.push({
+      type:"gap", group:isCall?"Calls":"Scripts", ic:isCall?"📞":"📧", id:g.code, title:g.name, code:g.code,
+      context:"Gap · "+gapReason(g),
+      status:'<span class="chip planned">🕓 '+esc(g.publishStatus.toUpperCase())+'</span>',
+      route:(isCall?"#/calls/":"#/scripts/")+slugify(g.code),
+      hay:[g.code,g.name,gapReason(g),g.notes].join(" ").toLowerCase(), name:(g.name||"").toLowerCase(), subj:""
+    });
+  });
+  (D.touchpoints||[]).forEach(t=>{
+    searchIdx.push({
+      type:"touchpoint", group:"Automations", ic:"⚙️", id:t.id, title:t.name, code:t.workflowId||t.id,
+      context:(t.trigger||"")+(t.workflowId?" · "+t.workflowId:""),
+      status: autoChip(t.autoLevel)+" "+healthDot(t.healthStatus),
+      route:"#/automations/"+t.id,
+      hay:[t.name,t.trigger,t.system,t.workflowId,t.notes,t.schedule,t.autoLevel,t.healthStatus].join(" ").toLowerCase(),
+      name:(t.name||"").toLowerCase(), subj:""
+    });
+  });
+  Object.keys(journeysByType).forEach(ct=>{
+    const arr=journeysByType[ct];
+    searchIdx.push({
+      type:"journey", group:"Journeys", ic:"🧭", id:ct, title:journeyLabel(ct), code:ct,
+      context: arr.map(j=>j.timingLabel).slice(0,4).join(" · "),
+      status:"", route:"#/journeys/"+ct,
+      hay:[ct, journeyLabel(ct), arr.map(j=>j.timingLabel+" "+j.condition).join(" ")].join(" ").toLowerCase(),
+      name:journeyLabel(ct).toLowerCase(), subj:""
+    });
+  });
+  (D.stages||[]).forEach(st=>{
+    searchIdx.push({
+      type:"stage", group:"Stages", ic:"🔄", id:st.id, title:st.name, code:st.id,
+      context:(st.automationOwner||""),
+      status:"", route:"#/lifecycle/"+st.id,
+      hay:[st.name,st.id,st.entryRule,st.exitRule,st.automationOwner,st.northStarAnchor].join(" ").toLowerCase(),
+      name:(st.name||"").toLowerCase(), subj:""
+    });
+  });
+  (D.behavior_triggers||[]).forEach(b=>{
+    searchIdx.push({
+      // Folded under Automations (no non-spec sixth group); row labelled "behavior signal".
+      type:"behavior", group:"Automations", ic:"📡", id:b.trigger, title:"On "+b.trigger, code:b.trigger,
+      context:"Behavior signal · "+(b.recencyRule||"tiered response, never auto-reply"), status:"", route:"#/automations",
+      hay:[b.trigger,b.responseT1,b.responseT2,b.responseT3,b.recencyRule,b.throttle].join(" ").toLowerCase(),
+      name:("on "+b.trigger).toLowerCase(), subj:""
+    });
+  });
+
+  return {byCode,slugMap,gapByCode,tpById,fieldsByScript,tsByScript,tsByTouchpoint,journeysByType,searchIdx,levelOf,cadenceOf};
+}
+
+function journeyLabel(ct){
+  const map={"at-risk":"At-Risk","inactive":"Inactive","lost":"Lost"};
+  if(map[ct]) return map[ct]+" journey";
+  const m=ct.match(/^(bandana|apparel|promo)-(t\d)$/);
+  if(m) return m[1].charAt(0).toUpperCase()+m[1].slice(1)+" "+m[2].toUpperCase();
+  return ct;
+}
+
+/* ─────────────────────────── data loading ─────────────────────────── */
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const to = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, {signal:ctrl.signal, cache:"no-store"});
+    clearTimeout(to);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  } finally { clearTimeout(to); }
+}
+function validShape(d){ return d && Array.isArray(d.scripts) && Array.isArray(d.touchpoints) && d.meta; }
+// An unhealthy cold rebuild can return a shape-valid but EMPTY 200 payload; that must
+// not be treated as authoritative or it suppresses the sessionStorage/sample fallback.
+function authoritative(d){ return validShape(d) && d.scripts.length > 0 && d.touchpoints.length > 0; }
+
+async function load(){
+  // 1. primary endpoint (3s hard timeout)
+  try{
+    const d = await fetchWithTimeout(ENDPOINT, FETCH_TIMEOUT);
+    if(authoritative(d)){
+      SOURCE="live"; SOURCE_TIME=Date.now();
+      try{ sessionStorage.setItem(LS_KEY, JSON.stringify({t:SOURCE_TIME, d})); }catch(e){}
+      return d;
+    }
+  }catch(e){ /* fall through */ }
+  // 2. sessionStorage last-good
+  try{
+    const raw = sessionStorage.getItem(LS_KEY);
+    if(raw){ const o=JSON.parse(raw); if(authoritative(o.d)){ SOURCE="cache"; SOURCE_TIME=o.t; return o.d; } }
+  }catch(e){}
+  // 3. static sample-data mirror
+  try{
+    const d = await fetchWithTimeout("./sample-data.json", FETCH_TIMEOUT);
+    if(authoritative(d)){
+      SOURCE="sample";
+      SOURCE_TIME = d.meta && d.meta.updated ? Date.parse(d.meta.updated+"T00:00:00") : Date.now();
+      return d;
+    }
+  }catch(e){}
+  // 4. unavailable
+  SOURCE="none"; SOURCE_TIME=null;
+  return null;
+}
+
+// Parse a server timestamp: epoch ms/seconds, ISO string, or a bare YYYY-MM-DD date.
+function parseTime(v){
+  if(v==null) return null;
+  if(typeof v==="number") return v>1e12?v:v*1000;
+  const s=String(v).trim(); if(!s) return null;
+  if(/^\d+$/.test(s)){ const n=+s; return n>1e12?n:n*1000; }
+  const ms=Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(s)? s+"T00:00:00" : s);
+  return isNaN(ms)?null:ms;
+}
+function relTime(ms){
+  if(ms==null) return "";
+  const ageH=(Date.now()-ms)/36e5;
+  if(ageH<1) return "just now";
+  if(ageH<24) return Math.round(ageH)+"h ago";
+  return Math.round(ageH/24)+"d ago";
+}
+// Freshness is derived from PAYLOAD META (generatedAt/servedAt/stale/servedFrom/lastRebuildOk),
+// not fetch time. Defensive against both old (no staleness meta) and new n8n shapes.
+function renderFreshness(){
+  const b=$("fresh"), t=$("freshtxt");
+  b.title="";
+  if(SOURCE==="none"){ b.className="fresh red"; t.textContent="Data unavailable"; return; }
+  const meta=(DATA&&DATA.meta)||{};
+
+  // Built-in offline sample → always an explicit, non-live badge.
+  if(SOURCE==="sample"){
+    b.className="fresh amber"; t.textContent="Offline sample";
+    b.title="Showing the built-in sample snapshot — not live data.";
+    return;
+  }
+
+  // Prefer server-declared generation time; fall back to fetch time only when absent.
+  const genTime = parseTime(meta.generatedAt) || parseTime(meta.servedAt) || SOURCE_TIME;
+  const ageH = genTime!=null ? (Date.now()-genTime)/36e5 : null;
+  const when = genTime!=null ? relTime(genTime) : "";
+
+  const rebuildFailed = meta.lastRebuildOk===false;
+  const stale = meta.stale===true;
+  const servedCache = SOURCE==="cache" || meta.servedFrom==="cache" || meta.servedFrom==="lastGood";
+
+  let cls, txt;
+  if(rebuildFailed){
+    cls="red"; txt="Data may be out of date"+(when?" · "+when:"");
+    b.title="Latest background rebuild failed — showing last known-good data.";
+  } else if(stale || (ageH!=null && ageH>=24)){
+    cls="amber"; txt="Data may be out of date"+(when?" · "+when:"");
+    b.title = stale ? "Server marked this payload stale." : "Data is over a day old.";
+  } else {
+    cls = (ageH!=null && ageH>=1) ? "amber" : "green";
+    txt = (servedCache?"Cached":"Live")+(when?" · "+when:"");
+    b.title = servedCache ? "Served from cache, within the freshness window." : "Live data.";
+  }
+  b.className="fresh "+cls;
+  t.textContent=txt;
+}
+
+/* ─────────────────────────── router ─────────────────────────── */
+function safeDecode(s){
+  // Invalid percent-encoding (e.g. "%E0%A4%A") throws in decodeURIComponent.
+  // Treat malformed input as literal text so routing never breaks before route()'s try/catch.
+  try{ return decodeURIComponent(String(s)); }catch(e){ return String(s); }
+}
+function parseHash(){
+  let h = location.hash.replace(/^#\/?/,"");
+  const parts = h.split("/").filter(x=>x!=="");
+  return parts.map(safeDecode);
+}
+function setCrumb(trail){
+  // trail = [[label,hash], ...] last is current (bold, no link)
+  const bar = $("crumbbar"); bar.innerHTML="";
+  trail.forEach((seg,i)=>{
+    if(i>0) bar.appendChild(document.createTextNode("  ›  "));
+    if(i<trail.length-1 && seg[1]){
+      const a=el("a"); a.textContent=seg[0]; a.href=seg[1]; bar.appendChild(a);
+    } else {
+      const b=el("b"); b.textContent=seg[0]; bar.appendChild(b);
+    }
+  });
+}
+function nav(hash){ location.hash = hash; }
+function goSearch(){ if(location.hash!=="#/" && location.hash!=="") location.hash="#/"; setTimeout(()=>{const i=$("omniInput"); if(i){i.focus();}},60); }
+
+function route(){
+  if(!DATA){ return; }
+  const app=$("app"); app.innerHTML="";
+  window.scrollTo(0,0);
+  const p = parseHash();
+  const seg0 = p[0]||"";
+  try{
+    if(seg0===""){ renderHome(app); }
+    else if(seg0==="scripts" && p[1]){ renderScriptDetail(app, p[1], "scripts"); }
+    else if(seg0==="scripts"){ renderScriptsGrid(app, "email"); }
+    else if(seg0==="calls" && p[1]){ renderScriptDetail(app, p[1], "calls"); }
+    else if(seg0==="calls"){ renderScriptsGrid(app, "call"); }
+    else if(seg0==="journeys" && p[1]){ renderJourneyTimeline(app, p[1]); }
+    else if(seg0==="journeys"){ renderJourneysHome(app); }
+    else if(seg0==="automations" && p[1]){ renderAutomationDetail(app, p[1]); }
+    else if(seg0==="automations"){ renderAutomations(app); }
+    else if(seg0==="lifecycle" && p[1]){ renderLifecycle(app, p[1]); }
+    else if(seg0==="lifecycle"){ renderLifecycle(app, null); }
+    else if(seg0==="search"){ renderSearchScreen(app, p[1]||""); }
+    else if(seg0==="validation"){ renderValidation(app); }
+    else { renderHome(app); }
+  }catch(err){
+    console.error(err);
+    app.appendChild(el("div","empty",'<div class="big">Something went sideways</div><div>'+esc(err.message)+'</div>'));
+  }
+}
+
+/* ─────────────────────────── HOME ─────────────────────────── */
+function renderHome(app){
+  setCrumb([["Command Center",null]]);
+  // header
+  const hd = el("header");
+  hd.innerHTML = OSVG +
+    '<div class="crumb">Planet Sales › Revenue House</div>'+
+    '<h1>Retention Command Center</h1>'+
+    '<div class="sub">Every word Planet Apparel says to a customer through retention — every email, every call, every automation. Search it, or tap in.</div>';
+  app.appendChild(hd);
+
+  // omnisearch
+  const omni = el("div","omni");
+  omni.innerHTML =
+    '<input id="omniInput" type="text" autocomplete="off" spellcheck="false" '+
+    'placeholder="Search a script, a customer moment, an automation…">'+
+    '<span class="kbd" id="omniKbd">/</span>'+
+    '<button class="clr" id="omniClr" title="Clear">✕</button>';
+  app.appendChild(omni);
+
+  const results = el("div","",""); results.id="omniResults"; app.appendChild(results);
+  const tilesWrap = el("div",""); tilesWrap.id="homeTiles"; app.appendChild(tilesWrap);
+
+  const emailN = DATA.scripts.filter(s=>s.channel==="email").length;
+  const callN = DATA.scripts.filter(s=>s.channel==="call").length;
+  const journeyN = Object.keys(IDX.journeysByType).length;
+  const autoLiveN = DATA.touchpoints.filter(t=>t.healthStatus==="live").length;
+  const stageN = DATA.stages.length;
+  const tiles=[
+    {ic:"📧",lab:"Scripts",one:"Every email we send",cnt:emailN,csub:"live",hash:"#/scripts"},
+    {ic:"📞",lab:"Calls",one:"Talking points for the phone",cnt:callN,csub:"live",hash:"#/calls"},
+    {ic:"🧭",lab:"Journeys",one:"What a customer hears, in order",cnt:journeyN,csub:"paths",hash:"#/journeys"},
+    {ic:"⚙️",lab:"Automations",one:"What fires on its own",cnt:autoLiveN,csub:"live",hash:"#/automations"},
+    {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"}
+  ];
+  const tg = el("div","tiles");
+  tiles.forEach(t=>{
+    const c = el("div","tile");
+    c.innerHTML = '<div class="cnt">'+t.cnt+'<small>'+t.csub+'</small></div>'+
+      '<div class="ic">'+t.ic+'</div><div class="lab">'+t.lab+'</div><div class="one">'+esc(t.one)+'</div>';
+    c.onclick=()=>nav(t.hash);
+    tg.appendChild(c);
+  });
+  tilesWrap.appendChild(tg);
+
+  // footer strip
+  const foot = el("div","homefoot");
+  const upd = DATA.meta && DATA.meta.updated ? DATA.meta.updated : "—";
+  const gapsN=(DATA.gaps||[]).length;
+  const fInfo=el("div");
+  fInfo.innerHTML = 'Scripts updated <b style="color:#1f2430">'+esc(upd)+'</b>'+
+    ' · release v'+esc((DATA.meta&&DATA.meta.releaseVersion)||"1")+
+    ' · '+DATA.scripts.length+' live scripts · ';
+  const vLink=el("a","","🚦 "+gapsN+" gaps →");
+  vLink.href="#/validation"; vLink.style.fontWeight="800"; vLink.style.color="#b45309";
+  fInfo.appendChild(vLink);
+  foot.appendChild(fInfo);
+  const edit = el("a","edit","Edit scripts →");
+  edit.href = sheetUrl(); edit.target="_blank"; edit.rel="noopener noreferrer";
+  foot.appendChild(edit);
+  app.appendChild(foot);
+
+  // wire search
+  const input=$("omniInput"), clr=$("omniClr"), kbd=$("omniKbd");
+  input.addEventListener("input", ()=>{
+    const q=input.value.trim();
+    clr.style.display = q?"inline-flex":"none"; kbd.style.display=q?"none":"inline-block";
+    if(q){ tilesWrap.style.display="none"; foot.style.display="none"; renderSearch(results, q); }
+    else { tilesWrap.style.display=""; foot.style.display=""; results.innerHTML=""; }
+  });
+  input.addEventListener("keydown", e=>{
+    if(e.key==="Escape"){ input.value=""; input.dispatchEvent(new Event("input")); }
+    if(e.key==="Enter"){ const q=input.value.trim(); if(q) nav("#/search/"+encodeURIComponent(q)); }
+  });
+  clr.onclick=()=>{ input.value=""; input.dispatchEvent(new Event("input")); input.focus(); };
+  if(matchMedia("(min-width:760px)").matches){ setTimeout(()=>input.focus(),40); }
+}
+
+/* ─────────────────────────── SEARCH ─────────────────────────── */
+function renderSearchScreen(app, q0){
+  // q0 comes from parseHash(), already decoded via safeDecode — do NOT decode again (double-decode bug).
+  q0 = q0 || "";
+  setCrumb([["Command Center","#/"],["Search",null]]);
+  const omni=el("div","omni");
+  omni.innerHTML='<input id="omniInput" type="text" autocomplete="off" spellcheck="false" '+
+    'placeholder="Search a script, a customer moment, an automation…" value="'+esc(q0)+'">'+
+    '<button class="clr" id="omniClr" title="Clear" style="display:'+(q0?'inline-flex':'none')+'">✕</button>';
+  app.appendChild(omni);
+  const results=el("div",""); results.id="omniResults"; app.appendChild(results);
+  const input=$("omniInput"), clr=$("omniClr");
+  const run=()=>{ const q=input.value.trim(); clr.style.display=q?"inline-flex":"none";
+    if(q) renderSearch(results,q); else results.innerHTML=""; };
+  input.addEventListener("input", run);
+  input.addEventListener("keydown", e=>{ if(e.key==="Escape"){ input.value=""; run(); }});
+  clr.onclick=()=>{ input.value=""; run(); input.focus(); };
+  if(q0) run();
+  setTimeout(()=>input.focus(),40);
+}
+function rankItem(it, q){
+  const code=(it.code||"").toLowerCase(), qn=q, qStrip=q.replace(/^[\^\/]/,"");
+  if(code===qn || code.replace(/^[\^\/]/,"")===qStrip) return 0;
+  if(it.name.startsWith(qn)) return 1;
+  if(it.name.includes(qn)) return 2;
+  if(it.subj && it.subj.includes(qn)) return 3;
+  if(it.hay.includes(qn)) return 4;
+  return 99;
+}
+function renderSearch(container, q){
+  container.innerHTML="";
+  const qn=q.toLowerCase();
+  const scored = IDX.searchIdx.map(it=>({it, r:rankItem(it,qn)})).filter(x=>x.r<99)
+    .sort((a,b)=>a.r-b.r);
+  if(!scored.length){
+    container.appendChild(el("div","empty",'<div class="big">No matches for "'+esc(q)+'"</div><div>Try a script code, a customer moment, or a workflow id.</div>'));
+    return;
+  }
+  const groups=["Scripts","Calls","Automations","Journeys","Stages"];
+  const byGroup={}; scored.forEach(x=>{ (byGroup[x.it.group]=byGroup[x.it.group]||[]).push(x.it); });
+  groups.forEach(g=>{
+    const items=byGroup[g]; if(!items||!items.length) return;
+    const sg=el("div","sgroup");
+    sg.appendChild(el("h3","", esc(g)+' <span class="n">'+items.length+'</span>'));
+    const shown = items.slice(0,5);
+    shown.forEach(it=>sg.appendChild(searchRow(it)));
+    if(items.length>5){
+      const sa=el("span","showall","Show all "+items.length+" →");
+      sa.onclick=()=>{ items.slice(5).forEach(it=>sg.insertBefore(searchRow(it), sa)); sa.remove(); };
+      sg.appendChild(sa);
+    }
+    container.appendChild(sg);
+  });
+}
+function searchRow(it){
+  const r=el("div","sres");
+  r.innerHTML='<div class="sic">'+it.ic+'</div>'+
+    '<div class="stx"><div class="stt">'+esc(it.title)+'</div>'+
+    '<div class="sct">'+esc(it.code&&it.code!==it.title?it.code+" · ":"")+esc(it.context||"")+'</div></div>'+
+    (it.status?'<div>'+it.status+'</div>':'');
+  r.onclick=()=>nav(it.route);
+  return r;
+}
+
+/* ─────────────────────────── SCRIPTS / CALLS GRID ─────────────────────────── */
+let scriptFilter = {mode:"all"};
+function renderScriptsGrid(app, channel){
+  const isCall = channel==="call";
+  const title = isCall?"Calls":"Scripts";
+  setCrumb([["Command Center","#/"],[title,null]]);
+  app.appendChild(sectionHead(title, isCall?"Talking points for the phone — tap for the full card":"Every email, typeset like the customer sees it — tap for the frame"));
+
+  const live = DATA.scripts.filter(s=>s.channel===channel);
+  const gaps = (DATA.gaps||[]).filter(g=>g.kind==="script" && g.channel===channel);
+
+  // filters
+  const filt = el("div","filters");
+  const owners = isCall?[]:["Shara","Cortney"];
+  const chips=[{k:"all",lab:"All",n:live.length}];
+  if(!isCall){ chips.push({k:"auto",lab:"Auto",n:live.filter(s=>{const l=IDX.levelOf(s.code);return l==="auto-send"||l==="auto-draft";}).length}); }
+  owners.forEach(o=>chips.push({k:"owner:"+o,lab:o,n:live.filter(s=>ownersOf(s).includes(o)).length}));
+  chips.push({k:"cadence",lab:"By cadence",n:null});
+  chips.forEach(c=>{
+    const b=el("div","fchip"+(scriptFilterKey()===c.k?" on":""));
+    b.innerHTML=esc(c.lab)+(c.n!=null?' <span class="n">'+c.n+'</span>':"");
+    b.onclick=()=>{ scriptFilter={mode:c.k}; renderScriptsGrid(clear(app), channel); };
+    filt.appendChild(b);
+  });
+  app.appendChild(filt);
+
+  let shown = live.slice();
+  const mode=scriptFilter.mode;
+  if(mode==="auto") shown=shown.filter(s=>{const l=IDX.levelOf(s.code);return l==="auto-send"||l==="auto-draft";});
+  else if(mode&&mode.indexOf("owner:")===0){ const o=mode.slice(6); shown=shown.filter(s=>ownersOf(s).includes(o)); }
+
+  if(mode==="cadence"){
+    // group by cadence bucket
+    const order=["Week 1","Week 2","Month 4","Month 8","Month 10","At-Risk","Reorder","Other"];
+    const buckets={};
+    shown.forEach(s=>{ const c=IDX.cadenceOf(s.code); const b=c?c.label:"Other"; (buckets[b]=buckets[b]||[]).push(s); });
+    Object.keys(buckets).sort((a,b)=>{let ia=order.indexOf(a),ib=order.indexOf(b);ia=ia<0?99:ia;ib=ib<0?99:ib;return ia-ib;}).forEach(b=>{
+      app.appendChild(el("h2","sec",esc(b)));
+      const g=el("div","grid"); buckets[b].forEach(s=>g.appendChild(scriptCard(s))); app.appendChild(g);
+    });
+  } else {
+    const g=el("div","grid"); shown.forEach(s=>g.appendChild(scriptCard(s))); app.appendChild(g);
+  }
+
+  if(gaps.length){
+    app.appendChild(sectionHead("Gaps — "+(isCall?"unwritten calls":"unwritten / pending scripts"),"Visible on purpose. Invisible to automation until Holly flips them live."));
+    const g=el("div","grid"); gaps.forEach(gp=>g.appendChild(gapCard(gp))); app.appendChild(g);
+  }
+}
+function scriptFilterKey(){ return scriptFilter.mode||"all"; }
+function scriptCard(s){
+  const c=el("div","ecard");
+  const cad=IDX.cadenceOf(s.code);
+  const own=primaryOwner(s);
+  c.innerHTML='<div class="nm">'+esc(s.name)+'</div>'+
+    '<div class="cd">'+esc(s.code)+'</div>'+
+    (s.subject?'<div class="subj">"'+esc(s.subject)+'"</div>':'<div class="subj" style="color:#94a3b8">'+esc(s.firesWhen||"")+'</div>')+
+    '<div class="row">'+autoChip(IDX.levelOf(s.code))+
+      '<span class="avatar"><span class="ini">'+esc(initials(own))+'</span>'+esc(own)+'</span>'+
+      (cad?'<span class="cad">'+esc(cad.label)+' · '+esc(cad.tier)+'</span>':'')+'</div>';
+  c.onclick=()=>nav((s.channel==="call"?"#/calls/":"#/scripts/")+slugify(s.code));
+  return c;
+}
+function gapCard(g){
+  const c=el("div","ecard gap");
+  c.innerHTML='<div class="nm">'+esc(g.name)+'</div><div class="cd">'+esc(g.code)+'</div>'+
+    '<div class="subj">'+esc(g.notes||gapReason(g))+'</div>'+
+    '<div class="row"><span class="gaptag">'+esc(g.publishStatus)+'</span><span class="chip planned">🕓 '+esc(gapReason(g))+'</span></div>';
+  c.onclick=()=>nav((g.channel==="call"?"#/calls/":"#/scripts/")+slugify(g.code));
+  return c;
+}
+
+/* ─────────────────────────── SCRIPT / CALL DETAIL ─────────────────────────── */
+let showRawFields=false, showAsHtml=true;
+function resolveCode(slug){ return IDX.slugMap[slug] || slug; }
+
+function renderScriptDetail(app, slug, parent){
+  const code=resolveCode(slug);
+  const s=IDX.byCode[code];
+  const parentLabel = parent==="calls"?"Calls":"Scripts";
+  const parentHash = parent==="calls"?"#/calls":"#/scripts";
+  if(!s){
+    const g=IDX.gapByCode[code];
+    if(g){ return renderGapDetail(app, g, parentLabel, parentHash); }
+    setCrumb([["Command Center","#/"],[parentLabel,parentHash],["Not found",null]]);
+    app.appendChild(el("div","empty",'<div class="big">No script for "'+esc(slug)+'"</div>'));
+    return;
+  }
+  setCrumb([["Command Center","#/"],[parentLabel,parentHash],[s.name,null]]);
+  app.appendChild(sectionHead(s.name, esc(s.code)+" · "+esc(s.departmentScope)+" · "+esc(s.replyMode)));
+
+  if(s.channel==="call"){ renderCallCard(app, s); return; }
+  renderEmailFrame(app, s);
+}
+
+function renderEmailFrame(app, s){
+  const wrap=el("div","detail");
+  const frame=el("div","frame");
+  // header bar
+  const own=primaryOwner(s), mb=mailboxOf(s);
+  const fh=el("div","fh");
+  fh.innerHTML='<div class="ln"><span class="k">From</span><span class="v">'+esc(own)+' &lt;'+esc(mb)+'&gt;</span></div>'+
+    '<div class="ln"><span class="k">To</span><span class="v">Sample Customer &lt;sample@customer.com&gt;</span></div>'+
+    (s.cc?'<div class="ln"><span class="k">Cc</span><span class="v">'+esc(s.cc)+'</span></div>':'');
+  const subjEl=el("div","subj"); subjEl.appendChild(mergeFrag(s.subject||"(no subject)", s.code)); fh.appendChild(subjEl);
+  frame.appendChild(fh);
+
+  // body
+  const bodyBox=el("div"); bodyBox.id="bodyBox";
+  frame.appendChild(bodyBox);
+
+  // toggles
+  const tog=el("div","frametoggle");
+  const hasHtml = !!(s.bodyHtml && s.bodyHtml.trim());
+  const tField=el("button","togbtn"+(showRawFields?" on":""), showRawFields?"Show sample values":"Show fields [ ]");
+  tField.onclick=()=>{ showRawFields=!showRawFields; renderBody(); tField.textContent=showRawFields?"Show sample values":"Show fields [ ]"; tField.classList.toggle("on",showRawFields); };
+  tog.appendChild(tField);
+  if(hasHtml){
+    const tHtml=el("button","togbtn"+(showAsHtml?" on":""),"HTML");
+    const tTxt=el("button","togbtn"+(!showAsHtml?" on":""),"Text");
+    tHtml.onclick=()=>{showAsHtml=true;renderBody();tHtml.classList.add("on");tTxt.classList.remove("on");};
+    tTxt.onclick=()=>{showAsHtml=false;renderBody();tTxt.classList.add("on");tHtml.classList.remove("on");};
+    tog.appendChild(tHtml); tog.appendChild(tTxt);
+  }
+  frame.appendChild(tog);
+  wrap.appendChild(frame);
+
+  function renderBody(){
+    bodyBox.innerHTML="";
+    if(hasHtml && showAsHtml){
+      const iframe=document.createElement("iframe");
+      iframe.setAttribute("sandbox","");
+      iframe.setAttribute("title","Email preview");
+      iframe.srcdoc = mergeHtml(s.bodyHtml, s.code, showRawFields);
+      bodyBox.appendChild(iframe);
+    } else {
+      const b=el("div","body");
+      splitParas(s.bodyText).forEach(para=>{
+        const p=el("p"); p.appendChild(mergeFrag(para, s.code)); b.appendChild(p);
+      });
+      bodyBox.appendChild(b);
+    }
+  }
+  renderBody();
+
+  // side panel
+  wrap.appendChild(sideMeta(s));
+  app.appendChild(wrap);
+}
+
+function renderCallCard(app, s){
+  const wrap=el("div","detail");
+  const left=el("div"); left.style.display="flex"; left.style.flexDirection="column"; left.style.gap="16px";
+  const lines=splitLines(s.bodyText);
+  // opener = first line
+  const opener=el("div","opener");
+  opener.appendChild(mergeFrag(lines[0]||s.name, s.code));
+  left.appendChild(opener);
+  // rest → talking points + branches
+  const rest=lines.slice(1);
+  const points=[], branches=[];
+  rest.forEach(l=>{
+    if(/^if\b/i.test(l.trim()) || /:\s*["“]/.test(l) || /^["“]/.test(l.trim())) branches.push(l);
+    else points.push(l);
+  });
+  if(points.length){
+    left.appendChild(el("h3","",'<span style="font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800">Talking points</span>'));
+    const ul=el("ul","talk");
+    points.forEach(pt=>{ const li=el("li"); li.appendChild(el("span","bx")); const sp=el("span"); sp.appendChild(mergeFrag(pt,s.code)); li.appendChild(sp); ul.appendChild(li); });
+    left.appendChild(ul);
+  }
+  branches.forEach(br=>{
+    const d=el("details","branch");
+    const label = br.split(/[:—-]/)[0].slice(0,60);
+    d.innerHTML='<summary>'+esc(label.trim()||"If they say…")+'</summary>';
+    const bc=el("div","bc"); bc.appendChild(mergeFrag(br, s.code)); d.appendChild(bc);
+    left.appendChild(d);
+  });
+  wrap.appendChild(left);
+  wrap.appendChild(sideMeta(s));
+  app.appendChild(wrap);
+}
+
+function sideMeta(s){
+  const side=el("div","meta-side");
+  // fires-when
+  const p1=el("div","panel");
+  p1.innerHTML='<h3>Fires when</h3><div class="fires">'+esc(s.firesWhen||"—")+'</div>'+
+    '<div class="sheetnote">'+esc(s.sentByRule||"")+'</div>';
+  side.appendChild(p1);
+
+  // sending automation(s)
+  const tps=(IDX.tsByScript[s.code]||[]).map(j=>IDX.tpById[j.touchpointId]).filter(Boolean);
+  const uniqTps=[...new Map(tps.map(t=>[t.id,t])).values()];
+  if(uniqTps.length){
+    const p2=el("div","panel"); p2.appendChild(el("h3","","Sent by"));
+    const ll=el("div","linklist");
+    uniqTps.forEach(t=>{
+      const a=el("div","lnk");
+      a.innerHTML=autoChip(t.autoLevel)+' <span>'+esc(t.name)+'</span> '+healthDot(t.healthStatus)+'<span class="ar">→</span>';
+      a.onclick=()=>nav("#/automations/"+t.id);
+      ll.appendChild(a);
+    });
+    p2.appendChild(ll); side.appendChild(p2);
+  }
+
+  // journey memberships
+  const tpIds=new Set((IDX.tsByScript[s.code]||[]).map(j=>j.touchpointId));
+  const cts=[...new Set(DATA.journeys.filter(j=>tpIds.has(j.touchpointId)).map(j=>j.customerType))];
+  if(cts.length){
+    const p3=el("div","panel"); p3.appendChild(el("h3","","Appears in these journeys"));
+    const ll=el("div","linklist");
+    cts.forEach(ct=>{
+      const a=el("div","lnk");
+      a.innerHTML='🧭 <span>'+esc(journeyLabel(ct))+'</span><span class="ar">→</span>';
+      a.onclick=()=>nav("#/journeys/"+ct);
+      ll.appendChild(a);
+    });
+    p3.appendChild(ll); side.appendChild(p3);
+  }
+
+  // notes
+  if(s.notes){ const pn=el("div","panel"); pn.innerHTML='<h3>Notes</h3><div class="fires" style="font-size:13px">'+esc(s.notes)+'</div>'; side.appendChild(pn); }
+
+  // actions
+  const pa=el("div","panel");
+  const acts=el("div","actions");
+  const copyBtn=el("button","btn primary","Copy");
+  copyBtn.onclick=()=>{ copyText(s.bodyText, copyBtn); };
+  const editBtn=el("a","btn ghost","Edit in Sheet →");
+  editBtn.href=editUrl(s.sheetRow); editBtn.target="_blank"; editBtn.rel="noopener noreferrer";
+  acts.appendChild(copyBtn); acts.appendChild(editBtn);
+  pa.appendChild(acts);
+  pa.appendChild(el("div","sheetnote","Copy uses the canonical send copy (bodyText). Edit opens the exact Sheet row — Holly-only."));
+  side.appendChild(pa);
+  return side;
+}
+
+function renderGapDetail(app, g, parentLabel, parentHash){
+  setCrumb([["Command Center","#/"],[parentLabel,parentHash],[g.name,null]]);
+  app.appendChild(sectionHead(g.name, esc(g.code)+" · GAP"));
+  const wrap=el("div","detail");
+  const left=el("div","frame");
+  left.innerHTML='<div class="fh"><div class="subj">Not yet live</div>'+
+    '<div class="ln" style="margin-top:10px"><span class="k">Status</span><span class="v">'+esc(g.publishStatus)+' — '+esc(gapReason(g))+'</span></div></div>'+
+    '<div class="body" style="color:#6b7280">'+esc(g.notes||"This script is planned. Its copy has not been written or approved yet, so automation cannot use it. It shows here so the gap is visible.")+'</div>';
+  wrap.appendChild(left);
+  const side=el("div","meta-side");
+  const pa=el("div","panel");
+  pa.innerHTML='<h3>This is a visible gap</h3><div class="fires" style="font-size:13.5px">Draft/pending rows never reach automation. Flip <span class="mono">publishStatus</span> to <b>live</b> in the Sheet when the copy is ready.</div>';
+  const acts=el("div","actions"); acts.style.marginTop="12px";
+  const editBtn=el("a","btn primary","Write it in the Sheet →"); editBtn.href=editUrl(g.sheetRow); editBtn.target="_blank"; editBtn.rel="noopener noreferrer";
+  const vBtn=el("button","btn ghost","See all gaps →"); vBtn.onclick=()=>nav("#/validation");
+  acts.appendChild(editBtn); acts.appendChild(vBtn); pa.appendChild(acts);
+  side.appendChild(pa); wrap.appendChild(side);
+  app.appendChild(wrap);
+}
+
+/* ─────────────────────────── merge field rendering (safe, text-node) ─────────────────────────── */
+const TOKEN_RE=/\[[^\]\n]+\]/g;
+function fieldMap(code){
+  const m={}; (IDX.fieldsByScript[code]||[]).forEach(f=>{ m[f.fieldName]={sample:f.sampleValue, fallback:f.fallback}; });
+  return m;
+}
+function sampleFor(map, token){
+  const f=map[token];
+  if(f) return (f.sample&&String(f.sample).trim())?f.sample:(f.fallback||token.replace(/[\[\]]/g,""));
+  return token.replace(/[\[\]]/g,"").toLowerCase();
+}
+function mergeFrag(text, code){
+  const map=fieldMap(code);
+  const frag=document.createDocumentFragment();
+  let last=0, m; TOKEN_RE.lastIndex=0;
+  const str=String(text==null?"":text);
+  while((m=TOKEN_RE.exec(str))){
+    if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
+    const span=document.createElement("span");
+    if(showRawFields){ span.className="mg raw"; span.textContent=m[0]; }
+    else { span.className="mg"; span.textContent=sampleFor(map,m[0]); }
+    frag.appendChild(span);
+    last=m.index+m[0].length;
+  }
+  if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last)));
+  return frag;
+}
+function mergeHtml(html, code, raw){
+  const map=fieldMap(code);
+  return String(html).replace(TOKEN_RE, tok=>{
+    if(raw) return '<mark style="background:#eef0f2;color:#475569;font-weight:700;border-radius:3px;padding:0 3px">'+esc(tok)+'</mark>';
+    return '<mark style="background:rgba(247,190,0,.32);border-radius:3px;padding:0 2px">'+esc(sampleFor(map,tok))+'</mark>';
+  });
+}
+function splitParas(text){
+  const t=String(text||"").trim();
+  if(!t) return [""];
+  return t.split(/\n/).map(x=>x.trim()).filter(Boolean);
+}
+function splitLines(text){ return String(text||"").split(/\n/).map(x=>x.trim()).filter(Boolean); }
+
+/* ─────────────────────────── JOURNEYS ─────────────────────────── */
+function renderJourneysHome(app){
+  setCrumb([["Command Center","#/"],["Journeys",null]]);
+  app.appendChild(sectionHead("Journeys","Pick a product line, then a tier — see exactly what a customer hears, in order"));
+  const lines=[
+    {k:"bandana",ic:"🧣",lab:"Bandana"},
+    {k:"apparel",ic:"👕",lab:"Apparel"},
+    {k:"promo",ic:"🎁",lab:"Promo"}
+  ];
+  lines.forEach(ln=>{
+    const tiers=["t1","t2","t3"].map(t=>ln.k+"-"+t).filter(ct=>IDX.journeysByType[ct]);
+    app.appendChild(el("h2","sec",ln.ic+" "+esc(ln.lab)+' <span class="sub">'+(tiers.length?"tap a tier":"no journey defined yet — planned")+'</span>'));
+    const g=el("div","jpick");
+    if(!tiers.length){
+      const d=el("div","jbig disabled"); d.innerHTML='<div class="ic">'+ln.ic+'</div><div class="lab">Planned</div><div class="one">Journey not yet defined</div>'; g.appendChild(d);
+    }
+    ["t1","t2","t3"].forEach(t=>{
+      const ct=ln.k+"-"+t; const arr=IDX.journeysByType[ct]; if(!arr) return;
+      const auto=countAuto(arr);
+      const d=el("div","jbig");
+      d.innerHTML='<div class="ic">'+ln.ic+'</div><div class="lab">'+t.toUpperCase()+'</div>'+
+        '<div class="one">'+arr.length+' touches · '+auto.a+' automated · '+auto.h+' human</div>';
+      d.onclick=()=>nav("#/journeys/"+ct);
+      g.appendChild(d);
+    });
+    app.appendChild(g);
+  });
+  // lifecycle journeys
+  const life=["at-risk","inactive","lost"].filter(ct=>IDX.journeysByType[ct]);
+  if(life.length){
+    app.appendChild(el("h2","sec",'🔄 By lifecycle stage <span class="sub">what fires when a customer slips</span>'));
+    const g=el("div","jpick");
+    life.forEach(ct=>{
+      const arr=IDX.journeysByType[ct]; const auto=countAuto(arr);
+      const d=el("div","jbig");
+      d.innerHTML='<div class="ic">🔄</div><div class="lab">'+esc(journeyLabel(ct).replace(" journey",""))+'</div>'+
+        '<div class="one">'+arr.length+' touches · '+auto.a+' automated · '+auto.h+' human</div>';
+      d.onclick=()=>nav("#/journeys/"+ct);
+      g.appendChild(d);
+    });
+    app.appendChild(g);
+  }
+}
+function countAuto(arr){
+  let a=0,h=0;
+  arr.forEach(j=>{ const tp=IDX.tpById[j.touchpointId]; const lvl=tp?tp.autoLevel:"manual";
+    if(lvl==="auto-send"||lvl==="auto-draft") a++; else if(lvl!=="off") h++; });
+  return {a,h};
+}
+function renderJourneyTimeline(app, ct){
+  const arr=IDX.journeysByType[ct];
+  if(!arr){ setCrumb([["Command Center","#/"],["Journeys","#/journeys"],["?",null]]); app.appendChild(el("div","empty",'<div class="big">No journey "'+esc(ct)+'"</div>')); return; }
+  setCrumb([["Command Center","#/"],["Journeys","#/journeys"],[journeyLabel(ct),null]]);
+  app.appendChild(sectionHead(journeyLabel(ct), "The mini-inbox — every touch, in order. Tap one to read it."));
+
+  const auto=countAuto(arr);
+  const nice=journeyLabel(ct).replace(" journey","").toLowerCase();
+  const summ=el("div","summ");
+  const window = /at-risk|inactive|lost/.test(ct) ? "through this stage" : "in year 1";
+  summ.innerHTML='A <b>'+esc(nice)+'</b> customer hears from us <b>'+arr.length+' times</b> '+window+
+    ' — <b>'+auto.a+' automated</b>, <b>'+auto.h+' human</b>.';
+  app.appendChild(summ);
+
+  const tl=el("div","timeline");
+  arr.forEach(j=>{
+    const tp=IDX.tpById[j.touchpointId]||{name:j.touchpointId,autoLevel:"manual"};
+    const entry=el("div","tentry");
+    const d=el("details","tcard");
+    let head='<summary><span class="when">'+esc(j.timingLabel)+'</span>'+
+      '<span class="tnm">'+esc(tp.name)+'</span>'+autoChip(tp.autoLevel)+healthDot(tp.healthStatus);
+    if(j.tier) head+='<span class="sysbadge">'+esc(j.tier)+'</span>';
+    if(j.condition) head+='<span class="cond">'+esc(j.condition)+'</span>';
+    if(j.eventOverride) head+='<span class="ev">📅 Event override: '+esc(j.eventOverride)+'</span>';
+    if(j.suppressionRule) head+='<span class="supp">🔇 '+esc(j.suppressionRule)+'</span>';
+    head+='</summary>';
+    d.innerHTML=head;
+    const exp=el("div","texp");
+    // scripts for this touchpoint at this tier
+    const scripts=(IDX.tsByTouchpoint[j.touchpointId]||[]).filter(r=>!j.tier||r.tier===j.tier||r.tier==="all")
+      .map(r=>({r, sc:IDX.byCode[r.scriptCode], gap:IDX.gapByCode[r.scriptCode]}));
+    if(!scripts.length){ exp.appendChild(el("div","sheetnote","No script attached to this touchpoint yet.")); }
+    scripts.forEach(o=>{
+      const ln=el("div","lnk");
+      if(o.sc){
+        ln.innerHTML=(o.sc.channel==="call"?"📞 ":"📧 ")+'<span>'+esc(o.sc.name)+'</span> <span class="sysbadge">'+esc(o.r.role)+'</span><span class="ar">→</span>';
+        ln.onclick=()=>nav((o.sc.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.sc.code));
+      } else if(o.gap){
+        ln.innerHTML='🕓 <span>'+esc(o.gap.name)+'</span> <span class="gaptag">'+esc(o.gap.publishStatus)+'</span><span class="ar">→</span>';
+        ln.onclick=()=>nav((o.gap.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.gap.code));
+      } else {
+        ln.innerHTML='<span style="color:#94a3b8">'+esc(o.r.scriptCode)+' (not found)</span>';
+      }
+      exp.appendChild(ln);
+    });
+    d.appendChild(exp);
+    entry.appendChild(d);
+    tl.appendChild(entry);
+  });
+  app.appendChild(tl);
+}
+
+/* ─────────────────────────── AUTOMATIONS ─────────────────────────── */
+function sysLabelOf(sys){ return {n8n:"n8n",automationsio:"Automations.io",manual:"human"}[sys]||sys||"—"; }
+function healthLabel(h){
+  if(!h||h==="n/a") return "Not tracked";
+  return {live:"Live",dry:"Dry-run",alarm:"Alarm",unverified:"Unverified"}[h]||h;
+}
+function renderAutomations(app){
+  setCrumb([["Command Center","#/"],["Automations",null]]);
+  app.appendChild(sectionHead("Automations","Grouped by how much they run on their own — this absorbs the old retention live map"));
+
+  const head=el("div","aiohead");
+  head.innerHTML='<span>🟢 AUTO-SEND fires on its own · ✍️ AUTO-DRAFT writes a draft for a human · 👤 MANUAL is done by hand · 🕓 PLANNED not built · health dot = live / dry / alarm / unverified.</span>';
+  const map=el("a","mapbtn","Order Flow Automation Map →");
+  map.href="../playbook/"; map.title="planetops/revenue-house/playbook/ — the transactional Order Flow map lives separate (see spec).";
+  head.appendChild(map);
+  app.appendChild(head);
+
+  const board=el("div","board");
+  AUTO_ORDER.forEach(level=>{
+    const tps=DATA.touchpoints.filter(t=>t.autoLevel===level);
+    if(!tps.length) return;
+    const col=el("div","col");
+    const a=AUTO[level];
+    col.appendChild(el("h4","", a.ic+' '+a.label+' <span class="n">'+tps.length+'</span>'));
+    tps.forEach(t=>col.appendChild(autoCard(t)));
+    board.appendChild(col);
+  });
+  app.appendChild(board);
+
+  // behavior triggers
+  if((DATA.behavior_triggers||[]).length){
+    app.appendChild(sectionHead("Behavior signals","Locked strategy — engagement reactions, tiered. Never auto-reply."));
+    const g=el("div","grid");
+    DATA.behavior_triggers.forEach(b=>{
+      const c=el("div","ecard");
+      c.innerHTML='<div class="nm">On '+esc(b.trigger)+'</div>'+
+        '<div class="subj"><b>T1:</b> '+esc(b.responseT1)+'<br><b>T2:</b> '+esc(b.responseT2)+'<br><b>T3:</b> '+esc(b.responseT3)+'</div>'+
+        '<div class="row"><span class="sysbadge">'+esc(b.recencyRule||"")+'</span>'+(b.neverAutoReply?'<span class="chip off">⛔ never auto-reply</span>':'')+'</div>';
+      g.appendChild(c);
+    });
+    app.appendChild(g);
+  }
+}
+function autoCard(t){
+  const c=el("div","acard"); c.id="ac-"+t.id;
+  const scripts=(IDX.tsByTouchpoint[t.id]||[]).map(r=>IDX.byCode[r.scriptCode]||IDX.gapByCode[r.scriptCode]).filter(Boolean);
+  let html='<div class="anm">'+esc(t.name)+' '+healthDot(t.healthStatus)+'</div>'+
+    '<div class="meta2"><b>System:</b> <span class="sysbadge">'+esc(sysLabelOf(t.system))+'</span><br>'+
+    '<b>Trigger:</b> '+esc(t.trigger||"—")+'<br><b>Schedule:</b> '+esc(t.schedule||"—")+'</div>';
+  if(scripts.length){
+    html+='<div class="foot">';
+    scripts.forEach(s=>{ html+='<span class="sysbadge">'+(s.channel==="call"?"📞 ":"📧 ")+esc(s.name)+'</span>'; });
+    html+='</div>';
+  }
+  if(t.workflowId) html+='<div class="foot"><span class="mono">'+esc(t.workflowId)+'</span></div>';
+  if(t.notes) html+='<div class="meta2" style="color:#6b7280;font-size:11.5px">'+esc(t.notes)+'</div>';
+  c.innerHTML=html;
+  // Every card opens the focused detail panel — no dead ends.
+  c.onclick=()=>nav("#/automations/"+t.id);
+  return c;
+}
+function renderAutomationDetail(app, id){
+  const t=IDX.tpById[id];
+  if(!t){
+    setCrumb([["Command Center","#/"],["Automations","#/automations"],["Not found",null]]);
+    const e=el("div","empty",'<div class="big">No automation "'+esc(id)+'"</div><div>It may have been renamed.</div>');
+    const sa=el("span","showall","See all automations →"); sa.onclick=()=>nav("#/automations");
+    e.appendChild(sa); app.appendChild(e); return;
+  }
+  setCrumb([["Command Center","#/"],["Automations","#/automations"],[t.name,null]]);
+  app.appendChild(sectionHead(t.name,"How it fires, its health, and everything it sends"));
+
+  const wrap=el("div","detail");
+
+  // ── left: the automation's facts, in an email-style frame (not monospace) ──
+  const main=el("div","frame");
+  const fh=el("div","fh");
+  fh.innerHTML=
+    '<div class="subj" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+esc(t.name)+' '+autoChip(t.autoLevel)+healthDot(t.healthStatus)+'</div>'+
+    '<div class="ln" style="margin-top:10px"><span class="k">System</span><span class="v"><span class="sysbadge">'+esc(sysLabelOf(t.system))+'</span></span></div>'+
+    '<div class="ln"><span class="k">Health</span><span class="v">'+esc(healthLabel(t.healthStatus))+'</span></div>'+
+    '<div class="ln"><span class="k">Trigger</span><span class="v">'+esc(t.trigger||"—")+'</span></div>'+
+    '<div class="ln"><span class="k">Schedule</span><span class="v">'+esc(t.schedule||"—")+'</span></div>'+
+    (t.workflowId?'<div class="ln"><span class="k">Workflow</span><span class="v"><span class="mono">'+esc(t.workflowId)+'</span></span></div>':'');
+  main.appendChild(fh);
+  if(t.notes){
+    const nb=el("div","body"); nb.style.fontSize="15px";
+    const p=el("p"); p.textContent=t.notes; nb.appendChild(p); main.appendChild(nb);
+  }
+  wrap.appendChild(main);
+
+  // ── side: what it sends, the journeys it lives in, and a way back ──
+  const side=el("div","meta-side");
+  const joins=IDX.tsByTouchpoint[id]||[];
+  const linked=joins.map(r=>({r, sc:IDX.byCode[r.scriptCode], gap:IDX.gapByCode[r.scriptCode]})).filter(o=>o.sc||o.gap);
+  const cts=[...new Set(DATA.journeys.filter(j=>j.touchpointId===id).map(j=>j.customerType))];
+
+  if(linked.length){
+    const p=el("div","panel"); p.appendChild(el("h3","","Sends these"));
+    const ll=el("div","linklist");
+    linked.forEach(o=>{
+      const a=el("div","lnk");
+      if(o.sc){
+        a.innerHTML=(o.sc.channel==="call"?"📞 ":"📧 ")+'<span>'+esc(o.sc.name)+'</span>'+(o.r.role?' <span class="sysbadge">'+esc(o.r.role)+'</span>':'')+'<span class="ar">→</span>';
+        a.onclick=()=>nav((o.sc.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.sc.code));
+      } else {
+        a.innerHTML='🕓 <span>'+esc(o.gap.name)+'</span> <span class="gaptag">'+esc(o.gap.publishStatus)+'</span><span class="ar">→</span>';
+        a.onclick=()=>nav((o.gap.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.gap.code));
+      }
+      ll.appendChild(a);
+    });
+    p.appendChild(ll); side.appendChild(p);
+  } else {
+    const p=el("div","panel"); p.appendChild(el("h3","","No script attached"));
+    p.appendChild(el("div","fires",'No script — manual touch. This step runs without prewritten copy'+(cts.length?', inside the journey'+(cts.length>1?'s':'')+' below.':'.')));
+    side.appendChild(p);
+  }
+
+  if(cts.length){
+    const p=el("div","panel"); p.appendChild(el("h3","","Used in these journeys"));
+    const ll=el("div","linklist");
+    cts.forEach(ct=>{
+      const a=el("div","lnk");
+      a.innerHTML='🧭 <span>'+esc(journeyLabel(ct))+'</span><span class="ar">→</span>';
+      a.onclick=()=>nav("#/journeys/"+ct);
+      ll.appendChild(a);
+    });
+    p.appendChild(ll); side.appendChild(p);
+  }
+
+  const pa=el("div","panel");
+  const acts=el("div","actions");
+  const back=el("button","btn ghost","← All automations"); back.onclick=()=>nav("#/automations");
+  acts.appendChild(back); pa.appendChild(acts);
+  pa.appendChild(el("div","sheetnote","This panel is read-only — automations are configured in n8n, not the Sheet."));
+  side.appendChild(pa);
+
+  wrap.appendChild(side);
+  app.appendChild(wrap);
+}
+
+/* ─────────────────────────── LIFECYCLE ─────────────────────────── */
+function normStage(s){ return String(s||"").toUpperCase().replace(/[^A-Z]/g,""); }
+function renderLifecycle(app, stageId){
+  setCrumb([["Command Center","#/"],["Lifecycle",null]]);
+  app.appendChild(sectionHead("Lifecycle","NEW to LOST — every stage, its rules, and what fires there"));
+  const stages=DATA.stages.slice().sort((a,b)=>(+a.sortOrder||0)-(+b.sortOrder||0));
+  const row=el("div","stages");
+  stages.forEach((st,i)=>{
+    const n=el("div","stnode"+(st.id===stageId?" on":""));
+    n.innerHTML='<div class="sord">'+st.sortOrder+'</div><div class="sname">'+esc(st.name)+'</div>'+
+      '<div class="sown">'+esc(st.automationOwner||"")+'</div>';
+    n.onclick=()=>nav("#/lifecycle/"+st.id);
+    row.appendChild(n);
+  });
+  app.appendChild(row);
+
+  const active = stageId ? stages.find(s=>s.id===stageId) : null;
+  if(active){
+    const panel=el("div","stpanel");
+    panel.appendChild(el("div","",'<div style="font-size:20px;font-weight:800;text-transform:uppercase">'+esc(active.name)+'</div>'));
+    panel.appendChild(el("div","rule",'<span class="tag in">Enters</span><span>'+esc(active.entryRule)+'</span>'));
+    panel.appendChild(el("div","rule",'<span class="tag out">Exits</span><span>'+esc(active.exitRule)+'</span>'));
+    panel.appendChild(el("div","sheetnote","Owner: "+esc(active.automationOwner||"—")+" · North Star: "+esc(active.northStarAnchor||"—")));
+    // touchpoints firing at this stage (via journeys.stage)
+    const ns=normStage(active.name);
+    const jrows=DATA.journeys.filter(j=>normStage(j.stage)===ns);
+    const tpIds=[...new Set(jrows.map(j=>j.touchpointId))];
+    panel.appendChild(el("h3","",'<span style="font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800;display:block;margin:16px 0 10px">What fires here</span>'));
+    if(!tpIds.length){ panel.appendChild(el("div","sheetnote","No outbound touch defined at this stage — customers pass through on the data engine only.")); }
+    const ll=el("div","linklist");
+    tpIds.forEach(id=>{
+      const tp=IDX.tpById[id]; if(!tp) return;
+      const a=el("div","lnk");
+      a.innerHTML=autoChip(tp.autoLevel)+' <span>'+esc(tp.name)+'</span> '+healthDot(tp.healthStatus)+'<span class="ar">→</span>';
+      const scripts=(IDX.tsByTouchpoint[id]||[]).map(r=>IDX.byCode[r.scriptCode]).filter(Boolean);
+      if(scripts.length){ a.onclick=()=>nav((scripts[0].channel==="call"?"#/calls/":"#/scripts/")+slugify(scripts[0].code)); }
+      else { a.onclick=()=>nav("#/automations/"+id); }
+      ll.appendChild(a);
+    });
+    panel.appendChild(ll);
+    app.appendChild(panel);
+  } else {
+    app.appendChild(el("div","sheetnote","Tap a stage above to see its entry / exit rules and every touch that fires there."));
+  }
+}
+
+/* ─────────────────────────── VALIDATION ─────────────────────────── */
+function renderValidation(app){
+  setCrumb([["Command Center","#/"],["Validation",null]]);
+  app.appendChild(sectionHead("Validation","Every gap, made visible — drafts and unwritten scripts that automation can't touch yet"));
+  const errs=(DATA.meta&&+DATA.meta.validationErrors)||0;
+  const banner=el("div","vbanner"+(errs>0?"":" ok"));
+  banner.innerHTML = errs>0
+    ? '⚠️ <b>'+errs+' validation error'+(errs>1?'s':'')+'</b> — a live row failed its checks and was demoted to a gap. Fix in the Sheet.'
+    : '✅ No validation errors. Every live script passed its checks. '+((DATA.gaps||[]).length)+' rows are drafts/pending (below) — visible on purpose.';
+  app.appendChild(banner);
+
+  const gaps=(DATA.gaps||[]);
+  gaps.forEach(g=>{
+    const r=el("div","vrow");
+    r.innerHTML='<div><div class="vnm">'+esc(g.name)+'</div><div class="vcd">'+esc(g.code)+' · '+esc(g.channel||"")+'</div></div>'+
+      '<span class="chip planned">🕓 '+esc(g.publishStatus.toUpperCase())+'</span>'+
+      '<div class="vwhy">'+esc(gapReason(g))+(g.notes?" — "+esc(g.notes):"")+'</div>';
+    const link=el("a","vlink",(g.sheetRow!=null?"Row "+g.sheetRow+" →":"Open row →")); link.href=editUrl(g.sheetRow); link.target="_blank"; link.rel="noopener noreferrer";
+    r.appendChild(link);
+    r.onclick=(e)=>{ if(e.target.tagName!=="A") nav((g.channel==="call"?"#/calls/":"#/scripts/")+slugify(g.code)); };
+    app.appendChild(r);
+  });
+  if(!gaps.length){ app.appendChild(el("div","empty",'<div class="big">No gaps</div><div>Every script is written and live.</div>')); }
+}
+
+/* ─────────────────────────── shared bits ─────────────────────────── */
+function sectionHead(title, sub){ return el("h2","sec",esc(title)+(sub?' <span class="sub">'+sub+'</span>':'')); }
+function clear(app){ app.innerHTML=""; return app; }
+const SHEET_ID_FALLBACK="1DpCmsD1oQ7YkzpcmokQJKwB2npXga9gUn5YgkX44V4c", SCRIPTS_GID_FALLBACK=1928933180;
+function scriptsGid(){ return (DATA.meta&&DATA.meta.gids&&DATA.meta.gids.SCRIPTS)||SCRIPTS_GID_FALLBACK; }
+function sheetId(){ return (DATA.meta&&DATA.meta.sheetId)||SHEET_ID_FALLBACK; }
+function sheetUrl(){ return "https://docs.google.com/spreadsheets/d/"+sheetId()+"/edit#gid="+scriptsGid(); }
+function editUrl(row){ return "https://docs.google.com/spreadsheets/d/"+sheetId()+"/edit#gid="+scriptsGid()+(row!=null?"&range=A"+row:""); }
+function gapReason(g){
+  if(g.reason) return g.reason;
+  if(Array.isArray(g.errors)&&g.errors.length) return g.errors.join("; ");
+  return g.publishStatus==="ready" ? "awaiting Holly approval"
+    : (String(g.bodyText||"").trim() ? "draft, not yet live" : "planned, not yet written");
+}
+function copyText(text, btn){
+  const done=()=>{ const o=btn.textContent; btn.textContent="Copied ✓"; setTimeout(()=>btn.textContent=o,1400); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text,done)); }
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); done();
+}
+
+const OSVG='<div class="o"><svg viewBox="-270 -185 3237 2226" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg></div>';
+
+/* ─────────────────────────── boot ─────────────────────────── */
+document.addEventListener("keydown", e=>{
+  if(e.key==="/" && !/input|textarea/i.test((e.target.tagName||""))){ e.preventDefault(); goSearch(); }
+});
+window.addEventListener("hashchange", route);
+
+(async function boot(){
+  DATA = await load();
+  renderFreshness();
+  const foot=$("foot");
+  if(!DATA){
+    $("app").innerHTML="";
+    const e=el("div","empty",'<div class="big">Data unavailable</div>'+
+      '<div>The live feed is unreachable and no cached or sample data was found.<br>Open this page from the deployed site, or place <span class="mono">sample-data.json</span> beside it.</div>');
+    $("app").appendChild(e);
+    foot.innerHTML="Planet Apparel · Retention Command Center · data unavailable";
+    return;
+  }
+  IDX = buildIndex(DATA);
+  foot.innerHTML="Planet Apparel · Planet Sales › Revenue House › <b style='color:#6b7280'>Retention Command Center</b><br>"+
+    "One Sheet is the editor · this page renders it · release v"+esc((DATA.meta.releaseVersion||"1"))+
+    " · "+DATA.scripts.length+" live scripts · "+DATA.touchpoints.length+" automations · "+DATA.stages.length+" stages · source: "+esc(SOURCE);
+  if(!location.hash) location.hash="#/";
+  route();
+})();
+</script>
+</body>
+</html>
