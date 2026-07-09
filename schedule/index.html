@@ -1341,12 +1341,18 @@ function updateChangesBtn(){
   if(tabBtn)tabBtn.textContent=n?`Changes · ${n}`:'Changes';
 }
 function renderAll(){
+  // every edit re-renders the whole tab — remember the queue table's scroll so a field entry
+  // doesn't snap the view back to the top mid-fill (the wrap is a fresh element each render)
+  const _tw=main.querySelector('.tablewrap');
+  const _twTop=_tw?_tw.scrollTop:0,_twLeft=_tw?_tw.scrollLeft:0;
   buildModel();
   nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
   const est=!!TABS[activeTab].est,estWrap=document.getElementById('estWrap');
   estWrap.style.display=est?'block':'none';main.style.display=est?'none':'';
   if(est){const f=document.getElementById('estFrame');if(!f.getAttribute('src'))f.src='../estimator/';}
   main.innerHTML=TABS[activeTab].render();
+  const _tw2=main.querySelector('.tablewrap');
+  if(_tw2&&(_twTop||_twLeft)){_tw2.scrollTop=_twTop;_tw2.scrollLeft=_twLeft;}
   const stampEl=document.getElementById('stamp');
   if(store.csvName)stampEl.innerHTML=`DATA <b>${store.csvName}</b> · manual import (↺ Reset returns to the live feed)`;
   else if(liveName){const t=livePulledAt?new Date(livePulledAt):null;
