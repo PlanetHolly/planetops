@@ -275,6 +275,7 @@
   td.custcol{background:#f2f2f2;color:#000;font-weight:700}
   tr:last-child td{border-bottom:none}
   .tablewrap{overflow:auto;border-radius:10px;max-height:calc(100vh - 230px)}
+  .tablewrap table{overflow:visible}   /* table's own overflow:hidden (corner rounding) KILLS position:sticky — the wrap clips the corners instead */
   .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
