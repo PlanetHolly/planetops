@@ -19,7 +19,7 @@
   --blue:#2196F3;--purple:#8E24AA;--orange:#FF9800;--green:#43A047;--red:#E53935;--teal:#00ACC1;--gray:#9E9E9E;
   --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.13);
   --radius:8px;--radius-lg:16px;--radius-pill:999px;
-  --header-h:58px;--nav-h:68px;
+  --header-h:58px;
   --font-head:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--font-body);color:var(--tonal-black);-webkit-font-smoothing:antialiased}
@@ -42,21 +42,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .tab-panel{display:none;flex:1;overflow:hidden;flex-direction:column;position:absolute;inset:0}
 .tab-panel.active{display:flex}
 
-/* ── BOTTOM NAV ── */
-/* content sits in a row: collapsible left rail + main panel */
-.content-row{flex:1;display:flex;min-height:0;overflow:hidden}
-.side-nav{order:-1;flex:0 0 auto;width:62px;background:var(--white);display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:8px 0;border-right:1px solid rgba(0,0,0,.07);z-index:100;overflow:hidden;transition:width .18s ease}
-.side-nav:hover{width:190px;box-shadow:3px 0 16px rgba(0,0,0,.09)}
-.nav-tab{display:flex;flex-direction:row;align-items:center;gap:12px;cursor:pointer;border:none;background:transparent;padding:8px 13px;position:relative;-webkit-tap-highlight-color:transparent;user-select:none;white-space:nowrap}
-.nav-tab:active{background:rgba(0,0,0,.03)}
-.nav-icon{width:36px;height:36px;flex:0 0 auto;border-radius:50%;background:#232323;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:box-shadow .15s}
-.nav-label{font-family:var(--font-head);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);opacity:0;transition:color .15s,opacity .15s}
-.side-nav:hover .nav-label{opacity:1}
-.nav-tab.active .nav-label{color:var(--tonal-black)}
-.nav-tab.active .nav-icon{box-shadow:0 0 0 2.5px var(--yellow)}
-.nav-tab::after{content:'';position:absolute;left:0;top:14%;bottom:14%;width:3px;background:var(--yellow);border-radius:0 3px 3px 0;transform:scaleY(0);transition:transform .2s ease}
-.nav-tab.active::after{transform:scaleY(1)}
-.nav-badge{position:absolute;top:5px;left:34px;background:var(--red);color:white;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 3px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+/* ── BOTTOM NAV (removed 7/8 — sidebar is the navigation; .nav-badge kept: badge
+      elements now live in the sidebar and the old update code still targets them) ── */
+.nav-badge{position:absolute;top:5px;right:7px;background:var(--red);color:white;font-size:9px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:flex;align-items:center;justify-content:center}
 
 /* ── BOARD TOOLBAR ── */
 .board-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:transparent;border-bottom:none;flex-shrink:0;gap:10px}
@@ -588,6 +576,47 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .ff-billing-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:12px;font-weight:600;color:var(--tonal-black)}
 .ff-billing-row:last-child{border-bottom:none;font-weight:800;font-size:13px}
 .ff-billing-amt{font-family:var(--font-head);font-weight:800}
+
+/* ── NAV SHELL: hamburger + section directory (Board-overhaul #1) ── */
+.hamburger-btn{width:38px;height:38px;margin-right:12px;border:1.5px solid rgba(0,0,0,.14);border-radius:9px;background:var(--white);font-size:16px;line-height:1;color:var(--tonal-black);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.hamburger-btn:active{background:rgba(0,0,0,.05)}
+.body-row{flex:1;display:flex;min-height:0}
+.side-nav{width:218px;flex-shrink:0;background:var(--white);border-right:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;gap:2px;padding:10px 8px;overflow-y:auto;overflow-x:hidden;transition:width .18s ease;z-index:90}
+.side-nav.collapsed{width:58px}
+.side-item{display:flex;align-items:center;gap:11px;padding:10px 10px;border:none;border-radius:10px;background:transparent;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;white-space:nowrap;position:relative;flex-shrink:0}
+.side-item:active{background:rgba(0,0,0,.05)}
+.side-item.current{background:rgba(247,190,0,.14)}
+.side-item.current::before{content:'';position:absolute;left:-8px;top:18%;bottom:18%;width:3px;border-radius:0 3px 3px 0;background:var(--yellow)}
+.side-icon{font-size:19px;width:24px;text-align:center;flex-shrink:0}
+.side-text{min-width:0;overflow:hidden;transition:opacity .12s}
+.side-nav.collapsed .side-text{opacity:0;width:0}
+.side-label{font-family:var(--font-head);font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--tonal-black);line-height:1.1}
+.side-desc{font-size:10.5px;color:rgba(0,0,0,.42);margin-top:2px}
+.side-lock{margin-left:auto;font-size:12px;color:rgba(0,0,0,.3)}
+.side-nav.collapsed .side-lock{display:none}
+.side-div{height:1px;background:rgba(0,0,0,.07);margin:6px 8px;flex-shrink:0}
+.side-scrim{display:none;position:fixed;left:0;right:0;bottom:0;top:var(--header-h);background:rgba(0,0,0,.28);z-index:89}
+.side-scrim.open{display:block}
+@media (max-width:700px){
+  .side-nav,.side-nav.collapsed{position:fixed;top:var(--header-h);bottom:0;left:0;width:232px;transform:translateX(-100%);transition:transform .2s ease;box-shadow:var(--shadow-lg);z-index:95}
+  .side-nav.drawer-open{transform:translateX(0)}
+  .side-nav.collapsed .side-text{opacity:1;width:auto}
+  .side-nav.collapsed .side-lock{display:block}
+}
+.home-wrap{padding:22px 18px 30px;max-width:920px;margin:0 auto}
+.home-title{font-family:var(--font-head);font-weight:900;font-size:24px;letter-spacing:.05em;text-transform:uppercase;color:var(--tonal-black)}
+.home-sub{font-size:12px;color:rgba(0,0,0,.42);margin:3px 0 18px}
+.home-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.home-tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px 16px 15px;background:var(--white);border:1px solid rgba(0,0,0,.09);border-radius:14px;box-shadow:var(--shadow-sm);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;transition:box-shadow .15s,transform .15s;position:relative;overflow:hidden}
+.home-tile:active{transform:scale(.98)}
+.home-tile::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--yellow);transform:scaleY(0);transition:transform .15s}
+.home-tile:hover::after{transform:scaleY(1)}
+.home-tile-icon{font-size:26px;line-height:1}
+.home-tile-label{font-family:var(--font-head);font-weight:900;font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--tonal-black);line-height:1.1}
+.home-tile-desc{font-size:11px;color:rgba(0,0,0,.42);line-height:1.35}
+.home-tile-lock{position:absolute;top:12px;right:12px;font-size:13px;color:rgba(0,0,0,.3)}
+.pin-input{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:10px;font-family:var(--font-head);font-weight:900;font-size:26px;text-align:center;letter-spacing:.4em}
+.pin-error{color:var(--red);font-size:12px;font-weight:700;text-align:center;margin-top:8px;min-height:16px}
 </style>
 </head>
 <body>
@@ -596,11 +625,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   <!-- HEADER -->
   <header class="app-header">
     <div style="display:flex;align-items:center">
-      <img class="header-logo" id="header-logo"
-        src="Reference_Images/Full Logo Black_Yellow_PA Logo.png"
-        alt="Planet Apparel"
-        onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
-      <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
+      <button class="hamburger-btn" onclick="toggleNavMenu()" title="Collapse / expand the navigation sidebar">☰</button>
+      <span style="display:flex;align-items:center;cursor:pointer" onclick="goSection('home')" title="Home — all sections">
+        <img class="header-logo" id="header-logo"
+          src="Reference_Images/Full Logo Black_Yellow_PA Logo.png"
+          alt="Planet Apparel"
+          onerror="this.style.display='none';document.getElementById('header-logo-fb').style.display='block'">
+        <span class="header-logo-fallback" id="header-logo-fb">PLANET APPAREL</span>
+      </span>
     </div>
     <div class="header-center">
       <div class="header-date" id="header-date"></div>
@@ -627,9 +659,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     </div>
   </header>
 
+  <!-- BODY ROW: collapsible side nav + main -->
+  <div class="body-row">
+
+  <!-- SIDE NAV (collapsible — nav shell #1; ☰ toggles collapse, drawer on narrow screens) -->
+  <aside class="side-nav" id="side-nav"></aside>
+  <div class="side-scrim" id="side-scrim" onclick="closeNavMenu()"></div>
+
   <!-- MAIN -->
-  <div class="content-row">
   <div class="main-content">
+
+    <!-- HOME — section directory (nav shell #1). New sections register in SECTIONS
+         and appear here + in the sidebar automatically. -->
+    <div class="tab-panel" id="panel-home">
+      <div class="home-wrap">
+        <div class="home-title">PlanetOps</div>
+        <div class="home-sub">Every section of the app — tap to jump in. The sidebar jumps between sections from anywhere; ☰ collapses it to icons.</div>
+        <div class="home-tiles" id="home-tiles"></div>
+      </div>
+    </div>
 
     <!-- BOARD -->
     <div class="tab-panel active" id="panel-board">
@@ -745,67 +793,43 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       </div>
     </div>
 
-    <!-- PROJECT ESTIMATOR (embedded; single source lives at /estimator/) -->
-    <div class="tab-panel" id="panel-estimator" style="padding:0;">
-      <iframe id="estimator-frame" title="Project Estimator"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
-    </div>
-
     <!-- PRODUCTION AVAILABILITY (embedded; single source lives at /capacity/) -->
     <div class="tab-panel" id="panel-availability" style="padding:0;">
       <iframe id="availability-frame" title="Production Availability"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
+        style="width:100%;flex:1;border:0;display:block;background:#fff;"></iframe>
     </div>
 
     <!-- SCHEDULE (embedded; single source lives at /schedule/) -->
     <div class="tab-panel" id="panel-schedule" style="padding:0;">
       <iframe id="schedule-frame" title="Schedule"
-        style="width:100%;height:calc(100vh - 120px);border:0;display:block;background:#fff;"></iframe>
+        style="width:100%;flex:1;border:0;display:block;background:#fff;"></iframe>
     </div>
 
-  </div>
+  </div><!-- /main-content -->
 
-  <!-- BOTTOM NAV -->
-  <nav class="side-nav" id="floorNav" title="Sections — hover to expand">
-    <button class="nav-tab active" onclick="switchTab('board',this)">
-      <span class="nav-icon">🏭</span>
-      <span class="nav-label">Board</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('prepress',this)">
-      <span class="nav-icon">🎞</span>
-      <span class="nav-label">Pre-Press</span>
-      <span class="nav-badge hidden" id="prepress-badge">0</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('active',this)">
-      <span class="nav-icon">⚡</span>
-      <span class="nav-label">Running</span>
-      <span class="nav-badge hidden" id="active-badge">0</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('reports',this)">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Reports</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('fulfillment',this)">
-      <span class="nav-icon">📦</span>
-      <span class="nav-label">Fulfillment</span>
-      <span class="nav-badge hidden" id="fulfillment-badge">0</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('estimator',this)">
-      <span class="nav-icon">🧮</span>
-      <span class="nav-label">Estimator</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('schedule',this)">
-      <span class="nav-icon">🗓</span>
-      <span class="nav-label">Schedule</span>
-    </button>
-    <button class="nav-tab" onclick="switchTab('availability',this)">
-      <span class="nav-icon">🔋</span>
-      <span class="nav-label">Availability</span>
-    </button>
-  </nav>
-  </div><!-- /content-row -->
+  </div><!-- /body-row -->
+
+  <!-- Bottom tab bar removed 7/8 (Jean) — the collapsible sidebar is the app's navigation. -->
 
 </div><!-- /app-shell -->
+
+<!-- PIN GATE (infrastructure — which sections are gated is Holly's DECISION; inert until NAV_PIN is configured) -->
+<div class="modal-overlay" id="pin-modal" onclick="handleOverlayClick(event,'pin-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Restricted Section</div>
+    <div class="modal-sub" id="pin-modal-sub">Enter the PIN to continue.</div>
+    <div style="padding:14px 0 4px">
+      <input class="pin-input" id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••"
+        onkeydown="if(event.key==='Enter')submitPin()">
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('pin-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="submitPin()">Unlock</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div id="toast-container"></div>
@@ -1262,7 +1286,8 @@ const state = {
     billingCycleStart: '2026-04-13',
     lastOrderSyncAt: null,
     subView: 'orders',         // 'orders' | 'bins' | 'log'
-    /* ShipStation creds removed from client state entirely — gate env vars only (P0-2). */
+    shipStationApiKey: '',
+    shipStationApiSecret: '',
   },
 };
 
@@ -1436,19 +1461,120 @@ function copyCustomerId(id){
 }
 
 /* ============================================================
+   NAV SHELL — section registry, ☰ quick-jump, Home tiles, PIN gate
+   (Board-overhaul #1). New sections: add one entry here — they show
+   on Home + in the ☰ menu without widening the bottom bar.
+   ============================================================ */
+const SECTIONS = [
+  { id:'home',         icon:'⌂',  label:'Home',         desc:'Directory of every section' },
+  { id:'board',        icon:'🏭', label:'Board',        desc:'Production floor — jobs by stage' },
+  { id:'prepress',     icon:'🎞', label:'Pre-Press',    desc:'Films · screens · inks', badge:'prepress-badge' },
+  { id:'active',       icon:'⚡', label:'Running',      desc:'Live timers on press', badge:'active-badge' },
+  { id:'reports',      icon:'📊', label:'Reports',      desc:'Completed projects & production data' },
+  { id:'fulfillment',  icon:'📦', label:'Fulfillment',  desc:'Iron & Velvet fulfillment ops', badge:'fulfillment-badge' },
+  { id:'schedule',     icon:'🗓', label:'Schedule',     desc:'Scheduler · calendar · arrivals · estimator' },
+  { id:'availability', icon:'🔋', label:'Availability', desc:'Press capacity gauge' },
+  { id:'clock',        icon:'⏱', label:'Clock',        desc:'Time clock', href:'clock/' },
+];
+
+/* PIN gate — DECISION pending Holly: set NAV_PIN.code (digits, as a string)
+   and list section ids in NAV_PIN.gated. Inert until both are set.
+   Unlocks last for the browser session only. */
+const NAV_PIN = { code: null, gated: [] };
+const _pinUnlocked = new Set();
+let _pinPending = null;   // section id awaiting unlock
+
+function isGated(id){ return !!NAV_PIN.code && NAV_PIN.gated.includes(id) && !_pinUnlocked.has(id); }
+
+function goSection(id){
+  const s = SECTIONS.find(x => x.id === id);
+  if(!s) return;
+  if(isGated(id)){
+    _pinPending = id;
+    document.getElementById('pin-modal-sub').textContent = s.label + ' is PIN-restricted. Enter the PIN to continue.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-error').textContent = '';
+    openModal('pin-modal');
+    setTimeout(() => document.getElementById('pin-input').focus(), 80);
+    return;
+  }
+  closeNavMenu();
+  if(s.href){ window.location.href = s.href; return; }
+  switchTab(id);
+}
+
+function submitPin(){
+  const val = document.getElementById('pin-input').value.trim();
+  if(val === String(NAV_PIN.code)){
+    _pinUnlocked.add(_pinPending);
+    closeModal('pin-modal');
+    const id = _pinPending; _pinPending = null;
+    goSection(id);
+  } else {
+    document.getElementById('pin-error').textContent = 'Wrong PIN — try again.';
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+/* Renders ONCE at boot — the badge elements inside must stay stable because the
+   header-KPI / fulfillment code updates them by id. Highlight sync is separate. */
+function renderSideNav(){
+  const nav = document.getElementById('side-nav');
+  nav.innerHTML = SECTIONS.map((s, i) =>
+    (i === 1 ? '<div class="side-div"></div>' : '') +
+    `<button class="side-item" data-section="${s.id}" onclick="goSection('${s.id}')" title="${s.label} — ${s.desc}">
+       <span class="side-icon">${s.icon}</span>
+       <span class="side-text"><div class="side-label">${s.label}</div><div class="side-desc">${s.desc}</div></span>
+       ${NAV_PIN.code && NAV_PIN.gated.includes(s.id) ? '<span class="side-lock">🔒</span>' : ''}
+       ${s.badge ? `<span class="nav-badge hidden" id="${s.badge}">0</span>` : ''}
+     </button>`).join('');
+  updateSideNavCurrent();
+}
+function updateSideNavCurrent(){
+  const current = document.querySelector('.tab-panel.active')?.id.replace('panel-','');
+  document.querySelectorAll('#side-nav .side-item').forEach(el =>
+    el.classList.toggle('current', el.dataset.section === current));
+}
+/* ☰: wide screens toggle collapse (icons-only rail, remembered per device);
+   narrow screens (≤700px) slide the sidebar in as a drawer. */
+function toggleNavMenu(){
+  const nav = document.getElementById('side-nav');
+  if(window.innerWidth <= 700){
+    nav.classList.toggle('drawer-open');
+    document.getElementById('side-scrim').classList.toggle('open', nav.classList.contains('drawer-open'));
+    return;
+  }
+  nav.classList.toggle('collapsed');
+  localStorage.setItem('planetops_sidenav_collapsed', nav.classList.contains('collapsed') ? '1' : '0');
+}
+function closeNavMenu(){   // closes the narrow-screen drawer; no-op on wide screens
+  document.getElementById('side-nav').classList.remove('drawer-open');
+  document.getElementById('side-scrim').classList.remove('open');
+}
+
+function renderHomeTiles(){
+  document.getElementById('home-tiles').innerHTML = SECTIONS.filter(s => s.id !== 'home').map(s =>
+    `<button class="home-tile" onclick="goSection('${s.id}')">
+       ${NAV_PIN.code && NAV_PIN.gated.includes(s.id) ? '<span class="home-tile-lock">🔒</span>' : ''}
+       <span class="home-tile-icon">${s.icon}</span>
+       <span class="home-tile-label">${s.label}</span>
+       <span class="home-tile-desc">${s.desc}</span>
+     </button>`).join('');
+}
+
+/* ============================================================
    TAB SWITCHING
    ============================================================ */
-function switchTab(id, btn){
+function switchTab(id){
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  btn.classList.add('active');
+  if(id === 'home')        renderHomeTiles();
   if(id === 'active')      renderActiveTab();
   if(id === 'prepress')    renderPrepTab();
   if(id === 'fulfillment') renderFulfillmentTab();
   if(id === 'availability'){ const f=document.getElementById('availability-frame'); if(f && !f.getAttribute('src')) f.src='./capacity/?mode=jean'; }
   if(id === 'schedule'){ const f=document.getElementById('schedule-frame'); if(f && !f.getAttribute('src')) f.src='./schedule/'; }
-  if(id === 'estimator'){ const f=document.getElementById('estimator-frame'); if(f && !f.getAttribute('src')) f.src='./estimator/'; }
+  updateSideNavCurrent();
 }
 
 /* ============================================================
@@ -2143,6 +2269,9 @@ function openJobSheet(jobId){
   renderSheet();
   document.getElementById('detail-overlay').classList.add('open');
   document.getElementById('detail-sheet').classList.add('open');
+  // Blanks sheet: refresh live stock before use (5-min cache makes this cheap)
+  const j = getJob(jobId);
+  if(j && j.station === 'blanks') fetchBandanaInventory().then(refreshBlanksStockLines);
 }
 function openImprintDetail(wuId){
   state.sheet.level = 'imprint';
@@ -2333,16 +2462,7 @@ function renderJobLevel(){
       bl.style.cssText = 'margin-top:14px';
 
       // Group by description+color
-      const garmentGroups = [];
-      const garmentMap = {};
-      job.blanksList.forEach((li, idx) => {
-        const gKey = `${li.description}||${li.color}`;
-        if(!garmentMap[gKey]){
-          garmentMap[gKey] = { gKey, description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
-          garmentGroups.push(garmentMap[gKey]);
-        }
-        garmentMap[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
-      });
+      const garmentGroups = groupBlanks(job);
 
       const garmentHtml = garmentGroups.map((g, gi) => {
         window._receiptForms[gi] = { jobId: job.id, gKey: g.gKey, sizes: g.sizes.map(s=>({idx:s.idx,size:s.size})) };
@@ -2408,12 +2528,7 @@ function renderJobLevel(){
 
         // In-house section
         const remaining = invQty !== null ? invQty - totalInHouse : null;
-        const stockLine = invQty !== null
-          ? `<div style="font-size:11px;font-weight:700;margin-top:2px;color:${remaining<=0?'#E53935':remaining<totalOrdered?'#FF8F00':'#2E7D32'}">
-               ${invLabel||'In-House'} · <span style="font-size:14px">${remaining.toLocaleString()}</span> remaining
-               <span style="color:rgba(0,0,0,.3);font-weight:500"> (${invQty.toLocaleString()} total · ${totalInHouse} pulled)</span>
-             </div>`
-          : (invLabel ? `<div style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · inventory not loaded yet</div>` : '');
+        const stockLine = stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel);
         const inHouseSection = `
           <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(0,0,0,.07)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -4356,7 +4471,7 @@ function renderActiveTab(){
       </div>
       <div class="awu-timer" id="awu-t-${task.id}">${fmtTime(getLivePtElapsed(task.timer))}</div>
       <div class="awu-planned">${task.placement} · ${task.timer.operator||'—'}</div>`;
-    card.onclick = () => switchTab('prepress', document.querySelector('.nav-tab:nth-child(2)'));
+    card.onclick = () => switchTab('prepress');
     grid.appendChild(card);
   });
 }
@@ -4613,8 +4728,8 @@ function buildStatePayload(){
       sessions:             state.fulfillment.sessions,
       billingCycleStart:    state.fulfillment.billingCycleStart,
       lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
-      /* ShipStation creds intentionally NOT in the payload — they live only in
-         the gate's env vars now (P0-2 fix); the gate also scrubs them on read. */
+      shipStationApiKey:    state.fulfillment.shipStationApiKey,
+      shipStationApiSecret: state.fulfillment.shipStationApiSecret,
     },
   };
 }
@@ -4676,7 +4791,8 @@ function applyLoadedState(saved){
     // One-time migration: shift launch cycle from Apr 9 to Apr 13
     if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
     if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
-    /* ShipStation creds no longer restored from state — server-side only (P0-2). */
+    if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
+    if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
     // Always re-sync bin metadata from defaults (preserves live qty)
     initFulfillmentBins();
   } else {
@@ -5040,7 +5156,7 @@ async function syncFromPrintavo(force = false){
 
     state.lastSyncAt = Date.now();
     // Fetch live inventory in parallel (non-blocking — renders board first, then re-renders if inventory loads)
-    fetchBandanaInventory().then(() => buildBoard());
+    fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
     saveState();
     buildBoard();
     const msg = added > 0 ? `+${added} new` : stationChanged > 0 ? `↩ ${stationChanged} moved` : 'Up to date';
@@ -5055,23 +5171,72 @@ async function syncFromPrintavo(force = false){
 
 const INVENTORY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 async function fetchBandanaInventory(){
+  let staleCache = null; // expired but valid — better than nothing if the proxy is down
   try {
     const cached = localStorage.getItem('planetops_inventory_cache');
     if(cached){
       const { ts, data } = JSON.parse(cached);
-      if(Date.now() - ts < INVENTORY_CACHE_TTL_MS){
-        if(data.import || data.usa){ state.inventory = data; }
-        return;
+      if(data && (data.import || data.usa)){
+        if(Date.now() - ts < INVENTORY_CACHE_TTL_MS){ state.inventory = data; return; }
+        staleCache = data;
       }
     }
     const res = await fetch(INVENTORY_PROXY);
-    if(!res.ok) return;
+    if(!res.ok){ if(!state.inventory && staleCache) state.inventory = staleCache; return; }
     const data = await res.json();
     if(data.import || data.usa){
       state.inventory = data;
       localStorage.setItem('planetops_inventory_cache', JSON.stringify({ ts: Date.now(), data }));
     }
-  } catch(e){ /* silent fail — inventory display is optional */ }
+  } catch(e){ if(!state.inventory && staleCache) state.inventory = staleCache; }
+}
+
+// Group a job's blanksList by description+color (shared by renderJobLevel + stock refresh)
+function groupBlanks(job){
+  const groups = [];
+  const map = {};
+  (job.blanksList || []).forEach((li, idx) => {
+    const gKey = `${li.description}||${li.color}`;
+    if(!map[gKey]){
+      map[gKey] = { gKey, description: li.description, color: li.color, itemNumber: li.itemNumber || '', sizes: [] };
+      groups.push(map[gKey]);
+    }
+    map[gKey].sizes.push({ size: li.size || 'ONE SIZE', qty: li.qty, idx });
+  });
+  return groups;
+}
+
+function stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel){
+  if(invQty !== null){
+    const remaining = invQty - totalInHouse;
+    return `<div id="stockline-${gi}" style="font-size:11px;font-weight:700;margin-top:2px;color:${remaining<=0?'#E53935':remaining<totalOrdered?'#FF8F00':'#2E7D32'}">
+               ${invLabel||'In-House'} · <span style="font-size:14px">${remaining.toLocaleString()}</span> remaining
+               <span style="color:rgba(0,0,0,.3);font-weight:500"> (${invQty.toLocaleString()} total · ${totalInHouse} pulled)</span>
+             </div>`;
+  }
+  const msg = state.inventory ? 'no live stock record for this SKU' : 'inventory not loaded yet';
+  return `<div id="stockline-${gi}" style="font-size:11px;color:rgba(0,0,0,.3);margin-top:2px">${invLabel} · ${msg}</div>`;
+}
+
+// Update only the stock lines of an open Blanks sheet in place — a full renderSheet()
+// would wipe quantities being typed into the check-in inputs.
+function refreshBlanksStockLines(){
+  if(!state.sheet || !state.sheet.open || state.sheet.level !== 'job') return;
+  const job = getJob(state.sheet.jobId);
+  if(!job || job.station !== 'blanks' || !job.blanksList || !job.blanksList.length) return;
+  groupBlanks(job).forEach((g, gi) => {
+    const el = document.getElementById(`stockline-${gi}`);
+    if(!el) return;
+    const invQty = lookupBandanaStock(g.itemNumber, g.color, g.description);
+    const totalOrdered = g.sizes.reduce((s, r) => s + r.qty, 0);
+    const totalInHouse = g.sizes.reduce((sum, s) => {
+      const raw = (job.inHouseCount||{})[s.idx];
+      return sum + (parseInt(raw ? (typeof raw==='object'?raw.qty:raw) : 0)||0);
+    }, 0);
+    const _inum = (g.itemNumber||'').toUpperCase().trim();
+    const invLabel = /^PL/.test(_inum)?'Import':/^US/.test(_inum)?'USA Made':/^ORG/.test(_inum)?'Organic':'In-House';
+    el.outerHTML = stockLineHtml(gi, invQty, totalInHouse, totalOrdered, invLabel);
+  });
 }
 
 // Look up live bandana stock: returns qty or null if not a known bandana SKU / color not found
@@ -5922,17 +6087,24 @@ function saveBinEdit(binId){
 }
 
 // ── ShipStation sync ─────────────────────────────────────────
-/* Same-origin via the gate — ShipStation creds live ONLY in the gate's env vars (P0-2). */
-const SS_PROXY = '/api/shipstation/sync';
+const SS_PROXY = 'https://primary-production-079f9.up.railway.app/webhook/shipstation-proxy';
 
 async function syncShipStationOrders(){
   const btn = document.getElementById('ff-sync-btn');
   if(btn) btn.textContent = '⟳ Syncing…';
   try {
+    const key    = state.fulfillment.shipStationApiKey;
+    const secret = state.fulfillment.shipStationApiSecret;
+    if(!key || !secret){
+      showToast('⚠ ShipStation API credentials not set — open Settings');
+      if(btn) btn.textContent = '⟳ Sync Orders';
+      openFulfillmentSettings();
+      return;
+    }
     const resp = await fetch(SS_PROXY, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ orderStatus: 'awaiting_shipment' })
+      body: JSON.stringify({ apiKey: key, apiSecret: secret, orderStatus: 'awaiting_shipment' })
     });
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -5966,9 +6138,9 @@ async function syncShipStationOrders(){
   }
 }
 
-// Auto-sync ShipStation every 20 min during work hours (creds are server-side; no client gate)
-if(isWorkHours()) syncShipStationOrders();
-setInterval(() => { if(isWorkHours()) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
+// Auto-sync ShipStation every 20 min during work hours
+if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders();
+setInterval(() => { if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
 
 // ── Settings modal ───────────────────────────────────────────
 function openFulfillmentSettings(){
@@ -5976,7 +6148,10 @@ function openFulfillmentSettings(){
   const html = `
     <div style="padding:16px">
       <div style="font-family:var(--font-head);font-size:15px;font-weight:900;margin-bottom:12px">Fulfillment Settings</div>
-      <div style="font-size:11px;color:#666;background:#f4f4f5;border-radius:5px;padding:8px 10px;margin-bottom:12px;line-height:1.5">🔒 ShipStation credentials live on the server now — nothing to enter here. If sync fails, check the gate service (Railway) env vars.</div>
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Key</label>
+      <input id="ff-ss-key" type="text" value="${ff.shipStationApiKey||''}" placeholder="API Key" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Secret</label>
+      <input id="ff-ss-secret" type="password" value="${ff.shipStationApiSecret||''}" placeholder="API Secret" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Billing Cycle Start</label>
       <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-13'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
       <div style="display:flex;gap:8px">
@@ -5998,6 +6173,8 @@ function openFulfillmentSettings(){
 }
 
 function saveFulfillmentSettings(){
+  state.fulfillment.shipStationApiKey    = document.getElementById('ff-ss-key').value.trim();
+  state.fulfillment.shipStationApiSecret = document.getElementById('ff-ss-secret').value.trim();
   state.fulfillment.billingCycleStart    = document.getElementById('ff-cycle-start').value;
   saveState();
   const modal = document.getElementById('ff-settings-modal');
@@ -6251,9 +6428,14 @@ function exportBillingReport(){
    have executed before loadState() calls initFulfillmentBins()
    ============================================================ */
 document.getElementById('header-date').textContent = todayStr();
+if(localStorage.getItem('planetops_sidenav_collapsed') === '1') document.getElementById('side-nav').classList.add('collapsed');
+renderSideNav();
 (async () => {
   await loadState();          // shared state must finish loading before the board is built
   buildBoard();
+  // Inventory load is independent of the Printavo sync — the sync's fresh-window early
+  // return (another device pulled) and any mid-sync error used to leave inventory unloaded.
+  fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
   if(isWorkHours()) syncFromPrintavo();
   setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
 })();

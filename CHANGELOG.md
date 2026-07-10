@@ -151,6 +151,124 @@ Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Disc
 - Build doc updated?  yes — `frontdoor/BUILD_LOG.md` (new; schema + how-to-add-a-surface
           + gotchas + Phase-2 list). Spec/brief: `_planning/front-door-spec.md`,
           `_planning/fable-build-01-shell.md` (Appendix A = registry seed).
+## 2026-07-08 — Bottom tab bar REMOVED — sidebar is the app's sole navigation
+- Who:    Jean (via Claude, Fable 5; Jean's explicit call)
+- What:   Deleted the 68px bottom tab bar (markup + CSS) — it duplicated the new
+          sidebar section-for-section and ate vertical space on the floor iPad.
+          Main content now reaches the viewport bottom; the Schedule and
+          Availability iframes size to their panel (were hard-coded
+          `calc(100vh - 120px)` around the bar). The Pre-Press / Running /
+          Fulfillment count badges MOVED into the sidebar items keeping their
+          element ids (`prepress-badge` etc.) so the existing KPI updaters work
+          unchanged; the sidebar renders once at boot and only the highlight
+          updates on switch, so badges stay stable. On phones the ☰ drawer is
+          now the only nav — by design. This closes Holly's original "bottom bar
+          getting girthy" complaint from the 7/7 walkthrough.
+- Why:    With the sidebar always visible, the bar was pure redundancy; Jean
+          ordered the strip-out.
+- Proof:  Commit afd0cba, pushed to Pages. Headless: zero `.nav-tab`/`.bottom-nav`
+          elements; all 3 badges inside the sidebar (Running badge populated from
+          live state at boot); all 8 sections switch with highlight sync; main
+          content + schedule iframe reach the viewport bottom (0px gap).
+- Build doc updated?  no — this entry is the record.
+
+## 2026-07-08 — Nav shell v2: dropdown → collapsible LEFT SIDEBAR (Jean's direction)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Replaced the ☰ dropdown menu (same-day v1, below) with a persistent
+          collapsible left sidebar rendered from the same `SECTIONS` registry:
+          always visible beside the main content on wide screens; ☰ now toggles
+          collapse to a 58px icons-only rail (remembered per device via
+          localStorage `planetops_sidenav_collapsed`); current section carries a
+          yellow marker; PIN-gated sections will show 🔒. On narrow screens
+          (≤700px) the sidebar becomes an off-canvas drawer with a scrim, and
+          navigating closes it. Home panel, `goSection()` routing, PIN-gate
+          infra, and the bottom tab bar are unchanged. NOTE for Holly: this
+          supersedes the icon-bar-vs-hamburger DECISION — Jean chose sidebar.
+- Why:    Jean's call after seeing v1: a sidebar is the better long-term nav as
+          sections multiply — always visible, scales vertically, collapses out
+          of the way on the floor iPad.
+- Proof:  Commit 70ad052, pushed to Pages. Headless test at 1280px and 620px:
+          9 items render; collapse toggle + saved preference; current-highlight
+          syncs on jump; drawer hidden at boot, opens with scrim, closes on
+          navigate. All 7 script blocks syntax-clean.
+- Build doc updated?  no — this entry is the record.
+
+## 2026-07-08 — Nav shell: Home directory + ☰ quick-jump + PIN-gate infrastructure (overhaul #1)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Main dashboard gains an app navigation shell so the bottom tab bar stops
+          growing ("getting girthy"): a `SECTIONS` registry drives (a) a **Home**
+          panel — one tile per section with a description, reached via the ☰ menu or
+          tapping the logo — and (b) a **☰ hamburger menu** in the header that jumps
+          between sections from anywhere (current section highlighted). New sections
+          get ONE registry entry and appear in both places; the bottom bar stays as-is.
+          Bottom-nav buttons now route through `goSection()` (adds `data-tab` attrs).
+          **PIN gate built but inert:** `NAV_PIN = { code:null, gated:[] }` — when Holly
+          picks a PIN + which sections are restricted, set both and gated sections get a
+          🔒 in the menu/tiles, a PIN modal on entry, and a per-browser-session unlock.
+          Hamburger chosen over a persistent icon bar per the plan doc's recommendation
+          (scales better) — flag to Holly in case she prefers the icon bar.
+- Why:    Holly's 7/7 Board-overhaul plan #1 (P0): navigation must scale as sections
+          keep being added; PIN-restricted sections requested as infrastructure.
+- Proof:  Commit 5dd8692, pushed to Pages. Headless-driven test: Home renders 8 tiles;
+          menu opens with 9 entries + current highlight; jumping syncs panel + bottom
+          tab; with a test PIN configured the gate blocks entry, rejects a wrong PIN,
+          unlocks on the right one, and stays unlocked for the session.
+- Build doc updated?  no — this entry is the record. Open DECISIONS for Holly: PIN code +
+          gated section list (config at `NAV_PIN` in index.html), and the "Board" rename (#2).
+
+## 2026-07-07 — P0 bugs from Holly's Board walkthrough: inventory loading + scheduler date range
+- Who:    Jean (via Claude, Fable 5)
+- What:   (1) **Blanks inventory loading** — `fetchBandanaInventory()` was only
+          called at the very end of `syncFromPrintavo()`, so three paths left
+          `state.inventory` null forever: the 7/6 cross-device fresh-sync skip
+          (most devices return early and never reach the fetch), any mid-sync
+          Printavo error, and off-hours page loads (sync doesn't run at all).
+          Inventory now loads independently at init and whenever a Blanks sheet
+          opens (the 5-min localStorage cache keeps this cheap), keeps a stale
+          cache as fallback when the Railway proxy is down, and an already-open
+          sheet updates its stock lines in place by element id — a full
+          re-render would wipe quantities Rosa is mid-typing. A SKU that is
+          loaded but unmatched now reads "no live stock record for this SKU"
+          instead of the misleading "inventory not loaded yet".
+          (2) **Scheduler date range** — two device-local failure modes, both
+          reload-proof because `range` is intentionally LOCAL_ONLY (never
+          healed by shared-state sync): an inverted custom range (start after
+          end) rendered ZERO day rows, and scheduling a job outside the visible
+          window silently flips the device into custom mode forever — weeks
+          later the stored window is entirely in the past and the board shows
+          no current dates. Fixes: inverted ranges swap, degenerate ranges fall
+          back to Work Week, and boot resets a custom window that is entirely
+          past with no scheduled jobs inside it. A deliberate current custom
+          range is untouched.
+- Why:    Holly's 7/7 Board walkthrough flagged both as live bugs (plan doc
+          #12); the inventory one blocks the Blanks-stage overhaul (#4).
+- Proof:  Commit b7a2ac4, pushed to Pages. Proxy verified healthy (HTTP 200,
+          CORS *, ~12 s response — the latency is why late-arriving data must
+          refresh an open sheet). Headless-Edge repro: seeded a stuck June
+          custom range → board self-healed to the current work week; seeded a
+          current custom range → preserved; board page renders 92 job cards
+          post-change. NOTE for later: the inventory proxy returns no
+          `organic` section, so ORG SKUs show "no live stock record" — n8n
+          workflow / sheet side, not the app.
+- Build doc updated?  no — behavior fix only; this entry is the record.
+
+## 2026-07-07 — Top-level Estimator tab removed (UI/aesthetic pass)
+- Who:    Jean (via Claude, Fable 5)
+- What:   Removed the 🧮 Estimator tab from the main dashboard's bottom nav,
+          its `panel-estimator` iframe panel, and the `switchTab` lazy-load
+          line. The estimator itself is UNCHANGED: single source still lives
+          at `/estimator/` and remains fully reachable via the Schedule
+          module's ⏱ Estimator sub-tab (persistent iframe) plus the board's
+          auto-charted time chips (`estimate.js`). Also refreshed the
+          schedule tooltip note that referenced the deleted tab.
+- Why:    Jean lives in the Schedule module; the standalone tab duplicated
+          the sub-tab and cluttered the nav. Both iframed the same source,
+          so nothing is lost.
+- Proof:  grep for "estimator" in index.html returns zero matches; nav goes
+          Board / Pre-Press / Running / Reports / Fulfillment / Schedule /
+          Availability / Clock; no hash routing or saved-tab state pointed
+          at the removed tab.
+- Build doc updated?  no — nav-only change; this entry is the record.
 
 ## 2026-07-06 — Printavo-proxy polling throttled ~96% (429-storm root cause)
 - Who:    Jean (via Claude, Fable 5; Jean approved the design)

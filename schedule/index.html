@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule — Prototype</title>
+<title>Schedule — Planet Apparel</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -15,28 +15,57 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Barlow',system-ui,sans-serif;background:var(--grey-bg);color:var(--tonal);font-size:14px}
-  header{background:var(--white);border-bottom:3px solid var(--yellow);padding:14px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header h1{font-family:'Barlow Condensed';font-weight:700;font-size:30px;letter-spacing:.04em;text-transform:uppercase}
-  header .sub{color:var(--grey-text);font-size:13px}
-  header .stamp{font-size:12px;color:var(--grey-text);background:var(--grey-bg);border:1px solid var(--grey-line);border-radius:6px;padding:4px 10px}
-  header .stamp b{color:var(--tonal)}
-  header .sync-err{color:#a33325;border-color:#dfb0a8}
-  header .sync-paused{color:#8a6d1a;border-color:#dcc98a}
-  header .sync-off{color:#888}
-  .proto{background:var(--yellow);color:#000;font-weight:600;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.06em}
-  .toolbar{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-  .toolbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
-    border:1px solid var(--grey-line);background:var(--white);padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--tonal)}
-  .toolbar button:hover{border-color:#000}
-  .toolbar button.primary{background:#000;color:var(--yellow);border-color:#000}
-  .sandbox{background:#fdf3d0;border-bottom:1px solid #eedc9a;padding:7px 26px;font-size:12.5px;color:#6b5600}
+  /* ── Identity band: black, white type, yellow Ø — brand pairing rules ── */
+  header{background:var(--black);border-bottom:3px solid var(--yellow);padding:12px 26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-family:'Barlow Condensed';font-weight:700;font-size:27px;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
+  header .sub{color:rgba(255,255,255,.62);font-size:12.5px;letter-spacing:.02em}
+  header .stamp{font-size:12px;color:#b9b9b9;background:#161616;border:1px solid #3a3a3a;border-radius:6px;padding:4px 10px}
+  header .stamp b{color:var(--white)}
+  header .sync-err{color:#ff9d8f;border-color:#7a4038}
+  header .sync-paused{color:#f0d27a;border-color:#7a6a2e}
+  header .sync-off{color:#9a9a9a}
+  .paicon{margin-left:auto;height:32px;width:auto;color:var(--yellow);flex-shrink:0;display:flex;align-items:center}
+  .paicon svg{height:32px;width:auto}
+  .actionbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--white);border-bottom:1px solid var(--grey-line);padding:9px 26px}
+  .actionbar .spacer{flex:1}
+  .actionbar button{font-family:'Barlow Condensed';font-size:14px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;
+    border:1.5px solid var(--grey-line);background:var(--white);padding:6px 14px;border-radius:6px;cursor:pointer;color:var(--tonal);min-height:32px}
+  .actionbar button:hover{border-color:#000}
+  .actionbar button.primary{background:#000;color:var(--yellow);border-color:#000}
+  .sandbox{background:#fdf6dd;border-bottom:1px solid #eee0ab;padding:5px 26px;font-size:12px;color:#6b5600}
   .sandbox b{color:#000}
 
-  nav{display:flex;gap:6px;padding:12px 26px 0;flex-wrap:wrap}
-  nav button{font-family:'Barlow Condensed';font-size:16px;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--grey-line);
-    background:var(--white);padding:7px 16px;border-radius:8px 8px 0 0;cursor:pointer;color:var(--grey-text);border-bottom:none}
-  nav button.on{color:#000;font-weight:600;border-bottom:3px solid var(--yellow);background:var(--white)}
+  nav{display:flex;gap:2px;padding:8px 26px 0;flex-wrap:wrap;border-bottom:1px solid var(--grey-line);background:var(--white)}
+  nav button{font-family:'Barlow Condensed';font-size:15.5px;letter-spacing:.04em;text-transform:uppercase;border:none;
+    background:transparent;padding:8px 14px;border-bottom:3px solid transparent;cursor:pointer;color:var(--grey-text)}
+  nav button:hover{color:#000}
+  nav button.on{color:#000;font-weight:700;border-bottom-color:var(--yellow)}
   main{padding:16px 26px 60px;max-width:1500px}
+  /* ── One control family: selects / dates / text inputs read as the same system ── */
+  main select,.arr-card select,.etabar select,.xmeta select{
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%236b7280'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 7px center;background-color:#fff;padding-right:22px}
+  main select,main input[type=date],main input[type=text],main input[type=number]{
+    font:inherit;font-size:12px;border:1.5px solid #c9ced6;border-radius:6px;padding:3px 8px;color:var(--tonal);background-color:#fff;min-height:26px}
+  main select:focus,main input:focus,.actionbar input:focus{border-color:#000;outline:none}
+  #histpick{font:inherit;font-size:12.5px;border:1.5px solid var(--grey-line);border-radius:6px;padding:5px 8px;background:#fff;min-height:32px}
+  /* ── TODAY: the yellow rail — the one thing that should pop first ── */
+  .dayrow.today{border-left:5px solid var(--yellow)}
+  .dayrow.today .dname::after{content:'TODAY';background:var(--yellow);color:#000;font-size:10px;font-weight:700;
+    letter-spacing:.07em;border-radius:4px;padding:1px 7px;margin-left:9px;vertical-align:2px}
+  .calcell.today{outline:2px solid var(--yellow);outline-offset:-2px}
+  /* ── Touch layer: iPad-first tap targets ── */
+  @media(pointer:coarse){
+    .actionbar button,#searchbox,#histpick,.controls .seg button{min-height:42px}
+    main select,main input[type=date],main input[type=text],main input[type=number]{min-height:38px;font-size:13px}
+    nav button{padding:12px 16px}
+    .estchip,.qcchip,.due,.rec,.phbtn{padding-top:4px;padding-bottom:4px}
+    .splitbtn{font-size:17px;padding:3px 7px}
+    .strkbtn{padding:4px 10px}
+    .job{padding:11px 10px}
+    .arrhead,.drhead{padding-top:13px;padding-bottom:13px}
+  }
 
   /* ── Range controls ── */
   .controls{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;font-size:13px}
@@ -212,7 +241,7 @@
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
   .csched{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
-  .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background:#fffdf2}
+  .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background-color:#fffdf2}
   .lane-head{cursor:pointer;user-select:none}
   .lane-head .chev{font-size:11px}
   .lane.lclosed .chev{transform:rotate(-90deg)}
@@ -245,7 +274,9 @@
   td{padding:7px 10px;border-bottom:1px solid var(--grey-line);font-size:12.5px;vertical-align:middle}
   td.custcol{background:#f2f2f2;color:#000;font-weight:700}
   tr:last-child td{border-bottom:none}
-  .tablewrap{overflow-x:auto;border-radius:10px}
+  .tablewrap{overflow:auto;border-radius:10px;max-height:calc(100vh - 230px)}
+  .tablewrap table{overflow:visible}   /* table's own overflow:hidden (corner rounding) KILLS position:sticky — the wrap clips the corners instead */
+  .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
   .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
@@ -300,21 +331,22 @@
 
 <header>
   <h1>Schedule</h1>
-  <span class="proto">PROTOTYPE · SANDBOX</span>
   <span class="sub">One board. Every station. Arrivals included.</span>
   <span class="stamp" id="stamp"></span>
   <span class="stamp" id="syncstamp" title="Planning edits sync through the PlanetOps State API">…</span>
-  <span class="toolbar">
-    <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
-    <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)" style="font:inherit;border:1.5px solid var(--grey-line);border-radius:7px;padding:5px 8px">
-    <button id="importBtn" class="primary">⬆ Import CSV</button>
-    <button id="changesBtn">📝 Changes (0)</button>
-    <button id="backupBtn">💾 Backup</button>
-    <button id="resetBtn">↺ Reset</button>
-  </span>
-  <input type="file" id="fileInput" accept=".csv" style="display:none">
+  <span class="paicon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg></span>
 </header>
-<div class="sandbox"><b>Sandbox:</b> drag jobs between day rows · click a day header to collapse it · click <b>minutes</b> to set projected time · click a lane's <b>x/420</b> to change that day's max · ⧉ splits (click a split's <b>pcs/min</b> to rebalance) · ↩ rejoins · click a card to expand. Changes live ONLY here — <b>📝 Changes</b> is Jean's apply-in-Printavo checklist.</div>
+<div class="actionbar">
+  <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
+  <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)">
+  <span class="spacer"></span>
+  <button id="importBtn" class="primary">⬆ Import CSV</button>
+  <button id="changesBtn">📝 Changes (0)</button>
+  <button id="backupBtn">💾 Backup</button>
+  <button id="resetBtn">↺ Reset</button>
+  <input type="file" id="fileInput" accept=".csv" style="display:none">
+</div>
+<div class="sandbox"><b>Sandbox</b> — drag to move · click <b>minutes</b> or a lane's <b>x/420</b> to edit · ⧉ split / ↩ rejoin · click a card for details. Changes live here only; <b>📝 Changes</b> is the apply-in-Printavo checklist.</div>
 
 <div id="histbanner" style="display:none;background:#1e5f8a;color:#fff;padding:7px 26px;font-size:13px;font-weight:600"></div>
 <nav id="tabs"></nav>
@@ -324,7 +356,7 @@
 </div>
 
 <footer>
-  Planet Apparel · Schedule prototype · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
+  Planet Apparel · Production Schedule · fed by the Power Scheduler export (same file the Gauge pipeline collects 4×/day).
   ✓ PRINTED appears when an imprint's Printing/Heat step reads Completed in the export; the actual printed-on DATE comes from Printavo's schedule history via the internal-endpoint feed (production-efficiency data) at PlanetOps integration.
 </footer>
 
@@ -488,6 +520,11 @@ const LANES=[
 ];
 const laneOf=s=>LANES.find(l=>l.match(s||''))||null;
 const OUTSOURCED=/Outsourced|In Transit to PA|Goods Received/i;
+/* Outsourced = status says so OR Printavo's imprint typeOfWork says so ("Outsource") —
+   catches digital/sublimated bandanas + embroidery still sitting in early statuses
+   (e.g. Paid/Terms) that the status regex alone can't see. CSV rows carry no
+   typeOfWork, so they fall back to the status test. */
+const isOut=j=>OUTSOURCED.test(j.status)||/outsourc/i.test(j.typeOfWork||'');
 function outBadge(st){
   if(/In Transit to PA/i.test(st))return{cls:'arr-transit',txt:'✈ IN TRANSIT'};
   if(/Goods Received/i.test(st))return{cls:'arr-received',txt:'✓ RECEIVED'};
@@ -516,6 +553,22 @@ async function loadLiveCsv(){
     }
   }catch(e){/* feed unreachable — embedded/imported data stays */}
 }
+/* ── live intake feed: schedulable jobs straight from the OFFICIAL Printavo API (n8n intake-feed
+   webhook — cutover Step 1). Invoices the Power Scheduler CSV doesn't carry yet land in the
+   unscheduled pool without waiting for an export. Merge is INVOICE-level union: if the CSV knows
+   the invoice at all, CSV wins — PS's imprint ordinals are a lifetime counter (survive
+   delete/re-create) and can't be rebuilt from the API, so per-imprint matching would misfire. ── */
+const INTAKE_FEED='https://primary-production-079f9.up.railway.app/webhook/intake-feed';
+let intakeJobs=null,intakePulledAt=null,intakeAdded=0,intakeStale=0,_intakeLast=0;
+async function loadIntakeFeed(){
+  if(Date.now()-_intakeLast<60000)return;   // cooldown — each pull is ~10 paginated Printavo calls
+  _intakeLast=Date.now();
+  try{
+    const r=await fetch(INTAKE_FEED);const d=await r.json();
+    if(d&&Array.isArray(d.jobs)){intakeJobs=d.jobs;intakePulledAt=d.pulledAt||null;renderAll();loadMockups();}
+  }catch(e){/* intake unreachable — board runs on the CSV alone */}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadIntakeFeed();});
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
@@ -571,7 +624,7 @@ function estBadge(j){
   }
   const csv=j.minutes||0, near=csv&&Math.abs(e.total-csv)<=Math.max(3,csv*0.12);
   const flag=csv&&!near?' Δ':'';
-  return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → writes to your calculator">⏱ ${e.total}m${flag}</span>`;
+  return `<span class="estchip ${near?'near':'prop'}" data-estimp="${j.imprint}" title="Auto-charted ${e.total}m (${e.workType.replace('_',' ')}, strokes ×${store.strokes[j.imprint]||2})${csv?' · your entered '+csv+'m'+(near?' ✓ matches':' — differs, adjust strokes in the card'):''} · TAP to verify → becomes the job's scheduling minutes (when it has none) + writes to your calculator">⏱ ${e.total}m${flag}</span>`;
 }
 function statusPill(j){
   const e=mockEntry(j);
@@ -638,12 +691,37 @@ function rowToJob(r,hdr){
     status:g('Invoice Status').trim(), localSplit:false, moved:false,
   };
 }
+const API_STEPS=['Films','Burn Screens','Blanks','Inks','Press Check','Setup','Printing / Heat Application','Post Production'];
+function apiToJob(a){
+  const m=String(a.imprint).match(/^(\d+)\s*-\s*(\d+)$/);
+  return {
+    minutes:0, qty:+a.qty||0, date:'', station:'',
+    imprint:String(a.imprint), invoice:m?m[1]:String(a.imprint), impNum:m?m[2]:'', splitLetter:'',
+    parentKey:m?`${m[1]}-${m[2]}`:String(a.imprint),
+    nickname:a.nickname||'', prodDue:a.prodDue||'', custDue:a.custDue||'',
+    projectType:'', screens:a.screens!=null?String(a.screens):'', inkChange:'None',
+    ink:a.ink||'N/A', pallet:'N/A', postProdType:'N/A',
+    steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
+    status:(a.invoiceStatus||'').trim(), typeOfWork:String(a.typeOfWork||''), localSplit:false, moved:false, apiIntake:true,
+  };
+}
 const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[]};
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
+  intakeAdded=0;intakeStale=0;
+  if(intakeJobs&&!histCsv&&!store.csvText){   // live mode only — history snapshots + manual imports stay pure
+    const known=new Set(base.map(j=>j.invoice)), seen=new Set();
+    const staleCut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
+    intakeJobs.forEach(a=>{
+      const m=String(a.imprint).match(/^(\d+)/);
+      if(!m||known.has(m[1])||seen.has(String(a.imprint)))return;   // CSV wins at INVOICE level
+      if(a.custDue&&a.custDue<staleCut){intakeStale++;return;}      // zombie invoices parked in paid statuses for months — triage them in Printavo, not the pool
+      seen.add(String(a.imprint));base.push(apiToJob(a));intakeAdded++;
+    });
+  }
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
@@ -680,16 +758,18 @@ function buildModel(){
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
-  arrivals=jobs.filter(j=>OUTSOURCED.test(j.status));
+  arrivals=jobs.filter(j=>isOut(j));
 }
 function scheduledDates(){return [...new Set(jobs.filter(j=>j.date).map(j=>j.date))].sort();}
 function dateRange(){
   const sched=scheduledDates();
   if(store.range.mode==='custom'&&store.range.start&&store.range.end){
-    const out=[];let d=new Date(store.range.start+'T12:00:00');const end=new Date(store.range.end+'T12:00:00');
+    let s=store.range.start,e=store.range.end;
+    if(s>e){const t=s;s=e;e=t;}   // inverted picks used to render ZERO day rows ("no date range")
+    const out=[];let d=new Date(s+'T12:00:00');const end=new Date(e+'T12:00:00');
     let guard=0;
     while(d<=end&&guard++<42){out.push(iso(d));d.setDate(d.getDate()+1);}
-    return out;
+    if(out.length)return out;   // degenerate custom range (bad dates) → fall through to Work Week
   }
   const anchor=sched[0]?new Date(sched[0]+'T12:00:00'):new Date('2026-07-06T12:00:00');
   const mon=new Date(anchor);mon.setDate(anchor.getDate()-((anchor.getDay()+6)%7));
@@ -745,7 +825,7 @@ function jobCard(j){
     :`<span class="chip qty">${j.qty} pcs</span>`;
   return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
     ${mockTile(j,'')}
-    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
+    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${j.apiIntake?`<span class="movednote" style="background:#eef7ee;color:#1c7c2a" title="Landed via the Printavo API intake feed — not in the Power Scheduler export yet. Schedule it normally; it reconciles when the export catches up.">⚡ new via API</span>`:''}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
     <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time (from Printavo) — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
       ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
       ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}
@@ -769,7 +849,7 @@ function jobCard(j){
     <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
     <div class="cship">${shipChip(j)}</div>
     <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
-    ${(OUTSOURCED.test(j.status)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
+    ${(isOut(j)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
     ${isX?xPanel(j):''}
   </div>`;
 }
@@ -827,7 +907,7 @@ function xPanel(j){
       ${(()=>{const e=estimateFor(j);if(!e)return '';
         const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
         const v=store.timeVerified[j.imprint];
-        return `<div class="estbox"><b>Auto-charted time</b> <span class="pending-note">(embedded estimator — same formulas as the Estimator tab)</span>
+        return `<div class="estbox"><b>Auto-charted time</b> <span class="pending-note">(embedded estimator — same formulas as the ⏱ Estimator sub-tab)</span>
           <div class="xgrid">
             <span>Work type</span><span>${e.workType.replace('_',' ')}${e.provisional?' <span class="pending-note">(heat provisional)</span>':''}</span>
             <span>Setup</span><span>${e.setup}m</span>
@@ -910,7 +990,7 @@ function dayRow(d,filterLane){
   const lanes=(filterLane?[filterLane]:LANES).map(l=>laneBlock(l,dayJobs,isOT,d)).join('');
   const total=dayJobs.reduce((a,j)=>a+j.minutes,0);
   const closed=collapsedDays.has(d);
-  return `<section class="dayrow ${closed?'closed':''}" data-date="${d}">
+  return `<section class="dayrow ${closed?'closed':''}${d===todayISO()?' today':''}" data-date="${d}">
     <div class="drhead" data-toggle="${d}">
       <span class="chev">▾</span>
       <span class="dname">${fmtDay(d)}</span>
@@ -1045,7 +1125,7 @@ function renderPickups(){
 }
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
-  const un=unscheduled.filter(j=>!OUTSOURCED.test(j.status)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
+  const un=unscheduled.filter(j=>!isOut(j)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
   return rangeControls()+`
     ${!filterLane?arrivalsSection(false):''}
     ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
@@ -1055,58 +1135,69 @@ function renderBoard(filterLane){
     </section>`:''}
     ${rows}`;
 }
-let listSort={key:null,dir:1};
+let listSort={key:null,dir:1},listShowAll=false;
 const SORTVAL={
   imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
   station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
   ink:j=>j.ink==='N/A'?'~':j.ink, postpro:j=>j.postProdType==='N/A'?'~':j.postProdType,
   screens:j=>+j.screens||0, pallet:j=>j.pallet==='N/A'?'~':j.pallet,
   ptype:j=>['Bandana','Apparel','Promo'].includes(j.projectType)?j.projectType:'~',
-  prodDue:j=>j.prodDue||'~', printed:j=>isPrinted(j)?0:1, custDue:j=>j.custDue||'~',
-  status:j=>cleanStatus(j.status).toLowerCase(),
+  prodDue:j=>j.prodDue||'~', custDue:j=>j.custDue||'~',
+  status:j=>cleanStatus(j.status).toLowerCase(), strokes:j=>store.strokes[j.imprint]||2,
 };
 function renderList(){
-  let list=[...jobs];
+  const all=[...jobs];
+  const inQueue=j=>!j.placeholder&&!j.station&&!isOut(j);   // QUEUE mode: actionable only — outsourced waits in Arrivals (same rule as the Board pool)
+  let list=listShowAll?all:all.filter(inQueue);
+  const queueN=all.filter(inQueue).length;
   if(listSort.key&&SORTVAL[listSort.key]){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
   }
   const PPOPTS=['Hang Tag','Packaging (Bandana)','Packaging (Apparel)','Fold & Bag'];
+  const strokeCell=j=>[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}" title="Print strokes ×${n} — squeegee passes per unit (screen print; ×2 is standard). Changing it re-charts the time.">×${n}</button>`).join('');
+  const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rows=list.map(j=>j.placeholder
-    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td>${fmtShort(j.date)}</td><td>${j.station}</td>
-      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
-    <td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>
-    <td><select data-station="${j.imprint}" title="Assign/change station"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
-    <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Projected time — click to set">${j.minutes||0}</span></td>
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
-    <td><select data-aink="${j.imprint}" title="Ink / application type (#7 — editable)"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Screen count / # colors (#7 — editable)"></td>
-    <td><select data-apal="${j.imprint}" title="Pallet size (#7 — editable)"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
-    <td><select data-ptype="${j.imprint}" title="Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td><select data-pptype="${j.imprint}" title="Post-production required?"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td>${fmtShort(j.prodDue)}</td><td>${isPrinted(j)?'✓':''}</td>
+    <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Step 3 — colors / screen count"></td>
+    <td><select data-apal="${j.imprint}" title="Step 4 — pallet size"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
+    <td><select data-pptype="${j.imprint}" title="Step 5 — post-production, if any"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td style="white-space:nowrap">${strokeCell(j)}</td>
+    <td style="white-space:nowrap">${estCell(j)}</td>
+    <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
+    <td><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
+    ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
+    <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="16">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?17:16}">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
   };
-  return `<div class="hint" style="margin-bottom:8px">Jean's workbench — every cell is LIVE: set the date (or clear it to unschedule), assign the station, click minutes, set Project Type + post-production. Same jobs as the Board, list-shaped. Sort by any header.</div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('date','Sched')}${H('station','Station')}${H('minutes','Min')}${H('qty','Qty')}${H('ink','Ink')}${H('screens','Scr')}${H('pallet','Pallet')}${H('ptype','Type')}${H('postpro','Post-Pro')}${H('prodDue','Prod Due')}${H('printed','Printed')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div class="hint" style="margin-bottom:8px">${listShowAll
+    ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
+    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b> Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
+    <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
 function changeList(){
   const out=[];
+  const apiTag=i=>{const j=jobs.find(x=>x.imprint===i);return j&&j.apiIntake?' — ⚡ API-intake job (not in Power Scheduler yet; apply once its export catches up)':'';};
   Object.entries(store.splits).forEach(([imp,s])=>{
     const allocs=Object.entries(store.alloc).filter(([k])=>k.startsWith(imp)).map(([k,v])=>`${k.slice(-1)}: ${v.qty!=null?v.qty+' pcs':''}${v.min!=null?' / '+v.min+' min':''}${v.dd?' [DOUBLE DRY]':''}`).join(', ');
     out.push(`SPLIT ${imp} into ${s.parts} parts (Copy icon in Power Scheduler)${allocs?' — rebalance: '+allocs:''}`);
   });
-  Object.entries(store.minutesEdit).forEach(([imp,v])=>out.push(`SET projected time for ${imp} → ${v} min (Minutes cell)`));
-  Object.entries(store.stations).forEach(([imp,st])=>out.push(`ASSIGN ${imp} → ${st} (Station cell / drag onto station row)`));
-  Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)`));
+  Object.entries(store.minutesEdit).forEach(([imp,v])=>out.push(`SET projected time for ${imp} → ${v} min (Minutes cell)${apiTag(imp)}`));
+  Object.entries(store.stations).forEach(([imp,st])=>out.push(`ASSIGN ${imp} → ${st} (Station cell / drag onto station row)${apiTag(imp)}`));
+  Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)${apiTag(imp)}`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)${apiTag(imp)}`));
   Object.entries(store.ptype).forEach(([imp,v])=>out.push(`SET Project Type for ${imp} → ${v}`));
   Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
   Object.entries(store.attrs).forEach(([imp,a])=>{const p=[];if(a.ink)p.push('Ink → '+a.ink);if(a.screens!=null&&a.screens!=='')p.push('Screens → '+a.screens);if(a.pallet)p.push('Pallet → '+a.pallet);if(p.length)out.push(`SET ${p.join(' · ')} for ${imp}`);});
@@ -1210,7 +1301,7 @@ function renderCalendar(){
     const tot=rows.reduce((a,j)=>a+j.minutes,0);
     const f=dayFullness(d);
     const dow=new Date(d+'T12:00:00').getDay();
-    return `<div class="calcell ${dow===0||dow===6?'wkend':''}" data-date="${d}">
+    return `<div class="calcell ${dow===0||dow===6?'wkend':''}${d===todayISO()?' today':''}" data-date="${d}">
       <div class="calday"><b class="calgoday" data-calgoday="${d}" title="Open this day alone (Day view)">${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${f.isOT?' <span class="ot-badge">OT</span>':''}${fullChip(f,laneF)}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
       <div class="calitems">${rows.map(bar).join('')}</div></div>`;
   }).join('');
@@ -1228,9 +1319,9 @@ function renderCalendar(){
 
 /* ───────── Tabs ───────── */
 const TABS=[
+  {label:'Queue',render:renderList},              // Jean 7/9 (after 20+ real jobs): Queue FIRST — it's where every scheduling session starts; also the landing tab (activeTab=0)
   {label:'Board',render:()=>renderBoard(null)},
   {label:'Calendar',render:renderCalendar},
-  {label:'List',render:renderList},
   {label:'Arrivals',render:()=>arrivalsSection(true)},
   {label:'Pickup & Delivery',render:renderPickups},
   ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
@@ -1251,16 +1342,31 @@ function updateChangesBtn(){
   if(tabBtn)tabBtn.textContent=n?`Changes · ${n}`:'Changes';
 }
 function renderAll(){
+  // every edit re-renders the whole tab — remember the queue table's scroll so a field entry
+  // doesn't snap the view back to the top mid-fill (the wrap is a fresh element each render)
+  const _tw=main.querySelector('.tablewrap');
+  const _twTop=_tw?_tw.scrollTop:0,_twLeft=_tw?_tw.scrollLeft:0;
+  const _winY=window.scrollY||document.documentElement.scrollTop||0;
   buildModel();
   nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
   const est=!!TABS[activeTab].est,estWrap=document.getElementById('estWrap');
   estWrap.style.display=est?'block':'none';main.style.display=est?'none':'';
   if(est){const f=document.getElementById('estFrame');if(!f.getAttribute('src'))f.src='../estimator/';}
   main.innerHTML=TABS[activeTab].render();
+  if(_twTop||_twLeft||_winY){
+    const _restore=()=>{
+      const t=main.querySelector('.tablewrap');
+      if(t){t.scrollTop=_twTop;t.scrollLeft=_twLeft;}
+      if(_winY)window.scrollTo(0,_winY);
+    };
+    _restore();                                   // synchronous, before paint
+    requestAnimationFrame(_restore);              // after first layout/paint
+    setTimeout(_restore,150);                     // after late async layout (fonts/imgs), before the user notices
+  }
   const stampEl=document.getElementById('stamp');
   if(store.csvName)stampEl.innerHTML=`DATA <b>${store.csvName}</b> · manual import (↺ Reset returns to the live feed)`;
   else if(liveName){const t=livePulledAt?new Date(livePulledAt):null;
-    stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}`;}
+    stampEl.innerHTML=`DATA <b style="color:var(--green)">● LIVE</b> · ${liveName}${t?' · pulled '+t.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}${intakeAdded?` · <b style="color:var(--green)">+${intakeAdded}</b> <span title="Invoices pulled live from the Printavo API that the Power Scheduler export doesn't carry yet${intakeStale?` (${intakeStale} more skipped: parked in a paid/production status with a customer due date >60 days past — clean those up in Printavo)`:''}">via Printavo API</span>`:''}`;}
   else stampEl.innerHTML=`DATA <b>export_July 6.csv</b> · embedded sample (live feed loading…)`;
   updateChangesBtn();
   if(typeof renderHistBanner==='function')renderHistBanner();
@@ -1374,6 +1480,9 @@ function wireMain(){
       renderAll();
     });
   });
+  // List queue ⇄ show-all toggle
+  const lsa=document.getElementById('listShowAll');
+  if(lsa)lsa.addEventListener('change',()=>{listShowAll=lsa.checked;renderAll();});
   // mockup → 90% lightbox
   main.querySelectorAll('.mock').forEach(m=>{
     m.addEventListener('click',e=>{
@@ -1552,6 +1661,12 @@ function wireMain(){
       }
       const j=jobs.find(x=>x.imprint===imp);const est=estimateFor(j);if(!est)return;
       store.timeVerified[imp]={min:est.total,at:todayISO()};
+      // Verify ADOPTS the estimate as the job's scheduling minutes when the job has no real
+      // Power Scheduler minutes (API-intake + thin rows arrive at 0 — without this, capacity
+      // counts them as zero and ⚡ placement refuses them). Rows whose CSV brought real
+      // minutes are never overwritten — the estimate stays advisory there.
+      const baseMin=j.minutesOrig!=null?j.minutesOrig:j.minutes;
+      if(!baseMin)store.minutesEdit[imp]=est.total;
       save();renderAll();
       sendWriteback(j,imp);
     });
@@ -1899,7 +2014,7 @@ function jumpTo(imp){
       localStorage.setItem(KEY,JSON.stringify(store));
     }
   }
-  if(OUTSOURCED.test(j.status)){
+  if(isOut(j)){
     const ad=store.arrived[j.imprint];
     if(ad)collapsedArrDates.delete('a:'+ad);
     else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
@@ -1927,7 +2042,7 @@ document.getElementById('searchbox').addEventListener('keydown',e=>{
       localStorage.setItem(KEY,JSON.stringify(store));
     }
   }
-  if(OUTSOURCED.test(j.status)){
+  if(isOut(j)){
     const ad=store.arrived[j.imprint];
     if(ad)collapsedArrDates.delete('a:'+ad);
     else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
@@ -1977,10 +2092,23 @@ window.addEventListener('beforeunload',e=>{
   if(!store.exported&&changeList().length){e.preventDefault();e.returnValue='';}
 });
 
+/* Self-heal a stale custom range: scheduling outside the visible range silently flips a
+   device into custom mode and it never returns to Work Week on its own. If the whole
+   stored window is in the past AND holds no scheduled job, it's stuck — reset to week. */
+if(store.range.mode==='custom'&&store.range.end&&store.range.end<todayISO()){
+  buildModel();
+  const sched=scheduledDates();
+  if(!sched.some(d=>d>=store.range.start&&d<=store.range.end)){
+    store.range={mode:'week',start:null,end:null};
+    localStorage.setItem(KEY,JSON.stringify(store));
+  }
+}
+
 if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar');
 renderAll();
 loadMockups();
 loadLiveCsv();
+loadIntakeFeed();
 loadSharedStore();
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
