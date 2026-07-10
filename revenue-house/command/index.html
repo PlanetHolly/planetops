@@ -210,6 +210,12 @@
   .texp{padding:0 17px 16px;border-top:1px solid var(--line)}
   .tstreak{display:flex;gap:10px;font-size:12.5px;line-height:1.5;color:#374151;margin-top:10px}
   .tstreak .k{color:var(--mut);font-weight:700;flex:0 0 auto}
+  .tbadge{font-size:10px;font-weight:800;color:var(--mut);background:#f1f5f9;border:1px solid var(--line);
+    border-radius:5px;padding:2px 7px;white-space:nowrap;letter-spacing:.3px}
+  .cadnote{font-size:11px;color:var(--mut);font-weight:600}
+  .reactblock{margin:10px 0 2px 14px;padding:2px 0 2px 12px;border-left:2px solid var(--line);
+    display:flex;flex-direction:column;gap:8px}
+  .reacthd{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--mut)}
 
   /* ── automations board ── */
   .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start}
@@ -358,6 +364,23 @@ function autoChip(level){
 // group; they still resolve in search + detail (deep links), just no longer clutter.
 function isRetired(t){ return t && (t.autoLevel==="off" || String(t.name||"").startsWith("[RETIRED")); }
 
+// Pure data/system touchpoints — they show a ⚙ SYSTEM chip instead of an engine chip and
+// never count toward automated/human tallies.
+const SYSTEM_TPS = ["savetouch-close"];
+function sysTpChip(){ return '<span class="sysbadge">⚙ SYSTEM</span>'; }
+function autoOrSysChip(tpId, level){ return SYSTEM_TPS.indexOf(tpId)>=0 ? sysTpChip() : autoChip(level); }
+
+// Comma-list-aware tier matcher. Blank journeyTier, blank rowTier, or rowTier "all" → true;
+// otherwise true when the two comma lists intersect (case/space-insensitive).
+function tierApplies(rowTier, journeyTier){
+  const jt=String(journeyTier==null?"":journeyTier).trim();
+  const rt=String(rowTier==null?"":rowTier).trim();
+  if(!jt || !rt || rt.toLowerCase()==="all") return true;
+  const split=s=>s.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+  const a=split(rt), b=split(jt);
+  return a.some(x=>b.indexOf(x)>=0);
+}
+
 // sendMode → per-tier truth on the touchpoint detail card (change #1, the Holly fix).
 const SEND_MODE = {
   "auto-send":{ic:"✉️", label:"AUTO-SEND", cls:"autosend"},
@@ -374,11 +397,15 @@ function tierChipsHTML(tpId){
   if(!joins.length) return "";
   const seen = {}; const pairs = [];
   joins.forEach(j=>{
-    const tier = (j.tier==null||j.tier==="") ? "—" : String(j.tier);
     const mode = j.sendMode||"";
-    const key = tier+"|"+mode;
-    if(seen[key]) return; seen[key]=1;
-    pairs.push({tier, mode});
+    // A join tier like "T1,T2" becomes two normalized chips, not one opaque chip.
+    const tiers = (j.tier==null||j.tier==="") ? ["—"]
+      : String(j.tier).split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+    (tiers.length?tiers:["—"]).forEach(tier=>{
+      const key = tier+"|"+mode;
+      if(seen[key]) return; seen[key]=1;
+      pairs.push({tier, mode});
+    });
   });
   pairs.sort((a,b)=> tierRank(a.tier)-tierRank(b.tier) || a.tier.localeCompare(b.tier));
   return pairs.map(p=>{
@@ -458,13 +485,21 @@ function buildIndex(D){
     if(best===null && rows.length) return "unknown";
     return best || "manual";
   }
-  // derived cadence tag from journeys
-  function cadenceOf(code){
+  // derived cadence(s) from journeys — every journey row whose touchpoint set overlaps the
+  // script's touchpoints, sorted stage → step → tier. cadenceOf keeps the old first-hit shape.
+  function cadencesOf(code){
     const tpIds = new Set((tsByScript[code]||[]).map(r=>r.touchpointId));
-    let hit=null;
-    (D.journeys||[]).some(j=>{ if(tpIds.has(j.touchpointId)){ hit=j; return true;} return false;});
-    return hit ? {label:hit.timingLabel, tier:hit.tier} : null;
+    const out=[];
+    (D.journeys||[]).forEach(j=>{
+      if(tpIds.has(j.touchpointId)){
+        out.push({label:j.timingLabel, tier:j.tier, stage:j.stage, stepOrder:+j.stepOrder||0, customerType:j.customerType});
+      }
+    });
+    out.sort((a,b)=> stageOrderOf(a.stage)-stageOrderOf(b.stage) || a.stepOrder-b.stepOrder
+      || String(a.tier||"").localeCompare(String(b.tier||"")));
+    return out;
   }
+  function cadenceOf(code){ return cadencesOf(code)[0] || null; }
 
   // search index
   const searchIdx = [];
@@ -529,12 +564,12 @@ function buildIndex(D){
     });
   });
 
-  return {byCode,slugMap,gapByCode,tpById,fieldsByScript,tsByScript,tsByTouchpoint,journeysByType,searchIdx,levelOf,cadenceOf};
+  return {byCode,slugMap,gapByCode,tpById,fieldsByScript,tsByScript,tsByTouchpoint,journeysByType,searchIdx,levelOf,cadenceOf,cadencesOf};
 }
 
 function journeyLabel(ct){
-  const map={"at-risk":"At-Risk","inactive":"Inactive","lost":"Lost"};
-  if(map[ct]) return map[ct]+" journey";
+  const map={"at-risk":"At-Risk journey","inactive":"Inactive journey","lost":"Lost journey","active":"Active customers"};
+  if(map[ct]) return map[ct];
   const m=ct.match(/^(bandana|apparel|promo)-(t\d)$/);
   if(m) return m[1].charAt(0).toUpperCase()+m[1].slice(1)+" "+m[2].toUpperCase();
   return ct;
@@ -681,6 +716,7 @@ function route(){
     else if(seg0==="calls"){ renderScriptsGrid(app, "call"); }
     else if(seg0==="journeys" && p[1]){ renderJourneyTimeline(app, p[1]); }
     else if(seg0==="journeys"){ renderJourneysHome(app); }
+    else if(seg0==="cadence"){ renderCadence(app); }
     else if(seg0==="automations" && p[1]){ renderAutomationDetail(app, p[1]); }
     else if(seg0==="automations"){ renderAutomations(app); }
     else if(seg0==="lifecycle" && p[1]){ renderLifecycle(app, p[1]); }
@@ -727,7 +763,8 @@ function renderHome(app){
     {ic:"📞",lab:"Calls",one:"Talking points for the phone",cnt:callN,csub:"live",hash:"#/calls"},
     {ic:"🧭",lab:"Journeys",one:"What a customer hears, in order",cnt:journeyN,csub:"paths",hash:"#/journeys"},
     {ic:"⚙️",lab:"Automations",one:"What fires on its own",cnt:autoLiveN,csub:"live",hash:"#/automations"},
-    {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"}
+    {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"},
+    {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"}
   ];
   const tg = el("div","tiles");
   tiles.forEach(t=>{
@@ -1030,6 +1067,37 @@ function sideMeta(s){
   // sending automation(s)
   const tps=(IDX.tsByScript[s.code]||[]).map(j=>IDX.tpById[j.touchpointId]).filter(Boolean);
   const uniqTps=[...new Map(tps.map(t=>[t.id,t])).values()];
+
+  // Cadence (B3) — every journey cadence this script appears in; else its trigger type.
+  const cads=IDX.cadencesOf(s.code);
+  const pc=el("div","panel"); pc.appendChild(el("h3","","Cadence"));
+  if(cads.length){
+    cads.forEach(c=>{
+      const st=stageOf(c.stage);
+      const line=el("div","fires"); line.style.fontSize="13px"; line.style.marginBottom="6px";
+      line.textContent=[c.label, st?st.name:c.stage, c.tier].filter(Boolean).join(" · ");
+      pc.appendChild(line);
+    });
+  } else {
+    const line=el("div","fires"); line.style.fontSize="13px";
+    const fw=String(s.firesWhen||"");
+    line.textContent=/Reply-triggered/i.test(fw) ? "↩ Reply-triggered — see Fires when" : (firstSentence(fw)||"—");
+    pc.appendChild(line);
+  }
+  side.appendChild(pc);
+
+  // Streak (B3) — non-blank streakNotes on each active parent touchpoint. Omit if none.
+  const streakTps=uniqTps.filter(t=>!isRetired(t) && t.streakNotes!=null && String(t.streakNotes).trim());
+  if(streakTps.length){
+    const ps=el("div","panel"); ps.appendChild(el("h3","","Streak"));
+    streakTps.forEach(t=>{
+      const line=el("div","fires"); line.style.fontSize="13px"; line.style.marginBottom="6px";
+      line.textContent=(streakTps.length>1? t.name+": " : "")+String(t.streakNotes);
+      ps.appendChild(line);
+    });
+    side.appendChild(ps);
+  }
+
   if(uniqTps.length){
     const p2=el("div","panel"); p2.appendChild(el("h3","","Sent by"));
     const ll=el("div","linklist");
@@ -1135,6 +1203,188 @@ function splitParas(text){
 }
 function splitLines(text){ return String(text||"").split(/\n/).map(x=>x.trim()).filter(Boolean); }
 
+/* ─────────────────────────── cadence + role rules ─────────────────────────── */
+function firstSentence(txt){
+  const t=String(txt||"").trim(); if(!t) return "";
+  const m=t.match(/^[^.!?]*[.!?]/);
+  return (m?m[0]:t).trim();
+}
+// A lifecycle journey (Journeys-home list) is NOT a product-line×tier journey AND lands at
+// least one row on a known stage — keeps ot-*/qb-* system journeys out. The cadence view uses
+// the stage guardrail alone, so product-line journeys still fold into their NEW/ACTIVE stages.
+function cadenceEligible(ct){ return (IDX.journeysByType[ct]||[]).some(j=>stageKnown(j.stage)); }
+function isLifecycleJourney(ct){ return !/^(bandana|apparel|promo)-t[123]$/.test(ct) && cadenceEligible(ct); }
+
+// Role rules: which join roles are the real "sends" for a journey row. null → no role
+// filtering (legacy); [] → this step sends nothing (skip / system rows).
+function rolesForRow(ct, tpId, stage, stepOrder){
+  if(tpId==="crosssell"){ return normStage(stage)==="NEW" ? ["intro","intro-cortney"] : ["intro-warm","intro-warm-cortney"]; }
+  if(tpId==="savetouch"){ return {1:["touch1-email"],2:["touch2-email"],3:["save-call-card"],4:["touch3-final-email"],6:[]}[+stepOrder] || null; }
+  if(tpId==="savetouch-close") return [];
+  return null;
+}
+// Reactive "if they reply" roles that hang under a crosssell send (never a top-level send).
+function reactiveRolesFor(stage){ return [ normStage(stage)==="NEW" ? "response" : "response-warm", "ghost-followup" ]; }
+
+// Resolve join rows for a cadence/journey row → {r, sc, gap}, tier-filtered then role-filtered.
+function scriptsForRow(tpId, journeyTier, roles){
+  let joins=(IDX.tsByTouchpoint[tpId]||[]).filter(r=>tierApplies(r.tier, journeyTier));
+  if(roles){ joins=joins.filter(r=>roles.indexOf(r.role)>=0); }
+  return joins.map(r=>({r, sc:IDX.byCode[r.scriptCode], gap:IDX.gapByCode[r.scriptCode]}));
+}
+function tierChipsFrom(tiers){
+  return [...tiers].sort((a,b)=>tierRank(a)-tierRank(b)||String(a).localeCompare(String(b)))
+    .map(t=>'<span class="chip ghost sm"><span class="tl">'+esc(t)+'</span></span>').join("");
+}
+// time-based vs reply/event, from the ROLE-FILTERED scripts' firesWhen only. The row condition
+// is deliberately excluded: prose like "reply → ^xsellwarmresponse" describes the NESTED reactive
+// lane, not this row's own trigger (the warm sweep is timed, its reply handling hangs below it).
+function triggerBadge(j, scriptObjs){
+  let txt="";
+  (scriptObjs||[]).forEach(o=>{ if(o.sc) txt+=" "+(o.sc.firesWhen||""); });
+  return /Reply-triggered/i.test(txt) ? '<span class="tbadge">↩ on reply</span>' : '<span class="tbadge">⏱ timed</span>';
+}
+// One script link row. opts.support → talking-points card (not a send); opts.note → muted note.
+function scriptLnk(o, opts){
+  opts=opts||{};
+  const ln=el("div","lnk");
+  const roleBadge=(o.r&&o.r.role)?' <span class="sysbadge">'+esc(o.r.role)+'</span>':'';
+  const noteBadge=opts.note?' <span class="cadnote">'+esc(opts.note)+'</span>':'';
+  if(o.sc){
+    if(opts.support){
+      ln.style.opacity="0.85";
+      ln.innerHTML='<span style="color:#475569;font-weight:700">🗒 talking points —</span> <span>'+esc(o.sc.name)+'</span>'+roleBadge+noteBadge+'<span class="ar">→</span>';
+    } else {
+      ln.innerHTML=(o.sc.channel==="call"?"📞 ":"📧 ")+'<span>'+esc(o.sc.name)+'</span>'+roleBadge+noteBadge+'<span class="ar">→</span>';
+    }
+    ln.onclick=()=>nav((o.sc.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.sc.code));
+  } else if(o.gap){
+    ln.innerHTML='🕓 <span>'+esc(o.gap.name)+'</span> <span class="gaptag">'+esc(o.gap.publishStatus)+'</span><span class="ar">→</span>';
+    ln.onclick=()=>nav((o.gap.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.gap.code));
+  } else {
+    ln.innerHTML='<span style="color:#94a3b8">'+esc(o.r.scriptCode)+' (not found)</span>';
+  }
+  return ln;
+}
+// The indented "If they reply" block under a crosssell send.
+function reactiveBlock(stage){
+  const roles=reactiveRolesFor(stage), objs=[];
+  roles.forEach(role=>{
+    (IDX.tsByTouchpoint["crosssell"]||[]).filter(r=>r.role===role).forEach(r=>{
+      const sc=IDX.byCode[r.scriptCode], gap=IDX.gapByCode[r.scriptCode];
+      if(sc||gap) objs.push({r, sc, gap});
+    });
+  });
+  if(!objs.length) return null;
+  const box=el("div","reactblock");
+  box.appendChild(el("div","reacthd","If they reply"));
+  objs.forEach(o=>box.appendChild(scriptLnk(o,{note:o.sc?firstSentence(o.sc.firesWhen):""})));
+  return box;
+}
+// Cadence model: eligible journey rows, grouped by known stage (in stage order), deduped
+// within a stage by touchpoint|stage|step. silent → suppress the self-check warnings.
+function cadenceModel(silent){
+  const warn=(...a)=>{ if(!silent) console.warn(...a); };
+  const byStage={};
+  Object.keys(IDX.journeysByType).forEach(ct=>{
+    if(!cadenceEligible(ct)) return;
+    IDX.journeysByType[ct].forEach(j=>{
+      const tp=IDX.tpById[j.touchpointId];
+      if(!tp){ warn('[cadence] journey row touchpointId has no touchpoint:', ct, j.touchpointId); return; }
+      if(isRetired(tp)) return;
+      const st=stageOf(j.stage);
+      if(!st){ warn('[cadence] row stage is not a known stage:', ct, j.stage); return; }
+      (byStage[st.id]=byStage[st.id]||[]).push(j);
+    });
+  });
+  const stagesSorted=DATA.stages.slice().sort((a,b)=>(+a.sortOrder||0)-(+b.sortOrder||0));
+  const out=[];
+  stagesSorted.forEach(st=>{
+    const stRows=byStage[st.id]||[];
+    if(!stRows.length){ warn('[cadence] stage section has zero rows:', st.id); return; }
+    const groups={}, order=[];
+    stRows.forEach(j=>{
+      const key=j.touchpointId+'|'+normStage(j.stage)+'|'+(j.stepOrder==null?"":j.stepOrder);
+      if(!groups[key]){ groups[key]=[]; order.push(key); }
+      groups[key].push(j);
+    });
+    order.sort((a,b)=>(+groups[a][0].stepOrder||0)-(+groups[b][0].stepOrder||0)
+      || String(groups[a][0].tier||"").localeCompare(String(groups[b][0].tier||"")));
+    out.push({stage:st, groups:order.map(k=>({key:k, rows:groups[k]}))});
+  });
+  return out;
+}
+function renderCadence(app){
+  setCrumb([["Command Center","#/"],["Cadence",null]]);
+  app.appendChild(sectionHead("Cadence","When every touch sends — every lifecycle stage in order, deduped across product lines"));
+  const model=cadenceModel(false);
+  if(!model.length){ app.appendChild(el("div","empty",'<div class="big">No cadence rows</div><div>No journey row maps to a known lifecycle stage.</div>')); return; }
+  model.forEach(section=>{
+    const st=section.stage;
+    const h=el("h2","sec"); h.textContent=st.name;
+    if(st.entryRule){ const sub=el("span","sub"); sub.textContent=" · "+firstSentence(st.entryRule); h.appendChild(sub); }
+    app.appendChild(h);
+    const tl=el("div","timeline");
+    section.groups.forEach(g=>tl.appendChild(cadenceEntry(g.rows)));
+    app.appendChild(tl);
+  });
+}
+function cadenceEntry(rws){
+  const j0=rws[0];
+  const tp=IDX.tpById[j0.touchpointId]||{id:j0.touchpointId,name:j0.touchpointId,autoLevel:"manual"};
+  const isSys=SYSTEM_TPS.indexOf(j0.touchpointId)>=0;
+  // scripts first (the trigger badge reads their firesWhen)
+  const roles=rolesForRow(j0.customerType, j0.touchpointId, j0.stage, j0.stepOrder);
+  const jTier=rws.map(r=>r.tier).filter(Boolean).join(",");
+  const scriptObjs=scriptsForRow(j0.touchpointId, jTier, roles);
+  if(roles && roles.length && !scriptObjs.filter(o=>o.sc||o.gap).length){
+    console.warn('[cadence] role map returned no scripts for', j0.customerType, j0.touchpointId, 'step', j0.stepOrder, roles);
+  }
+  // merged tiers, departments, conditions across the deduped rows
+  const tierSet=new Set(), deptSet=new Set(), condMap=new Map();
+  rws.forEach(j=>{
+    const tiers=String(j.tier||"").split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+    tiers.forEach(t=>tierSet.add(t));
+    const dp=String(j.department||"").trim(); if(dp) deptSet.add(dp);
+    const c=String(j.condition||"").trim();
+    if(!condMap.has(c)) condMap.set(c,new Set());
+    tiers.forEach(t=>condMap.get(c).add(t));
+  });
+  const deptsDiffer=deptSet.size>1;
+  const condsDiffer=[...condMap.keys()].filter(c=>c).length>1;
+
+  const entry=el("div","tentry");
+  const d=el("details","tcard");
+  let head='<summary><span class="when">'+esc(j0.timingLabel||"")+'</span>'+
+    '<span class="tnm">'+esc(tp.name)+'</span>'+
+    triggerBadge(j0, scriptObjs)+
+    (isSys? sysTpChip() : autoChip(tp.autoLevel))+healthDot(tp.healthStatus);
+  if(!condsDiffer && tierSet.size) head+=tierChipsFrom(tierSet);
+  if(deptsDiffer) [...deptSet].forEach(dp=>{ head+='<span class="sysbadge">'+esc(dp)+'</span>'; });
+  if(condsDiffer){
+    condMap.forEach((tiers,c)=>{ if(!c) return; head+='<span class="cond">'+tierChipsFrom(tiers)+' '+esc(c)+'</span>'; });
+  } else {
+    const c=[...condMap.keys()].find(x=>x); if(c) head+='<span class="cond">'+esc(c)+'</span>';
+  }
+  head+='</summary>';
+  d.innerHTML=head;
+
+  const exp=el("div","texp");
+  if(!scriptObjs.length && !isSys && !(roles && roles.length===0)){
+    exp.appendChild(el("div","sheetnote","No script attached to this touch."));
+  }
+  scriptObjs.forEach(o=>exp.appendChild(scriptLnk(o,{support:o.r&&o.r.role==="save-call-card"})));
+  if(j0.touchpointId==="crosssell"){ const rb=reactiveBlock(j0.stage); if(rb) exp.appendChild(rb); }
+  if(tp.streakNotes!=null && String(tp.streakNotes).trim()){
+    const stk=el("div","tstreak"); const sk=el("span","k"); sk.textContent="Streak";
+    const sv=el("span"); sv.textContent=String(tp.streakNotes);
+    stk.appendChild(sk); stk.appendChild(sv); exp.appendChild(stk);
+  }
+  if(exp.childNodes.length) d.appendChild(exp);
+  entry.appendChild(d);
+  return entry;
+}
+
 /* ─────────────────────────── JOURNEYS ─────────────────────────── */
 function renderJourneysHome(app){
   setCrumb([["Command Center","#/"],["Journeys",null]]);
@@ -1162,8 +1412,9 @@ function renderJourneysHome(app){
     });
     app.appendChild(g);
   });
-  // lifecycle journeys
-  const life=["at-risk","inactive","lost"].filter(ct=>IDX.journeysByType[ct]);
+  // lifecycle journeys — data-driven: every non-product-line journey that lands on a real stage
+  const life=Object.keys(IDX.journeysByType).filter(isLifecycleJourney)
+    .sort((a,b)=>stageOrderOf((IDX.journeysByType[a][0]||{}).stage)-stageOrderOf((IDX.journeysByType[b][0]||{}).stage));
   if(life.length){
     app.appendChild(el("h2","sec",'🔄 By lifecycle stage <span class="sub">what fires when a customer slips</span>'));
     const g=el("div","jpick");
@@ -1180,7 +1431,7 @@ function renderJourneysHome(app){
 }
 function countAuto(arr){
   let a=0,h=0;
-  arr.forEach(j=>{ const tp=IDX.tpById[j.touchpointId]; const lvl=tp?tp.autoLevel:"manual";
+  arr.forEach(j=>{ if(SYSTEM_TPS.indexOf(j.touchpointId)>=0) return; const tp=IDX.tpById[j.touchpointId]; const lvl=tp?tp.autoLevel:"manual";
     if(lvl==="auto-send"||lvl==="auto-draft") a++; else if(lvl!=="off") h++; });
   return {a,h};
 }
@@ -1204,7 +1455,7 @@ function renderJourneyTimeline(app, ct){
     const entry=el("div","tentry");
     const d=el("details","tcard");
     let head='<summary><span class="when">'+esc(j.timingLabel)+'</span>'+
-      '<span class="tnm">'+esc(tp.name)+'</span>'+autoChip(tp.autoLevel)+healthDot(tp.healthStatus);
+      '<span class="tnm">'+esc(tp.name)+'</span>'+autoOrSysChip(j.touchpointId, tp.autoLevel)+healthDot(tp.healthStatus);
     if(j.tier) head+='<span class="sysbadge">'+esc(j.tier)+'</span>';
     if(j.condition) head+='<span class="cond">'+esc(j.condition)+'</span>';
     if(j.eventOverride) head+='<span class="ev">📅 Event override: '+esc(j.eventOverride)+'</span>';
@@ -1212,23 +1463,15 @@ function renderJourneyTimeline(app, ct){
     head+='</summary>';
     d.innerHTML=head;
     const exp=el("div","texp");
-    // scripts for this touchpoint at this tier
-    const scripts=(IDX.tsByTouchpoint[j.touchpointId]||[]).filter(r=>!j.tier||r.tier===j.tier||r.tier==="all")
-      .map(r=>({r, sc:IDX.byCode[r.scriptCode], gap:IDX.gapByCode[r.scriptCode]}));
-    if(!scripts.length){ exp.appendChild(el("div","sheetnote","No script attached to this touchpoint yet.")); }
-    scripts.forEach(o=>{
-      const ln=el("div","lnk");
-      if(o.sc){
-        ln.innerHTML=(o.sc.channel==="call"?"📞 ":"📧 ")+'<span>'+esc(o.sc.name)+'</span> <span class="sysbadge">'+esc(o.r.role)+'</span><span class="ar">→</span>';
-        ln.onclick=()=>nav((o.sc.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.sc.code));
-      } else if(o.gap){
-        ln.innerHTML='🕓 <span>'+esc(o.gap.name)+'</span> <span class="gaptag">'+esc(o.gap.publishStatus)+'</span><span class="ar">→</span>';
-        ln.onclick=()=>nav((o.gap.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.gap.code));
-      } else {
-        ln.innerHTML='<span style="color:#94a3b8">'+esc(o.r.scriptCode)+' (not found)</span>';
-      }
-      exp.appendChild(ln);
-    });
+    // scripts for this touchpoint at this tier — role-filtered so a step lists only its real
+    // sends; tierApplies handles comma-list joins like "T1,T2".
+    const roles=rolesForRow(j.customerType, j.touchpointId, j.stage, j.stepOrder);
+    const scriptObjs=scriptsForRow(j.touchpointId, j.tier, roles);
+    if(!scriptObjs.length && !(roles && roles.length===0) && SYSTEM_TPS.indexOf(j.touchpointId)<0){
+      exp.appendChild(el("div","sheetnote","No script attached to this touchpoint yet."));
+    }
+    scriptObjs.forEach(o=>exp.appendChild(scriptLnk(o,{support:o.r&&o.r.role==="save-call-card"})));
+    if(j.touchpointId==="crosssell"){ const rb=reactiveBlock(j.stage); if(rb) exp.appendChild(rb); }
     // Streak line — same field the automation detail card shows (TOUCHPOINTS col J):
     // what this touch stamps where in Streak, now visible from the journey angle too.
     // Text node, no HTML injection; absent/blank field → line simply omitted.
@@ -1441,7 +1684,15 @@ function renderAutomationDetail(app, id){
 }
 
 /* ─────────────────────────── LIFECYCLE ─────────────────────────── */
-function normStage(s){ return String(s||"").toUpperCase().replace(/[^A-Z]/g,""); }
+// Normalize a stage string: uppercase, strip non-letters (so "AT RISK" == id "atrisk"),
+// and fold REACT / REACTIVATED to one canonical stage.
+function normStage(s){ let x=String(s||"").toUpperCase().replace(/[^A-Z]/g,""); if(/^REACT/.test(x)) x="REACTIVATED"; return x; }
+function stageOf(stageStr){
+  const ns=normStage(stageStr);
+  return (DATA.stages||[]).find(s=>normStage(s.name)===ns||normStage(s.id)===ns) || null;
+}
+function stageKnown(stageStr){ return !!normStage(stageStr) && !!stageOf(stageStr); }
+function stageOrderOf(stageStr){ const st=stageOf(stageStr); return st ? (+st.sortOrder||0) : 999; }
 function renderLifecycle(app, stageId){
   setCrumb([["Command Center","#/"],["Lifecycle",null]]);
   app.appendChild(sectionHead("Lifecycle","NEW to LOST — every stage, its rules, and what fires there"));
