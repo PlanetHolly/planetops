@@ -129,7 +129,7 @@
   .cap.okt{color:var(--green)} .cap.warnt{color:var(--amber)} .cap.overt{color:var(--red)}
   /* one imprint per full-width row — true table-aligned columns */
   .cardgrid{display:flex;flex-direction:column;gap:6px}
-  .job{display:grid;grid-template-columns:56px minmax(138px,172px) 86px minmax(148px,1fr) 66px minmax(118px,158px) 110px 106px 122px 76px 106px;gap:4px 8px;align-items:center;padding:9px 10px}
+  .job{display:grid;grid-template-columns:56px minmax(138px,172px) 86px minmax(148px,1fr) 66px minmax(118px,158px) 110px 106px 122px 106px minmax(76px,max-content);gap:4px 8px;align-items:center;padding:9px 10px}
   .cship{white-space:nowrap}
   .job.ph{background:#fbf7e8;border:1.5px dashed #d9c66a}
   .job.ph .phref{cursor:text;border-bottom:1px dashed #b9a53e;font-style:italic}
@@ -424,7 +424,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -448,7 +448,7 @@ const SHARED_DOC='schedule_board';
 const LOCAL_ONLY=['csvName','csvText','range','exported'];
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
-const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
+const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
 function sharedPayload(){
   const p={};for(const k in store){if(!LOCAL_ONLY.includes(k))p[k]=store[k];}
   p._savedAt=Date.now();return p;
@@ -763,6 +763,7 @@ function buildModel(){
 function scheduledDates(){return [...new Set(jobs.filter(j=>j.date).map(j=>j.date))].sort();}
 function dateRange(){
   const sched=scheduledDates();
+  if(store.range.mode==='day')return [store.range.day||todayISO()];   // single-day view — always lands on TODAY when the button is hit (Jean 7/10)
   if(store.range.mode==='custom'&&store.range.start&&store.range.end){
     let s=store.range.start,e=store.range.end;
     if(s>e){const t=s;s=e;e=t;}   // inverted picks used to render ZERO day rows ("no date range")
@@ -797,6 +798,12 @@ function shipChip(j){
   const method=e&&e.ship?String(e.ship).replace(/\s*Shipment$/i,''):null;
   return `<span class="shipw ${days<=0?'warn':''}" title="${method?escHtml(e.ship)+' (live from the invoice) · ':''}Shipping window: ${days} day${days===1?'':'s'} between production due and customer due.">⇢ ${method?escHtml(method)+' · ':''}${days}d${days<=0?' ⚠':''}</span>`;
 }
+const PCREASONS=[['pms','PMS','Pantone matching — dial in colors on press'],['mig','MIG','Watch for dye migration'],['qty','1K+','High-quantity safety check — 1000+ pcs always qualifies']];
+function pcVal(j,k){const p=store.pcheck[j.imprint]||{};return p[k]!==undefined?p[k]:(k==='qty'&&j.qty>=1000?1:0);}
+function pcChip(j){
+  const rs=PCREASONS.filter(([k])=>pcVal(j,k)).map(([,,tt])=>tt.split(' — ')[0]);
+  return rs.length?`<span class="chip" style="background:#fff3cd;border:1px solid #d9b74a" title="PRESS CHECK before the run — ${rs.join(' + ')} (set in the Queue)">✔ press check</span>`:'';
+}
 function jobCard(j){
   if(j.placeholder){
     return `<div class="job ph" draggable="true" data-imp="${j.imprint}">
@@ -806,8 +813,8 @@ function jobCard(j){
       <div class="name phref" data-phref="${j.imprint}" title="Click to describe what you expect to land in this slot">${j.nickname}</div>
       <div class="cqty">${j.minutes>=2?`<button class="ddbtn" data-phsplit="${j.imprint}" title="#15: split this reserved time across TWO days — half stays here, the rest moves to the next day (same name/ID)">⇒ split 2 days</button>`:''}</div>
       <div class="cink"><select data-phlane="${j.imprint}" title="Which station this reserves time on">${LANES.map(l=>`<option value="${l.printavo}" ${l.printavo===j.station?'selected':''}>${l.label}</option>`).join('')}</select></div>
-      <div class="cdots"></div><div class="csched"></div><div class="cprodc"></div><div class="cship"></div>
-      <div class="ccust"><button class="splitbtn" data-phdel="${j.imprint}" title="Remove placeholder">✕</button></div>
+      <div class="cdots"></div><div class="csched"></div><div class="cprodc"></div>
+      <div class="ccust"><button class="splitbtn" data-phdel="${j.imprint}" title="Remove placeholder">✕</button></div><div class="cship"></div>
     </div>`;
   }
   const dots=j.steps.map(s=>`<span class="dot ${s.v==='Completed'?'done':s.v==='Pause'?'pause':''}" title="${s.name}: ${s.v}"></span>`).join('');
@@ -836,6 +843,7 @@ function jobCard(j){
       ${j.ink&&j.ink!=='N/A'?`<span class="chip" style="background:${inkColor(j.ink)}">${j.ink.replace(' - Apparel','')}</span>`:''}
       ${j.pallet&&j.pallet!=='N/A'?`<span class="chip pallet" title="Pallet size — production sequences the day to minimize pallet switches">${j.pallet}</span>`:''}
       ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${j.postProdType}</span>`:''}
+      ${pcChip(j)}
       ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
     <div class="cdots"><span class="dots">${dots}</span><span class="qcchip ${store.qc[j.imprint]?'on':''}" data-qc="${j.imprint}" title="QC gate — every project gets signed off by SOMEBODY. Click to enter who.">${store.qc[j.imprint]?'QC ✓ '+store.qc[j.imprint].by:'QC —'}</span></div>
     <div class="csched">${j.date
@@ -847,8 +855,8 @@ function jobCard(j){
         ${rec?`<span class="rec ${rec.late?'late':''}" data-place="${j.imprint}|${rec.date}" title="Closest day to the due date with room: ${rec.free} min free after placing. Click to place.">⚡ fits ${fmtShort(rec.date)}${rec.late?' · after due ⚠':''}</span>`
              :(laneOf(j.station)?`<span class="rec none">${!j.minutes?'add minutes first':'no room in range'}</span>`:'')}`;})()}</div>
     <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
-    <div class="cship">${shipChip(j)}</div>
     <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
+    <div class="cship">${shipChip(j)}</div>
     ${(isOut(j)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
     ${isX?xPanel(j):''}
   </div>`;
@@ -887,8 +895,6 @@ function etaBar(j){
 }
 function xPanel(j){
   const steps=j.steps.map(s=>`<span>${s.v==='Completed'?'🟩':s.v==='Pause'?'🟥':s.v==='Started'?'🟨':'⬜'} ${s.name}</span>`).join('');
-  const sel=`<select data-station="${j.imprint}"><option value="">— assign station —</option>
-    ${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select>`;
   return `<div class="xpanel" data-noexpand="1">
     ${mockTile(j,'lg')}
     <div class="xmeta">
@@ -916,7 +922,6 @@ function xPanel(j){
             <span>Verify</span><span>${v?((store.wbFail||{})[j.imprint]?'<span class="pending">✓ verified — ⚠ CALCULATOR WRITE FAILED, tap the ⏱ chip to retry</span>':`<span class="printed">✓ verified ${fmtShort(v.at)} → in the calculator</span>`):'<span class="pending">tap the ⏱ chip to verify + write to the calculator</span>'}</span>
           </div></div>`;})()}
       <div class="steps">${steps}</div>
-      Station: ${sel} ${j.stationAssigned?'<span class="movednote">assigned here</span>':''}
     </div>
     <div class="xdetails">
       ${(()=>{const e=mockEntry(j);const exact=e&&e.imprints&&e.imprints[(+j.impNum||1)-1];
@@ -1008,11 +1013,15 @@ function rangeControls(){
   const s=store.range.start||sched[0]||'2026-07-06', e=store.range.end||sched[sched.length-1]||'2026-07-10';
   return `<div class="controls">
     <span class="seg">
+      <button data-mode="day" class="${m==='day'?'on':''}">Day</button>
       <button data-mode="week" class="${m==='week'?'on':''}">Work Week</button>
       <button data-mode="custom" class="${m==='custom'?'on':''}">Custom Range</button>
     </span>
     ${m==='custom'?`<input type="date" id="rgStart" value="${s}"> → <input type="date" id="rgEnd" value="${e}">
-      <span class="hint">1 day, 3 days, 5 weeks — whatever Jean wants (max 42 days)</span>`:`<span class="hint">Mon–Fri of the scheduled week · click a day header to collapse it</span>`}
+      <span class="hint">1 day, 3 days, 5 weeks — whatever Jean wants (max 42 days)</span>`
+    :m==='day'?`<input type="date" id="rgDay" value="${store.range.day||todayISO()}">
+      <span class="hint">Opens on TODAY — pick a date to flip through days</span>`
+    :`<span class="hint">Mon–Fri of the scheduled week · click a day header to collapse it</span>`}
   </div>`;
 }
 let arrCollapsed=false;
@@ -1154,28 +1163,32 @@ function renderList(){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
   }
-  const PPOPTS=['Hang Tag','Packaging (Bandana)','Packaging (Apparel)','Fold & Bag'];
+  // Printavo's finishing list, verbatim naming — mirrors the calc/estimator finish table, so EVERY option auto-charts a ⏱ time (the old 'Fold & Bag' spelling charted nothing)
+  const PPOPTS=['Packaging (Bandana)','Packaging (Apparel)','Packaging (Merch)','Hang Tag','Fold','Bag','Fold + Bag','Fold + Bag + Barcode','Barcode','Belly Band','Fold + Belly Band','Fold + Belly Band + Barcode','Special Fold & Belly Band','2-Side Sewn Label','4-Side Sewn Label','Inside Neck Removal','Double Drying','Premium Packaging Service','Custom'];
   const strokeCell=j=>[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}" title="Print strokes ×${n} — squeegee passes per unit (screen print; ×2 is standard). Changing it re-charts the time.">×${n}</button>`).join('');
+  // Press check — why are we press checking? PMS = Pantone matching · MIG = watch for migration · 1K+ = high-quantity safety (1000+ pcs auto-qualifies; click to waive). Any lit button = press check YES; mix freely.
+  const pcCell=j=>PCREASONS.map(([k,lb,tt])=>`<button class="strkbtn ${pcVal(j,k)?'on':''}" data-pc="${j.imprint}|${k}" title="Press check? ${tt}${k==='qty'&&j.qty>=1000?' (AUTO — this run is '+j.qty+' pcs; click to waive)':''}">${lb}</button>`).join('');
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rows=list.map(j=>j.placeholder
-    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
-    <td><input type="number" min="0" max="12" style="width:46px" data-ascr="${j.imprint}" value="${+j.screens||''}" title="Step 3 — colors / screen count"></td>
+    <td><select data-ascr="${j.imprint}" title="Step 3 — colors / screen count (nothing above 5 colors runs in-house)"><option value="">—</option>${[1,2,3,4,5].map(n=>`<option ${+j.screens===n?'selected':''}>${n}</option>`).join('')}${+j.screens>5?`<option selected>${+j.screens}</option>`:''}</select></td>
     <td><select data-apal="${j.imprint}" title="Step 4 — pallet size"><option value="">—</option>${['4&quot;','8&quot;','10&quot;','16&quot;','22&quot;'].map(t=>`<option value="${t}" ${j.pallet===t.replace(/&quot;/g,'"')?'selected':''}>${t.replace(/&quot;/g,'"')}</option>`).join('')}</select></td>
-    <td><select data-pptype="${j.imprint}" title="Step 5 — post-production, if any"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}</select></td>
+    <td><select data-pptype="${j.imprint}" title="Step 5 — post-production, if any (mirrors Printavo's finishing dropdown)"><option value="">N/A</option>${PPOPTS.map(t=>`<option ${j.postProdType===t?'selected':''}>${t}</option>`).join('')}${j.postProdType&&j.postProdType!=='N/A'&&!PPOPTS.includes(j.postProdType)?`<option selected>${j.postProdType}</option>`:''}</select></td>
     <td style="white-space:nowrap">${strokeCell(j)}</td>
+    <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
     <td><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?17:16}">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?18:17}">${xPanel(j)}</td></tr>`:''}`).join('');
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
@@ -1184,7 +1197,7 @@ function renderList(){
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
     :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b> Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
@@ -1200,6 +1213,13 @@ function changeList(){
   Object.entries(store.moves).forEach(([imp,d])=>out.push(d?`MOVE ${imp} → ${fmtDay(d)} (drag onto that date's row)${apiTag(imp)}`:`UNSCHEDULE ${imp} (clear its date — back to the unscheduled pool)${apiTag(imp)}`));
   Object.entries(store.ptype).forEach(([imp,v])=>out.push(`SET Project Type for ${imp} → ${v}`));
   Object.entries(store.pptype).forEach(([imp,v])=>out.push(`SET Post-Production for ${imp} → ${v||'N/A'} (Post Production Type cell)`));
+  Object.entries(store.pcheck).forEach(([imp,p])=>{
+    const j=jobs.find(x=>x.imprint===imp);
+    const rs=[];if(p.pms)rs.push('Pantone match');if(p.mig)rs.push('migration watch');
+    if(p.qty!==undefined?p.qty:(j&&j.qty>=1000))rs.push('high-qty safety (1000+)');
+    out.push(rs.length?`PRESS CHECK ${imp} → ${rs.join(' + ')} (Press Check step / invoice note)${apiTag(imp)}`
+                      :`PRESS CHECK waived for ${imp} (1000+ auto-flag turned off)${apiTag(imp)}`);
+  });
   Object.entries(store.attrs).forEach(([imp,a])=>{const p=[];if(a.ink)p.push('Ink → '+a.ink);if(a.screens!=null&&a.screens!=='')p.push('Screens → '+a.screens);if(a.pallet)p.push('Pallet → '+a.pallet);if(p.length)out.push(`SET ${p.join(' · ')} for ${imp}`);});
   Object.entries(store.caps).forEach(([k,v])=>{const[date,lane]=k.split('|');out.push(`CAPACITY note: treat ${LANES.find(l=>l.key===lane).label} on ${fmtDay(date)} as ${v} min (in Printavo this may mean the OT/Off-Season station)`)});
   (store.placeholders||[]).forEach(p=>out.push(`PLACEHOLDER ${fmtDay(p.date)} · ${laneOf(p.station)?.label||p.station} · ${p.minutes} min — "${p.ref}"${p.uid?' · ID '+p.uid:''} (board-only: Printavo has no placeholders — this reserves capacity in our math)`));
@@ -1326,11 +1346,12 @@ const TABS=[
   {label:'Pickup & Delivery',render:renderPickups},
   ...LANES.filter(l=>['auto','heat','post'].includes(l.key)).map(l=>({label:l.label,render:()=>renderBoard(l)})),
   {label:'⏱ Estimator',est:true,render:()=>''},   // persistent iframe (estWrap) — keeps a dropped export alive across tab switches
-  {label:'Changes',render:renderChanges},
+  {label:'Changes',hidden:true,render:renderChanges},   // no nav tab — reachable only via the 📝 Changes button (the tab next to Estimator was redundant; Jean 7/10)
 ];
 let activeTab=0;
 const nav=document.getElementById('tabs'),main=document.getElementById('main');
 TABS.forEach((t,i)=>{
+  if(t.hidden)return;
   const b=document.createElement('button');b.textContent=t.label;b.dataset.i=i;
   b.onclick=()=>{activeTab=i;renderAll();};
   nav.appendChild(b);
@@ -1338,8 +1359,6 @@ TABS.forEach((t,i)=>{
 function updateChangesBtn(){
   const n=changeList().length;
   document.getElementById('changesBtn').textContent=`📝 Changes (${n})`;
-  const tabBtn=nav.querySelector('button[data-i="'+(TABS.length-1)+'"]');
-  if(tabBtn)tabBtn.textContent=n?`Changes · ${n}`:'Changes';
 }
 function renderAll(){
   // every edit re-renders the whole tab — remember the queue table's scroll so a field entry
@@ -1348,7 +1367,7 @@ function renderAll(){
   const _twTop=_tw?_tw.scrollTop:0,_twLeft=_tw?_tw.scrollLeft:0;
   const _winY=window.scrollY||document.documentElement.scrollTop||0;
   buildModel();
-  nav.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===activeTab));
+  nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.i===activeTab));
   const est=!!TABS[activeTab].est,estWrap=document.getElementById('estWrap');
   estWrap.style.display=est?'block':'none';main.style.display=est?'none':'';
   if(est){const f=document.getElementById('estFrame');if(!f.getAttribute('src'))f.src='../estimator/';}
@@ -1436,9 +1455,9 @@ function wireMain(){
     renderAll();
   }));
   main.querySelectorAll('[data-calmode]').forEach(b=>b.addEventListener('click',()=>{
-    const prev=calMode;calMode=b.dataset.calmode;
-    // month → day: land inside the month being looked at, not a stale week anchor
-    if(calMode==='day'&&prev==='month'&&calAnchor&&!calAnchor.startsWith(calMonth))calAnchor=calMonth+'-01';
+    calMode=b.dataset.calmode;
+    // the Day BUTTON always lands on TODAY (Jean 7/10) — clicking a date inside month view still opens THAT day (data-calgoday path)
+    if(calMode==='day')calAnchor=todayISO();
     renderAll();
   }));
   main.querySelectorAll('[data-callane]').forEach(b=>b.addEventListener('click',()=>{calLane=b.dataset.callane;renderAll();}));
@@ -1680,6 +1699,20 @@ function wireMain(){
       save();renderAll();
     });
   });
+  main.querySelectorAll('[data-pc]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const [imp,k]=b.dataset.pc.split('|');
+      const j=jobs.find(x=>x.imprint===imp);
+      const auto=k==='qty'&&j&&j.qty>=1000;
+      const p=store.pcheck[imp]||(store.pcheck[imp]={});
+      const cur=p[k]!==undefined?p[k]:(auto?1:0);
+      p[k]=cur?0:1;
+      if(!p[k]&&!auto)delete p[k];            // plain off = the default, don't store it; an explicit 0 only survives to WAIVE an auto 1K+ flag
+      if(!Object.keys(p).length)delete store.pcheck[imp];
+      save();renderAll();
+    });
+  });
   main.querySelectorAll('.qcchip').forEach(sp=>{
     sp.addEventListener('click',e=>{
       e.stopPropagation();
@@ -1864,7 +1897,7 @@ function wireMain(){
     sel.addEventListener('click',e=>e.stopPropagation());
     sel.addEventListener('change',()=>{const imp=sel.dataset.aink,j=jobs.find(x=>x.imprint===imp);setAttr(imp,'ink',sel.value,j.baseInk);});
   });
-  main.querySelectorAll('input[data-ascr]').forEach(inp=>{
+  main.querySelectorAll('select[data-ascr]').forEach(inp=>{
     inp.addEventListener('click',e=>e.stopPropagation());
     inp.addEventListener('change',()=>{const imp=inp.dataset.ascr,j=jobs.find(x=>x.imprint===imp);setAttr(imp,'screens',inp.value,String(j.baseScreens||''));});
   });
@@ -1957,6 +1990,7 @@ function wireMain(){
   main.querySelectorAll('.controls .seg button').forEach(b=>{
     b.addEventListener('click',()=>{
       store.range.mode=b.dataset.mode;
+      if(store.range.mode==='day')store.range.day=todayISO();   // the Day button always OPENS on today
       if(store.range.mode==='custom'&&!store.range.start){
         const sched=scheduledDates();
         store.range.start=sched[0]||'2026-07-06';store.range.end=sched[sched.length-1]||'2026-07-10';
@@ -1967,6 +2001,8 @@ function wireMain(){
   const rs=document.getElementById('rgStart'),re=document.getElementById('rgEnd');
   if(rs)rs.addEventListener('change',()=>{store.range.start=rs.value;localStorage.setItem(KEY,JSON.stringify(store));renderAll();});
   if(re)re.addEventListener('change',()=>{store.range.end=re.value;localStorage.setItem(KEY,JSON.stringify(store));renderAll();});
+  const rd=document.getElementById('rgDay');
+  if(rd)rd.addEventListener('change',()=>{store.range.day=rd.value||todayISO();localStorage.setItem(KEY,JSON.stringify(store));renderAll();});
   // changes tab buttons
   const ex=document.getElementById('exportChanges');
   if(ex)ex.onclick=()=>{
@@ -1974,7 +2010,7 @@ function wireMain(){
     download('schedule_changes.txt',txt);store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
   };
   const cl=document.getElementById('clearChanges');
-  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.timeVerified={};store.wbFail={};save();renderAll();}};
+  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.pcheck={};store.timeVerified={};store.wbFail={};save();renderAll();}};
 }
 function download(name,content){
   const a=document.createElement('a');
@@ -2102,6 +2138,11 @@ if(store.range.mode==='custom'&&store.range.end&&store.range.end<todayISO()){
     store.range={mode:'week',start:null,end:null};
     localStorage.setItem(KEY,JSON.stringify(store));
   }
+}
+/* Day view never resumes on a stale date — reopening the board in Day mode lands on today. */
+if(store.range.mode==='day'&&store.range.day!==todayISO()){
+  store.range.day=todayISO();
+  localStorage.setItem(KEY,JSON.stringify(store));
 }
 
 if(location.hash==='#calendar')activeTab=TABS.findIndex(t=>t.label==='Calendar');
