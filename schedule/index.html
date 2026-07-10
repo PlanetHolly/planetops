@@ -288,6 +288,12 @@
   .estchip:hover{outline:1.5px solid currentColor}
   .strkbtn{font:inherit;font-size:11px;border:1px solid var(--grey-line);background:#fff;border-radius:4px;padding:0 6px;cursor:pointer;margin-left:2px}
   .strkbtn.on{background:#000;color:var(--yellow);border-color:#000}
+  /* park/ready = a decision button, not a utility — blue square so it reads at a glance (Jean 7/10) */
+  .parkbtn{font:inherit;font-size:13px;background:#1f6fe0;color:#fff;border:1px solid #185bbd;border-radius:5px;padding:3px 9px;cursor:pointer;margin-left:4px}
+  .parkbtn:hover{background:#185bbd}
+  /* queue status column: never clip a Printavo status — the pill stays one line and the scroller grows right */
+  .tablewrap .stpill{max-width:none;white-space:nowrap}
+  .histwrap{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--grey-text);border:1.5px dashed var(--grey-line);border-radius:7px;padding:4px 9px;white-space:nowrap}
   .estbox{border-left:3px solid #d9b74a;padding-left:10px;margin:6px 0}
   .stpill{font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;display:inline-block;line-height:1.35;max-width:280px}
   /* calendar view */
@@ -341,9 +347,9 @@
 </header>
 <div class="actionbar">
   <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
-  <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)">
   <span class="spacer"></span>
   <button id="importBtn" class="primary">⬆ Import CSV</button>
+  <span class="histwrap" title="Time machine: pick a date to see that day EXACTLY as it was scheduled (end-of-day snapshot, read-only). A blue banner appears while viewing — '← Back to live' exits. History starts 2026-06-15; weekends/holidays may have no snapshot.">🕰 Rewind a day <input id="histpick" type="date" title="Pick a past date — the board becomes that day's read-only snapshot"></span>
   <button id="changesBtn">📝 Changes (0)</button>
   <button id="backupBtn">💾 Backup</button>
   <button id="resetBtn">↺ Reset</button>
@@ -804,8 +810,8 @@ function shipChip(j){
 const PCREASONS=[['pms','PMS','Pantone matching — dial in colors on press'],['mig','MIG','Watch for dye migration'],['qty','1K+','High-quantity safety check — 1000+ pcs always qualifies']];
 function pcVal(j,k){const p=store.pcheck[j.imprint]||{};return p[k]!==undefined?p[k]:(k==='qty'&&j.qty>=1000?1:0);}
 function pcChip(j){
-  const rs=PCREASONS.filter(([k])=>pcVal(j,k)).map(([,,tt])=>tt.split(' — ')[0]);
-  return rs.length?`<span class="chip" style="background:#fff3cd;border:1px solid #d9b74a" title="PRESS CHECK before the run — ${rs.join(' + ')} (set in the Queue)">✔ press check</span>`:'';
+  const on=PCREASONS.filter(([k])=>pcVal(j,k));
+  return on.length?`<span class="chip" style="background:#fff3cd;border:1.5px solid #d9b74a;font-weight:700" title="PRESS CHECK before the run — ${on.map(([,,tt])=>tt.split(' — ')[0]).join(' + ')} (set in the Queue; also in the imprint detail + 📝 checklist)">✔ press check · ${on.map(([,lb])=>lb).join('+')}</span>`:'';
 }
 function jobCard(j){
   if(j.placeholder){
@@ -910,6 +916,7 @@ function xPanel(j){
         <span>Ink</span><span>${j.ink!=='N/A'?j.ink:'—'}${j.inkChange&&j.inkChange!=='None'?' · ink change: '+j.inkChange:''}</span>
         <span>Pallet</span><span>${j.pallet&&j.pallet!=='N/A'?j.pallet:'—'}</span>
         <span>Post-Pro</span><span>${j.postProdType!=='N/A'?j.postProdType:'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
+        <span>Press check</span><span>${(()=>{const on=PCREASONS.filter(([k])=>pcVal(j,k));return on.length?`<b>YES</b> — ${on.map(([,,tt])=>tt.split(' — ')[0]).join(' + ')}`:'—';})()}</span>
         <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
         <span>Status</span><span>${statusPill(j)}</span>
@@ -1192,7 +1199,7 @@ function renderList(){
     <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
-    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button></td>
+    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="parkbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button></td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
