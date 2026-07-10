@@ -75,6 +75,29 @@
       "sheetRow": 4
     },
     {
+      "code": "^xsellc",
+      "name": "Cross-Sell Intro (Cortney first-person)",
+      "channel": "email",
+      "aliases": [
+        "cross-sell intro cortney",
+        "xsellc"
+      ],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "a thought on your [PROJECT NAME] run",
+      "bodyText": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "bodyHtml": "",
+      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v3 2026-07-09: Cortney first-person variant of ^xsell. Holly-approved verbatim.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 27
+    },
+    {
       "code": "^xsellresponse",
       "name": "Cross-Sell Response",
       "channel": "email",
@@ -441,6 +464,46 @@
       "notes": "RETIRED 2026-07-09. Merged into ^qc_new / ^qc_repeat (the QC email now carries the Google review request). postdelivery-review touchpoint repointed to those. Do not use.",
       "lastUpdated": "2026-07-08",
       "sheetRow": 19
+    },
+    {
+      "code": "^xsellwarm",
+      "name": "Cross-Sell Warm Intro (return customers)",
+      "channel": "email",
+      "aliases": [],
+      "fromMailbox": "bandanas@planetapparel.com (Shara/Kelly)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "team@planetapparel.com",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "i don't think i told you",
+      "bodyText": "Hi [FIRST NAME],\n\nWe've done a few bandana runs together now, and I don't think I ever told you the rest of what we make. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nMy teammate Cortney runs that side of the shop and she's copied here. If you've got anything coming up, just reply and she'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
+      "bodyHtml": "",
+      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 28
+    },
+    {
+      "code": "^xsellwarmc",
+      "name": "Cross-Sell Warm Intro (Cortney first-person)",
+      "channel": "email",
+      "aliases": [],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "cc": "",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "i don't think i told you",
+      "bodyText": "Hi [FIRST NAME],\n\nYou've been running bandanas with us for a while now, and I don't think anyone's told you the rest of what we make. I run that side of the shop. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nIf you've got anything coming up, just reply here and I'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
+      "bodyHtml": "",
+      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 29
     }
   ],
   "script_fields": [
@@ -941,7 +1004,8 @@
       "trigger": "box turns AT-RISK",
       "schedule": "hourly :40 (8a-8p)",
       "workflowId": "ujU81mGJ",
-      "notes": "The outreach engine: T1 -> SAVE CALL task; T2 -> SAVE EMAIL task; T3 -> skip. Reads Open-Deal Guard to mute mid-deal. OFF (inactive + DRY_RUN) - the single biggest hole; every save touch is hand-sent today."
+      "notes": "The outreach engine: T1 -> SAVE CALL task; T2 -> SAVE EMAIL task; T3 -> skip. Reads Open-Deal Guard to mute mid-deal. OFF (inactive + DRY_RUN) - the single biggest hole; every save touch is hand-sent today.",
+      "streakNotes": "Creates the SAVE CALL / SAVE EMAIL task on the box owner and logs the touch date; never changes relationship status itself."
     },
     {
       "id": "pass2b",
@@ -1040,7 +1104,8 @@
       "trigger": "order enters a black fulfillment status",
       "schedule": "hourly poll + daily 9am sender",
       "workflowId": "ymSBJ95Ah8t30Y0B",
-      "notes": "5 business days after delivery. VIP + same-day multi-order flagged to draft for PM review. Currently DRY_RUN. Sends ^review from the box owner's mailbox."
+      "notes": "5 business days after delivery. VIP + same-day multi-order flagged to draft for PM review. Currently DRY_RUN. Sends ^review from the box owner's mailbox.",
+      "streakNotes": "Writes review-request timestamp to the box; sets Stage = Delivered when the send fires."
     },
     {
       "id": "aio-chase",
@@ -1095,7 +1160,8 @@
       "trigger": "new customer Week 2 / customer bites on intro",
       "schedule": "batch (crosssell_draft_batch.py)",
       "workflowId": "",
-      "notes": "The cross-sell draft generator: drafts ^xsell intros and Cortney's response/ghost follow-ups. Reads scripts.json id=xsell."
+      "notes": "The cross-sell draft generator: drafts ^xsell intros and Cortney's response/ghost follow-ups. Reads scripts.json id=xsell.",
+      "streakNotes": "Stamps \"Cross-sell sent\" on the box and advances the Cross-Sell pipeline stage; reply flips it to the Response lane."
     },
     {
       "id": "qc",

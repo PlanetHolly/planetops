@@ -85,7 +85,17 @@
     padding:3px 10px;color:#fff;white-space:nowrap;letter-spacing:.3px}
   .chip.autosend{background:var(--live)} .chip.autodraft{background:var(--draft)}
   .chip.manual{background:var(--manual)} .chip.planned{background:var(--planned)} .chip.off{background:var(--off)}
+  .chip.task{background:#4338ca}
   .chip.ghost{background:#eef0f2;color:#475569}
+  /* bad/missing data made visible — never disguised as a human touch */
+  .chip.unknown{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+  .chip.sm{font-size:9px;padding:2px 8px}
+  .chip .tl{opacity:.9;font-weight:800;margin-right:1px}
+  .tierrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+  .englab{font-size:9px;font-weight:800;letter-spacing:.4px;color:var(--mut);text-transform:uppercase}
+  .lanediv{flex-basis:100%;display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;
+    letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin:8px 2px 2px}
+  .lanediv::after{content:"";flex:1;height:1px;background:var(--line)}
   .hdot{display:inline-block;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
   .hdot.live{background:var(--live)} .hdot.dry{background:var(--dry)} .hdot.alarm{background:var(--alarm)}
   .hdot.unverified{background:var(--unver)} .hdot.na{background:#d1d5db}
@@ -319,9 +329,46 @@ function aliasStr(a){ return Array.isArray(a)?a.join(" "):(a||""); }
 function aliasArr(a){ return Array.isArray(a)?a:String(a||"").split(",").map(x=>x.trim()).filter(Boolean); }
 function initials(name){const p=String(name||"").trim().split(/\s+/); return ((p[0]||"?")[0]+(p[1]?p[1][0]:"")).toUpperCase();}
 
+function unknownChip(){
+  return '<span class="chip unknown" title="Missing or unrecognized level — check the Sheet">⚠️ UNKNOWN</span>';
+}
 function autoChip(level){
-  const a = AUTO[level]; if(!a) return "";
-  return '<span class="chip '+a.cls+'">'+a.ic+' '+a.label+'</span>';
+  const a = AUTO[level];
+  if(a) return '<span class="chip '+a.cls+'">'+a.ic+' '+a.label+'</span>';
+  // Present-but-unrecognized level = bad data. Surface it instead of hiding it or
+  // silently rendering nothing. (Truly absent levels also read as UNKNOWN by design —
+  // sample data never hits this, so good data is unaffected.)
+  return unknownChip();
+}
+
+// sendMode → per-tier truth on the touchpoint detail card (change #1, the Holly fix).
+const SEND_MODE = {
+  "auto-send":{ic:"✉️", label:"AUTO-SEND", cls:"autosend"},
+  "auto-draft":{ic:"📝", label:"AUTO-DRAFT", cls:"autodraft"},
+  "manual":{ic:"👤", label:"MANUAL", cls:"manual"},
+  "task":{ic:"📞", label:"TASK", cls:"task"}
+};
+const TIER_ORDER = ["T1","T2","T3","T4","all"];
+function tierRank(t){ const i=TIER_ORDER.indexOf(t); return i<0?TIER_ORDER.length:i; }
+// One chip per distinct tier+mode pair, so a touchpoint whose tiers differ
+// (e.g. T1 phone TASK vs T2 AUTO-DRAFT) tells the truth per tier instead of one flat lie.
+function tierChipsHTML(tpId){
+  const joins = IDX.tsByTouchpoint[tpId]||[];
+  if(!joins.length) return "";
+  const seen = {}; const pairs = [];
+  joins.forEach(j=>{
+    const tier = (j.tier==null||j.tier==="") ? "—" : String(j.tier);
+    const mode = j.sendMode||"";
+    const key = tier+"|"+mode;
+    if(seen[key]) return; seen[key]=1;
+    pairs.push({tier, mode});
+  });
+  pairs.sort((a,b)=> tierRank(a.tier)-tierRank(b.tier) || a.tier.localeCompare(b.tier));
+  return pairs.map(p=>{
+    const m = SEND_MODE[p.mode];
+    if(!m) return '<span class="chip unknown"><span class="tl">'+esc(p.tier)+'</span> ⚠️ '+esc((p.mode||"UNKNOWN").toUpperCase())+'</span>';
+    return '<span class="chip '+m.cls+'"><span class="tl">'+esc(p.tier)+'</span> '+m.ic+' '+m.label+'</span>';
+  }).join("");
 }
 function healthDot(h){
   if(!h||h==="n/a") return "";
@@ -385,10 +432,13 @@ function buildIndex(D){
     rows.forEach(r=>{
       let lvl = r.sendMode;
       if(lvl==="task") lvl="manual";
-      if(!AUTO[lvl]){ const tp=tpById[r.touchpointId]; lvl = tp?tp.autoLevel:"manual"; }
-      if(!AUTO[lvl]) lvl="manual";
+      if(!AUTO[lvl]){ const tp=tpById[r.touchpointId]; lvl = tp?tp.autoLevel:null; }
+      if(!AUTO[lvl]) return; // unrecognized send level — do NOT coerce to "manual"; leave it to surface as UNKNOWN
       if(best===null || AUTO_ORDER.indexOf(lvl) < AUTO_ORDER.indexOf(best)) best = lvl;
     });
+    // Rows existed but none produced a recognized level → the data is bad. Say so, don't
+    // disguise it as a human touch. (No rows at all = a standalone script, still "manual".)
+    if(best===null && rows.length) return "unknown";
     return best || "manual";
   }
   // derived cadence tag from journeys
@@ -1246,13 +1296,31 @@ function renderAutomationDetail(app, id){
   // ── left: the automation's facts, in an email-style frame (not monospace) ──
   const main=el("div","frame");
   const fh=el("div","fh");
+  // Per-tier truth (change #1): one chip per tier bucket from the join rows. The flat
+  // autoLevel chip stays, but demoted to a small SECONDARY "engine" summary after the
+  // health dot. No join rows → fall back to the flat chip as the primary, as before.
+  const tierHTML = tierChipsHTML(id);
+  const a0 = AUTO[t.autoLevel];
+  const engineSmall = a0
+    ? '<span class="chip '+a0.cls+' sm">'+a0.ic+' '+a0.label+'</span>'
+    : '<span class="chip unknown sm" title="Missing or unrecognized level — check the Sheet">⚠️ UNKNOWN</span>';
   fh.innerHTML=
-    '<div class="subj" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+esc(t.name)+' '+autoChip(t.autoLevel)+healthDot(t.healthStatus)+'</div>'+
+    '<div class="subj" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'+esc(t.name)+' '+healthDot(t.healthStatus)+
+      (tierHTML ? '<span class="englab">engine</span>'+engineSmall : autoChip(t.autoLevel))+'</div>'+
+    (tierHTML ? '<div class="tierrow">'+tierHTML+'</div>' : '')+
     '<div class="ln" style="margin-top:10px"><span class="k">System</span><span class="v"><span class="sysbadge">'+esc(sysLabelOf(t.system))+'</span></span></div>'+
     '<div class="ln"><span class="k">Health</span><span class="v">'+esc(healthLabel(t.healthStatus))+'</span></div>'+
     '<div class="ln"><span class="k">Trigger</span><span class="v">'+esc(t.trigger||"—")+'</span></div>'+
     '<div class="ln"><span class="k">Schedule</span><span class="v">'+esc(t.schedule||"—")+'</span></div>'+
     (t.workflowId?'<div class="ln"><span class="k">Workflow</span><span class="v"><span class="mono">'+esc(t.workflowId)+'</span></span></div>':'');
+  // Streak line (change #3): rendered as a text node, no HTML injection — matches the
+  // bodyText/notes discipline. Absent field → row simply omitted.
+  if(t.streakNotes!=null && String(t.streakNotes).trim()){
+    const sr=el("div","ln");
+    const sk=el("span","k"); sk.textContent="Streak";
+    const sv=el("span","v"); sv.textContent=String(t.streakNotes);
+    sr.appendChild(sk); sr.appendChild(sv); fh.appendChild(sr);
+  }
   main.appendChild(fh);
   if(t.notes){
     const nb=el("div","body"); nb.style.fontSize="15px";
@@ -1269,7 +1337,8 @@ function renderAutomationDetail(app, id){
   if(linked.length){
     const p=el("div","panel"); p.appendChild(el("h3","","Sends these"));
     const ll=el("div","linklist");
-    linked.forEach(o=>{
+    // Build one link row from a join object.
+    const sendRow=o=>{
       const a=el("div","lnk");
       if(o.sc){
         a.innerHTML=(o.sc.channel==="call"?"📞 ":"📧 ")+'<span>'+esc(o.sc.name)+'</span>'+(o.r.role?' <span class="sysbadge">'+esc(o.r.role)+'</span>':'')+'<span class="ar">→</span>';
@@ -1278,8 +1347,18 @@ function renderAutomationDetail(app, id){
         a.innerHTML='🕓 <span>'+esc(o.gap.name)+'</span> <span class="gaptag">'+esc(o.gap.publishStatus)+'</span><span class="ar">→</span>';
         a.onclick=()=>nav((o.gap.channel==="call"?"#/calls/":"#/scripts/")+slugify(o.gap.code));
       }
-      ll.appendChild(a);
-    });
+      return a;
+    };
+    // Change #4: split the response lane out. Primary sends (intro/qc/email/task…) first,
+    // then a subtle divider and the response/ghost-follow-up rows. Pure display grouping.
+    const isLane=o=>/response|ghost/i.test(o.r.role||"");
+    const primary=linked.filter(o=>!isLane(o));
+    const lane=linked.filter(isLane);
+    primary.forEach(o=>ll.appendChild(sendRow(o)));
+    if(lane.length){
+      ll.appendChild(el("div","lanediv","response lane"));
+      lane.forEach(o=>ll.appendChild(sendRow(o)));
+    }
     p.appendChild(ll); side.appendChild(p);
   } else {
     const p=el("div","panel"); p.appendChild(el("h3","","No script attached"));
