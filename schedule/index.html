@@ -1053,9 +1053,9 @@ function arrivalsSection(standalone){
   const closed=!standalone&&arrCollapsed;
   return `<section class="arrivals ${closed?'closed':''}">
     <div class="arrhead" ${standalone?'style="cursor:default"':'id="arrToggle" title="Click to collapse/expand"'}>
-      ${standalone?'':'<span class="chev">▾</span>'}<h2>⟵ Arrivals — coming back from outside</h2>
+      ${standalone?'':'<span class="chev">▾</span>'}<h2>⟵ Arrivals — outsourced print returning for in-house handling</h2>
       <span class="dcount">· ${pending.length} pending${done.length?' · '+done.length+' arrived':''}</span></div>
-    <div class="hint">Each row is the IN-HOUSE leg (the -2/-3 imprint) — the timed QC/packaging event production actually does. The outsourced -1 is awareness only: it shows as the AT VENDOR / IN TRANSIT badge (and attaches as its own line once the outsourced-scheduler data is ingested).</div>
+    <div class="hint">These are NOT fully-outsourced jobs — the vendor prints them, then the goods <b>land here for the in-house leg</b>: count-in, QC, packaging (the timed post-production event). While inbound: track est. arrival, tracking # and return method. When goods land, tap <b>✓ arrived</b> — the job then <b>joins the QUEUE</b> to get its Post-Pro type, ⏱ time and station like any other job.</div>
     <div class="arrbody">${body||'<span class="hint">Nothing inbound.</span>'}</div>
   </section>`;
 }
@@ -1147,7 +1147,7 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  const inQueue=j=>!j.placeholder&&!j.station&&!isOut(j);   // QUEUE mode: actionable only — outsourced waits in Arrivals (same rule as the Board pool)
+  const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||!!store.arrived[j.imprint]);   // QUEUE mode: actionable only — outsourced waits in Arrivals UNTIL ✓ arrived, then its in-house leg (post-pro) joins the queue like any job
   let list=listShowAll?all:all.filter(inQueue);
   const queueN=all.filter(inQueue).length;
   if(listSort.key&&SORTVAL[listSort.key]){
@@ -1161,7 +1161,7 @@ function renderList(){
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
     :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
