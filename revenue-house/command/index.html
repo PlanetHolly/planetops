@@ -1068,14 +1068,28 @@ function sideMeta(s){
   const tps=(IDX.tsByScript[s.code]||[]).map(j=>IDX.tpById[j.touchpointId]).filter(Boolean);
   const uniqTps=[...new Map(tps.map(t=>[t.id,t])).values()];
 
-  // Cadence (B3) — every journey cadence this script appears in; else its trigger type.
-  const cads=IDX.cadencesOf(s.code);
+  // Cadence (B3) — journey cadences this script actually fires in: role-aware (a warm intro
+  // belongs to the ACTIVE sweep row, not the Week-2 NEW rows on the same touchpoint) and
+  // deduped by timing+stage across the product-line journeys, tiers merged.
+  const myJoins=IDX.tsByScript[s.code]||[];
+  const cadMap=new Map();
+  (DATA.journeys||[]).forEach(j=>{
+    const join=myJoins.find(r=>r.touchpointId===j.touchpointId);
+    if(!join) return;
+    const roles=rolesForRow(j.customerType, j.touchpointId, j.stage, j.stepOrder);
+    if(roles && roles.indexOf(join.role)<0) return;
+    const st=stageOf(j.stage);
+    const key=(j.timingLabel||"")+"|"+normStage(j.stage);
+    if(!cadMap.has(key)) cadMap.set(key,{label:j.timingLabel, stage:(st?st.name:j.stage), ord:stageOrderOf(j.stage), step:+j.stepOrder||0, tiers:new Set()});
+    String(j.tier||"").split(",").map(x=>x.trim()).filter(Boolean).forEach(t=>cadMap.get(key).tiers.add(t.toUpperCase()));
+  });
+  const cads=[...cadMap.values()].sort((a,b)=>a.ord-b.ord||a.step-b.step);
   const pc=el("div","panel"); pc.appendChild(el("h3","","Cadence"));
   if(cads.length){
     cads.forEach(c=>{
-      const st=stageOf(c.stage);
+      const tiers=[...c.tiers].sort((a,b)=>tierRank(a)-tierRank(b)).join("/");
       const line=el("div","fires"); line.style.fontSize="13px"; line.style.marginBottom="6px";
-      line.textContent=[c.label, st?st.name:c.stage, c.tier].filter(Boolean).join(" · ");
+      line.textContent=[c.label, c.stage, tiers].filter(Boolean).join(" · ");
       pc.appendChild(line);
     });
   } else {
