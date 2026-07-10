@@ -17,12 +17,12 @@
       "departmentScope": "All",
       "subject": "how'd they come out?",
       "bodyText": "Hi [FIRST NAME],\nFirst run with us, so I want to be sure we nailed it. Did your [PROJECT NAME] turn out the way you pictured? If anything's not right, just reply and I'm on it.\nAnd if it came out great, a quick Google review would mean a lot. We're a small, women-owned, family-run shop, and a few honest words from you help the next person find us. If you can mention your [PROJECT NAME] and add a photo, even better. It shows people exactly what we make.\nLeave us a Google review: https://g.page/r/CQhn52SlLBoeEBM/review\nOne click. Takes about 20 seconds.\nThanks for choosing Planet Apparel.\n[OWNER SIGNATURE]",
-      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px;\"><p>Hi [FIRST NAME],</p><p>First run with us, so I want to be sure we nailed it. Did your [PROJECT NAME] turn out the way you pictured? If anything's not right, just reply and I'm on it.</p><p>And if it came out great, a quick Google review would mean a lot. We're a small, women-owned, family-run shop, and a few honest words from you help the next person find us. If you can mention your [PROJECT NAME] and add a photo, even better. It shows people exactly what we make.</p><p style=\"text-align:center;margin:28px 0 6px;\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block;\">Leave us a Google review</a></p><p style=\"text-align:center;color:#666;font-size:13px;margin:0 0 24px;\">One click. Takes about 20 seconds.</p><p>Thanks for choosing Planet Apparel.</p><p>[OWNER SIGNATURE]</p></div>",
+      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px\"><p>Hi [FIRST NAME],</p><p>First run with us, so I want to be sure we nailed it. Did your [PROJECT NAME] turn out the way you pictured? If anything's not right, just reply and I'm on it.</p><p>And if it came out great, a quick Google review would mean a lot. We're a small, women-owned, family-run shop, and a few honest words from you help the next person find us. If you can mention your [PROJECT NAME] and add a photo, even better. It shows people exactly what we make.</p><p style=\"text-align:center;margin:28px 0 6px\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block\" rel=\"noopener noreferrer\" target=\"_blank\">Leave us a Google review</a></p><p style=\"text-align:center;color:#666;font-size:13px;margin:0 0 24px\">One click. Takes about 20 seconds.</p><p>Thanks for choosing Planet Apparel.</p><p>[OWNER SIGNATURE]</p></div>",
       "firesWhen": "Week 1 after a first paid order. T2/T3 = automated email; T1 = personal call variant (T1-QC-call).",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
       "notes": "QC + Google review request in one email. NEW-customer version (first order). Post-delivery Touch 1, all tiers; auto-sends ~5 business days after delivery. Review folded in 2026-07-09.",
-      "lastUpdated": "2026-07-08",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 2
     },
     {
@@ -41,12 +41,12 @@
       "departmentScope": "All",
       "subject": "how'd this one come out?",
       "bodyText": "Hi [FIRST NAME],\nAlways good to wrap another one with you. Did your [PROJECT NAME] turn out the way you pictured? You know how I work. Anything's off, I'm on it.\nAnd if it landed right, a quick Google review still helps more than you'd think. You already know us, but every review helps the next person find us. Mention your [PROJECT NAME] and add a photo if you feel like it.\nLeave us a Google review: https://g.page/r/CQhn52SlLBoeEBM/review\nOne click. Takes about 20 seconds.\nThanks, as always.\n[OWNER SIGNATURE]",
-      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px;\"><p>Hi [FIRST NAME],</p><p>Always good to wrap another one with you. Did your [PROJECT NAME] turn out the way you pictured? You know how I work. Anything's off, I'm on it.</p><p>And if it landed right, a quick Google review still helps more than you'd think. You already know us, but every review helps the next person find us. Mention your [PROJECT NAME] and add a photo if you feel like it.</p><p style=\"text-align:center;margin:28px 0 6px;\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block;\">Leave us a Google review</a></p><p style=\"text-align:center;color:#666;font-size:13px;margin:0 0 24px;\">One click. Takes about 20 seconds.</p><p>Thanks, as always.</p><p>[OWNER SIGNATURE]</p></div>",
+      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px\"><p>Hi [FIRST NAME],</p><p>Always good to wrap another one with you. Did your [PROJECT NAME] turn out the way you pictured? You know how I work. Anything's off, I'm on it.</p><p>And if it landed right, a quick Google review still helps more than you'd think. You already know us, but every review helps the next person find us. Mention your [PROJECT NAME] and add a photo if you feel like it.</p><p style=\"text-align:center;margin:28px 0 6px\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block\" rel=\"noopener noreferrer\" target=\"_blank\">Leave us a Google review</a></p><p style=\"text-align:center;color:#666;font-size:13px;margin:0 0 24px\">One click. Takes about 20 seconds.</p><p>Thanks, as always.</p><p>[OWNER SIGNATURE]</p></div>",
       "firesWhen": "Week 1 after any subsequent paid order (repeat customer). T1 = call, T2 = email, T3 = skip.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
       "notes": "QC + Google review request in one email. REPEAT-customer version (has prior orders). Post-delivery Touch 1, all tiers; auto-sends ~5 business days after delivery. Review folded in 2026-07-09.",
-      "lastUpdated": "2026-07-08",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 3
     },
     {
@@ -60,42 +60,19 @@
         "cross-sell intro"
       ],
       "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
-      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "sentByRule": "Kelly/Shara send from bandanas@ cc team@; Cortney sends her own share as ^xsellc from team@; Both-dept boxes -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
       "cc": "team@planetapparel.com",
       "replyMode": "either",
       "departmentScope": "Both",
       "subject": "a thought on your [PROJECT NAME] run",
-      "bodyText": "Hi [FIRST NAME],\nYour [PRODUCT] came out great. If you ever want [matching APPAREL/MERCH] to go with it, my teammate Cortney runs our apparel side, and she can pull a quick mockup so you can see it. I've copied her here so you have her.\nNo pressure, just a thought. Either way, glad we got to make these for you.",
-      "bodyHtml": "",
-      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
-      "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "v2 (2026-07-08): names Cortney + always cc team@. Live Gmail thread search decides reply-vs-new per send. Reverse = Xsell_Ban for apparel->bandana.",
-      "lastUpdated": "2026-07-08",
-      "sheetRow": 4
-    },
-    {
-      "code": "^xsellc",
-      "name": "Cross-Sell Intro (Cortney first-person)",
-      "channel": "email",
-      "aliases": [
-        "cross-sell intro cortney",
-        "xsellc"
-      ],
-      "fromMailbox": "team@planetapparel.com (Cortney)",
-      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
-      "cc": "",
-      "replyMode": "either",
-      "departmentScope": "Both",
-      "subject": "a thought on your [PROJECT NAME] run",
-      "bodyText": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "bodyText": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nMy teammate Cortney runs that side of the shop and she's copied here. If anything catches your eye or you've got something coming up, just reply and she'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
       "bodyHtml": "",
       "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-09",
-      "notes": "v3 2026-07-09: Cortney first-person variant of ^xsell. Holly-approved verbatim.",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim — do not re-edit.",
       "lastUpdated": "2026-07-09",
-      "sheetRow": 27
+      "sheetRow": 4
     },
     {
       "code": "^xsellresponse",
@@ -112,13 +89,13 @@
       "replyMode": "reply-in-thread",
       "departmentScope": "Apparel",
       "subject": "",
-      "bodyText": "Hi [FIRST NAME],\nCortney here, I run the apparel side at Planet Apparel. Shara passed your note over and that mockup offer is real, I'd love to put it together for you.\nOne question so it's worth your time: what would your crew actually use, shirts, hats, hoodies, something else? Tell me that and I'll have your [PROJECT NAME] art worked up on it within a couple days.\nNo cost and no commitment. If it looks right, we'll talk numbers.",
+      "bodyText": "Hi [FIRST NAME],\n\nCortney here, I run the apparel and promo side at Planet Apparel. Shara passed your note over, happy to help.\n\nWhat's it for, the crew, an event, client gifts? Tell me what you're picturing and I'll put real numbers together. We've already got your [PROJECT NAME] art on file, so setup is the easy part.\n\nNo commitment. If the numbers look right, we'll go from there.",
       "bodyHtml": "",
       "firesWhen": "When a customer replies to the Cross-Sell Intro. Reply in the intro thread, no new subject.",
       "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "Approved 2026-07-08. Shelby angle: speak-their-own-sale + game-plan clarity + reason-first opener.",
-      "lastUpdated": "2026-07-08",
+      "effectiveAt": "2026-07-09",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim — do not re-edit. CONDITIONAL: when the intro was Cortney's own ^xsellc, delete the line \"Shara passed your note over, happy to help.\" — she is already on the thread.",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 5
     },
     {
@@ -136,64 +113,14 @@
       "replyMode": "reply-in-thread",
       "departmentScope": "Apparel",
       "subject": "",
-      "bodyText": "Hi [FIRST NAME],\nThat apparel mockup is still yours if you want it. One line back gets it moving.\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\nGlad we got to be part of the [PROJECT NAME] run either way.",
+      "bodyText": "Hi [FIRST NAME],\n\nJust closing the loop on the apparel and promo idea. Your art is still on file, so whenever you're ready it's a quick start.\n\nAnd if this isn't the season for it, that's an easy no. Tell me to sit tight and I will, no follow-up chain coming your way.\n\nGlad we got to be part of the [PROJECT NAME] run either way.",
       "bodyHtml": "",
       "firesWhen": "~1 week after a cross-sell bite goes quiet. One touch only; if no reply, mark the box and stop.",
       "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "Approved 2026-07-08. Anti-sell pull-back; we honor the 'no follow-up chain' promise by actually stopping.",
-      "lastUpdated": "2026-07-08",
+      "effectiveAt": "2026-07-09",
+      "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim — do not re-edit.",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 6
-    },
-    {
-      "code": "^mockup",
-      "name": "Value Mockup",
-      "channel": "email",
-      "aliases": [
-        "/mockup",
-        "Mockup",
-        "free mockup",
-        "value touch"
-      ],
-      "fromMailbox": "team@planetapparel.com (usually Cortney)",
-      "sentByRule": "Box owner sends; usually Cortney (it's an apparel mockup).",
-      "cc": "",
-      "replyMode": "new-email",
-      "departmentScope": "Apparel",
-      "subject": "Made you something",
-      "bodyText": "Hi [FIRST NAME],\nNo ask here. I had some fun and mocked up what your [DESIGN] would look like on [APPAREL/MERCH]. It's attached.\nKeep it for fun, or tell me to make it real. Either way I figured you'd enjoy seeing it.",
-      "bodyHtml": "",
-      "firesWhen": "~Month 4 for New Customers with cross-sell potential (T1; T2 only if cross-sell potential is clear). A gift, not a pitch.",
-      "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "Attach the actual mockup image when sending.",
-      "lastUpdated": "2026-07-08",
-      "sheetRow": 7
-    },
-    {
-      "code": "^reorder",
-      "name": "Reorder Reach-Out",
-      "channel": "email",
-      "aliases": [
-        "/reorder",
-        "Reorder",
-        "reorder reach out",
-        "reorder email"
-      ],
-      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
-      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
-      "cc": "",
-      "replyMode": "new-email",
-      "departmentScope": "All",
-      "subject": "Time to run [PRODUCT] again?",
-      "bodyText": "Hi [FIRST NAME],\nIt's about the same time of year you usually reorder. Want me to set up the same run as last time so it's ready before you need it? Takes me about five minutes on my end.\nIf the timing's off, no worries. Just tell me when and I'll plan around it.",
-      "bodyHtml": "",
-      "firesWhen": "~Month 8 (T1 call) / ~Month 10 (T2 email). For event customers, time ~2 months before the event.",
-      "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "Generic (apparel/product-neutral) reorder. Bandana uses /reorderban.",
-      "lastUpdated": "2026-07-08",
-      "sheetRow": 8
     },
     {
       "code": "^atrisk1",
@@ -211,13 +138,13 @@
       "replyMode": "new-email",
       "departmentScope": "All",
       "subject": "you crossed my mind",
-      "bodyText": "Hi [FIRST NAME],\nIt's been a bit longer than usual since your last run, so you crossed my mind. Anything coming up I could help you get ahead of?\nNo agenda here. Didn't want you flying solo if something's on the horizon.",
+      "bodyText": "Hi [FIRST NAME],\nIt's been a couple months since our last project together, so I wanted to see how you're doing and make sure there's nothing coming down the pipeline I can help you get ahead of.\nAlso, I'm not sure you've ever seen the full range of what we make. Here's our lookbook if you want a peek: https://planetholly.github.io/lookbook-2026/\nIf you can put a logo on it, we've probably made it.\nNothing needed on your end. You know where to find me.",
       "bodyHtml": "",
       "firesWhen": "At entry into AT RISK. T1 = call (atrisk1-call); T2 = this email within two weeks; T3 = skip. Feeds Mail Merge auto-follow-up to Touch 2.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
       "notes": "Shelby angle: pattern-interrupt subject, one probing question, anti-sell, one ask.",
-      "lastUpdated": "2026-07-08",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 9
     },
     {
@@ -236,13 +163,13 @@
       "replyMode": "new-email",
       "departmentScope": "All",
       "subject": "should I stop bugging you?",
-      "bodyText": "Hi [FIRST NAME],\nI sent a note a couple weeks back and didn't hear, which is totally fine. So let me ask straight: are you good for now, or is something coming up I can help line up?\nEither answer works. Just point me the right way.",
+      "bodyText": "Hi [FIRST NAME],\nMy last email might've gotten buried, so I'm floating it back up. No rush at all.\nIf there's something coming up I can help you get ahead of, I'm around. And if it's just a quiet season on your end, that's totally fine too.",
       "bodyHtml": "",
       "firesWhen": "Midpoint of the AT RISK window; fires only if Touch 1 got no reply. A different shape, not a repeat.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
       "notes": "Genericized (no typed blank) so it runs as a Mail Merge auto-follow-up.",
-      "lastUpdated": "2026-07-08",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 10
     },
     {
@@ -285,38 +212,14 @@
       "replyMode": "n/a",
       "departmentScope": "All",
       "subject": "",
-      "bodyText": "Hi [FIRST NAME], it's [PM] at Planet Apparel. Your [PRODUCT] should've landed by now. Did it come out the way you pictured?\nReact like a person, name a real detail (\"honestly the [COLOR] came out crisp, I was hoping it would\"), then fold the cross-sell in naturally (\"if you ever want [other line] to go with them, I can pull a quick mockup, no pressure\").",
+      "bodyText": "OPENER: \"Hi [FIRST NAME], it's [PM] at Planet Apparel. Your [PROJECT NAME] should've landed. Did it come out the way you pictured?\"\nReact like a person, name a real detail if you saw the order.\nNOTE: they also received our QC email with the review button. If they mention it, great - do NOT push the review on the phone.\nIF VOICEMAIL: totally fine, the email already carries the QC ask and the review button. One voicemail, no chase.",
       "bodyHtml": "",
       "firesWhen": "Week 1 for T1 New Customers - the personal call that replaces the QC email and folds in the cross-sell intro.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
-      "notes": "Talking points, not a script to read verbatim.",
-      "lastUpdated": "2026-07-08",
+      "notes": "v2 2026-07-09: the call now SUPPLEMENTS the auto QC/review email (Round 9 P2) - it never replaces it. Email always sends to every tier; this call adds the personal layer for T1.",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 12
-    },
-    {
-      "code": "reorder-T1-call",
-      "name": "T1 Reorder Call",
-      "channel": "call",
-      "aliases": [
-        "reorder call",
-        "T1 reorder call",
-        "month 8 call"
-      ],
-      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
-      "sentByRule": "Box owner calls (T1). For event customers, anchor 2-3 months before the event.",
-      "cc": "",
-      "replyMode": "n/a",
-      "departmentScope": "All",
-      "subject": "",
-      "bodyText": "Hi [FIRST NAME], [PM] at Planet Apparel. It's about the time of year you usually reorder. Want me to get the same run set up so you're covered?\nIf it's for an event: \"let's lock it in now so it's ready before [EVENT].\" If not yet: \"no rush, I'll keep your specs on file so the next one's quick.\"",
-      "bodyHtml": "",
-      "firesWhen": "~Month 8 for T1 New Customers - the personal reorder call.",
-      "publishStatus": "live",
-      "effectiveAt": "2026-07-08",
-      "notes": "Talking points.",
-      "lastUpdated": "2026-07-08",
-      "sheetRow": 13
     },
     {
       "code": "atrisk1-call",
@@ -381,18 +284,18 @@
       "replyMode": "new-email",
       "departmentScope": "Bandana",
       "subject": "how'd the [PROJECT NAME] turn out?",
-      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] just landed, and I want to make sure we got it right. Did everything turn out the way you pictured?\nIf anything's off, tell me and I'll fix it. That's the whole job.",
+      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] just landed, and I want to make sure we got it right. Did everything turn out the way you pictured?\nIf anything's off, tell me and I'll fix it.",
       "bodyHtml": "",
       "firesWhen": "1st check-in on a new bandana order (System C manual ladder). Text Blaze fill-in form.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
       "notes": "Text Blaze source: Retention.csv. {formtext} fields converted to [BRACKETS].",
-      "lastUpdated": "2026-07-08",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 16
     },
     {
       "code": "/nc4",
-      "name": "4-Month Bandana Check-In (Text Blaze)",
+      "name": "4-Month Check-In",
       "channel": "email",
       "aliases": [
         "NewCust_Check4mo_Ban",
@@ -404,15 +307,15 @@
       "sentByRule": "Sent by Kelly as the bandwidth-overflow lane for Shara's bandana list.",
       "cc": "",
       "replyMode": "new-email",
-      "departmentScope": "Bandana",
+      "departmentScope": "Both",
       "subject": "the [PROJECT NAME] run, and what's next for you?",
-      "bodyText": "Hi [FIRST NAME],\nIt's been a few months since your [PROJECT NAME] run went out. How did they go over?\nAnd whatever's next for you, we'd love to be part of it. Bandanas are how most people meet us, but we do apparel and branded merch too, so there's more we can do whenever you're ready.\nNo pressure at all. Just glad we got to make these for you.",
+      "bodyText": "Hi [FIRST NAME],\nIt's been a few months since your [PROJECT NAME] run went out. How did they go over?\nAnd whatever's next for you, we'd love to be part of it. If you can put a logo on it, we've probably made it, so there's more we can do whenever you're ready.\nNo pressure at all. Just glad we got to make these for you.",
       "bodyHtml": "",
       "firesWhen": "~Month 4, Activation only, fires once (T1/T2; T3 skipped). Outcome check + plants apparel/merch, not a durability check.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
-      "notes": "Renamed from legacy '3-month' to 4 months. Text Blaze source: Retention.csv.",
-      "lastUpdated": "2026-07-08",
+      "notes": "v2 2026-07-09 Holly-approved: generalized to BOTH departments (house capability line). Replaces the Value Mockup (Round 9 P4). Automated draft once the D3 lane ships.",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 17
     },
     {
@@ -436,52 +339,100 @@
       "firesWhen": "~Month 10 (Activation) and annual/event (Retention). One shared template, both lines. T1/T2 only.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-08",
-      "notes": "Text Blaze source: Retention.csv. Overlaps System B annual email (unreconciled).",
-      "lastUpdated": "2026-07-08",
+      "notes": "Text Blaze source: Retention.csv. Overlaps System B annual email (unreconciled). | 2026-07-09: serving as INTERIM annual-email copy source; being generalized to both departments as ^annual (C2).",
+      "lastUpdated": "2026-07-09",
       "sheetRow": 18
     },
     {
-      "code": "^review",
-      "name": "Post-Delivery Review Request",
+      "code": "^inactive",
+      "name": "Inactive Call",
+      "channel": "call",
+      "aliases": [
+        "Inactive",
+        "inactive call",
+        "save window call"
+      ],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Cortney calls - Both-department T1 accounts ONLY (Round 9 P6). Bandana-only inactive customers get no further touch. Cortney decides whether to loop Holly in.",
+      "cc": "",
+      "replyMode": "n/a",
+      "departmentScope": "All",
+      "subject": "",
+      "bodyText": "OPENER: \"Hi [FIRST NAME], it's Cortney from Planet Apparel. I'm just calling to check in on you.\"\nPOINTS: it's been a while since the last project - making sure everything on the account is good - we appreciate your business, that's the whole reason for the call - anything coming up I can help with?\nIF THEY MENTION A PROJECT: take it, you own it from here. If it's big, loop Holly in - your call.\nIF VOICEMAIL: warm 15-second version of the same, no callback pressure.",
+      "bodyHtml": "",
+      "firesWhen": "INACTIVE stage. T1 = Cortney calls (Holly may join); T2 = call within 4 weeks; T3 = skip.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved. Casual appreciation check-in, not a rescue attempt.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 22
+    },
+    {
+      "code": "^lost_owner",
+      "name": "Lost Annual Check-In (from Holly)",
       "channel": "email",
       "aliases": [
-        "review",
-        "review request",
-        "ask review",
-        "google review"
+        "lost owner email",
+        "annual lost"
       ],
-      "fromMailbox": "box-owner (bandanas@ = Shara / team@ = Cortney)",
-      "sentByRule": "Auto-sent by n8n from the box owner's mailbox. VIP + same-day multi-order flagged to draft for PM review.",
+      "fromMailbox": "holly@planetapparel.com (Holly, owner)",
+      "sentByRule": "Automated annual draft from Holly the owner - T1 LOST accounts only. The ultimate touch (Round 9 P7).",
       "cc": "",
       "replyMode": "new-email",
-      "departmentScope": "All",
-      "subject": "How did your [PROJECT NAME] turn out?",
-      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] shipped a few days ago, and we want to make sure everything arrived looking great.\nIf you have a minute, a quick Google review would mean a lot. It helps other teams find us, and you can add a photo of your order right in the same window.\nLeave a Review: https://g.page/r/CQhn52SlLBoeEBM/review\nThank you for working with us.\n\n[OWNER SIGNATURE]",
-      "bodyHtml": "<div style=\"font-family:Montserrat,Arial,sans-serif;color:#000;max-width:560px;margin:0 auto;line-height:1.6;font-size:15px\"><p>Hi [FIRST NAME],</p><p>Your [PROJECT NAME] shipped a few days ago, and we want to make sure everything arrived looking great.</p><p>If you have a minute, a quick Google review would mean a lot. It helps other teams find us, and you can add a photo of your order right in the same window.</p><p style=\"text-align:center;margin:28px 0\"><a href=\"https://g.page/r/CQhn52SlLBoeEBM/review\" style=\"background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:14px 30px;border-radius:6px;display:inline-block\" rel=\"noopener noreferrer\" target=\"_blank\">Leave a Review</a></p><p>Thank you for working with us.</p><p>[OWNER SIGNATURE]</p></div>",
-      "firesWhen": "5 business days after an order enters a black fulfillment status (delivered). Hourly poll + daily 9am sender.",
-      "publishStatus": "retired",
-      "effectiveAt": "2026-07-08",
-      "notes": "RETIRED 2026-07-09. Merged into ^qc_new / ^qc_repeat (the QC email now carries the Google review request). postdelivery-review touchpoint repointed to those. Do not use.",
-      "lastUpdated": "2026-07-08",
-      "sheetRow": 19
+      "departmentScope": "Both",
+      "subject": "it's been about a year",
+      "bodyText": "Hi [FIRST NAME],\nI'm Holly, I own Planet Apparel. I was just seeing that it's been about a year since your last project with us. We have a system for this that I can't rely on 100%, so I wanted to reach out myself and make sure everything's going well with your business.\nI'm super grateful to have worked with you, and I just want to make sure you're satisfied with our services. If there's any way I can serve you, now or down the road, let me know.",
+      "bodyHtml": "",
+      "firesWhen": "LOST stage, T1 only, once a year. Auto-DRAFT lane (D5); Holly sends.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved (her dictation, /sales pass). Humble records-may-be-wrong framing. Replaces the empty ^annual lost-check-in concept.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 24
+    },
+    {
+      "code": "^xsellc",
+      "name": "Cross-Sell Intro (Cortney first-person)",
+      "channel": "email",
+      "aliases": [
+        "cross-sell intro cortney",
+        "xsellc"
+      ],
+      "fromMailbox": "team@planetapparel.com (Cortney)",
+      "sentByRule": "Cortney sends her own share of T2 intros from team@ (first-person). No cc.",
+      "cc": "",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "a thought on your [PROJECT NAME] run",
+      "bodyText": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "bodyHtml": "",
+      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v3 2026-07-09: Cortney first-person variant of ^xsell (she is now an intro sender, not just cc). Holly-approved verbatim — do not re-edit.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 27
     },
     {
       "code": "^xsellwarm",
       "name": "Cross-Sell Warm Intro (return customers)",
       "channel": "email",
-      "aliases": [],
+      "aliases": [
+        "warm cross-sell",
+        "xsell warm"
+      ],
       "fromMailbox": "bandanas@planetapparel.com (Shara/Kelly)",
-      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "sentByRule": "Shara/Kelly from bandanas@ cc team@ for return customers; Both-dept boxes -> Cortney sends ^xsellwarmc from team@.",
       "cc": "team@planetapparel.com",
       "replyMode": "either",
       "departmentScope": "Both",
       "subject": "i don't think i told you",
       "bodyText": "Hi [FIRST NAME],\n\nWe've done a few bandana runs together now, and I don't think I ever told you the rest of what we make. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nMy teammate Cortney runs that side of the shop and she's copied here. If you've got anything coming up, just reply and she'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
       "bodyHtml": "",
-      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "firesWhen": "Return customers (>=2 Printavo order records, live-checked; never Streak stage/1009). Fuel 1: a cross-sell task on a return customer. Fuel 2: the one-time active-base backfill sweep. Delivery-gated (Sale 5007). Tue-Thu 9-11am PT, <=12/day.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-09",
-      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
+      "notes": "v1 2026-07-09 Holly-approved verbatim - do not re-edit. Lookbook lives in the SIGNATURE button (See what we produce), not the body. T1: call task for Cortney +3 business days after send unless replied.",
       "lastUpdated": "2026-07-09",
       "sheetRow": 28
     },
@@ -489,21 +440,70 @@
       "code": "^xsellwarmc",
       "name": "Cross-Sell Warm Intro (Cortney first-person)",
       "channel": "email",
-      "aliases": [],
+      "aliases": [
+        "warm cross-sell cortney",
+        "xsellwarmc"
+      ],
       "fromMailbox": "team@planetapparel.com (Cortney)",
-      "sentByRule": "Box owner sends; Both -> Cortney (auto-flip w/ manual override); named bandana whales stay Shara.",
+      "sentByRule": "Cortney sends her share of return-customer intros from team@ (first-person). No cc.",
       "cc": "",
       "replyMode": "either",
       "departmentScope": "Both",
       "subject": "i don't think i told you",
       "bodyText": "Hi [FIRST NAME],\n\nYou've been running bandanas with us for a while now, and I don't think anyone's told you the rest of what we make. I run that side of the shop. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nIf you've got anything coming up, just reply here and I'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
       "bodyHtml": "",
-      "firesWhen": "Week 2 for New Customers (T1 folds into QC call; T2 = this email). Introduces the other product line.",
+      "firesWhen": "Return customers (>=2 Printavo order records, live-checked; never Streak stage/1009). Fuel 1: a cross-sell task on a return customer. Fuel 2: the one-time active-base backfill sweep. Delivery-gated (Sale 5007). Tue-Thu 9-11am PT, <=12/day.",
       "publishStatus": "live",
       "effectiveAt": "2026-07-09",
-      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
+      "notes": "v1 2026-07-09 Holly-approved verbatim - do not re-edit. Lookbook lives in the SIGNATURE button (See what we produce), not the body. T1: call task for Cortney +3 business days after send unless replied.",
       "lastUpdated": "2026-07-09",
       "sheetRow": 29
+    },
+    {
+      "code": "^atrisk3",
+      "name": "At-Risk Final Touch",
+      "channel": "email",
+      "aliases": [
+        "at-risk final",
+        "last note"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Box owner sends as a REPLY in the at-risk thread at the end of the save window, only if touches 1-2 got no reply.",
+      "cc": "",
+      "replyMode": "reply-in-thread",
+      "departmentScope": "Both",
+      "subject": "",
+      "bodyText": "Hi [FIRST NAME],\nLast note from me, promise. I know inboxes fill up fast.\nWe've genuinely enjoyed the projects we've done together, and whenever the next one comes around, we'd love to make it for you. No expiration on that.\nTake care,",
+      "bodyHtml": "",
+      "firesWhen": "At-risk final touch - graceful exit at the end of the save window (after email 1, email 2, and the T1 call all got silence). Gratitude only, ZERO questions. Then the box moves to INACTIVE.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved verbatim (locked House script, sales skill). Questions taper across the sequence: one, one, none. Sender name comes from the Gmail signature.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 30
+    },
+    {
+      "code": "^annual",
+      "name": "Annual Reorder",
+      "channel": "email",
+      "aliases": [
+        "annual reorder",
+        "coming up on a year"
+      ],
+      "fromMailbox": "box owner (bandanas@ = Shara / team@ = Cortney)",
+      "sentByRule": "Consolidated annual reorder touch, both departments, T1+T2 (Round 9 P5). Generalized from /reorderban.",
+      "cc": "",
+      "replyMode": "either",
+      "departmentScope": "Both",
+      "subject": "coming up on a year",
+      "bodyText": "Hi [FIRST NAME],\nYour [PROJECT NAME] project from last [MONTH] is coming up on a year, and I want to get ahead of your next one before you need it. We've still got everything on file, so it's a quick start.\nIf there's something on the horizon, point me at the timing and we'll plan around it. And if you're thinking beyond what we did last time, if you can put a logo on it, we've probably made it.\nNo rush at all. Just don't want your date to sneak up on us.",
+      "bodyHtml": "",
+      "firesWhen": "~Month 10-12 post first order / ~2-3 months before event anniversary. Engine: b-annual interim (alarm), n8n replacement = D7.",
+      "publishStatus": "live",
+      "effectiveAt": "2026-07-09",
+      "notes": "v1 2026-07-09 Holly-approved. House capability line replaces the bandana-specific cross-sell line.",
+      "lastUpdated": "2026-07-09",
+      "sheetRow": 31
     }
   ],
   "script_fields": [
@@ -517,11 +517,11 @@
     },
     {
       "scriptCode": "^qc_new",
-      "fieldName": "[DESIGN]",
-      "sampleValue": "Trailhead 5K logo",
-      "source": "typed",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
       "required": true,
-      "fallback": "design"
+      "fallback": "order"
     },
     {
       "scriptCode": "^qc_repeat",
@@ -533,9 +533,9 @@
     },
     {
       "scriptCode": "^qc_repeat",
-      "fieldName": "[PRODUCT]",
-      "sampleValue": "bandanas",
-      "source": "typed",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
       "required": true,
       "fallback": "order"
     },
@@ -562,14 +562,6 @@
       "source": "printavo",
       "required": true,
       "fallback": "order"
-    },
-    {
-      "scriptCode": "^xsell",
-      "fieldName": "[matching APPAREL/MERCH]",
-      "sampleValue": "matching shirts or hats",
-      "source": "typed",
-      "required": false,
-      "fallback": "matching apparel or merch"
     },
     {
       "scriptCode": "^xsellresponse",
@@ -882,6 +874,118 @@
       "source": "streak-box",
       "required": true,
       "fallback": "box owner's standard signature block"
+    },
+    {
+      "scriptCode": "^qc_new",
+      "fieldName": "[OWNER SIGNATURE]",
+      "sampleValue": "Shara Hildebrand, Planet Apparel",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "Planet Apparel"
+    },
+    {
+      "scriptCode": "^qc_repeat",
+      "fieldName": "[OWNER SIGNATURE]",
+      "sampleValue": "Shara Hildebrand, Planet Apparel",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "Planet Apparel"
+    },
+    {
+      "scriptCode": "^xsellc",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^xsellc",
+      "fieldName": "[PRODUCT]",
+      "sampleValue": "bandanas",
+      "source": "typed",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsellc",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^xsellwarm",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^xsellwarmc",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^atrisk3",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^lost_owner",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^annual",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
+    },
+    {
+      "scriptCode": "^annual",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^annual",
+      "fieldName": "[MONTH]",
+      "sampleValue": "March",
+      "source": "printavo",
+      "required": true,
+      "fallback": "last year"
+    },
+    {
+      "scriptCode": "T1-QC-call",
+      "fieldName": "[PROJECT NAME]",
+      "sampleValue": "Trailhead 5K",
+      "source": "printavo",
+      "required": true,
+      "fallback": "order"
+    },
+    {
+      "scriptCode": "^inactive",
+      "fieldName": "[FIRST NAME]",
+      "sampleValue": "Sam",
+      "source": "streak-box",
+      "required": true,
+      "fallback": "there"
     }
   ],
   "touchpoints": [
@@ -1004,8 +1108,7 @@
       "trigger": "box turns AT-RISK",
       "schedule": "hourly :40 (8a-8p)",
       "workflowId": "ujU81mGJ",
-      "notes": "The outreach engine: T1 -> SAVE CALL task; T2 -> SAVE EMAIL task; T3 -> skip. Reads Open-Deal Guard to mute mid-deal. OFF (inactive + DRY_RUN) - the single biggest hole; every save touch is hand-sent today.",
-      "streakNotes": "Creates the SAVE CALL / SAVE EMAIL task on the box owner and logs the touch date; never changes relationship status itself."
+      "notes": "The outreach engine: T1 -> SAVE CALL task; T2 -> SAVE EMAIL task; T3 -> skip. Reads Open-Deal Guard to mute mid-deal. OFF (inactive + DRY_RUN) - the single biggest hole; every save touch is hand-sent today."
     },
     {
       "id": "pass2b",
@@ -1064,48 +1167,47 @@
     },
     {
       "id": "c-checkin1",
-      "name": "1st Check-In (bandana)",
+      "name": "[RETIRED 2026-07-09] 1st Check-In (bandana)",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "off",
       "healthStatus": "n/a",
       "trigger": "after 1st bandana order",
       "schedule": "hand-laddered",
       "workflowId": "",
-      "notes": "First relationship touch on a new bandana customer. No engine - hand-created Streak task."
+      "notes": "RETIRED 2026-07-09 (product-review consolidation): superseded by postdelivery-review (Week-1 QC + Review). Was: hand-created Streak task for new bandana customers."
     },
     {
       "id": "c-nc4",
-      "name": "4-Month Check-In (bandana)",
+      "name": "4-Month Check-In",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "planned",
       "healthStatus": "n/a",
       "trigger": "~4 months after order",
       "schedule": "hand-laddered",
       "workflowId": "",
-      "notes": "Cadence check-in / free-mockup gift touch. No engine - manual."
+      "notes": "North Star Touch-3 replacement (Round 9, 2026-07-09): 4-month outcome check-in, BOTH departments, T1+T2, automated draft once the n8n lane (D3) ships. Replaces the Value Mockup (killed). Script /nc4 being generalized for both departments."
     },
     {
       "id": "c-reorder",
-      "name": "Annual Reorder (bandana)",
+      "name": "[RETIRED 2026-07-09] Annual Reorder (bandana)",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "off",
       "healthStatus": "n/a",
       "trigger": "~annual",
       "schedule": "hand-laddered",
       "workflowId": "",
-      "notes": "Reorder reach-out on the bandana ladder. No engine - manual. Overlaps System B annual email (unreconciled)."
+      "notes": "RETIRED 2026-07-09 (product-review consolidation): superseded by annual. Reorder reach-out on the bandana ladder. No engine - manual. Overlaps System B annual email (unreconciled)."
     },
     {
       "id": "postdelivery-review",
-      "name": "Post-Delivery Review Request",
+      "name": "Week-1 QC + Review (post-delivery)",
       "system": "n8n",
       "autoLevel": "auto-send",
       "healthStatus": "dry",
       "trigger": "order enters a black fulfillment status",
       "schedule": "hourly poll + daily 9am sender",
       "workflowId": "ymSBJ95Ah8t30Y0B",
-      "notes": "5 business days after delivery. VIP + same-day multi-order flagged to draft for PM review. Currently DRY_RUN. Sends ^review from the box owner's mailbox.",
-      "streakNotes": "Writes review-request timestamp to the box; sets Stage = Delivered when the send fires."
+      "notes": "5 business days after delivery. VIP + same-day multi-order flagged to draft for PM review. Currently DRY_RUN. Sends ^qc_new / ^qc_repeat from the box owner's mailbox (review request folded into the QC email 2026-07-09)."
     },
     {
       "id": "aio-chase",
@@ -1158,43 +1260,42 @@
       "autoLevel": "auto-draft",
       "healthStatus": "live",
       "trigger": "new customer Week 2 / customer bites on intro",
-      "schedule": "batch (crosssell_draft_batch.py)",
+      "schedule": "Tue-Thu 9-11am PT, <=12/day",
       "workflowId": "",
-      "notes": "The cross-sell draft generator: drafts ^xsell intros and Cortney's response/ghost follow-ups. Reads scripts.json id=xsell.",
-      "streakNotes": "Stamps \"Cross-sell sent\" on the box and advances the Cross-Sell pipeline stage; reply flips it to the Response lane."
+      "notes": "The cross-sell draft generator: drafts ^xsell + ^xsellc intros and Cortney's response/ghost follow-ups. Reads the Command Center Data API (fail-closed; the Sheet is truth)."
     },
     {
       "id": "qc",
-      "name": "Week-1 Quality Check",
+      "name": "[RETIRED 2026-07-09] Week-1 Quality Check",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "off",
       "healthStatus": "n/a",
       "trigger": "1 week after delivery",
       "schedule": "Week 1",
       "workflowId": "",
-      "notes": "North Star Week-1 QC touch. T2/T3 = automated email; T1 = personal call. Bandana check-ins reminded via c-checkin1."
+      "notes": "RETIRED 2026-07-09 (product-review consolidation): superseded by postdelivery-review (Week-1 QC + Review) — one touch, all tiers auto email + T1 call supplement (Round 9)."
     },
     {
       "id": "mockup",
-      "name": "Value Mockup (Month 4)",
+      "name": "[RETIRED 2026-07-09] Value Mockup (Month 4)",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "off",
       "healthStatus": "n/a",
       "trigger": "~Month 4, cross-sell potential",
       "schedule": "Month 4",
       "workflowId": "",
-      "notes": "North Star Value Touch - complimentary apparel mockup, designed to land like a gift."
+      "notes": "RETIRED 2026-07-09 (product-review consolidation): superseded by c-nc4. North Star Value Touch - complimentary apparel mockup, designed to land like a gift."
     },
     {
       "id": "reorder",
-      "name": "Reorder Reach-Out",
+      "name": "[RETIRED 2026-07-09] Reorder Reach-Out",
       "system": "manual",
-      "autoLevel": "manual",
+      "autoLevel": "off",
       "healthStatus": "n/a",
       "trigger": "~Month 8 (call) / Month 10 (email)",
       "schedule": "Month 8-10 / annual",
       "workflowId": "",
-      "notes": "North Star reorder reach-out (generic/apparel). Bandana reorder runs via c-reorder / b-annual."
+      "notes": "RETIRED 2026-07-09 (product-review consolidation): superseded by annual. North Star reorder reach-out (generic/apparel). Bandana reorder runs via c-reorder / b-annual."
     },
     {
       "id": "inactive-call",
@@ -1228,6 +1329,17 @@
       "schedule": "per reactivation",
       "workflowId": "",
       "notes": "North Star touch; script ^reactqc not yet written"
+    },
+    {
+      "id": "annual",
+      "name": "Annual Reorder",
+      "system": "automationsio",
+      "autoLevel": "auto-send",
+      "healthStatus": "alarm",
+      "trigger": "~Month 10-12 post first order / ~2-3 months before event anniversary",
+      "schedule": "Automations.io b-annual (~305d) SHORT-TERM — firing unconfirmed, token expires 2026-09-12; n8n replacement scheduled (D7)",
+      "workflowId": "",
+      "notes": "Round-9 consolidation (2026-07-09): single annual reorder touch, BOTH departments, T1+T2. Absorbs Activation Touch-4 (reorder/c-reorder, both retired) and the ladder annual. Script ^annual being generalized from /reorderban (C2)."
     }
   ],
   "touchpoint_scripts": [
@@ -1288,22 +1400,6 @@
       "sendMode": "manual"
     },
     {
-      "touchpointId": "c-checkin1",
-      "scriptCode": "^qc_new",
-      "role": "qc-email",
-      "sequence": "1",
-      "tier": "T2",
-      "sendMode": "manual"
-    },
-    {
-      "touchpointId": "c-checkin1",
-      "scriptCode": "T1-QC-call",
-      "role": "qc-call",
-      "sequence": "1",
-      "tier": "T1",
-      "sendMode": "task"
-    },
-    {
       "touchpointId": "c-nc4",
       "scriptCode": "/nc4",
       "role": "checkin",
@@ -1312,76 +1408,12 @@
       "sendMode": "manual"
     },
     {
-      "touchpointId": "c-reorder",
-      "scriptCode": "/reorderban",
-      "role": "reorder",
-      "sequence": "1",
-      "tier": "T2",
-      "sendMode": "manual"
-    },
-    {
-      "touchpointId": "c-reorder",
-      "scriptCode": "^reorder",
-      "role": "reorder-generic",
-      "sequence": "2",
-      "tier": "T2",
-      "sendMode": "manual"
-    },
-    {
       "touchpointId": "postdelivery-review",
-      "scriptCode": "^review",
-      "role": "review-request",
+      "scriptCode": "^qc_new",
+      "role": "qc-review-new",
       "sequence": "1",
       "tier": "all",
       "sendMode": "auto-send"
-    },
-    {
-      "touchpointId": "qc",
-      "scriptCode": "^qc_new",
-      "role": "qc-email-new",
-      "sequence": "1",
-      "tier": "T2",
-      "sendMode": "auto-send"
-    },
-    {
-      "touchpointId": "qc",
-      "scriptCode": "^qc_repeat",
-      "role": "qc-email-repeat",
-      "sequence": "1",
-      "tier": "T2",
-      "sendMode": "manual"
-    },
-    {
-      "touchpointId": "qc",
-      "scriptCode": "T1-QC-call",
-      "role": "qc-call",
-      "sequence": "1",
-      "tier": "T1",
-      "sendMode": "task"
-    },
-    {
-      "touchpointId": "mockup",
-      "scriptCode": "^mockup",
-      "role": "mockup",
-      "sequence": "1",
-      "tier": "T1",
-      "sendMode": "task"
-    },
-    {
-      "touchpointId": "reorder",
-      "scriptCode": "^reorder",
-      "role": "reorder-email",
-      "sequence": "1",
-      "tier": "T2",
-      "sendMode": "manual"
-    },
-    {
-      "touchpointId": "reorder",
-      "scriptCode": "reorder-T1-call",
-      "role": "reorder-call",
-      "sequence": "1",
-      "tier": "T1",
-      "sendMode": "task"
     },
     {
       "touchpointId": "inactive-call",
@@ -1393,11 +1425,11 @@
     },
     {
       "touchpointId": "lost-annual",
-      "scriptCode": "^annual",
+      "scriptCode": "^lost_owner",
       "role": "annual-checkin",
       "sequence": "1",
       "tier": "T1",
-      "sendMode": "manual"
+      "sendMode": "auto-draft"
     },
     {
       "touchpointId": "react-qc",
@@ -1406,13 +1438,69 @@
       "sequence": "1",
       "tier": "T1,T2",
       "sendMode": "manual"
+    },
+    {
+      "touchpointId": "postdelivery-review",
+      "scriptCode": "^qc_repeat",
+      "role": "qc-review-repeat",
+      "sequence": "1",
+      "tier": "all",
+      "sendMode": "auto-send"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsellc",
+      "role": "intro-cortney",
+      "sequence": "1",
+      "tier": "T2",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsellwarm",
+      "role": "intro-warm",
+      "sequence": "1",
+      "tier": "all",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "crosssell",
+      "scriptCode": "^xsellwarmc",
+      "role": "intro-warm-cortney",
+      "sequence": "1",
+      "tier": "all",
+      "sendMode": "auto-draft"
+    },
+    {
+      "touchpointId": "annual",
+      "scriptCode": "^annual",
+      "role": "annual-email",
+      "sequence": "1",
+      "tier": "T1,T2",
+      "sendMode": "auto-send"
+    },
+    {
+      "touchpointId": "postdelivery-review",
+      "scriptCode": "T1-QC-call",
+      "role": "qc-call-t1",
+      "sequence": "1",
+      "tier": "T1",
+      "sendMode": "task"
+    },
+    {
+      "touchpointId": "savetouch",
+      "scriptCode": "^atrisk3",
+      "role": "touch3-final-email",
+      "sequence": "3",
+      "tier": "T1,T2",
+      "sendMode": "auto-draft"
     }
   ],
   "journeys": [
     {
       "customerType": "bandana-t1",
       "stepOrder": "1",
-      "touchpointId": "c-checkin1",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T1",
       "department": "Bandana",
@@ -1436,7 +1524,7 @@
     {
       "customerType": "bandana-t1",
       "stepOrder": "3",
-      "touchpointId": "c-reorder",
+      "touchpointId": "annual",
       "timingLabel": "Month 8",
       "tier": "T1",
       "department": "Bandana",
@@ -1460,7 +1548,7 @@
     {
       "customerType": "bandana-t2",
       "stepOrder": "1",
-      "touchpointId": "c-checkin1",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T2",
       "department": "Bandana",
@@ -1496,7 +1584,7 @@
     {
       "customerType": "bandana-t2",
       "stepOrder": "4",
-      "touchpointId": "c-reorder",
+      "touchpointId": "annual",
       "timingLabel": "Month 10",
       "tier": "T2",
       "department": "Bandana",
@@ -1508,7 +1596,7 @@
     {
       "customerType": "bandana-t3",
       "stepOrder": "1",
-      "touchpointId": "c-checkin1",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T3",
       "department": "Bandana",
@@ -1520,7 +1608,7 @@
     {
       "customerType": "apparel-t1",
       "stepOrder": "1",
-      "touchpointId": "qc",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T1",
       "department": "Apparel",
@@ -1532,11 +1620,11 @@
     {
       "customerType": "apparel-t1",
       "stepOrder": "2",
-      "touchpointId": "mockup",
+      "touchpointId": "c-nc4",
       "timingLabel": "Month 4",
       "tier": "T1",
       "department": "Apparel",
-      "condition": "Complimentary apparel mockup, designed as a gift",
+      "condition": "4-month outcome check-in (both departments; replaces the mockup, Round 9)",
       "eventOverride": "",
       "suppressionRule": "",
       "stage": "NEW"
@@ -1544,7 +1632,7 @@
     {
       "customerType": "apparel-t1",
       "stepOrder": "3",
-      "touchpointId": "reorder",
+      "touchpointId": "annual",
       "timingLabel": "Month 8",
       "tier": "T1",
       "department": "Apparel",
@@ -1568,7 +1656,7 @@
     {
       "customerType": "apparel-t2",
       "stepOrder": "1",
-      "touchpointId": "qc",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T2",
       "department": "Apparel",
@@ -1592,11 +1680,11 @@
     {
       "customerType": "apparel-t2",
       "stepOrder": "3",
-      "touchpointId": "mockup",
+      "touchpointId": "c-nc4",
       "timingLabel": "Month 4",
       "tier": "T2",
       "department": "Apparel",
-      "condition": "Complimentary mockup - only if cross-sell potential is clear",
+      "condition": "4-month outcome check-in (both departments; replaces the mockup, Round 9)",
       "eventOverride": "",
       "suppressionRule": "",
       "stage": "NEW"
@@ -1604,11 +1692,11 @@
     {
       "customerType": "apparel-t2",
       "stepOrder": "4",
-      "touchpointId": "reorder",
+      "touchpointId": "annual",
       "timingLabel": "Month 10",
       "tier": "T2",
       "department": "Apparel",
-      "condition": "Reorder email (^reorder)",
+      "condition": "Annual reorder email (/reorderban interim; ^annual pending)",
       "eventOverride": "anchor to the event anniversary (event customers)",
       "suppressionRule": "",
       "stage": "NEW"
@@ -1616,7 +1704,7 @@
     {
       "customerType": "apparel-t3",
       "stepOrder": "1",
-      "touchpointId": "qc",
+      "touchpointId": "postdelivery-review",
       "timingLabel": "Week 1",
       "tier": "T3",
       "department": "Apparel",
@@ -1864,17 +1952,6 @@
       "errors": []
     },
     {
-      "code": "^inactive",
-      "name": "Inactive Call",
-      "channel": "call",
-      "publishStatus": "draft",
-      "reason": "planned, not yet written",
-      "notes": "[TO WRITE] Direct, not apologetic. Phone, not email. Talking points still to be authored.",
-      "sheetRow": 22,
-      "kind": "script",
-      "errors": []
-    },
-    {
       "code": "^reactqc",
       "name": "Reactivated QC",
       "channel": "email",
@@ -1882,17 +1959,6 @@
       "reason": "planned, not yet written",
       "notes": "[TO WRITE] Same spirit as the Activation QC, for a won-back customer.",
       "sheetRow": 23,
-      "kind": "script",
-      "errors": []
-    },
-    {
-      "code": "^annual",
-      "name": "Annual T1 Check-In (Lost)",
-      "channel": "email",
-      "publishStatus": "draft",
-      "reason": "planned, not yet written",
-      "notes": "[TO WRITE] Annual reactivation pull for T1 Lost accounts. Runs as a Mail Merge to the T1 Lost list.",
-      "sheetRow": 24,
       "kind": "script",
       "errors": []
     },
@@ -1935,14 +2001,14 @@
       "META": 403763985
     },
     "source": "command-center-api",
-    "note": "Static fallback snapshot — regenerated verbatim from the Command Center Data API transformer (workflow uVO85DuKcSzbEU4g) on 2026-07-09. Transformer-identical contract: same schemaVersion + staleness meta as the live payload. Used by index.html only when the live API is unreachable.",
-    "contentHash": "eff9054b",
+    "note": "Static fallback snapshot — re-synced verbatim from the live Command Center Data API payload (webhook/command-center-data) on 2026-07-09, including the 5 retired touchpoints (engine off, [RETIRED …] names). Transformer-identical contract: same schemaVersion + staleness meta as the live payload. Used by index.html only when the live API is unreachable.",
+    "contentHash": "b578d654",
     "warnings": [],
     "stale": false,
     "servedFrom": "fresh",
-    "servedAt": "2026-07-09T07:31:10.380Z",
+    "servedAt": "2026-07-10T02:51:37.000Z",
     "lastRebuildOk": true,
-    "generatedAt": "2026-07-09T07:31:10.380Z",
+    "generatedAt": "2026-07-10T02:51:37.000Z",
     "schemaVersion": 3
   }
 }
