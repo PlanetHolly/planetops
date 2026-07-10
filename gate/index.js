@@ -40,7 +40,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || '';
 
 // Public tier — no session required. Exact prefixes, case-sensitive.
 const PUBLIC_PREFIXES = ['/signature/', '/rush/', '/bandana-templates/', '/ship-estimate/'];
-const PUBLIC_EXACT    = ['/healthz', '/health-public', '/gate', '/gate/finance'];
+const PUBLIC_EXACT    = ['/healthz', '/health-public', '/gate', '/gate/finance', '/favicon.png'];
 
 // Never served at all (source, planning, secrets-adjacent)
 const DENY_PREFIXES = ['/gate/', '/state-api/', '/_planning/', '/.git/', '/node_modules/'];
@@ -170,7 +170,7 @@ const escHtml = s => String(s ?? '').replace(/[&<>"']/g,
 const PA_SVG = fs.readFileSync(path.join(STATIC_ROOT, 'frontdoor', 'index.html'), 'utf8').match(/<svg viewBox="-270[^]*?<\/svg>/)?.[0] || '';
 function loginPage({ finance, csrf, redirect, msg }) {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planet Apparel</title><style>
+<title>Planet Apparel</title><link rel="icon" href="/favicon.png"><style>
 body{margin:0;background:#111;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
 .card{text-align:center;max-width:320px;padding:24px}.card svg{height:52px;width:auto;color:#F7BE00}
 h1{margin:14px 0 2px;font-size:24px}p{margin:0 0 16px;color:#9aa4b2;font-size:13px}
@@ -193,10 +193,10 @@ function issueCsrf(res) {
   res.append('Set-Cookie', `pa_csrf=${t}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=900`);
   return t;
 }
-// Login-page-only CSP. The page has an inline <style> and inline <svg>, no script,
-// no external loads. Never set this globally: frontdoor/, clock/ and index.html all
-// run inline scripts and a site-wide policy would blank the hub.
-const LOGIN_CSP = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'";
+// Login-page-only CSP. The page has an inline <style>, an inline <svg> and a
+// same-origin favicon, no script. Never set this globally: frontdoor/, clock/ and
+// index.html all run inline scripts and a site-wide policy would blank the hub.
+const LOGIN_CSP = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'";
 function sendLogin(res, opts, status = 200) {
   res.set('Content-Security-Policy', LOGIN_CSP);
   return res.status(status).send(loginPage(opts));
