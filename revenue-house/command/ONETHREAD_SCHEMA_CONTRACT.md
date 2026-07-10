@@ -109,6 +109,15 @@ but the one-batch rule still applies.)
 1. Retired-scripts collapsed/muted group (symmetric with retired touchpoints, commit f917551).
 2. `sendHtml` preview per condition 4 (incl. the Data API transformer column).
 
+## Viewer request 3 (added 2026-07-10 by the One Thread terminal, Holly-relayed): a Journeys-home section for the quote-to-order system
+One Thread's journey rows are loaded (customerType `ot-quote-to-paid`, gate-verified 0 errors) and the
+timeline route works (`#/journeys/ot-quote-to-paid`), but `renderJourneysHome` hardcodes its sections
+(bandana/apparel/promo × t1-t3 + lifecycle), so the path is invisible on the Journeys page. Ask, Holly-approved:
+add ONE data-driven section to `renderJourneysHome` — any `customerType` starting with `ot-` renders as a card
+under its own section header (section title = the system's display name; Holly is naming the system, we will
+relay the final name for the header + `journeyLabel` map before/with your Fri-PM pass). One card per `ot-*`
+customerType, same jbig card + countAuto treatment as the existing sections. Data stays ours, code stays yours.
+
 ## FYI both directions
 - Row numbers shift when either side appends — ALWAYS re-read rows immediately before writing.
 - Holly remains sole copy-approver; your ready→validation→Holly→live flow honors that.
