@@ -131,6 +131,9 @@
   .cardgrid{display:flex;flex-direction:column;gap:6px}
   .job{display:grid;grid-template-columns:56px minmax(138px,172px) 86px minmax(148px,1fr) 66px minmax(118px,158px) 110px 106px 122px 106px minmax(76px,max-content);gap:4px 8px;align-items:center;padding:9px 10px}
   .cship{white-space:nowrap}
+  /* parked = the estimator's gray-out, made explicit: captured but NOT ready to schedule */
+  .job.parked{opacity:.55}
+  tr.parked td{opacity:.55}
   .job.ph{background:#fbf7e8;border:1.5px dashed #d9c66a}
   .job.ph .phref{cursor:text;border-bottom:1px dashed #b9a53e;font-style:italic}
   .phuid{font-size:10px;font-weight:700;color:#7a5000;background:rgba(247,190,0,.18);border-radius:4px;padding:0 6px;cursor:pointer;margin-left:4px;white-space:nowrap} /* #15: optional invoice-correlation ID */
@@ -424,7 +427,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -448,7 +451,7 @@ const SHARED_DOC='schedule_board';
 const LOCAL_ONLY=['csvName','csvText','range','exported'];
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
-const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
+const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
 function sharedPayload(){
   const p={};for(const k in store){if(!LOCAL_ONLY.includes(k))p[k]=store[k];}
   p._savedAt=Date.now();return p;
@@ -830,9 +833,9 @@ function jobCard(j){
   const qtyChip=j.localSplit
     ?`<span class="chip qty editable" data-qty="${j.imprint}" title="Click to rebalance this split's quantity">${j.qty} pcs</span>`
     :`<span class="chip qty">${j.qty} pcs</span>`;
-  return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''}" draggable="true" data-imp="${j.imprint}">
+  return `<div class="job ${j.splitLetter?'split':''} ${j.moved?'moved':''} ${isX?'expanded':''} ${store.parked[j.imprint]?'parked':''}" draggable="true" data-imp="${j.imprint}">
     ${mockTile(j,'')}
-    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${j.apiIntake?`<span class="movednote" style="background:#eef7ee;color:#1c7c2a" title="Landed via the Printavo API intake feed — not in the Power Scheduler export yet. Schedule it normally; it reconciles when the export catches up.">⚡ new via API</span>`:''}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
+    <div class="cid"><span class="imp">${j.imprint}</span>${split}${moved}${store.parked[j.imprint]?`<span class="movednote" style="background:#eee;color:#666" title="Parked in the Queue as NOT READY (the estimator's gray-out). Fill its fields and tap ▶ ready in the Queue — or drag it onto a day to schedule it anyway (that un-parks it).">⏸ not ready</span>`:''}${j.apiIntake?`<span class="movednote" style="background:#eef7ee;color:#1c7c2a" title="Landed via the Printavo API intake feed — not in the Power Scheduler export yet. Schedule it normally; it reconciles when the export catches up.">⚡ new via API</span>`:''}${store.arrived[j.imprint]?`<span class="movednote arrivedn">📦 arrived ${fmtShort(store.arrived[j.imprint])}</span>`:''}</div>
     <div class="cmin"><span class="min" data-min="${j.imprint}" title="Projected time (from Printavo) — click to set minutes">${j.minutes} min${j.minutesOrig!=null?' *':''}</span>
       ${canSplit?`<button class="splitbtn" data-split="${j.imprint}" title="Split this imprint (like Printavo's Copy icon)">⧉</button>`:''}
       ${j.localSplit?`<button class="splitbtn" data-rejoin="${j.splitOf}" title="Rejoin all splits of ${j.splitOf} back into one">↩</button>`:''}
@@ -852,6 +855,7 @@ function jobCard(j){
         const stSel=!laneOf(j.station)?`<select data-station="${j.imprint}" title="Step 1 — which station runs this? Then minutes, then the date.">
           <option value="">station?</option>${LANES.map(l=>`<option value="${l.printavo}">${l.label}</option>`).join('')}</select>`:'';
         return `${stSel}<input type="date" class="schedinput" data-schedule="${j.imprint}" title="Pick the production date — the row jumps onto that day (Jean's last step)">
+        ${store.stations[j.imprint]&&!j.date?`<button class="splitbtn" data-unstation="${j.imprint}" title="↩ Back to the Queue — clears the station YOU assigned locally (a station set in Printavo can't be cleared here)">↩ queue</button>`:''}
         ${rec?`<span class="rec ${rec.late?'late':''}" data-place="${j.imprint}|${rec.date}" title="Closest day to the due date with room: ${rec.free} min free after placing. Click to place.">⚡ fits ${fmtShort(rec.date)}${rec.late?' · after due ⚠':''}</span>`
              :(laneOf(j.station)?`<span class="rec none">${!j.minutes?'add minutes first':'no room in range'}</span>`:'')}`;})()}</div>
     <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
@@ -1134,7 +1138,10 @@ function renderPickups(){
 }
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
-  const un=unscheduled.filter(j=>!isOut(j)).sort((a,b)=>(a.prodDue||'9999')<(b.prodDue||'9999')?-1:1);
+  const un=unscheduled.filter(j=>!isOut(j)).sort((a,b)=>{
+    const pa=store.parked[a.imprint]?1:0,pb=store.parked[b.imprint]?1:0;
+    if(pa!==pb)return pa-pb;                       // parked (not ready) sink to the bottom of the pool
+    return (a.prodDue||'9999')<(b.prodDue||'9999')?-1:1;});
   return rangeControls()+`
     ${!filterLane?arrivalsSection(false):''}
     ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
@@ -1158,7 +1165,8 @@ function renderList(){
   const all=[...jobs];
   const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||!!store.arrived[j.imprint]);   // QUEUE mode: actionable only — outsourced waits in Arrivals UNTIL ✓ arrived, then its in-house leg (post-pro) joins the queue like any job
   let list=listShowAll?all:all.filter(inQueue);
-  const queueN=all.filter(inQueue).length;
+  const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]).length;   // parked jobs don't count — they're captured but NOT ready (estimator gray-out semantics)
+  const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]).length;
   if(listSort.key&&SORTVAL[listSort.key]){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
@@ -1169,11 +1177,11 @@ function renderList(){
   // Press check — why are we press checking? PMS = Pantone matching · MIG = watch for migration · 1K+ = high-quantity safety (1000+ pcs auto-qualifies; click to waive). Any lit button = press check YES; mix freely.
   const pcCell=j=>PCREASONS.map(([k,lb,tt])=>`<button class="strkbtn ${pcVal(j,k)?'on':''}" data-pc="${j.imprint}|${k}" title="Press check? ${tt}${k==='qty'&&j.qty>=1000?' (AUTO — this run is '+j.qty+' pcs; click to waive)':''}">${lb}</button>`).join('');
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
-  const rows=list.map(j=>j.placeholder
+  const rowFor=j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
-    :`<tr data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}</td><td>${j.nickname}</td>
+    :`<tr class="${store.parked[j.imprint]?'parked':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
@@ -1184,18 +1192,26 @@ function renderList(){
     <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
-    <td><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select></td>
+    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button></td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?18:17}">${xPanel(j)}</td></tr>`:''}`).join('');
+    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?18:17}">${xPanel(j)}</td></tr>`:''}`;
+  let rows;
+  if(listShowAll)rows=list.map(rowFor).join('');
+  else{
+    const act=list.filter(j=>!store.parked[j.imprint]),park=list.filter(j=>store.parked[j.imprint]);
+    rows=act.map(rowFor).join('')
+      +(park.length?`<tr><td colspan="17" style="background:#f7f7f7;font-weight:600;padding:8px 10px;border-top:2px solid #ddd">⏸ NOT READY YET · ${park.length} parked — grayed and out of the to-schedule count (the estimator's gray-out, made explicit). Fill fields anytime; tap ▶ when it's time to schedule.</td></tr>`:'')
+      +park.map(rowFor).join('');
+  }
   const H=(key,label)=>{
     const on=listSort.key===key;
     return `<th data-sort="${key}" class="${on?'sorted':''}" title="Click to sort${on?' (click again to reverse)':''}">${label}${on?(listSort.dir>0?' ▲':' ▼'):''}</th>`;
   };
   return `<div class="hint" style="margin-bottom:8px">${listShowAll
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
-    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b> Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
+    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
   <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -1865,6 +1881,7 @@ function wireMain(){
       else if(inp.value)store.moves[imp]=inp.value;
       else if(csv)store.moves[imp]='';       // clear = pull off the schedule
       else delete store.moves[imp];
+      if(inp.value)delete store.parked[imp]; // dating a job is a deliberate scheduling act — un-park
       save();renderAll();
     });
   });
@@ -1950,12 +1967,33 @@ function wireMain(){
       });
     });
   });
-  // station assignment
+  // station assignment — guarded: station is the LAST step, so an uncharted job (0 scheduling minutes) warns before it
+  // graduates to the Board as invisible load. This is how jobs used to escape the queue unready (27365-4, 7/10).
   main.querySelectorAll('select[data-station]').forEach(sel=>{
     sel.addEventListener('click',e=>e.stopPropagation());
     sel.addEventListener('change',()=>{
       const imp=sel.dataset.station;
+      const j=jobs.find(x=>x.imprint===imp);
+      if(sel.value&&j&&!j.placeholder&&!(+j.minutes>0)
+         &&!confirm('⚠ '+imp+' — '+j.nickname+'\n\nNo scheduling minutes yet (⏱ time not verified) — on the Board it counts ZERO against day capacity.\n\nQueue flow: fill fields → tap ⏱ to verify → station LAST.\n\nNot ready? Cancel and tap ⏸ to park it instead.\n\nAssign the station anyway?')){renderAll();return;}
       if(sel.value)store.stations[imp]=sel.value;else delete store.stations[imp];
+      if(sel.value)delete store.parked[imp];   // graduating to the Board un-parks
+      save();renderAll();
+    });
+  });
+  // ⏸ park / ▶ ready (queue) and ↩ queue (board pool — clears a locally-assigned station)
+  main.querySelectorAll('[data-park]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const imp=b.dataset.park;
+      if(store.parked[imp])delete store.parked[imp];else store.parked[imp]=1;
+      save();renderAll();
+    });
+  });
+  main.querySelectorAll('[data-unstation]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      delete store.stations[b.dataset.unstation];
       save();renderAll();
     });
   });
@@ -2010,7 +2048,7 @@ function wireMain(){
     download('schedule_changes.txt',txt);store.exported=true;localStorage.setItem(KEY,JSON.stringify(store));
   };
   const cl=document.getElementById('clearChanges');
-  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.pcheck={};store.timeVerified={};store.wbFail={};save();renderAll();}};
+  if(cl)cl.onclick=()=>{if(confirm('Clear all local moves, splits, minutes, stations, placeholders, and capacity edits?')){store.moves={};store.splits={};store.caps={};store.alloc={};store.minutesEdit={};store.stations={};store.placeholders=[];store.strokes={};store.pcheck={};store.parked={};store.timeVerified={};store.wbFail={};save();renderAll();}};
 }
 function download(name,content){
   const a=document.createElement('a');
@@ -2032,6 +2070,7 @@ function applyMove(imp,target){
   const orig=j.csvDate!==undefined?j.csvDate:(j.origDate||j.date);
   if(target!==orig&&!moveAllowed(j,target))return false;
   if(target===orig)delete store.moves[imp];else store.moves[imp]=target;
+  delete store.parked[imp];   // dropping it on a day is a deliberate scheduling act — un-park
   save();renderAll();return true;
 }
 function jumpTo(imp){
