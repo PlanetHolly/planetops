@@ -11,7 +11,7 @@
       "sentBy": "Kelly/Shara from bandanas@ (cc team@); Cortney sends her share as ^xsellc from team@",
       "channel": "either",
       "subject": "a thought on your [PROJECT NAME] run",
-      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it. Here's what we've been making lately if you want to look around: https://planetholly.github.io/lookbook-2026/\n\nMy teammate Cortney runs that side of the shop and she's copied here. If anything catches your eye or you've got something coming up, just reply and she'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nMy teammate Cortney runs that side of the shop and she's copied here. If anything catches your eye or you've got something coming up, just reply and she'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
       "fills": [
         "FIRST NAME",
         "PRODUCT",
@@ -30,13 +30,45 @@
       "sentBy": "Cortney from team@ (first-person; she is a sender, not just cc)",
       "channel": "either",
       "subject": "a thought on your [PROJECT NAME] run",
-      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it. Here's what we've been making lately if you want to look around: https://planetholly.github.io/lookbook-2026/\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
+      "body": "Hi [FIRST NAME],\n\nYour [PRODUCT] came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nI run that side of the shop, so if anything catches your eye or you've got something coming up, just reply here and I'll take care of you.\n\nNo pressure at all. Either way, glad we got to make these for you.",
       "fills": [
         "FIRST NAME",
         "PRODUCT",
         "PROJECT NAME"
       ],
       "notes": "v3 2026-07-09: custom promo + lookbook link added, mockup hook removed. Holly-approved verbatim. First-person variant of ^xsell for Cortney's own share. No cc.",
+      "status": "live",
+      "cc": []
+    },
+    {
+      "id": "xsellwarm",
+      "code": "^xsellwarm",
+      "name": "Cross-Sell Warm Intro (return customers)",
+      "sentBy": "Shara/Kelly from bandanas@ (cc team@); Both-dept -> Cortney sends ^xsellwarmc",
+      "channel": "either",
+      "subject": "i don't think i told you",
+      "body": "Hi [FIRST NAME],\n\nWe've done a few bandana runs together now, and I don't think I ever told you the rest of what we make. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nMy teammate Cortney runs that side of the shop and she's copied here. If you've got anything coming up, just reply and she'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
+      "fills": [
+        "FIRST NAME"
+      ],
+      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
+      "status": "live",
+      "cc": [
+        "team@planetapparel.com"
+      ]
+    },
+    {
+      "id": "xsellwarmc",
+      "code": "^xsellwarmc",
+      "name": "Cross-Sell Warm Intro (Cortney first-person)",
+      "sentBy": "Cortney from team@ (first-person). No cc.",
+      "channel": "either",
+      "subject": "i don't think i told you",
+      "body": "Hi [FIRST NAME],\n\nYou've been running bandanas with us for a while now, and I don't think anyone's told you the rest of what we make. I run that side of the shop. If you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.\n\nIf you've got anything coming up, just reply here and I'll take care of you.\n\nNo pressure at all. We love being your bandana people either way.",
+      "fills": [
+        "FIRST NAME"
+      ],
+      "notes": "v1 2026-07-09 Holly-approved verbatim. Lookbook lives in the SIGNATURE button, not the body. Return customers (>=2 Printavo orders, live-checked).",
       "status": "live",
       "cc": []
     },
