@@ -153,7 +153,18 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 // falls back to sample data + localStorage, so it never looks broken.
 const GAUGE_API='https://primary-production-079f9.up.railway.app/webhook/gauge';
 const CAP={Standard:420,OT:600};
-const JEAN = new URLSearchParams(location.search).get('mode')==='jean';
+// JEAN mode: the front door loads this page in a same-origin iframe with a bare
+// src, so the iframe's own URL never carries ?mode=jean. Check the top window's
+// URL too, and make the mode stick per-browser: ?mode=jean turns it on until
+// ?mode=view turns it off.
+function jeanMode(){
+  let m=new URLSearchParams(location.search).get('mode');
+  if(!m){try{if(window.top!==window)m=new URLSearchParams(window.top.location.search).get('mode');}catch(e){}}
+  if(m==='jean'){localStorage.setItem('gauge_jeanmode','1');return true;}
+  if(m==='view'){localStorage.removeItem('gauge_jeanmode');return false;}
+  return localStorage.getItem('gauge_jeanmode')==='1';
+}
+const JEAN=jeanMode();
 
 // ── sample fallback (used only until the n8n feed populates gauge_load) ──
 const SAMPLE={
