@@ -208,6 +208,8 @@
     border-radius:7px;padding:7px 10px;line-height:1.45;font-weight:600}
   .tcard .supp{flex-basis:100%;font-size:12px;color:#475569;line-height:1.4}
   .texp{padding:0 17px 16px;border-top:1px solid var(--line)}
+  .tstreak{display:flex;gap:10px;font-size:12.5px;line-height:1.5;color:#374151;margin-top:10px}
+  .tstreak .k{color:var(--mut);font-weight:700;flex:0 0 auto}
 
   /* ── automations board ── */
   .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start}
@@ -1227,6 +1229,16 @@ function renderJourneyTimeline(app, ct){
       }
       exp.appendChild(ln);
     });
+    // Streak line — same field the automation detail card shows (TOUCHPOINTS col J):
+    // what this touch stamps where in Streak, now visible from the journey angle too.
+    // Text node, no HTML injection; absent/blank field → line simply omitted.
+    if(tp.streakNotes!=null && String(tp.streakNotes).trim()){
+      const st=el("div","tstreak");
+      const sk=el("span","k"); sk.textContent="Streak";
+      const sv=el("span"); sv.textContent=String(tp.streakNotes);
+      st.appendChild(sk); st.appendChild(sv);
+      exp.appendChild(st);
+    }
     d.appendChild(exp);
     entry.appendChild(d);
     tl.appendChild(entry);
