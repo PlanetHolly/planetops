@@ -149,6 +149,7 @@ function safePathname(rawUrl) {
   if (/%2f|%5c|%2e%2e|%00/i.test(p)) return null;        // encoded slash/backslash/dotdot/null
   try { p = decodeURIComponent(p); } catch { return null; }
   if (p.includes('\\') || p.includes('\0')) return null;
+  if (/["'<>`]/.test(p)) return null;                    // HTML metachars: never legitimate in a repo path
   if (p.split('/').some(seg => seg === '..' )) return null;
   if (p.split('/').some(seg => seg.startsWith('.') && seg.length > 1)) return null; // dotfiles
   return path.posix.normalize(p);
@@ -163,6 +164,9 @@ const isDenied  = p => DENY_EXACT.includes(p)    || DENY_PREFIXES.some(pre => p.
 const isFinance = p => FINANCE_EXACT.includes(p) || FINANCE_PREFIXES.some(pre => p.startsWith(pre));
 
 /* ── Login pages (branded, CSRF double-submit) ──────────────────────────── */
+// Escapes quotes too: every sink below is a double-quoted attribute value.
+const escHtml = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const PA_SVG = fs.readFileSync(path.join(STATIC_ROOT, 'frontdoor', 'index.html'), 'utf8').match(/<svg viewBox="-270[^]*?<\/svg>/)?.[0] || '';
 function loginPage({ finance, csrf, redirect, msg }) {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -178,8 +182,8 @@ button{margin-top:12px;width:100%;padding:11px;border-radius:10px;border:0;backg
 <h1>Planet Apparel</h1><p>${finance ? 'Financials — enter the finance PIN' : 'Enter the team PIN'}</p>
 <form method="POST" action="${finance ? '/gate/finance' : '/gate'}">
 <input type="password" name="pin" inputmode="numeric" autocomplete="off" maxlength="24" autofocus>
-<input type="hidden" name="csrf" value="${csrf}"><input type="hidden" name="r" value="${redirect}">
-${msg ? `<div class="err">${msg}</div>` : ''}
+<input type="hidden" name="csrf" value="${escHtml(csrf)}"><input type="hidden" name="r" value="${escHtml(redirect)}">
+${msg ? `<div class="err">${escHtml(msg)}</div>` : ''}
 <button type="submit">Enter</button></form>
 <div class="note">${finance ? 'Separate lock on the money zone · re-asks after 60 idle minutes' : 'One PIN, once a day · problems? check /health-public'}</div>
 </div></body></html>`;
@@ -188,6 +192,14 @@ function issueCsrf(res) {
   const t = crypto.randomBytes(16).toString('base64url');
   res.append('Set-Cookie', `pa_csrf=${t}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=900`);
   return t;
+}
+// Login-page-only CSP. The page has an inline <style> and inline <svg>, no script,
+// no external loads. Never set this globally: frontdoor/, clock/ and index.html all
+// run inline scripts and a site-wide policy would blank the hub.
+const LOGIN_CSP = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'";
+function sendLogin(res, opts, status = 200) {
+  res.set('Content-Security-Policy', LOGIN_CSP);
+  return res.status(status).send(loginPage(opts));
 }
 function safeRedirect(r) {
   const p = safePathname(String(r || '/frontdoor/'));
@@ -240,11 +252,11 @@ app.get('/readyz', async (req, res) => {                                        
 /* ── Routes: the gate ───────────────────────────────────────────────────── */
 app.get('/gate', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.send(loginPage({ finance: false, csrf: issueCsrf(res), redirect: safeRedirect(req.query.r), msg: '' }));
+  sendLogin(res, { finance: false, csrf: issueCsrf(res), redirect: safeRedirect(req.query.r), msg: '' });
 });
 app.get('/gate/finance', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.send(loginPage({ finance: true, csrf: issueCsrf(res), redirect: safeRedirect(req.query.r), msg: '' }));
+  sendLogin(res, { finance: true, csrf: issueCsrf(res), redirect: safeRedirect(req.query.r), msg: '' });
 });
 
 async function handlePinPost(req, res, { finance }) {
@@ -255,12 +267,12 @@ async function handlePinPost(req, res, { finance }) {
   if (!expectedPin || !SESSION_SECRET) { await alert('gate_misconfigured', { msg: 'ENTRY_PIN/FINANCE_PIN/SESSION_SECRET env vars missing' }); return res.status(500).send('Gate misconfigured — env vars missing.'); }
 
   const limited = checkLimits(ip);
-  if (limited) { logEvent('rate_limited', { ip, kind: limited }); return res.status(429).send(loginPage({ finance, csrf: issueCsrf(res), redirect, msg: limited === 'locked' ? 'Too many attempts — the gate is paused ~15 min. Your logged-in teammates are unaffected.' : 'Too many tries from this device — wait 15 minutes.' })); }
+  if (limited) { logEvent('rate_limited', { ip, kind: limited }); return sendLogin(res, { finance, csrf: issueCsrf(res), redirect, msg: limited === 'locked' ? 'Too many attempts — the gate is paused ~15 min. Your logged-in teammates are unaffected.' : 'Too many tries from this device — wait 15 minutes.' }, 429); }
 
   const csrfOk = req.body.csrf && timingEq(req.body.csrf, readCookies(req).pa_csrf || '');
   if (!csrfOk || !timingEq(req.body.pin || '', expectedPin)) {
     noteFailure(ip);
-    return res.status(401).send(loginPage({ finance, csrf: issueCsrf(res), redirect, msg: "That's not it — try again." }));
+    return sendLogin(res, { finance, csrf: issueCsrf(res), redirect, msg: "That's not it — try again." }, 401);
   }
 
   if (finance) {
@@ -281,7 +293,7 @@ async function handlePinPost(req, res, { finance }) {
     return res.redirect(redirect);
   } catch (e) {
     await alert('login_db_error', { msg: 'Correct PIN but the session database is unreachable — logins are failing. RUNBOOK #1.', error: e.message });
-    return res.status(503).send(loginPage({ finance, csrf: issueCsrf(res), redirect, msg: 'Right PIN, but the system is having trouble — the team has been alerted. Try again in a few minutes.' }));
+    return sendLogin(res, { finance, csrf: issueCsrf(res), redirect, msg: 'Right PIN, but the system is having trouble — the team has been alerted. Try again in a few minutes.' }, 503);
   }
 }
 app.post('/gate',         (req, res) => handlePinPost(req, res, { finance: false }));

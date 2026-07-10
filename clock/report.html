@@ -56,6 +56,8 @@ const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-re
 localStorage.removeItem('ts_admin_key'); // manager access is per-session only (shared devices)
 const KEY=sessionStorage.getItem('ts_admin_key')||'';
 const $=id=>document.getElementById(id);
+// Sheet data is semi-trusted: escape it before it reaches innerHTML.
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const h=m=>(m/60).toFixed(2);
 const money=v=>'$'+v.toFixed(2);
 
@@ -100,7 +102,7 @@ async function load(){
   if(!KEY){pinGate();return;}
   $('out').innerHTML='<p class="muted">Loading…</p>';
   const r=await fetch(`${API}?k=${KEY}&from=${$('from').value}&to=${$('to').value}`).then(r=>r.json());
-  if(!r.ok){$('out').innerHTML='<div class="gate">'+(r.error||'Error')+'</div>';return;}
+  if(!r.ok){$('out').innerHTML='<div class="gate">'+esc(r.error||'Error')+'</div>';return;}
   $('gen').textContent='computed '+r.generated;
   const emps=Object.fromEntries(r.employees.map(e=>[e.emp_id,e]));
   const byEmp={};
@@ -118,14 +120,14 @@ async function load(){
       s.paid+=c.paid_min;s.reg+=c.regular_min;s.brk+=c.break_min;s.ot+=c.ot_min;s.dot+=c.dot_min;s.cost+=cost;
       if(c.issue&&c.issue!=='open')issues++;
       const day=new Date(c.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      rows+=`<tr><td class="muted">${day}</td><td>${c.clock_in||'—'} – ${c.clock_out||(c.issue==='open'?'(on the clock)':'—')}</td>
-        <td class="issue">${c.issue&&c.issue!=='open'?'⚠️ '+c.issue.replace('_',' '):''}</td>
+      rows+=`<tr><td class="muted">${day}</td><td>${esc(c.clock_in||'—')} – ${esc(c.clock_out||(c.issue==='open'?'(on the clock)':'—'))}</td>
+        <td class="issue">${c.issue&&c.issue!=='open'?'⚠️ '+esc(c.issue.replace('_',' ')):''}</td>
         <td>${h(c.paid_min)}</td><td>${h(c.regular_min)}</td><td>${h(c.break_min)}</td>
         <td class="${c.ot_min?'ot':''}">${h(c.ot_min)}</td><td class="${c.dot_min?'ot':''}">${h(c.dot_min)}</td>
         <td>${money(cost)}</td></tr>`;
     }
     T.cards+=cs.length;T.paid+=s.paid;T.reg+=s.reg;T.brk+=s.brk;T.ot+=s.ot;T.dot+=s.dot;T.cost+=s.cost;
-    html+=`<tr class="emp"><td>${e.full_name}</td><td>${cs.length} time card${cs.length>1?'s':''}</td><td></td>
+    html+=`<tr class="emp"><td>${esc(e.full_name)}</td><td>${cs.length} time card${cs.length>1?'s':''}</td><td></td>
       <td>${h(s.paid)}</td><td>${h(s.reg)}</td><td>${h(s.brk)}</td><td class="${s.ot?'ot':''}">${h(s.ot)}</td><td>${h(s.dot)}</td><td>${money(s.cost)}</td></tr>${rows}`;
   }
   html+=`<tr class="total"><td>Totals</td><td>${T.cards} time cards</td><td></td><td>${h(T.paid)}</td><td>${h(T.reg)}</td><td>${h(T.brk)}</td><td>${h(T.ot)}</td><td>${h(T.dot)}</td><td>${money(T.cost)}</td></tr></tbody></table>`;

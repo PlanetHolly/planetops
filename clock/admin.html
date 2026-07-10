@@ -69,6 +69,8 @@ const API='https://primary-production-079f9.up.railway.app/webhook/timesheets-ad
 localStorage.removeItem('ts_admin_key'); // manager access is per-session only (shared devices)
 const KEY=sessionStorage.getItem('ts_admin_key')||'';
 const $=id=>document.getElementById(id);
+// Sheet data is semi-trusted: escape it before it reaches innerHTML. Quotes included — emp_id lands in an attribute.
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let roster=[], editing=null;
 async function api(b){return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,admin_key:KEY})}).then(r=>r.json());}
 function pinGate(){
@@ -93,15 +95,15 @@ function pinGate(){
 async function load(){
   if(!KEY){pinGate();return;}
   const r=await api({action:'list'});
-  if(!r.ok){$('out').innerHTML='<div class="gate">'+r.error+'</div>';return;}
+  if(!r.ok){$('out').innerHTML='<div class="gate">'+esc(r.error)+'</div>';return;}
   roster=r.employees;
   let html='<table><thead><tr><th>Name</th><th>Role</th><th>Dept</th><th>Wage</th><th>Punch</th><th>Status</th><th></th></tr></thead><tbody>';
   for(const e of roster){
-    html+=`<tr class="${e.status==='terminated'?'term':''}"><td><b>${e.full_name}</b> <span class="muted">(${e.emp_id})</span></td>
-     <td>${e.role}</td><td>${e.departments}</td>
-     <td>${e.is_salaried==='TRUE'?'<span class="pill">salaried</span>':'$'+e.wage_hourly+'/hr'}</td>
-     <td>${e.punch_mode}${e.has_pin?'':' <span class="pill" style="border-color:var(--down);color:var(--down);">no PIN</span>'}</td>
-     <td>${e.status}</td><td><button data-e="${e.emp_id}">Edit</button></td></tr>`;
+    html+=`<tr class="${e.status==='terminated'?'term':''}"><td><b>${esc(e.full_name)}</b> <span class="muted">(${esc(e.emp_id)})</span></td>
+     <td>${esc(e.role)}</td><td>${esc(e.departments)}</td>
+     <td>${e.is_salaried==='TRUE'?'<span class="pill">salaried</span>':'$'+esc(e.wage_hourly)+'/hr'}</td>
+     <td>${esc(e.punch_mode)}${e.has_pin?'':' <span class="pill" style="border-color:var(--down);color:var(--down);">no PIN</span>'}</td>
+     <td>${esc(e.status)}</td><td><button data-e="${esc(e.emp_id)}">Edit</button></td></tr>`;
   }
   $('out').innerHTML=html+'</tbody></table>';
   document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openModal(roster.find(x=>x.emp_id===b.dataset.e)));

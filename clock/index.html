@@ -176,6 +176,8 @@ const SOURCE=new URLSearchParams(location.search).get('mode')==='phone'?'phone':
 let roster=[], cur=null, pin='', pendingPunch=null, corrInfo=null, backTimer=null;
 
 const $=id=>document.getElementById(id);
+// Sheet data is semi-trusted: escape it before it reaches innerHTML.
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');clearTimeout(backTimer);}
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{pin='';cur=null;loadRoster();});
 $('ggo').onclick=async()=>{
@@ -209,7 +211,7 @@ async function loadRoster(){
     const d=document.createElement('div');
     d.className='emp '+(e.state==='in'?'in':e.state==='break'?'break':'');
     const st=e.state==='in'?'IN since '+fmtSince(e.since):e.state==='break'?'ON BREAK':'Clocked out';
-    d.innerHTML=`<div class="nm">${e.display_name}</div><div class="st">${st}</div>`;
+    d.innerHTML=`<div class="nm">${esc(e.display_name)}</div><div class="st">${esc(st)}</div>`;
     d.onclick=()=>{cur=e;pin='';$('pinname').textContent=e.display_name;$('pinerr').textContent='';drawDots();show('s-pin');};
     $('grid').appendChild(d);
   });
@@ -229,7 +231,7 @@ function renderLog(el,activity){
   if(!activity||!activity.length) return;
   el.innerHTML='<h3>Your recent punches</h3>'+activity.slice(-8).map(a=>{
     const d=a.ts.slice(0,10)===new Date().toLocaleDateString('sv-SE')?'Today':a.ts.slice(5,10);
-    return `<div class="ev"><b>${EV[a.type]||a.type}</b><span>${d} · ${a.ts.slice(11,16)}</span></div>`;}).join('');
+    return `<div class="ev"><b>${EV[a.type]||esc(a.type)}</b><span>${esc(d)} · ${esc(a.ts.slice(11,16))}</span></div>`;}).join('');
 }
 
 async function enterActions(){
@@ -301,7 +303,7 @@ $('nsave').onclick=async()=>{
 function done(ok,type,ts,extra,activity){
   const words={in:'✅ Clocked In',out:'👋 Clocked Out',break_start:'☕ Break Started',break_end:'✅ Break Ended',logged:'📋 Shift Logged',noted:'💬 Note Sent'};
   $('doneres').className='result'+(ok?'':' err');
-  $('doneres').innerHTML=`<div class="big">${words[type]||'Done'}</div><div class="sub2">${cur.display_name} · ${ts||''}${extra?'<br>'+extra:''}</div>`;
+  $('doneres').innerHTML=`<div class="big">${words[type]||'Done'}</div><div class="sub2">${esc(cur.display_name)} · ${esc(ts||'')}${extra?'<br>'+extra:''}</div>`;
   renderLog($('donelog'), activity||[]);
   show('s-done');
   backTimer=setTimeout(loadRoster,12000);
