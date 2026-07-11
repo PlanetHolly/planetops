@@ -916,6 +916,35 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
         <div class="ink-check-grid" id="ink-check-grid"></div>
       </div>
     </div>
+    <!-- WS-1b: PMS capture — shown on Press Check completion (screen print) -->
+    <div class="hidden" id="comp-pms-section">
+      <div class="press-form-label" style="margin-bottom:6px">Ink Color vs Mock-Up <span style="color:var(--red)">*</span></div>
+      <div class="stroke-toggle" style="margin-bottom:10px">
+        <button class="stroke-btn" id="pms-asspec"  onclick="selectPmsChanged(false)">✓ As Called Out</button>
+        <button class="stroke-btn" id="pms-changed" onclick="selectPmsChanged(true)">✎ Changed / Adjusted</button>
+      </div>
+      <div class="comp-field" id="comp-pms-field">
+        <label>Actual PMS / Ink Used <span id="comp-pms-req" class="hidden" style="color:var(--red)">*</span></label>
+        <input type="text" id="comp-pms" placeholder="e.g. PMS 021 C, white no underbase...">
+        <div style="font-size:11px;color:rgba(0,0,0,.36);margin-top:4px">Goes to the project summary — the PM sees any change</div>
+      </div>
+    </div>
+    <!-- WS-1b: sample saved — shown on Press Run completion (screen print) -->
+    <div class="hidden" id="comp-sample-section">
+      <div class="press-form-label" style="margin-bottom:6px">Sample Saved for Storage? <span style="color:var(--red)">*</span></div>
+      <div class="stroke-toggle" style="margin-bottom:12px">
+        <button class="stroke-btn" id="sample-yes" onclick="selectSampleSaved(true)">✓ Sample Saved</button>
+        <button class="stroke-btn" id="sample-no"  onclick="selectSampleSaved(false)">✗ No Sample</button>
+      </div>
+    </div>
+    <!-- WS-1b: went-as-planned — shown on non-screen completions (heat, finishing, sewing, post-prod) -->
+    <div class="hidden" id="comp-issue-section">
+      <div class="press-form-label" style="margin-bottom:6px">Did It Go As Planned? <span style="color:var(--red)">*</span></div>
+      <div class="stroke-toggle" style="margin-bottom:12px">
+        <button class="stroke-btn" id="issue-ok"  onclick="selectAsPlanned(true)">✓ As Planned</button>
+        <button class="stroke-btn" id="issue-bad" onclick="selectAsPlanned(false)">⚠ Issue</button>
+      </div>
+    </div>
     <div class="comp-field hidden" id="comp-qty-field">
       <label>Impressions on Counter <span style="color:var(--red)">*</span></label>
       <input type="number" id="comp-qty" placeholder="Enter total count from press counter..." min="0">
@@ -3323,13 +3352,35 @@ function completeStage(wuId){
   if(!w) return;
   const stage = w.timer.stage || w.activeStage;
   // pressRun and service → full completion modal (qty + variance)
-  // setup and pressCheck → finalize directly, no modal
-  if(stage === 'pressRun' || stage === 'service'){
+  // WS-1b: screen-print pressCheck → modal too (locks in the actual PMS / ink)
+  // setup (and non-screen pressCheck) → finalize directly, no modal
+  if(stage === 'pressRun' || stage === 'service' || (stage === 'pressCheck' && w.category === 'screen')){
     openCompletionModal(wuId);
   } else {
     finalizeStage(wuId, w.qty, null, getLiveElapsed(w), false);
     showToast(praise() + ' ' + stageLabel(w, stage) + ' done!');
   }
+}
+
+/* ── WS-1b: completion-modal capture toggles ── */
+function selectPmsChanged(changed){
+  state.selectedPmsChanged = changed;
+  document.getElementById('pms-asspec').classList.toggle('selected', changed === false);
+  document.getElementById('pms-changed').classList.toggle('selected', changed === true);
+  // A change makes the actual-PMS text required
+  document.getElementById('comp-pms-req').classList.toggle('hidden', changed !== true);
+}
+function selectSampleSaved(saved){
+  state.selectedSampleSaved = saved;
+  document.getElementById('sample-yes').classList.toggle('selected', saved === true);
+  document.getElementById('sample-no').classList.toggle('selected', saved === false);
+}
+function selectAsPlanned(ok){
+  state.selectedAsPlanned = ok;
+  document.getElementById('issue-ok').classList.toggle('selected', ok === true);
+  document.getElementById('issue-bad').classList.toggle('selected', ok === false);
+  const notes = document.getElementById('comp-notes');
+  notes.placeholder = ok === false ? 'Required — what happened? (missing pieces, delay, damage...)' : 'Anything to note...';
 }
 
 /* ============================================================
@@ -3347,8 +3398,11 @@ function openCompletionModal(wuId){
   const stage     = w.timer.stage || w.activeStage;
   const elapsed   = state.pendingCompElapsed;
   const plannedMs = w.plannedMin * 60 * 1000;
-  const variance  = plannedMs ? Math.round(((elapsed - plannedMs) / plannedMs) * 100) : 0;
-  const needsReason = Math.abs(variance) > 50;
+  // WS-1b: plannedMin describes the run — variance only applies to pressRun/service,
+  // never to a press check (which would always read as massively "under plan")
+  const varianceApplies = (stage === 'pressRun' || stage === 'service');
+  const variance  = (varianceApplies && plannedMs) ? Math.round(((elapsed - plannedMs) / plannedMs) * 100) : 0;
+  const needsReason = varianceApplies && Math.abs(variance) > 50;
   state.pendingVarianceIsOver = variance > 0; // track direction for reason list
 
   document.getElementById('comp-title').textContent = 'Complete: ' + stageLabel(w, stage);
@@ -3379,9 +3433,28 @@ function openCompletionModal(wuId){
     prForm.classList.add('hidden');
   }
 
+  // ── WS-1b: stage-specific capture sections ──
+  state.selectedPmsChanged  = null;
+  state.selectedSampleSaved = null;
+  state.selectedAsPlanned   = null;
+  ['pms-asspec','pms-changed','sample-yes','sample-no','issue-ok','issue-bad']
+    .forEach(id => document.getElementById(id).classList.remove('selected'));
+  document.getElementById('comp-pms').value = '';
+  document.getElementById('comp-pms-req').classList.add('hidden');
+  const isScreen = w.category === 'screen';
+  // PMS lock-in happens at press-check approval (screen print)
+  document.getElementById('comp-pms-section').classList.toggle('hidden', !(stage === 'pressCheck' && isScreen));
+  // Sample-saved is asked at end of run (screen print)
+  document.getElementById('comp-sample-section').classList.toggle('hidden', !(stage === 'pressRun' && isScreen));
+  // Went-as-planned is asked on non-screen completions (heat, finishing, sewing, post-prod services)
+  document.getElementById('comp-issue-section').classList.toggle('hidden', isScreen);
+  document.getElementById('comp-notes').placeholder = 'Anything to note...';
+
   // Variance badge
   const va = document.getElementById('comp-variance-area');
-  if(variance > 50){
+  if(!varianceApplies){
+    va.innerHTML = '';
+  } else if(variance > 50){
     va.innerHTML = `<div class="comp-variance-badge red">⚠ +${variance}% over plan — reason required</div>`;
   } else if(variance < -50){
     va.innerHTML = `<div class="comp-variance-badge red">⚡ ${variance}% under plan — reason required</div>`;
@@ -3431,12 +3504,35 @@ function confirmCompletion(){
   // Use snapshot — never recalculate from live timer
   let elapsed     = state.pendingCompElapsed;
   const plannedMs = w.plannedMin * 60 * 1000;
-  const variance  = plannedMs ? (elapsed - plannedMs) / plannedMs * 100 : 0;
-  const needsReason = Math.abs(variance) > 50;
+  const compStage = w.timer.stage || w.activeStage;
+  const varianceApplies = (compStage === 'pressRun' || compStage === 'service');
+  const variance  = (varianceApplies && plannedMs) ? (elapsed - plannedMs) / plannedMs * 100 : 0;
+  const needsReason = varianceApplies && Math.abs(variance) > 50;
 
   if(needsReason && !state.selectedVarianceReason){
     showToast('⚠ Please select a reason for the variance');
     return;
+  }
+
+  // ── WS-1b: stage-specific capture validation ──
+  const isScreen = w.category === 'screen';
+  let extraData = {};
+  if(compStage === 'pressCheck' && isScreen){
+    if(state.selectedPmsChanged === null){ showToast('⚠ Was the ink color as called out, or changed?'); return; }
+    const pmsText = document.getElementById('comp-pms').value.trim();
+    if(state.selectedPmsChanged === true && !pmsText){ showToast('⚠ Enter the actual PMS / ink used'); return; }
+    extraData.pmsData = { changed: state.selectedPmsChanged, actual: pmsText || null };
+  }
+  if(compStage === 'pressRun' && isScreen){
+    if(state.selectedSampleSaved === null){ showToast('⚠ Was a sample saved for storage?'); return; }
+    extraData.sampleSaved = state.selectedSampleSaved;
+  }
+  if(!isScreen){
+    if(state.selectedAsPlanned === null){ showToast('⚠ Did it go as planned?'); return; }
+    if(state.selectedAsPlanned === false && !document.getElementById('comp-notes').value.trim()){
+      showToast('⚠ Note what happened — it goes to the project summary'); return;
+    }
+    extraData.wentAsPlanned = state.selectedAsPlanned;
   }
 
   let isEstimated = false;
@@ -3471,11 +3567,11 @@ function confirmCompletion(){
   const qty     = showQty ? (parseInt(document.getElementById('comp-qty').value) || w.qty) : w.qty;
   const notes   = document.getElementById('comp-notes').value;
 
-  finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData);
+  finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData, extraData);
   closeModal('comp-modal');
 }
 
-function finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData){
+function finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData, extraData){
   const w = getWu(wuId);
   if(!w) return;
   const stage = w.timer.stage || w.activeStage;
@@ -3497,6 +3593,9 @@ function finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData){
     varianceReason: state.selectedVarianceReason || null,
     pressRunData:  pressRunData || null,
     pressRunSessions: (stage === 'pressRun') ? (w.pressRunSessions || []) : undefined,
+    // WS-1b run-doc capture: pmsData (press check), sampleSaved (press run),
+    // wentAsPlanned (non-screen) — whichever the stage collected
+    ...(extraData || {}),
   });
 
   w.timer = { state:'idle', stage:null, startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:elapsed, operator:null };
