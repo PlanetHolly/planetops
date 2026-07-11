@@ -356,8 +356,9 @@
 </header>
 <div class="actionbar">
   <input id="searchbox" type="search" placeholder="🔍 find imprint / name — Enter" title="e.g. 27310-2 — jumps to the row wherever it lives">
-  <input id="histpick" type="date" title="🕰 View a past day exactly as it was scheduled (end-of-day snapshot)">
   <span class="spacer"></span>
+  <!-- WS-4.3: history picker — clearly labeled + lives by the import area (Holly, Gate review) -->
+  <label for="histpick" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--grey-text);white-space:nowrap" title="Pick a date to REPLAY that day's end-of-day snapshot, read-only — how the board looked when everyone went home. Nothing you click in history mode changes anything.">🕰 View a past day <input id="histpick" type="date" title="Replay that day's end-of-day snapshot (read-only) — banner shows while viewing; ← Back to live exits"></label>
   <button id="importBtn" class="primary">⬆ Import CSV</button>
   <button id="changesBtn">📝 Changes (0)</button>
   <button id="backupBtn">💾 Backup</button>
