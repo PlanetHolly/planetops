@@ -243,6 +243,11 @@
   .flash{animation:flashk 2.4s}
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
+  /* G1: invoice group inside Arrivals — one shared bar per invoice */
+  .invgrp{border:1px solid var(--grey-line);border-left:4px solid var(--yellow);border-radius:8px;padding:8px 10px;margin:6px 0;background:rgba(247,190,0,.03)}
+  .invhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}
+  .invhead .invnick{color:var(--grey-text);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .invhead .dcount{font-size:12px;color:var(--grey-text)}
   .csched{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
   .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background-color:#fffdf2}
   .lane-head{cursor:pointer;user-select:none}
@@ -427,7 +432,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -451,7 +456,7 @@ const SHARED_DOC='schedule_board';
 const LOCAL_ONLY=['csvName','csvText','range','exported'];
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
-const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
+const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','invsvc'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
 function sharedPayload(){
   const p={};for(const k in store){if(!LOCAL_ONLY.includes(k))p[k]=store[k];}
   p._savedAt=Date.now();return p;
@@ -520,6 +525,9 @@ const LANES=[
   {key:'manual',label:'Manual Press',cap:120,match:s=>s==='Manual Press',printavo:'Manual Press'},
   {key:'post',label:'Post Production',cap:240,match:s=>s==='Post Production',printavo:'Post Production'},
   {key:'ship',label:'Shipping',cap:120,match:s=>s==='Shipping',printavo:'Shipping'},
+  /* G1: Receiving — arrivals get counted in here before their in-house leg schedules.
+     cap is a PLACEHOLDER pending Jean's number; Printavo station name must exist there too. */
+  {key:'receiving',label:'Receiving',cap:240,match:s=>s==='Receiving',printavo:'Receiving'},
 ];
 const laneOf=s=>LANES.find(l=>l.match(s||''))||null;
 const OUTSOURCED=/Outsourced|In Transit to PA|Goods Received/i;
@@ -676,7 +684,13 @@ function capFor(lane,date,isOT){
 
 /* ───────── Model ───────── */
 let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=false,collapsedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
-const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
+const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Merch)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
+/* G1: display alias — Holly renamed the finishing event "bandanas" → "merchandise".
+   The raw CSV value from Printavo stays 'Packaging (Bandana)' until Printavo's field
+   is renamed, so we alias at DISPLAY time only; matching/data stays untouched. */
+const ppLabel=v=>v==='Packaging (Bandana)'?'Packaging (Merch)':v;
+const pptOf=j=>store.pptype[j.imprint]||j.postProdType;
+const realPP=v=>!!v&&v!=='N/A';
 function rowToJob(r,hdr){
   const g=name=>{const i=hdr.indexOf(name);return i>=0?(r[i]||''):'';};
   const imp=g('Imprint').trim();
@@ -845,7 +859,7 @@ function jobCard(j){
     <div class="cink">
       ${j.ink&&j.ink!=='N/A'?`<span class="chip" style="background:${inkColor(j.ink)}">${j.ink.replace(' - Apparel','')}</span>`:''}
       ${j.pallet&&j.pallet!=='N/A'?`<span class="chip pallet" title="Pallet size — production sequences the day to minimize pallet switches">${j.pallet}</span>`:''}
-      ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${j.postProdType}</span>`:''}
+      ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${ppLabel(j.postProdType)}</span>`:''}
       ${pcChip(j)}
       ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
     <div class="cdots"><span class="dots">${dots}</span><span class="qcchip ${store.qc[j.imprint]?'on':''}" data-qc="${j.imprint}" title="QC gate — every project gets signed off by SOMEBODY. Click to enter who.">${store.qc[j.imprint]?'QC ✓ '+store.qc[j.imprint].by:'QC —'}</span></div>
@@ -861,10 +875,14 @@ function jobCard(j){
     <div class="cprodc"><span class="due prod ${late?'late':''}" title="Production due${late?' — scheduled AFTER prod due!':''}">PROD ${fmtShort(j.prodDue)}${late?' ⚠':''}</span>${isPrinted(j)?`<span class="printed" title="Printing/Heat step Completed — printed-on date comes from schedule history in the live version">✓</span>`:''}</div>
     <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
     <div class="cship">${shipChip(j)}</div>
-    ${(isOut(j)||/Heat Applied/i.test(j.ink))?etaBar(j):''}
+    ${(!_invBarMode&&(isOut(j)||/Heat Applied/i.test(j.ink)))?etaBar(j):''}
     ${isX?xPanel(j):''}
   </div>`;
 }
+/* G1: while rendering rows inside an invoice group, per-row eta bars are
+   suppressed — the invoice header carries ONE shared bar for the whole invoice. */
+let _invBarMode=false;
+function jobCardInInv(j){_invBarMode=true;const h=jobCard(j);_invBarMode=false;return h;}
 function etaBar(j){
   const imp=j.imprint,eta=store.eta[imp],trk=store.tracking[imp];
   const lateEta=eta&&j.date&&eta>j.date;
@@ -909,7 +927,7 @@ function xPanel(j){
         <span>Screens</span><span>${j.screens>0?j.screens:'—'}</span>
         <span>Ink</span><span>${j.ink!=='N/A'?j.ink:'—'}${j.inkChange&&j.inkChange!=='None'?' · ink change: '+j.inkChange:''}</span>
         <span>Pallet</span><span>${j.pallet&&j.pallet!=='N/A'?j.pallet:'—'}</span>
-        <span>Post-Pro</span><span>${j.postProdType!=='N/A'?j.postProdType:'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
+        <span>Post-Pro</span><span>${j.postProdType!=='N/A'?ppLabel(j.postProdType):'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
         <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
         <span>Status</span><span>${statusPill(j)}</span>
@@ -1037,23 +1055,54 @@ function arrSub(dkey,label,rows,extra){
     <div class="drbody"><div class="cardgrid">${rows.map(jobCard).join('')}</div></div>
   </section>`;
 }
+/* G1: one collapsible card-set per INVOICE (the Board's Blanks model) — the
+   invoice header carries the shared ETA / arrived / tracking / vendor bar and
+   the in-house-service tag; the imprint rows sit under it without their own bars. */
+function invGroup(inv,rows){
+  const rep=rows.find(j=>!store.arrived[j.imprint])||rows[0];
+  const labeled=[...new Set(rows.filter(j=>realPP(pptOf(j))).map(j=>ppLabel(pptOf(j))))];
+  const svcNone=(store.invsvc||{})[inv]==='none';
+  const svcTag=svcNone
+    ?`<span class="chip" style="background:#9aa1ab" title="Ships direct from the vendor — on ✓ arrived it closes straight to history, nothing joins the queue.">📪 no 2nd service</span><button class="splitbtn" data-invsvc="${inv}|" title="Undo — this invoice DOES need an in-house leg">↩</button>`
+    :labeled.length
+      ?`<span class="chip out" title="On ✓ arrived, only the labeled in-house imprints join the QUEUE; the vendor leg closes to history.">🔧 in-house after arrival: ${labeled.join(' · ')}</span>`
+      :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — on ✓ arrived everything joins the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
+  return `<div class="invgrp">
+    <div class="invhead"><b>Invoice ${inv}</b> <span class="invnick">${rep.nickname||''}</span><span class="dcount">· ${rows.length} imprint${rows.length>1?'s':''}</span> ${svcTag}</div>
+    <div data-invbar="${inv}">${etaBar(rep)}</div>
+    <div class="cardgrid">${rows.map(j=>jobCardInInv(j)).join('')}</div>
+  </div>`;
+}
 function arrivalsSection(standalone){
-  // pending grouped by ARRIVAL DATE (ETA, else scheduled leg date) as collapsible date rows — same structure as Auto Press days.
-  // Once marked ✓ arrived, a row leaves pending and lives under its actual arrival date in the ARRIVED history below.
+  // pending grouped by ARRIVAL DATE (ETA, else scheduled leg date) as collapsible date rows,
+  // then by INVOICE within the date (G1). An invoice pends until ALL its legs are arrived.
+  // Once marked ✓ arrived, rows leave pending and live under the actual arrival date in ARRIVED history.
   const pending=arrivals.filter(j=>!store.arrived[j.imprint]);
   const done=arrivals.filter(j=>store.arrived[j.imprint]);
-  const key=j=>store.eta[j.imprint]||j.date||'';
-  const groups={};
-  pending.forEach(j=>{const k=key(j);(groups[k]=groups[k]||[]).push(j);});
+  const byInv={};
+  pending.forEach(j=>{(byInv[j.invoice]=byInv[j.invoice]||[]).push(j);});
+  // invoice's date key = earliest ETA across its legs (legacy divergent ETAs unify on next edit), else scheduled leg date
+  const invKey=inv=>{const es=byInv[inv].map(j=>store.eta[j.imprint]||j.date||'').filter(Boolean).sort();return es[0]||'';};
+  const groups={};   // dateKey -> [invoice,...]
+  Object.keys(byInv).forEach(inv=>{const k=invKey(inv);(groups[k]=groups[k]||[]).push(inv);});
   const dates=Object.keys(groups).filter(k=>k).sort();
   // board = scoped to the viewed range (awareness stays via a count line); Arrivals tab = everything
   const dr=dateRange();
   const shown=standalone?dates:dates.filter(d=>dr.includes(d));
   const hidden=standalone?[]:dates.filter(d=>!dr.includes(d));
-  const hiddenN=hidden.reduce((a,d)=>a+groups[d].length,0);
-  let body=shown.map(d=>arrSub('d:'+d,'Due to arrive · '+fmtDay(d),groups[d])).join('');
+  const hiddenN=hidden.reduce((a,d)=>a+groups[d].reduce((x,inv)=>x+byInv[inv].length,0),0);
+  const arrSubInv=(dkey,label,invs,extra)=>{
+    const closed=collapsedArrDates.has(dkey);
+    const n=invs.reduce((a,inv)=>a+byInv[inv].length,0);
+    return `<section class="dayrow arrsub ${closed?'closed':''}">
+      <div class="drhead" data-arrtoggle="${dkey}"><span class="chev">▾</span>
+        <span class="dname">${label}</span><span class="dcount">· ${invs.length} invoice${invs.length>1?'s':''} / ${n} imprint${n>1?'s':''}${extra||''}</span></div>
+      <div class="drbody">${invs.map(inv=>invGroup(inv,byInv[inv])).join('')}</div>
+    </section>`;
+  };
+  let body=shown.map(d=>arrSubInv('d:'+d,'Due to arrive · '+fmtDay(d),groups[d])).join('');
   if(hiddenN)body+=`<div class="hint" style="margin:4px 0 10px">⋯ ${hiddenN} more inbound outside this range (${fmtShort(hidden[0])} → ${fmtShort(hidden[hidden.length-1])}) — open the <b>Arrivals</b> tab or widen the range.</div>`;
-  if(groups[''])body+=arrSub('nodate','No arrival determined',groups[''],' — set an EST. ARRIVAL; stays visible until dated');
+  if(groups[''])body+=arrSubInv('nodate','No arrival determined',groups[''],' — set an EST. ARRIVAL; stays visible until dated');
   if(done.length){
     const ag={};done.forEach(j=>{const d=store.arrived[j.imprint];(ag[d]=ag[d]||[]).push(j);});
     const adates=Object.keys(ag).sort();
@@ -1163,7 +1212,17 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||!!store.arrived[j.imprint]);   // QUEUE mode: actionable only — outsourced waits in Arrivals UNTIL ✓ arrived, then its in-house leg (post-pro) joins the queue like any job
+  // QUEUE mode: actionable only — outsourced waits in Arrivals UNTIL ✓ arrived, then ONLY its
+  // in-house legs join the queue (G1): if any sibling imprint on the invoice carries a real
+  // Post-Pro label, unlabeled siblings (the pure vendor leg) stay in Arrivals history; if NONE
+  // is labeled yet, all release (legacy flow — label lands in the queue). An invoice marked
+  // "no 2nd service" never releases — it ships direct from the vendor and closes to history.
+  const invReleasable=j=>{
+    if((store.invsvc||{})[j.invoice]==='none')return false;
+    const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
+    return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
+  };
+  const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||(!!store.arrived[j.imprint]&&invReleasable(j)));
   let list=listShowAll?all:all.filter(inQueue);
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]).length;   // parked jobs don't count — they're captured but NOT ready (estimator gray-out semantics)
   const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]).length;
@@ -1650,11 +1709,18 @@ function wireMain(){
     if(e.target.closest('input,button,select,a'))return;
     collapsedUnsch=!collapsedUnsch;renderAll();
   });
+  // G1: a control rendered on an invoice header bar writes to ALL outsourced
+  // legs of that invoice (per-imprint storage stays — writes just fan out).
+  const arrTargets=(el,imp)=>{
+    const bar=el.closest('[data-invbar]');
+    if(!bar)return [imp];
+    return jobs.filter(x=>x.invoice===bar.dataset.invbar&&isOut(x)).map(x=>x.imprint);
+  };
   // mark-arrived
   main.querySelectorAll('[data-arrmark]').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
-      store.arrived[btn.dataset.arrmark]=todayISO();
+      arrTargets(btn,btn.dataset.arrmark).forEach(imp=>{store.arrived[imp]=todayISO();});
       save();renderAll();
     });
   });
@@ -1664,9 +1730,20 @@ function wireMain(){
   main.querySelectorAll('input[data-arrdate]').forEach(inp=>{
     inp.addEventListener('click',e=>e.stopPropagation());
     inp.addEventListener('change',()=>{
-      const imp=inp.dataset.arrdate;
-      if(inp.value)store.arrived[imp]=inp.value;else delete store.arrived[imp];
-      arrEditing.delete(imp);save();renderAll();
+      arrTargets(inp,inp.dataset.arrdate).forEach(imp=>{
+        if(inp.value)store.arrived[imp]=inp.value;else delete store.arrived[imp];
+      });
+      arrEditing.delete(inp.dataset.arrdate);save();renderAll();
+    });
+  });
+  // G1: "no 2nd service" toggle on the invoice header
+  main.querySelectorAll('[data-invsvc]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const [inv,val]=btn.dataset.invsvc.split('|');
+      store.invsvc=store.invsvc||{};
+      if(val)store.invsvc[inv]=val;else delete store.invsvc[inv];
+      save();renderAll();
     });
   });
   // QC gate sign-off
@@ -1811,9 +1888,10 @@ function wireMain(){
   main.querySelectorAll('input[data-eta]').forEach(inp=>{
     inp.addEventListener('click',e=>e.stopPropagation());
     inp.addEventListener('change',()=>{
-      const imp=inp.dataset.eta;
-      if(inp.value)store.eta[imp]=inp.value;else delete store.eta[imp];
-      etaEditing.delete(imp);save();renderAll();
+      arrTargets(inp,inp.dataset.eta).forEach(imp=>{
+        if(inp.value)store.eta[imp]=inp.value;else delete store.eta[imp];
+      });
+      etaEditing.delete(inp.dataset.eta);save();renderAll();
     });
   });
   main.querySelectorAll('[data-etaedit]').forEach(sp=>{
@@ -1823,9 +1901,10 @@ function wireMain(){
     inp.addEventListener('click',e=>e.stopPropagation());
     let done=false;
     const commit=()=>{if(done)return;done=true;
-      const imp=inp.dataset.trk;
-      if(inp.value.trim())store.tracking[imp]=inp.value.trim();else delete store.tracking[imp];
-      trkEditing.delete(imp);save();renderAll();};
+      arrTargets(inp,inp.dataset.trk).forEach(imp=>{
+        if(inp.value.trim())store.tracking[imp]=inp.value.trim();else delete store.tracking[imp];
+      });
+      trkEditing.delete(inp.dataset.trk);save();renderAll();};
     inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
     inp.addEventListener('blur',commit);
   });
@@ -1836,9 +1915,10 @@ function wireMain(){
   main.querySelectorAll('select[data-method]').forEach(sel=>{
     sel.addEventListener('click',e=>e.stopPropagation());
     sel.addEventListener('change',()=>{
-      const imp=sel.dataset.method;
-      if(sel.value)store.method[imp]=Object.assign({},store.method[imp],{t:sel.value});
-      else delete store.method[imp];
+      arrTargets(sel,sel.dataset.method).forEach(imp=>{
+        if(sel.value)store.method[imp]=Object.assign({},store.method[imp],{t:sel.value});
+        else delete store.method[imp];
+      });
       save();renderAll();
     });
   });
@@ -1846,8 +1926,9 @@ function wireMain(){
     inp.addEventListener('click',e=>e.stopPropagation());
     let done=false;
     const commit=()=>{if(done)return;done=true;
-      const imp=inp.dataset.mnote;
-      store.method[imp]=Object.assign({},store.method[imp],{note:inp.value.trim()});
+      arrTargets(inp,inp.dataset.mnote).forEach(imp=>{
+        store.method[imp]=Object.assign({},store.method[imp],{note:inp.value.trim()});
+      });
       save();renderAll();};
     inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
     inp.addEventListener('blur',commit);
@@ -1855,8 +1936,9 @@ function wireMain(){
   main.querySelectorAll('input[data-mready]').forEach(cb=>{
     cb.addEventListener('click',e=>e.stopPropagation());
     cb.addEventListener('change',()=>{
-      const imp=cb.dataset.mready;
-      store.method[imp]=Object.assign({},store.method[imp],{ready:cb.checked});
+      arrTargets(cb,cb.dataset.mready).forEach(imp=>{
+        store.method[imp]=Object.assign({},store.method[imp],{ready:cb.checked});
+      });
       save();renderAll();
     });
   });
