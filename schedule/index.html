@@ -243,6 +243,9 @@
   .flash{animation:flashk 2.4s}
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
+  /* FB2: press-check block in the expanded details */
+  .pcblock{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .pcnote-in{font:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--grey-line);border-radius:5px;width:240px;margin-left:4px}
   /* WS-1c: live floor-timer chip */
   .chip.tchip{background:#2e7d32;color:#fff;font-weight:700}
   .chip.tchip.paused{background:#ff9800;color:#231a00}
@@ -916,6 +919,15 @@ function shipChip(j){
 }
 const PCREASONS=[['pms','PMS','Pantone matching — dial in colors on press'],['mig','MIG','Watch for dye migration'],['qty','1K+','High-quantity safety check — 1000+ pcs always qualifies']];
 function pcVal(j,k){const p=store.pcheck[j.imprint]||{};return p[k]!==undefined?p[k]:(k==='qty'&&j.qty>=1000?1:0);}
+/* FB2: full press-check control for the EXPANDED details (under Status) — reason
+   toggles + the "what to look for on press" note together. Renders in every view's
+   expanded card, so Jean sets a press check + its note wherever he is, not only the
+   queue cell. Reuses the live [data-pc] + [data-pcnote] handlers in wireMain. */
+function pcBlock(j){
+  const btns=PCREASONS.map(([k,lb,tt])=>`<button class="strkbtn ${pcVal(j,k)?'on':''}" data-pc="${j.imprint}|${k}" title="Press check? ${tt}${k==='qty'&&j.qty>=1000?' (AUTO 1000+)':''}">${lb}</button>`).join('');
+  const note=(store.pcheck[j.imprint]||{}).note||'';
+  return `<span class="pcblock">${btns}<input type="text" class="pcnote-in" data-pcnote="${j.imprint}" value="${escHtml(note)}" placeholder="what to look for on press…"></span>`;
+}
 function pcChip(j){
   const rs=PCREASONS.filter(([k])=>pcVal(j,k)).map(([,,tt])=>tt.split(' — ')[0]);
   const note=(store.pcheck[j.imprint]||{}).note;
@@ -1033,6 +1045,7 @@ function xPanel(j){
         <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
         <span>Status</span><span>${statusPill(j)}${j.statusOverridden?' <span class="pending-note" title="Chosen in the app and already written to Printavo — clears when the feed catches up">✎ set in app · mirrored to Printavo</span>':''} <button class="splitbtn" data-stchg="${j.invoice}" title="G2: change the invoice status — updates ALL imprints of invoice ${j.invoice} here AND writes straight back to Printavo">✎ status</button><span data-stslot="${j.invoice}"></span></span>
+        <span>Press check</span><span>${pcBlock(j)}</span>
       </div>
       ${(()=>{const e=estimateFor(j);if(!e)return '';
         const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
@@ -1846,6 +1859,7 @@ function wireMain(){
   main.querySelectorAll('[data-stchg]').forEach(btn=>{
     btn.addEventListener('click',async e=>{
       e.stopPropagation();
+      console.log('[PA-DIAG] ✎ status clicked, invoice',btn.dataset.stchg);   // diag: reveals if the handler fires in Holly's live env
       if(histCsv)return;   // read-only history snapshot
       const inv=btn.dataset.stchg;
       const slot=main.querySelector(`[data-stslot="${inv}"]`);
@@ -1935,6 +1949,7 @@ function wireMain(){
   main.querySelectorAll('[data-pc]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
+      console.log('[PA-DIAG] press-check clicked',b.dataset.pc);   // diag: reveals if the handler fires in Holly's live env
       const [imp,k]=b.dataset.pc.split('|');
       const j=jobs.find(x=>x.imprint===imp);
       const auto=k==='qty'&&j&&j.qty>=1000;
@@ -2440,6 +2455,7 @@ loadIntakeFeed();
 loadSharedStore();
 loadBoardTimers();   // WS-1c: floor timers on rows — refresh every minute while visible
 setInterval(()=>{if(!document.hidden)loadBoardTimers();},60*1000);
+pvStatusList();      // Harden #1: warm the Printavo status cache so ✎ status opens INSTANTLY (no click-time fetch)
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
 /* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */
