@@ -243,6 +243,13 @@
   .flash{animation:flashk 2.4s}
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
+  /* G3: press-check flag — LOUD on the floor */
+  .chip.pcflag{background:#ff9800;color:#231a00;font-weight:800;border:1px solid #e08200;letter-spacing:.02em;animation:pcpulse 2.4s ease-in-out infinite}
+  @keyframes pcpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.55)}50%{box-shadow:0 0 0 5px rgba(255,152,0,0)}}
+  /* G4: production-notes reader overlay */
+  .notesovl{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:center;justify-content:center}
+  .notesbox{background:var(--white);border-radius:12px;max-width:720px;width:90vw;max-height:80vh;overflow:auto;padding:22px 26px;font-size:15px;line-height:1.55;white-space:pre-wrap;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+  .notesbox h3{margin:0 0 10px;font-size:14px;color:var(--grey-text)}
   /* G1: invoice group inside Arrivals — one shared bar per invoice */
   .invgrp{border:1px solid var(--grey-line);border-left:4px solid var(--yellow);border-radius:8px;padding:8px 10px;margin:6px 0;background:rgba(247,190,0,.03)}
   .invhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:4px}
@@ -871,7 +878,9 @@ const PCREASONS=[['pms','PMS','Pantone matching — dial in colors on press'],['
 function pcVal(j,k){const p=store.pcheck[j.imprint]||{};return p[k]!==undefined?p[k]:(k==='qty'&&j.qty>=1000?1:0);}
 function pcChip(j){
   const rs=PCREASONS.filter(([k])=>pcVal(j,k)).map(([,,tt])=>tt.split(' — ')[0]);
-  return rs.length?`<span class="chip" style="background:#fff3cd;border:1px solid #d9b74a" title="PRESS CHECK before the run — ${rs.join(' + ')} (set in the Queue)">✔ press check</span>`:'';
+  const note=(store.pcheck[j.imprint]||{}).note;
+  // G3 (Gate Check): the collapsed-view flag is LOUD — bright orange, impossible to miss on the floor.
+  return rs.length?`<span class="chip pcflag" title="PRESS CHECK before the run — ${rs.join(' + ')}${note?' — Jean: '+note.replace(/"/g,'&quot;'):''} (set in the Queue)">🎯 PRESS CHECK</span>`:'';
 }
 function jobCard(j){
   if(j.placeholder){
@@ -1000,7 +1009,8 @@ function xPanel(j){
     <div class="xdetails">
       ${(()=>{const e=mockEntry(j);const exact=e&&e.imprints&&e.imprints[(+j.impNum||1)-1];
         if(exact&&exact.details)return `<b>Imprint details</b> <span class="pending-note">(live from Printavo)</span>
-          <div style="white-space:pre-wrap;margin:5px 0">${escHtml(exact.details)}</div>
+          <button class="splitbtn" data-noteexp="${j.imprint}" title="G4: read the production notes BIG — they get girthy in this little panel">⤢ expand</button>
+          <div style="white-space:pre-wrap;margin:5px 0" data-notesrc="${j.imprint}">${escHtml(exact.details)}</div>
           ${e.company?`<div class="xgrid"><span>Customer</span><span>${escHtml(e.company)}</span></div>`:''}`;
         return `<b>Imprint details</b> <span class="pending-note">— nothing typed in this imprint's details block in Printavo${e?'':' (or the webhook hasn\'t answered yet)'}.</span>
           <div class="xgrid">
@@ -1286,7 +1296,9 @@ function renderList(){
   const PPOPTS=['Packaging (Bandana)','Packaging (Apparel)','Packaging (Merch)','Hang Tag','Fold','Bag','Fold + Bag','Fold + Bag + Barcode','Barcode','Belly Band','Fold + Belly Band','Fold + Belly Band + Barcode','Special Fold & Belly Band','2-Side Sewn Label','4-Side Sewn Label','Inside Neck Removal','Double Drying','Premium Packaging Service','Custom'];
   const strokeCell=j=>[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}" title="Print strokes ×${n} — squeegee passes per unit (screen print; ×2 is standard). Changing it re-charts the time.">×${n}</button>`).join('');
   // Press check — why are we press checking? PMS = Pantone matching · MIG = watch for migration · 1K+ = high-quantity safety (1000+ pcs auto-qualifies; click to waive). Any lit button = press check YES; mix freely.
-  const pcCell=j=>PCREASONS.map(([k,lb,tt])=>`<button class="strkbtn ${pcVal(j,k)?'on':''}" data-pc="${j.imprint}|${k}" title="Press check? ${tt}${k==='qty'&&j.qty>=1000?' (AUTO — this run is '+j.qty+' pcs; click to waive)':''}">${lb}</button>`).join('');
+  const pcCell=j=>PCREASONS.map(([k,lb,tt])=>`<button class="strkbtn ${pcVal(j,k)?'on':''}" data-pc="${j.imprint}|${k}" title="Press check? ${tt}${k==='qty'&&j.qty>=1000?' (AUTO — this run is '+j.qty+' pcs; click to waive)':''}">${lb}</button>`).join('')
+    // G3: press-check DETAILS — what Jean wants checked (shows on the chip + the Board card)
+    +(PCREASONS.some(([k])=>pcVal(j,k))?`<br><input type="text" class="trkinput" style="width:130px;margin-top:2px" data-pcnote="${j.imprint}" value="${((store.pcheck[j.imprint]||{}).note||'').replace(/"/g,'&quot;')}" placeholder="check for what?" title="Press-check details — what the operator should be looking for (front/back, PMS target, migration area…)">`:'');
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rowFor=j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
@@ -1892,6 +1904,32 @@ function wireMain(){
       if(!Object.keys(p).length)delete store.pcheck[imp];
       save();renderAll();
     });
+  });
+  // G4: production-notes reader — the details block, big and readable
+  main.querySelectorAll('[data-noteexp]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const src=main.querySelector(`[data-notesrc="${btn.dataset.noteexp}"]`);
+      if(!src)return;
+      const ovl=document.createElement('div');
+      ovl.className='notesovl';
+      ovl.innerHTML=`<div class="notesbox"><h3>Imprint details — ${btn.dataset.noteexp} (click anywhere to close)</h3>${src.innerHTML}</div>`;
+      ovl.addEventListener('click',()=>ovl.remove());
+      document.body.appendChild(ovl);
+    });
+  });
+  // G3: press-check details note
+  main.querySelectorAll('input[data-pcnote]').forEach(inp=>{
+    inp.addEventListener('click',e=>e.stopPropagation());
+    let done=false;
+    const commit=()=>{if(done)return;done=true;
+      const imp=inp.dataset.pcnote;
+      const p=store.pcheck[imp]||(store.pcheck[imp]={});
+      if(inp.value.trim())p.note=inp.value.trim();else delete p.note;
+      if(!Object.keys(p).length)delete store.pcheck[imp];
+      save();renderAll();};
+    inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')commit();});
+    inp.addEventListener('blur',commit);
   });
   main.querySelectorAll('.qcchip').forEach(sp=>{
     sp.addEventListener('click',e=>{

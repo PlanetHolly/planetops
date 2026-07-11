@@ -124,6 +124,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .legend-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:rgba(0,0,0,.45);white-space:nowrap}
 .legend-swatch{width:26px;height:5px;border-radius:3px;flex-shrink:0}
 
+/* ── G3: press-check flag from the Scheduler (Jean's call, floor's eyes) ── */
+.pc-flag{display:inline-flex;align-items:center;gap:4px;background:#ff9800;color:#231a00;border:1px solid #e08200;border-radius:4px;padding:2px 7px;font-family:var(--font-head);font-weight:800;font-size:10px;letter-spacing:.03em;margin-bottom:4px;animation:pc-pulse 2.4s ease-in-out infinite}
+@keyframes pc-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.5)}50%{box-shadow:0 0 0 5px rgba(255,152,0,0)}}
 /* ── LIVE TIMER on card ── */
 .k-timer{margin-top:6px;padding:5px 8px;border-radius:6px;background:rgba(247,190,0,.1);display:flex;align-items:center;justify-content:space-between}
 .k-timer.paused{background:rgba(255,152,0,.1)}
@@ -2086,7 +2089,7 @@ function buildCard(job){
       <div class="k-due ${ddc}">📅 ${job.dueDateLabel}</div>
       ${imprintCount}
     </div>
-    ${onHoldBadge}${printavoSyncBadge}
+    ${onHoldBadge}${printavoSyncBadge}${pressCheckBadge(job)}
     ${imprintStrip}
     ${blanksStatusHtml}
     ${timerHtml}`;
@@ -4951,6 +4954,37 @@ async function pullAndMergeState(){
   finally { _pullBusy = false; }
 }
 
+/* ── G3 bridge: Jean's press-check flags from the Scheduler ──────────
+   The Scheduler stores press-check reasons + details per imprint in its
+   OWN shared doc (/api/state/schedule_board). The floor needs to SEE
+   them on the Board card — read-only here; setting them stays Jean's
+   move in the Scheduler queue. Refreshed with the WS-0 pull cadence. */
+let _schedPc = {};   // invoice number -> [{imp, reasons, note}]
+async function loadSchedulerPressChecks(){
+  try {
+    const r = await fetch(STATE_API_URL + '/api/state/schedule_board');
+    if(!r.ok) return;
+    const doc = await r.json();
+    const map = {};
+    Object.entries((doc && doc.pcheck) || {}).forEach(([imp, p]) => {
+      const inv = (imp.match(/^(\d+)/) || [])[1];
+      if(!inv) return;
+      const reasons = [];
+      if(p.pms) reasons.push('PMS match');
+      if(p.mig) reasons.push('migration watch');
+      if(p.qty) reasons.push('1K+ safety');
+      if(reasons.length || p.note) (map[inv] = map[inv] || []).push({ imp, reasons, note: p.note || '' });
+    });
+    _schedPc = map;
+  } catch(e){ /* silent — badge just doesn't show */ }
+}
+function pressCheckBadge(job){
+  const list = _schedPc[String(job.number)];
+  if(!list || !list.length) return '';
+  const tt = list.map(e => e.imp + ': ' + (e.reasons.join(' + ') || 'press check') + (e.note ? ' — ' + e.note : '')).join(' · ');
+  return `<div class="pc-flag" title="${tt.replace(/"/g,'&quot;')}">🎯 PRESS CHECK — ${tt.length > 60 ? tt.slice(0,60) + '…' : tt}</div>`;
+}
+
 /* Builds the state snapshot sent to the shared backend. */
 function buildStatePayload(){
   return {
@@ -6703,6 +6737,9 @@ renderSideNav();
   setInterval(() => { if(!document.hidden) pullAndMergeState(); }, 60 * 1000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) pullAndMergeState(); });
   window.addEventListener('focus', () => pullAndMergeState());
+  // G3 bridge: Jean's press-check flags (Scheduler shared doc) — load now, refresh occasionally.
+  loadSchedulerPressChecks().then(buildBoard);
+  setInterval(() => { if(!document.hidden) loadSchedulerPressChecks(); }, 5 * 60 * 1000);
 })();
 </script>
 </body>
