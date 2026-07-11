@@ -4718,6 +4718,140 @@ setInterval(() => {
 /* ============================================================
    PERSISTENCE (shared State API — Railway)
    ============================================================ */
+/* ── WS-0: multi-device merge layer ─────────────────────────
+   The State API stores one full blob, last-write-wins. Before WS-0,
+   each device loaded ONCE at init and pushed blindly — two open
+   devices silently clobbered each other's timers. Now every item
+   (job / prep task) carries a `_ts` stamped only when its content
+   actually changes (hash-diff at the saveState chokepoint), pulls
+   re-merge on an interval + focus, and pushes merge the server's
+   blob first. Newer `_ts` wins per item; a running timer is grafted
+   onto the winner so no operator's live clock is ever lost. */
+const _TS_STRIP = (k,v) => k === '_ts' ? undefined : v;
+const _hashCache = { jobs:new Map(), prep:new Map(), ff:'' };
+
+/* Stamp `_ts` on any item whose content changed since last look.
+   Runs synchronously in saveState() so background pulls during the
+   800ms debounce window still see fresh stamps. */
+function _stampChanged(){
+  const now = Date.now();
+  state.jobs.forEach(j => {
+    const s = JSON.stringify(j, _TS_STRIP);
+    if(_hashCache.jobs.get(j.id) !== s){ j._ts = now; _hashCache.jobs.set(j.id, s); }
+  });
+  state.prepTasks.concat(state.prepArchive).forEach(t => {
+    const s = JSON.stringify(t, _TS_STRIP);
+    if(_hashCache.prep.get(t.id) !== s){ t._ts = now; _hashCache.prep.set(t.id, s); }
+  });
+  const ffs = JSON.stringify(buildStatePayload().fulfillment, _TS_STRIP);
+  if(_hashCache.ff !== ffs){ state.fulfillment._ts = now; _hashCache.ff = ffs; }
+}
+
+/* Re-seed the hash cache to the CURRENT state (after load/merge), so
+   untouched items are never stamped as "locally changed". */
+function _reseedHashes(){
+  _hashCache.jobs.clear(); _hashCache.prep.clear();
+  state.jobs.forEach(j => _hashCache.jobs.set(j.id, JSON.stringify(j, _TS_STRIP)));
+  state.prepTasks.concat(state.prepArchive).forEach(t => _hashCache.prep.set(t.id, JSON.stringify(t, _TS_STRIP)));
+  _hashCache.ff = JSON.stringify(buildStatePayload().fulfillment, _TS_STRIP);
+}
+
+/* Graft a live timer from the losing copy of a job onto the winner,
+   unless the winner already completed that stage after the loser
+   started it (completion beats running). */
+function _graftJobTimers(winner, loser){
+  const lw = new Map((loser.workUnits || []).map(w => [w.id, w]));
+  (winner.workUnits || []).forEach(w => {
+    const lo = lw.get(w.id);
+    if(!lo || !lo.timer) return;
+    const lt = lo.timer;
+    if((lt.state === 'running' || lt.state === 'paused') && (!w.timer || w.timer.state === 'idle')){
+      const done = (w.stageHistory || []).some(h => h.stage === lt.stage && (h.completedAt || 0) >= (lt.startTs || 0));
+      if(!done) w.timer = lt;
+    }
+  });
+  if(loser.projectTimers && winner.projectTimers){
+    Object.keys(loser.projectTimers).forEach(k => {
+      const lt = loser.projectTimers[k], wt = winner.projectTimers[k];
+      if(lt && (lt.state === 'running' || lt.state === 'paused') && wt && wt.state === 'idle' && !wt.completedAt){
+        winner.projectTimers[k] = lt;
+      }
+    });
+  }
+}
+
+/* Same graft for a prep task's single timer. */
+function _graftTaskTimer(winner, loser){
+  if(!loser.timer || !winner.timer) return;
+  const lt = loser.timer;
+  if((lt.state === 'running' || lt.state === 'paused') && winner.timer.state === 'idle' && !winner.completedAt){
+    winner.timer = lt;
+  }
+}
+
+/* Generic per-item merge: union by id, newer `_ts` wins, loser may
+   graft its live timer onto the winner. */
+function _mergeById(localArr, serverArr, graft){
+  const out = new Map();
+  (serverArr || []).forEach(it => { if(it && it.id != null) out.set(it.id, it); });
+  (localArr  || []).forEach(it => {
+    if(!it || it.id == null) return;
+    const sv = out.get(it.id);
+    if(!sv){ out.set(it.id, it); return; }
+    const winner = (it._ts || 0) >= (sv._ts || 0) ? it : sv;
+    const loser  = winner === it ? sv : it;
+    if(graft) graft(winner, loser);
+    out.set(it.id, winner);
+  });
+  return Array.from(out.values());
+}
+
+/* Merge a server snapshot into local state. Returns true if anything
+   changed (caller re-renders + re-seeds hashes). */
+function mergeServerState(saved){
+  if(!saved) return false;
+  const before = JSON.stringify(buildStatePayload());
+  state.jobs = _mergeById(state.jobs, (saved.jobs || []).map(migrateJob), _graftJobTimers);
+  state.prepTasks   = _mergeById(state.prepTasks,   saved.prepTasks,   _graftTaskTimer);
+  state.prepArchive = _mergeById(state.prepArchive, saved.prepArchive, null);
+  // A completed (archived) prep task beats its pending copy.
+  const arch = new Set(state.prepArchive.map(t => t.id));
+  state.prepTasks = state.prepTasks.filter(t => !arch.has(t.id));
+  // Re-derive the prepress cascade: moving a job back before prepress
+  // deletes its prep tasks — re-apply that invariant on merged truth
+  // instead of tombstoning deletions.
+  const jobById = new Map(state.jobs.map(j => [j.id, j]));
+  const preIdx  = STATION_ORDER.indexOf('prepress');
+  state.prepTasks = state.prepTasks.filter(t => {
+    const j = jobById.get(t.jobId);
+    return !j || STATION_ORDER.indexOf(j.station) >= preIdx;
+  });
+  if(saved.lastSyncAt) state.lastSyncAt = Math.max(state.lastSyncAt || 0, saved.lastSyncAt);
+  // Fulfillment merges as one blob (single-desk usage) — newer _ts wins.
+  if(saved.fulfillment && (saved.fulfillment._ts || 0) > (state.fulfillment._ts || 0)){
+    applyLoadedFF(saved.fulfillment);
+    state.fulfillment._ts = saved.fulfillment._ts;
+  }
+  return JSON.stringify(buildStatePayload()) !== before;
+}
+
+/* Background pull: re-fetch shared state and merge. Silent on failure
+   (the init-time loadState() alert stays the only loud one). */
+let _pullBusy = false;
+async function pullAndMergeState(){
+  if(!stateLoaded || _pullBusy) return;
+  _pullBusy = true;
+  try {
+    const res = await fetch(STATE_API_URL + '/api/state');   /* gate session cookie = the auth */
+    if(res.ok){
+      const saved = await res.json();
+      _stampChanged();                     // protect local edits made this instant
+      if(saved && mergeServerState(saved)){ _reseedHashes(); buildBoard(); }
+    }
+  } catch(e){ console.warn('PlanetOps: background pull failed — will retry', e); }
+  finally { _pullBusy = false; }
+}
+
 /* Builds the state snapshot sent to the shared backend. */
 function buildStatePayload(){
   return {
@@ -4732,6 +4866,7 @@ function buildStatePayload(){
       lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
       shipStationApiKey:    state.fulfillment.shipStationApiKey,
       shipStationApiSecret: state.fulfillment.shipStationApiSecret,
+      _ts:                  state.fulfillment._ts,
     },
   };
 }
@@ -4740,13 +4875,27 @@ function buildStatePayload(){
    it debounces, so a burst of changes collapses into a single POST. */
 function saveState(){
   if(!stateLoaded) return;            // never write before a successful load
+  _stampChanged();                    // WS-0: stamp _ts synchronously so pulls see fresh edits
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(pushStateToServer, 800);
 }
 
-/* Sends the current state to the Railway backend. */
-async function pushStateToServer(){
+/* Sends the current state to the Railway backend.
+   WS-0: merges the server's blob first so a push never clobbers
+   another device's newer work. Explicit clears pass {merge:false}. */
+async function pushStateToServer(opts){
+  const skipMerge = opts && opts.merge === false;
   try {
+    if(!skipMerge){
+      _stampChanged();
+      try {
+        const r = await fetch(STATE_API_URL + '/api/state');
+        if(r.ok){
+          const saved = await r.json();
+          if(saved && mergeServerState(saved)){ _reseedHashes(); buildBoard(); }
+        }
+      } catch(e){ console.warn('PlanetOps: pre-push merge skipped (server unreachable)', e); }
+    }
     const res = await fetch(STATE_API_URL + '/api/state', {
       method:  'POST',
       headers: { 'Content-Type':'application/json' },   /* gate session cookie = the auth */
@@ -4757,46 +4906,53 @@ async function pushStateToServer(){
     console.warn('PlanetOps: save to server failed — will retry', e);
     showToast('⚠️ Save failed — retrying…');
     clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(pushStateToServer, 5000);   // one delayed retry
+    _saveTimer = setTimeout(() => pushStateToServer(opts), 5000);   // one delayed retry
   }
+}
+
+/* Migrate one job from older versions that may be missing fields.
+   (WS-0: also reused on every server snapshot before merging.) */
+function migrateJob(j){
+  if(!j.projectTimers)          j.projectTimers = makeProjectTimers();
+  if(!j.projectTimers.blanksCheckIn) j.projectTimers.blanksCheckIn = makeProjectTimers().blanksCheckIn;
+  if(!j.projectTimers.shipping)      j.projectTimers.shipping      = makeProjectTimers().shipping;
+  if(!j.blanksCheckInSessions)  j.blanksCheckInSessions = [];
+  if(!j.blanksReceipts)         j.blanksReceipts = [];
+  if(!j.qcChecks)               j.qcChecks = { qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null };
+  if(!j.stationHistory)         j.stationHistory = [];
+  if(!j.workUnits)              j.workUnits = [];
+  j.workUnits.forEach(w => {
+    if(!w.timer) w.timer = { state:'idle', startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:0, stage:null, operator:null };
+    if(!w.gates) w.gates = { films:false, screens:false, ink:false };
+  });
+  return j;
+}
+
+/* Apply a saved fulfillment sub-object onto state.
+   (WS-0: also reused when a merge picks the server's fulfillment.) */
+function applyLoadedFF(ff){
+  if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
+  if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
+  if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
+  // One-time migration: shift launch cycle from Apr 9 to Apr 13
+  if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
+  if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
+  if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
+  if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
+  // Always re-sync bin metadata from defaults (preserves live qty)
+  initFulfillmentBins();
 }
 
 /* Applies a saved state snapshot (from the server, or from a local
    migration) onto the in-memory `state` object. */
 function applyLoadedState(saved){
-  if(saved.jobs){
-    state.jobs = saved.jobs.map(j => {
-      // Migrate jobs from older versions that may be missing fields
-      if(!j.projectTimers)          j.projectTimers = makeProjectTimers();
-      if(!j.projectTimers.blanksCheckIn) j.projectTimers.blanksCheckIn = makeProjectTimers().blanksCheckIn;
-      if(!j.projectTimers.shipping)      j.projectTimers.shipping      = makeProjectTimers().shipping;
-      if(!j.blanksCheckInSessions)  j.blanksCheckInSessions = [];
-      if(!j.blanksReceipts)         j.blanksReceipts = [];
-      if(!j.qcChecks)               j.qcChecks = { qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null };
-      if(!j.stationHistory)         j.stationHistory = [];
-      if(!j.workUnits)              j.workUnits = [];
-      j.workUnits.forEach(w => {
-        if(!w.timer) w.timer = { state:'idle', startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:0, stage:null, operator:null };
-        if(!w.gates) w.gates = { films:false, screens:false, ink:false };
-      });
-      return j;
-    });
-  }
+  if(saved.jobs)        state.jobs = saved.jobs.map(migrateJob);
   if(saved.prepTasks)   state.prepTasks   = saved.prepTasks;
   if(saved.prepArchive) state.prepArchive = saved.prepArchive;
   if(saved.lastSyncAt)  state.lastSyncAt  = saved.lastSyncAt;
   if(saved.fulfillment){
-    const ff = saved.fulfillment;
-    if(ff.bins)                 state.fulfillment.bins                 = ff.bins;
-    if(ff.sessions)             state.fulfillment.sessions             = ff.sessions;
-    if(ff.billingCycleStart)    state.fulfillment.billingCycleStart    = ff.billingCycleStart;
-    // One-time migration: shift launch cycle from Apr 9 to Apr 13
-    if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
-    if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
-    if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
-    if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
-    // Always re-sync bin metadata from defaults (preserves live qty)
-    initFulfillmentBins();
+    applyLoadedFF(saved.fulfillment);
+    if(saved.fulfillment._ts) state.fulfillment._ts = saved.fulfillment._ts;
   } else {
     initFulfillmentBins();
   }
@@ -4815,6 +4971,7 @@ async function loadState(){
     if(saved){
       applyLoadedState(saved);
       stateLoaded = true;
+      _reseedHashes();                       // WS-0: baseline — nothing counts as "locally changed" yet
       return;
     }
 
@@ -4823,11 +4980,13 @@ async function loadState(){
     if(legacy){
       applyLoadedState(JSON.parse(legacy));
       stateLoaded = true;
-      await pushStateToServer();             // seed the shared backend
+      _reseedHashes();
+      await pushStateToServer({ merge:false });   // seed the shared backend (it's empty)
       showToast('Local data migrated to the shared server');
     } else {
       initFulfillmentBins();                 // fresh start — nothing to load
       stateLoaded = true;
+      _reseedHashes();
     }
   } catch(e){
     console.error('PlanetOps: could not reach the shared server', e);
@@ -4843,7 +5002,8 @@ async function loadState(){
 function clearSavedState(){
   localStorage.removeItem('planetops-v2');   // drop any stale local cache
   state.jobs = []; state.prepTasks = []; state.prepArchive = [];
-  pushStateToServer();                        // clear it on the shared backend too
+  _reseedHashes();                            // WS-0: reset the change baseline
+  pushStateToServer({ merge:false });         // explicit clear must NOT merge the server back in
   buildBoard();
   showToast('Board cleared');
 }
@@ -6440,6 +6600,10 @@ renderSideNav();
   fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
   if(isWorkHours()) syncFromPrintavo();
   setInterval(() => { if(isWorkHours()) syncFromPrintavo(); }, SYNC_INTERVAL_MS);
+  // WS-0: background merge pulls — other devices' changes land without a reload.
+  setInterval(() => { if(!document.hidden) pullAndMergeState(); }, 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) pullAndMergeState(); });
+  window.addEventListener('focus', () => pullAndMergeState());
 })();
 </script>
 </body>
