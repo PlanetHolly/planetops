@@ -4937,7 +4937,11 @@ function mergeServerState(saved){
    (the init-time loadState() alert stays the only loud one). */
 let _pullBusy = false;
 async function pullAndMergeState(){
+  // F5: never merge+re-render out from under an operator mid-completion — it would swap the
+  // job object + rebuild the board while they log a stage. Gate on the modal's LIVE visibility
+  // (the .open class), not state.pendingCompWuId (which is set on open but never cleared).
   if(!stateLoaded || _pullBusy) return;
+  if(document.getElementById('comp-modal')?.classList.contains('open')) return;
   _pullBusy = true;
   try {
     const res = await fetch(STATE_API_URL + '/api/state');   /* gate session cookie = the auth */
@@ -4974,10 +4978,15 @@ async function loadSchedulerPressChecks(){
     _schedPc = map;
   } catch(e){ /* silent — badge just doesn't show */ }
 }
+/* Small HTML escaper for feed/free-text strings interpolated into innerHTML in
+   WS-0/G3/WS-1d code. (The Board predates a shared helper; this covers the new sinks —
+   a board-wide escaping pass over the ~12 pre-existing spots is a separate security task.) */
+function escH(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function pressCheckBadge(job){
   const list = _schedPc[String(job.number)];
   if(!list || !list.length) return '';
-  const tt = list.map(e => e.imp + ': ' + (e.reasons.join(' + ') || 'press check') + (e.note ? ' — ' + e.note : '')).join(' · ');
+  // F2: e.note is Jean's free text from the Scheduler doc — escape it (reasons/imp are safe internal strings)
+  const tt = list.map(e => e.imp + ': ' + (e.reasons.join(' + ') || 'press check') + (e.note ? ' — ' + escH(e.note) : '')).join(' · ');
   return `<div class="pc-flag" title="${tt.replace(/"/g,'&quot;')}">🎯 PRESS CHECK — ${tt.length > 60 ? tt.slice(0,60) + '…' : tt}</div>`;
 }
 
@@ -4989,10 +4998,11 @@ function pressCheckBadge(job){
    Printavo (guarded — a failed totals fetch NEVER breaks the tab)
    and excludes #outmix outside services from the daily goal line.
    ============================================================ */
-let _invoiceTotals = null;   // visualId -> total; null = not fetched, {} = fetch failed
+let _invoiceTotals = null;   // visualId -> total; cached ONLY on a successful fetch
 async function fetchInvoiceTotals(){
   if(_invoiceTotals) return _invoiceTotals;
   const map = {};
+  let ok = false;   // F12: only cache on success — a failed/empty fetch must retry on the next render
   try {
     let cursor = null;
     for(let p = 0; p < PRINTAVO_LIST_PAGES; p++){
@@ -5000,12 +5010,13 @@ async function fetchInvoiceTotals(){
       const d = await printavoFetch(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { visualId total } } } }`);
       const c = d?.data?.invoices;
       if(!c) break;
+      ok = true;   // reached Printavo and got an invoices page
       (c.edges || []).forEach(e => { if(e.node) map[String(e.node.visualId)] = +e.node.total || 0; });
       if(!c.pageInfo?.hasNextPage) break;
       cursor = c.pageInfo.endCursor;
     }
   } catch(e){ console.warn('Reports: invoice totals unavailable', e); }
-  _invoiceTotals = map;
+  if(ok) _invoiceTotals = map;   // failure leaves it null → next renderReports retries
   return map;
 }
 const fmtHM = ms => { const m = Math.round(ms/60000); return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0'); };
@@ -5062,7 +5073,7 @@ async function renderReports(){
           const vc = varPct === null ? '' : varPct > 20 ? 'color:var(--red);font-weight:700' : varPct < -20 ? 'color:var(--green)' : '';
           return `<tr style="border-top:1px solid #eee">
             <td style="padding:6px 10px;font-family:var(--font-head);font-weight:800">#${r.j.number}</td>
-            <td>${r.j.customer || ''}${r.outmix ? ' <span style="font-size:10px;color:rgba(0,0,0,.4)">#outmix</span>' : ''}</td>
+            <td>${escH(r.j.customer)}${r.outmix ? ' <span style="font-size:10px;color:rgba(0,0,0,.4)">#outmix</span>' : ''}</td>
             <td>${fmtHM(r.totalMs)}</td>
             <td style="${vc}">${varPct === null ? '—' : (varPct > 0 ? '+' : '') + varPct + '%'}</td>
             <td>${r.ops.join(', ') || '—'}</td>

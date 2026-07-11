@@ -847,6 +847,7 @@ function buildModel(){
       }
     } else jobs.push(j);
   });
+  let _statusCleared=false;   // F9: track G2 override self-clears to persist once after the loop
   jobs.forEach(j=>{
     j.csvDate=j.date;j.csvPtype=j.projectType;j.csvPptype=j.postProdType;
     autofillAttrs(j);   // #5: fill type/colors/ink/pallet the CSV came in without (before OV so Jean's manual edits still win)
@@ -863,10 +864,13 @@ function buildModel(){
     // Self-clears once the feed reports the same status — the feed has caught up.
     const so=(OV.statusOv||{})[j.invoice];
     if(so){
-      if(cleanStatus(j.status)===cleanStatus(so.name))delete store.statusOv[j.invoice];
+      if(cleanStatus(j.status)===cleanStatus(so.name)){delete store.statusOv[j.invoice];_statusCleared=true;}
       else{j.statusFeed=j.status;j.status=so.name;j.statusOverridden=true;}
     }
   });
+  // F9: persist the self-clear (buildModel mutated the shared store) — deferred out of the
+  // per-job loop so schedPush()/localStorage write happen once, after the build, not mid-render.
+  if(_statusCleared)save();
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
@@ -1167,7 +1171,7 @@ function invGroup(inv,rows){
       ?`<span class="chip out" title="On ✓ arrived, only the labeled in-house imprints join the QUEUE; the vendor leg closes to history.">🔧 in-house after arrival: ${labeled.join(' · ')}</span>`
       :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — on ✓ arrived everything joins the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
   return `<div class="invgrp">
-    <div class="invhead"><b>Invoice ${inv}</b> <span class="invnick">${rep.nickname||''}</span><span class="dcount">· ${rows.length} imprint${rows.length>1?'s':''}</span> ${svcTag}</div>
+    <div class="invhead"><b>Invoice ${inv}</b> <span class="invnick">${escHtml(rep.nickname||'')}</span><span class="dcount">· ${rows.length} imprint${rows.length>1?'s':''}</span> ${svcTag}</div>
     <div data-invbar="${inv}">${etaBar(rep)}</div>
     <div class="cardgrid">${rows.map(j=>jobCardInInv(j)).join('')}</div>
   </div>`;
