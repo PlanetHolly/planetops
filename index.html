@@ -6826,9 +6826,25 @@ function exportBillingReport(){
 document.getElementById('header-date').textContent = todayStr();
 if(localStorage.getItem('planetops_sidenav_collapsed') === '1') document.getElementById('side-nav').classList.add('collapsed');
 renderSideNav();
+
+/* Bug #3: route the URL hash → the right section tab. The Front Door opens each
+   floor surface as `index.html#reports` / `#prepress` / `#running` / `#fulfillment`,
+   but the board never read the hash — so every one of them landed on the default
+   board view. `#running` is the section id `active`; the rest match 1:1. Runs on
+   load AND on hashchange (Front Door may swap the hash without reloading the iframe). */
+const HASH_TAB_ALIAS = { running: 'active' };
+function routeHash(){
+  const h = (location.hash || '').replace(/^#/, '').trim();
+  if(!h) return;
+  const id = HASH_TAB_ALIAS[h] || h;
+  if(SECTIONS.some(s => s.id === id)) goSection(id);
+}
+window.addEventListener('hashchange', routeHash);
+
 (async () => {
   await loadState();          // shared state must finish loading before the board is built
   buildBoard();
+  routeHash();                // Bug #3: honor an initial #hash once the board exists
   // Inventory load is independent of the Printavo sync — the sync's fresh-window early
   // return (another device pulled) and any mid-sync error used to leave inventory unloaded.
   fetchBandanaInventory().then(() => { buildBoard(); refreshBlanksStockLines(); });
