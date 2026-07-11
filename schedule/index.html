@@ -92,6 +92,9 @@
   .arr-transit{background:#e8ddf5;color:#5b3a8a}
   .arr-awaiting{background:#dcebf7;color:#1e5f8a}
   .arr-received{background:#ddf2e2;color:#1a7a3d}
+  /* FB1: pickup + ready-for-pickup (solid green = ready to grab, not arrived) */
+  .arr-pickup{background:#fff0d6;color:#8a5b00;font-weight:800}
+  .arr-ready-pickup{background:#1e9e4a;color:#fff;font-weight:800}
   .arr-card .name{font-size:12.5px;color:var(--tonal);margin-bottom:5px}
   .arr-card .then{font-size:11.5px;color:var(--grey-text)}
   .arr-card .then b{color:var(--tonal)}
@@ -322,6 +325,11 @@
   .calbar .cb1{display:flex;justify-content:space-between;gap:6px;font-size:11.5px}
   .calbar .cb2,.calbar .cb3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;opacity:.92}
   .calbar .cb3{font-size:9.5px;opacity:.8}
+  /* FB1 1a: arrival card on the calendar (awareness only — not draggable) */
+  .arrbar{font-size:10.5px;font-weight:600;border-radius:5px;padding:4px 7px;margin-bottom:4px;border:1px dashed rgba(0,0,0,.18)}
+  .arrbar .cb1{display:flex;justify-content:space-between;gap:6px;font-size:11.5px}
+  .arrbar .cb2,.arrbar .cb3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+  .arrbar .cb3{font-size:9.5px;opacity:.85}
   .calgrid.wk{grid-template-columns:repeat(7,minmax(0,1fr))}
   .calgrid.wk .calcell{min-height:320px}
   .calgrid.wk .calitems{max-height:640px}
@@ -632,6 +640,20 @@ function outBadge(st){
   if(/Goods Received/i.test(st))return{cls:'arr-received',txt:'✓ RECEIVED'};
   if(/Awaiting Goods/i.test(st))return{cls:'arr-awaiting',txt:'⏳ AT VENDOR'};
   return null;
+}
+/* FB1 1b/1c: pickup visibility + the "ready for pickup, not arrived yet" green state.
+   READY-FOR-PICKUP is driven off the Printavo status ("trigger by the status", Holly)
+   with the manual pickup "ready now" flag as the fallback — a SOLID GREEN signal that
+   the goods are ready to grab at the vendor but have NOT yet arrived at PA. Distinct
+   from the ARRIVED green. Shows on the arrivals cards and the calendar Receiving lane. */
+const READY_PICKUP=/ready\s*(for)?\s*pick|pick\s*up\s*ready/i;
+function isReadyForPickup(j){const m=store.method[j.imprint]||{};return !store.arrived[j.imprint]&&(READY_PICKUP.test(j.status||'')||(m.t==='pickup'&&m.ready));}
+function arrStateBadge(j){
+  if(store.arrived[j.imprint])return '';
+  if(isReadyForPickup(j))return `<span class="arr-badge arr-ready-pickup" title="Ready to pick up at the vendor — NOT yet arrived at PA">🟢 READY FOR PICKUP</span>`;   // 1c
+  const m=store.method[j.imprint]||{};
+  if(m.t==='pickup')return `<span class="arr-badge arr-pickup" title="Requires a pickup from the vendor">🚗 PICKUP</span>`;   // 1b
+  return '';
 }
 const INK={Waterbase:'var(--wb)',Plastisol:'var(--pl)',Discharge:'var(--dc)'};
 const inkColor=i=>/Heat Applied/.test(i)?'var(--ha)':(INK[i]||'#9aa1ab');
@@ -975,6 +997,7 @@ function jobCard(j){
       ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${ppLabel(j.postProdType)}</span>`:''}
       ${pcChip(j)}
       ${timerChip(j)}
+      ${arrStateBadge(j)}
       ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
     <div class="cdots"><span class="dots">${dots}</span><span class="qcchip ${store.qc[j.imprint]?'on':''}" data-qc="${j.imprint}" title="QC gate — every project gets signed off by SOMEBODY. Click to enter who.">${store.qc[j.imprint]?'QC ✓ '+store.qc[j.imprint].by:'QC —'}</span></div>
     <div class="csched">${j.date
@@ -1467,6 +1490,17 @@ function renderCalendar(){
       ${(e&&e.company)?`<div class="cb3">${escHtml(e.company)}${(e&&e.stat)?' · '+escHtml(e.stat.name.length>26?e.stat.name.slice(0,24)+'…':e.stat.name):''}</div>`:((e&&e.stat)?`<div class="cb3">${escHtml(e.stat.name)}</div>`:'')}
     </div>`;
   };
+  /* FB1 1a: arrivals plotted on the calendar by ETA, shown in the Receiving lane (and
+     appended in All-stations). Not draggable/not a production bar — awareness only. */
+  const arrForDate=d=>arrivals.filter(j=>!store.arrived[j.imprint]&&(store.eta[j.imprint]||'')===d);
+  const arrBar=j=>{
+    const ready=isReadyForPickup(j),m=store.method[j.imprint]||{};
+    const bg=ready?'#1e9e4a':(m.t==='pickup'?'#fff0d6':'#eef2f6'),fg=ready?'#fff':'#243b53';
+    const sub=ready?'READY FOR PICKUP · not arrived':(outBadge(j.status)?outBadge(j.status).txt:'inbound');
+    return `<div class="arrbar" style="background:${bg};color:${fg}" title="${escHtml('Arrival · Invoice '+j.invoice+' — '+j.nickname+' · ETA '+(store.eta[j.imprint]||'?')+(m.t?' · '+m.t:''))}">
+      <div class="cb1"><b>📦 ${j.invoice}</b>${ready?'<span>🟢</span>':(m.t==='pickup'?'<span>🚗</span>':'')}</div>
+      <div class="cb2">${escHtml(j.nickname)}</div><div class="cb3">${sub}</div></div>`;
+  };
   /* #4: capacity % that's never noise. Filtered = that station vs ITS cap, chip names it ("AP 87%").
      All stations = the BUSIEST station's % — the old blended all-lane average let idle Post-Pro/
      Shipping minutes hide a full Auto Press. Tooltip carries every working lane's used/cap. */
@@ -1506,17 +1540,24 @@ function renderCalendar(){
       </div>`;
     }).join('')+(unlaned.length?`<div class="calcell" data-date="${d}">
         <div class="calday"><b>No station</b><span class="calmin">${unlaned.length} · ${unlaned.reduce((a,j)=>a+j.minutes,0)}m</span></div>
-        <div class="calitems">${unlaned.map(bar).join('')}</div></div>`:'');
+        <div class="calitems">${unlaned.map(bar).join('')}</div></div>`:'')
+      +(()=>{const arr=arrForDate(d);   // FB1 1a: Receiving column on the day view
+        if(!arr.length&&calLane!=='receiving')return '';
+        return `<div class="calcell" data-date="${d}">
+          <div class="calday"><b>📦 Receiving</b><span class="calmin">${arr.length} arriving</span></div>
+          <div class="calitems">${arr.map(arrBar).join('')||'<div style="color:var(--grey-text);font-size:11px;margin:6px 0">nothing due to arrive</div>'}</div></div>`;})();
   }else{
   grid=cells.map(d=>{
     if(!d)return '<div class="calcell empty"></div>';
     const rows=jobs.filter(j=>j.date===d&&(!laneF||laneOf(j.station)===laneF));
+    // FB1 1a: show arrivals (by ETA) in the Receiving lane and in All-stations
+    const arr=(calLane===''||calLane==='receiving')?arrForDate(d):[];
     const tot=rows.reduce((a,j)=>a+j.minutes,0);
     const f=dayFullness(d);
     const dow=new Date(d+'T12:00:00').getDay();
     return `<div class="calcell ${dow===0||dow===6?'wkend':''}${d===todayISO()?' today':''}" data-date="${d}">
-      <div class="calday"><b class="calgoday" data-calgoday="${d}" title="Open this day alone (Day view)">${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${f.isOT?' <span class="ot-badge">OT</span>':''}${fullChip(f,laneF)}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}</span></div>
-      <div class="calitems">${rows.map(bar).join('')}</div></div>`;
+      <div class="calday"><b class="calgoday" data-calgoday="${d}" title="Open this day alone (Day view)">${calMode==='month'?+d.slice(8):fmtShort(d)}</b>${f.isOT?' <span class="ot-badge">OT</span>':''}${fullChip(f,laneF)}<span class="calmin">${tot?rows.length+' · '+tot+'m':''}${arr.length?' · 📦'+arr.length:''}</span></div>
+      <div class="calitems">${rows.map(bar).join('')}${arr.map(arrBar).join('')}</div></div>`;
   }).join('');
   }
   return `<div class="controls">
