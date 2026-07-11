@@ -432,7 +432,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -456,7 +456,7 @@ const SHARED_DOC='schedule_board';
 const LOCAL_ONLY=['csvName','csvText','range','exported'];
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
-const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','invsvc'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
+const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','invsvc','statusOv'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
 function sharedPayload(){
   const p={};for(const k in store){if(!LOCAL_ONLY.includes(k))p[k]=store[k];}
   p._savedAt=Date.now();return p;
@@ -517,6 +517,51 @@ document.addEventListener('visibilitychange',async()=>{
     if(remote&&remote._savedAt&&remote._savedAt>_lastRemoteAt){adoptShared(remote);setSync('ok');renderAll();}
   }catch(e){}
 });
+
+/* ───────── G2: invoice-level status picker → Printavo ─────────
+   The status becomes CHOOSABLE in the app: pick on the expanded imprint view →
+   every imprint of that invoice reflects it locally (store.statusOv, applied in
+   buildModel) → the change writes back to Printavo IMMEDIATELY via the same
+   webhook proxy + statusUpdate mutation the Board uses. The override self-clears
+   once the CSV/intake feed catches up and reports the same status. */
+const PV_PROXY='https://primary-production-079f9.up.railway.app/webhook/printavo-proxy';
+async function pvFetch(query){
+  const r=await fetch(PV_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+let _pvStatuses=null;
+async function pvStatusList(){
+  if(_pvStatuses)return _pvStatuses;
+  try{
+    const d=await pvFetch('{ statuses(first: 100) { edges { node { id name } } } }');
+    const list=(d?.data?.statuses?.edges||[]).map(e=>e.node).filter(Boolean);
+    if(list.length)_pvStatuses=list;
+  }catch(e){console.warn('G2: status list failed',e);}
+  return _pvStatuses||[];
+}
+const _pvInvCache={};
+async function pvResolveInvoiceId(visual){
+  if(_pvInvCache[visual])return _pvInvCache[visual];
+  let cursor=null;
+  for(let p=0;p<4;p++){   // same 4×25 recent-invoice window the Board's sync walks
+    const after=cursor?`, after: "${cursor}"`:'';
+    let d;
+    try{d=await pvFetch(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { id visualId } } } }`);}
+    catch(e){return null;}
+    const inv=d?.data?.invoices;if(!inv)return null;
+    let pageMin=Infinity;
+    for(const ed of inv.edges||[]){
+      const n=ed.node;if(!n)continue;
+      if(String(n.visualId)===String(visual)){_pvInvCache[visual]=n.id;return n.id;}
+      const vnum=+n.visualId;if(!isNaN(vnum))pageMin=Math.min(pageMin,vnum);
+    }
+    if(+visual&&pageMin<+visual)return null;   // sorted desc — already walked past it
+    if(!inv.pageInfo?.hasNextPage)return null;
+    cursor=inv.pageInfo.endCursor;
+  }
+  return null;
+}
 
 /* ───────── Constants ───────── */
 const LANES=[
@@ -722,7 +767,7 @@ function apiToJob(a){
     status:(a.invoiceStatus||'').trim(), typeOfWork:String(a.typeOfWork||''), localSplit:false, moved:false, apiIntake:true,
   };
 }
-const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[]};
+const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[],statusOv:{}};
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
@@ -771,6 +816,13 @@ function buildModel(){
     j.baseInk=j.ink;j.baseScreens=j.screens;j.basePallet=j.pallet;
     const at=OV.attrs[j.imprint];
     if(at){if(at.ink)j.ink=at.ink;if(at.screens!=null&&at.screens!=='')j.screens=at.screens;if(at.pallet)j.pallet=at.pallet;}
+    // G2: invoice-level status override (chosen in-app, already written to Printavo).
+    // Self-clears once the feed reports the same status — the feed has caught up.
+    const so=(OV.statusOv||{})[j.invoice];
+    if(so){
+      if(cleanStatus(j.status)===cleanStatus(so.name))delete store.statusOv[j.invoice];
+      else{j.statusFeed=j.status;j.status=so.name;j.statusOverridden=true;}
+    }
   });
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
@@ -930,7 +982,7 @@ function xPanel(j){
         <span>Post-Pro</span><span>${j.postProdType!=='N/A'?ppLabel(j.postProdType):'—'}${j.postProdType&&j.postProdType!=='N/A'?` — means <b>${EXPECT[j.postProdType]||'count → QC → pack & ship'}</b> <span class="pending-note">(each a timed event once PlanetOps timers wire in)</span>`:''}</span>
         <span>Scheduled</span><span>${j.date?fmtDay(j.date):'unscheduled'}${isPrinted(j)?' · <span class="printed">✓ PRINTED</span>':''}</span>
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
-        <span>Status</span><span>${statusPill(j)}</span>
+        <span>Status</span><span>${statusPill(j)}${j.statusOverridden?' <span class="pending-note" title="Chosen in the app and already written to Printavo — clears when the feed catches up">✎ set in app · mirrored to Printavo</span>':''} <button class="splitbtn" data-stchg="${j.invoice}" title="G2: change the invoice status — updates ALL imprints of invoice ${j.invoice} here AND writes straight back to Printavo">✎ status</button><span data-stslot="${j.invoice}"></span></span>
       </div>
       ${(()=>{const e=estimateFor(j);if(!e)return '';
         const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
@@ -1734,6 +1786,41 @@ function wireMain(){
         if(inp.value)store.arrived[imp]=inp.value;else delete store.arrived[imp];
       });
       arrEditing.delete(inp.dataset.arrdate);save();renderAll();
+    });
+  });
+  // G2: invoice status picker — loads Printavo's live status list, updates every
+  // imprint of the invoice in-app, and writes back to Printavo immediately.
+  main.querySelectorAll('[data-stchg]').forEach(btn=>{
+    btn.addEventListener('click',async e=>{
+      e.stopPropagation();
+      if(histCsv)return;   // read-only history snapshot
+      const inv=btn.dataset.stchg;
+      const slot=main.querySelector(`[data-stslot="${inv}"]`);
+      if(!slot||slot.querySelector('select'))return;
+      slot.textContent=' loading statuses…';
+      const list=await pvStatusList();
+      if(!list.length){slot.innerHTML=' <span class="pending">⚠ could not load Printavo statuses — try again</span>';return;}
+      slot.innerHTML='';
+      const sel=document.createElement('select');
+      sel.innerHTML='<option value="">pick new status…</option>'
+        +list.map((s,i)=>`<option value="${i}">${cleanStatus(s.name)}</option>`).join('');
+      sel.addEventListener('click',ev=>ev.stopPropagation());
+      sel.addEventListener('change',async()=>{
+        if(sel.value==='')return;
+        const chosen=list[+sel.value];
+        sel.disabled=true;
+        slot.append(' resolving invoice…');
+        const pid=await pvResolveInvoiceId(inv);
+        if(!pid){slot.innerHTML=' <span class="pending">⚠ invoice not in Printavo\'s recent pages — update it there directly</span>';return;}
+        const mut=`mutation { statusUpdate(parentId: "${pid}", statusId: "${chosen.id}") { ... on Invoice { id status { name } } } }`;
+        let r=null;
+        try{r=await pvFetch(mut);}catch(err){}
+        if(!r||(r.errors&&r.errors.length)){slot.innerHTML=' <span class="pending">⚠ Printavo update failed — nothing changed</span>';return;}
+        store.statusOv=store.statusOv||{};
+        store.statusOv[inv]={name:chosen.name,at:todayISO()};   // applies to ALL imprints of the invoice in buildModel
+        save();renderAll();
+      });
+      slot.appendChild(sel);
     });
   });
   // G1: "no 2nd service" toggle on the invoice header
