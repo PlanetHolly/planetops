@@ -243,6 +243,9 @@
   .flash{animation:flashk 2.4s}
   @keyframes flashk{0%,55%{box-shadow:0 0 0 3px var(--yellow)}100%{box-shadow:none}}
   .arrsub{margin-bottom:8px}
+  /* WS-1c: live floor-timer chip */
+  .chip.tchip{background:#2e7d32;color:#fff;font-weight:700}
+  .chip.tchip.paused{background:#ff9800;color:#231a00}
   /* G3: press-check flag — LOUD on the floor */
   .chip.pcflag{background:#ff9800;color:#231a00;font-weight:800;border:1px solid #e08200;letter-spacing:.02em;animation:pcpulse 2.4s ease-in-out infinite}
   @keyframes pcpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.55)}50%{box-shadow:0 0 0 5px rgba(255,152,0,0)}}
@@ -524,6 +527,38 @@ document.addEventListener('visibilitychange',async()=>{
     if(remote&&remote._savedAt&&remote._savedAt>_lastRemoteAt){adoptShared(remote);setSync('ok');renderAll();}
   }catch(e){}
 });
+
+/* ───────── WS-1c: live floor timers on scheduler rows ─────────
+   The Board's work-unit labels are `visualId-impIdx` — exactly this app's
+   parentKey — so the Scheduler can SHOW the floor's live timer state per
+   imprint (read-only; start/stop stays on the Board, one write surface). */
+let boardWU={};   // 'invoice-imp' -> {t:timer, activeStage}
+async function loadBoardTimers(){
+  try{
+    const r=await fetch('/api/state');   // gate session cookie = the auth
+    if(!r.ok)return;
+    const doc=await r.json();
+    const map={};
+    ((doc&&doc.jobs)||[]).forEach(j=>(j.workUnits||[]).forEach(w=>{
+      const m=String(w.label||'').match(/^(\d+)\s*-\s*(\d+)/);
+      if(m)map[m[1]+'-'+m[2]]={t:w.timer||{},activeStage:w.activeStage};
+    }));
+    boardWU=map;
+    if(typeof renderAll==='function')renderAll();
+  }catch(e){}
+}
+const wuElapsed=t=>t.state==='running'?(Date.now()-t.startTs)-(t.totalPausedMs||0)
+  :t.state==='paused'?((t.pauseTs-t.startTs)-(t.totalPausedMs||0)):(t.elapsedMs||0);
+function timerChip(j){
+  const e=boardWU[j.parentKey];if(!e)return '';
+  const t=e.t||{};
+  if(e.activeStage==='done')return `<span class="chip" style="background:#d8ecd8;color:#1c5e20" title="Floor: every stage of this imprint is complete">✓ floor done</span>`;
+  if(t.state==='running'||t.state==='paused'){
+    const mm=Math.floor(wuElapsed(t)/60000);
+    return `<span class="chip tchip ${t.state}" title="LIVE from the floor — ${t.stage||e.activeStage||''} ${t.state}${t.operator?' · '+t.operator:''} (updates ~1 min)">⏱ ${(t.stage||e.activeStage||'')} ${t.state==='paused'?'⏸':'▶'} ${mm}m</span>`;
+  }
+  return '';
+}
 
 /* ───────── G2: invoice-level status picker → Printavo ─────────
    The status becomes CHOOSABLE in the app: pick on the expanded imprint view →
@@ -922,6 +957,7 @@ function jobCard(j){
       ${j.pallet&&j.pallet!=='N/A'?`<span class="chip pallet" title="Pallet size — production sequences the day to minimize pallet switches">${j.pallet}</span>`:''}
       ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${ppLabel(j.postProdType)}</span>`:''}
       ${pcChip(j)}
+      ${timerChip(j)}
       ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
     <div class="cdots"><span class="dots">${dots}</span><span class="qcchip ${store.qc[j.imprint]?'on':''}" data-qc="${j.imprint}" title="QC gate — every project gets signed off by SOMEBODY. Click to enter who.">${store.qc[j.imprint]?'QC ✓ '+store.qc[j.imprint].by:'QC —'}</span></div>
     <div class="csched">${j.date
@@ -2397,6 +2433,8 @@ loadMockups();
 loadLiveCsv();
 loadIntakeFeed();
 loadSharedStore();
+loadBoardTimers();   // WS-1c: floor timers on rows — refresh every minute while visible
+setInterval(()=>{if(!document.hidden)loadBoardTimers();},60*1000);
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
 /* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */

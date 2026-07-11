@@ -737,12 +737,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 
     <!-- REPORTS -->
     <div class="tab-panel" id="panel-reports">
-      <div class="coming-soon">
-        <div class="cs-icon">📊</div>
-        <h2>Reports</h2>
-        <p>Time logs, variance analysis, and production efficiency — coming in Phase 2.</p>
-        <span class="cs-badge">Phase 2</span>
-      </div>
+      <div id="reports-body" style="overflow:auto;padding:18px 22px;flex:1"></div>
     </div>
 
     <!-- FULFILLMENT TAB -->
@@ -1606,6 +1601,7 @@ function switchTab(id){
   if(id === 'active')      renderActiveTab();
   if(id === 'prepress')    renderPrepTab();
   if(id === 'fulfillment') renderFulfillmentTab();
+  if(id === 'reports')     renderReports();
   if(id === 'availability'){ const f=document.getElementById('availability-frame'); if(f && !f.getAttribute('src')) f.src='./capacity/?mode=jean'; }
   if(id === 'schedule'){ const f=document.getElementById('schedule-frame'); if(f && !f.getAttribute('src')) f.src='./schedule/'; }
   updateSideNavCurrent();
@@ -4983,6 +4979,100 @@ function pressCheckBadge(job){
   if(!list || !list.length) return '';
   const tt = list.map(e => e.imp + ': ' + (e.reasons.join(' + ') || 'press check') + (e.note ? ' — ' + e.note : '')).join(' · ');
   return `<div class="pc-flag" title="${tt.replace(/"/g,'&quot;')}">🎯 PRESS CHECK — ${tt.length > 60 ? tt.slice(0,60) + '…' : tt}</div>`;
+}
+
+/* ============================================================
+   WS-1d: REPORTS v1 — completed production, from stageHistory
+   Read-only table: per-job production time vs estimate, variance
+   flags, run-doc capture (PMS change / sample / issues), grouped
+   by completion day with day totals. Revenue joins lazily from
+   Printavo (guarded — a failed totals fetch NEVER breaks the tab)
+   and excludes #outmix outside services from the daily goal line.
+   ============================================================ */
+let _invoiceTotals = null;   // visualId -> total; null = not fetched, {} = fetch failed
+async function fetchInvoiceTotals(){
+  if(_invoiceTotals) return _invoiceTotals;
+  const map = {};
+  try {
+    let cursor = null;
+    for(let p = 0; p < PRINTAVO_LIST_PAGES; p++){
+      const after = cursor ? `, after: "${cursor}"` : '';
+      const d = await printavoFetch(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { visualId total } } } }`);
+      const c = d?.data?.invoices;
+      if(!c) break;
+      (c.edges || []).forEach(e => { if(e.node) map[String(e.node.visualId)] = +e.node.total || 0; });
+      if(!c.pageInfo?.hasNextPage) break;
+      cursor = c.pageInfo.endCursor;
+    }
+  } catch(e){ console.warn('Reports: invoice totals unavailable', e); }
+  _invoiceTotals = map;
+  return map;
+}
+const fmtHM = ms => { const m = Math.round(ms/60000); return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0'); };
+async function renderReports(){
+  const el = document.getElementById('reports-body');
+  if(!el) return;
+  const done = state.jobs.filter(j => j.archived || j.station === 'done');
+  if(!done.length){
+    el.innerHTML = '<div style="color:rgba(0,0,0,.4);padding:40px;text-align:center">No completed jobs yet — rows appear here as the floor finishes work.</div>';
+    return;
+  }
+  el.innerHTML = '<div style="color:rgba(0,0,0,.4)">building…</div>';
+  const totals = await fetchInvoiceTotals();
+  const isOutmix = j => /outmix/i.test((j.clientTag || '') + ' ' + (j.customer || ''));
+  const rows = done.map(j => {
+    const hist = (j.workUnits || []).flatMap(w => (w.stageHistory || []).map(h => ({...h, planned: (w.plannedMin || 0) * 60000, wu: w.label || w.placement || ''})));
+    (j.projectTimers ? Object.entries(j.projectTimers) : []).forEach(([k, t]) => {
+      if(t && t.completedAt) hist.push({ stage: k, elapsedMs: t.elapsedMs || 0, operator: t.operator, completedAt: t.completedAt, planned: 0 });
+    });
+    const totalMs   = hist.reduce((a, h) => a + (h.elapsedMs || 0), 0);
+    const plannedMs = hist.reduce((a, h) => a + (h.planned  || 0), 0);
+    const doneAt    = hist.reduce((a, h) => Math.max(a, h.completedAt || 0), 0) || j.printavoSyncedAt || 0;
+    const flags = [];
+    if(hist.some(h => h.estimated))                 flags.push('⏱ est. time');
+    if(hist.some(h => h.wentAsPlanned === false))   flags.push('⚠ issue');
+    if(hist.some(h => h.pmsData && h.pmsData.changed)) flags.push('🎨 PMS changed');
+    if(hist.some(h => h.sampleSaved === true))      flags.push('🧵 sample');
+    const ops = [...new Set(hist.map(h => h.operator).filter(Boolean))];
+    const revenue = isOutmix(j) ? null : (totals[String(j.number)] ?? null);
+    return { j, totalMs, plannedMs, doneAt, flags, ops, revenue, outmix: isOutmix(j) };
+  }).sort((a, b) => b.doneAt - a.doneAt);
+  const byDay = {};
+  rows.forEach(r => {
+    const d = r.doneAt ? new Date(r.doneAt).toLocaleDateString('en-CA') : 'undated';
+    (byDay[d] = byDay[d] || []).push(r);
+  });
+  const revKnown = Object.keys(totals).length > 0;
+  el.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
+    const list = byDay[day];
+    const dayMs  = list.reduce((a, r) => a + r.totalMs, 0);
+    const dayRev = list.reduce((a, r) => a + (r.revenue || 0), 0);
+    const outN   = list.filter(r => r.outmix).length;
+    return `<div style="margin-bottom:26px">
+      <div style="font-family:var(--font-head);font-weight:900;font-size:15px;margin-bottom:6px">
+        ${day === 'undated' ? 'No completion timestamp' : new Date(day + 'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+        <span style="font-weight:600;font-size:12px;color:rgba(0,0,0,.45)"> — ${list.length} job${list.length>1?'s':''} · ${fmtHM(dayMs)} production
+        ${revKnown ? ' · $' + dayRev.toLocaleString(undefined,{maximumFractionDigits:0}) + ' in-house revenue toward goals' + (outN ? ' (excl. ' + outN + ' #outmix)' : '') : ''}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--white);border-radius:8px;overflow:hidden">
+        <tr style="background:#f0efed;text-align:left">
+          <th style="padding:6px 10px">Job</th><th>Customer</th><th>Time</th><th>vs Plan</th><th>Operators</th><th>Capture</th><th style="text-align:right;padding-right:10px">Revenue</th></tr>
+        ${list.map(r => {
+          const varPct = r.plannedMs ? Math.round((r.totalMs - r.plannedMs) / r.plannedMs * 100) : null;
+          const vc = varPct === null ? '' : varPct > 20 ? 'color:var(--red);font-weight:700' : varPct < -20 ? 'color:var(--green)' : '';
+          return `<tr style="border-top:1px solid #eee">
+            <td style="padding:6px 10px;font-family:var(--font-head);font-weight:800">#${r.j.number}</td>
+            <td>${r.j.customer || ''}${r.outmix ? ' <span style="font-size:10px;color:rgba(0,0,0,.4)">#outmix</span>' : ''}</td>
+            <td>${fmtHM(r.totalMs)}</td>
+            <td style="${vc}">${varPct === null ? '—' : (varPct > 0 ? '+' : '') + varPct + '%'}</td>
+            <td>${r.ops.join(', ') || '—'}</td>
+            <td>${r.flags.join(' ') || '—'}</td>
+            <td style="text-align:right;padding-right:10px">${r.revenue != null ? '$' + r.revenue.toLocaleString(undefined,{maximumFractionDigits:0}) : '—'}</td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>`;
+  }).join('') + (revKnown ? '' : '<div style="font-size:11px;color:rgba(0,0,0,.4)">Revenue column unavailable — Printavo totals didn\'t load (older invoices fall outside the recent pages; full history lands with the reporting backend).</div>');
 }
 
 /* Builds the state snapshot sent to the shared backend. */
