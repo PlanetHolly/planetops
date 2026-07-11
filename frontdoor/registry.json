@@ -110,6 +110,18 @@
               "access": "open",
               "dataSource": "Power Scheduler CSV (/gauge skill)",
               "icon": "\ud83c\udf9a\ufe0f"
+            },
+            {
+              "id": "shipment",
+              "kind": "surface",
+              "name": "Shipment",
+              "blurb": "Ship finished invoices \u2014 rates, labels, tracking (EasyPost)",
+              "type": "live-app",
+              "url": "../shipment/",
+              "status": "wip",
+              "access": "open",
+              "dataSource": "Board state + n8n /webhook/shipment-* (EasyPost)",
+              "icon": "\ud83d\udce6"
             }
           ]
         },

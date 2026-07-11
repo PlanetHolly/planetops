@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipment — Planet Apparel</title>
+<!-- ============================================================
+  SHIPMENT (G5 + WS-3) — ship finished invoices from the app.
+  Queue = Board jobs sitting at the SHIPPING station (invoice-level,
+  read from the shared State API through the gate). Rates + labels go
+  through n8n webhooks (EasyPost key lives in n8n, NEVER here):
+
+    POST /webhook/shipment-rates  {invoice, parcels:[{length,width,height,weight_oz}]}
+      → {address:{name,company,street1,street2,city,state,zip},
+         rates:[{shipment_id,rate_id,carrier,service,rate,delivery_days}]}
+      (n8n: pull ship-to from Printavo by visualId → EasyPost create shipment)
+
+    POST /webhook/shipment-buy    {shipment_id, rate_id, invoice}
+      → {label_url, tracking_code, carrier, service}
+      (n8n: buy the rate; ALSO create the client tracking-email DRAFT —
+       draft only, never auto-send, per Holly's standing rule)
+
+  Until those workflows exist the buttons fail soft with a clear note.
+  "Mark shipped" = Printavo statusUpdate via the existing proxy — the
+  Board's inbound sync then advances the job (forward-only), so this
+  page never mutates Board state directly.
+  ============================================================ -->
+<style>
+  :root{--yellow:#F7BE00;--tonal-black:#231F20;--grey-line:#e3e3e3;--grey-text:#6b6b6b;--white:#fff;--green:#2e7d32;--red:#c62828;--orange:#ff9800}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f4;color:var(--tonal-black);padding:18px}
+  h1{font-size:20px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .sub{color:var(--grey-text);font-size:13px;margin-bottom:16px}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  button{font:inherit;cursor:pointer;border:1px solid var(--grey-line);background:var(--white);border-radius:6px;padding:6px 12px}
+  button.primary{background:var(--yellow);border-color:#d9a800;font-weight:700}
+  button:disabled{opacity:.5;cursor:default}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px}
+  .card{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid var(--yellow);border-radius:10px;padding:14px 16px}
+  .card h2{font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card .cust{color:var(--grey-text);font-size:13px;margin:2px 0 8px}
+  .chip{display:inline-block;font-size:11px;background:#eee;border-radius:4px;padding:2px 8px}
+  .parcels label{font-size:11px;color:var(--grey-text);display:block}
+  .parcels input{width:64px;font:inherit;padding:4px;border:1px solid var(--grey-line);border-radius:4px}
+  .prow{display:flex;gap:6px;align-items:flex-end;margin:8px 0}
+  .rates{margin:8px 0}
+  .rates label{display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 6px;border-radius:5px}
+  .rates label:hover{background:#faf6e8}
+  .addr{font-size:12px;color:var(--grey-text);white-space:pre-line;background:#fafaf8;border:1px dashed var(--grey-line);border-radius:6px;padding:8px;margin:8px 0}
+  .ok{color:var(--green);font-weight:700}
+  .err{color:var(--red);font-size:12px;margin-top:6px}
+  .done{border-left-color:var(--green)}
+  .track{font-size:13px;margin-top:8px}
+  .empty{color:var(--grey-text);padding:40px;text-align:center;font-size:14px}
+  a{color:#1565C0}
+</style>
+</head>
+<body>
+<h1>📦 Shipment</h1>
+<div class="sub">Everything at the <b>Shipping</b> station, as whole invoices — get rates, buy + print the label, mark it shipped in Printavo. Labels &amp; rates run through EasyPost via n8n.</div>
+<div class="toolbar">
+  <button onclick="loadQueue()">↻ Refresh queue</button>
+  <span id="stamp" style="font-size:12px;color:var(--grey-text)"></span>
+</div>
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" style="display:none">Nothing at the Shipping station right now. Jobs land here when the floor finishes Post-Prod QC.</div>
+
+<script>
+const N8N='https://primary-production-079f9.up.railway.app';
+const state={jobs:[],ship:{}};   // ship[invoice] = {address, rates, chosen, bought:{label_url,tracking_code,carrier}}
+
+async function loadQueue(){
+  const stamp=document.getElementById('stamp');
+  stamp.textContent='loading…';
+  try{
+    const r=await fetch('/api/state');                 // gate session cookie = the auth
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const doc=await r.json();
+    state.jobs=((doc&&doc.jobs)||[]).filter(j=>j.station==='shipping'&&!j.archived);
+    stamp.textContent=state.jobs.length+' invoice'+(state.jobs.length===1?'':'s')+' ready · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    stamp.textContent='⚠ could not reach the shared state — reload or check the gate';
+    state.jobs=[];
+  }
+  render();
+}
+
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(){
+  const grid=document.getElementById('grid');
+  document.getElementById('empty').style.display=state.jobs.length?'none':'block';
+  grid.innerHTML=state.jobs.map(j=>{
+    const s=state.ship[j.number]||{};
+    const qty=(j.workUnits||[]).reduce((a,w)=>a+(+w.qty||0),0);
+    const dm=j.deliveryMethod?`<span class="chip">${esc(j.deliveryMethod)}</span>`:'';
+    let body='';
+    if(s.bought){
+      body=`<div class="track ok">✓ Label bought — ${esc(s.bought.carrier||'')} ${esc(s.bought.service||'')}</div>
+        <div class="track">Tracking: <b>${esc(s.bought.tracking_code)}</b>
+          · <a href="${esc(s.bought.label_url)}" target="_blank" rel="noopener">🖨 open label (print 4×6)</a></div>
+        <div class="track" style="color:var(--grey-text)">Client tracking email drafted in n8n — review &amp; send from the inbox.</div>
+        <button class="primary" style="margin-top:8px" onclick="markShipped('${j.number}',this)">✓ Mark shipped in Printavo</button>`;
+    }else if(s.rates){
+      body=`<div class="addr">${esc([s.address?.name,s.address?.company,s.address?.street1,s.address?.street2,[s.address?.city,s.address?.state,s.address?.zip].filter(Boolean).join(', ')].filter(Boolean).join('\n'))}</div>
+        <div class="rates">${s.rates.map((r,i)=>`<label><input type="radio" name="rate-${j.number}" ${s.chosen===i?'checked':''} onchange="state.ship['${j.number}'].chosen=${i}">
+          <b>$${(+r.rate).toFixed(2)}</b> ${esc(r.carrier)} ${esc(r.service)} ${r.delivery_days?'· '+r.delivery_days+'d':''}</label>`).join('')}</div>
+        <button class="primary" onclick="buyLabel('${j.number}',this)">Buy label</button>`;
+    }else{
+      body=`<div class="prow parcels">
+        <span><label>L (in)</label><input id="l-${j.number}" type="number" value="12"></span>
+        <span><label>W (in)</label><input id="w-${j.number}" type="number" value="12"></span>
+        <span><label>H (in)</label><input id="h-${j.number}" type="number" value="6"></span>
+        <span><label>Weight (oz)</label><input id="o-${j.number}" type="number" value="${Math.max(16,qty)}"></span>
+        <button class="primary" onclick="getRates('${j.number}',this)">Get rates</button>
+      </div>`;
+    }
+    return `<div class="card ${s.bought?'done':''}">
+      <h2>#${esc(j.number)} ${dm}<span class="chip">${qty} pcs</span></h2>
+      <div class="cust">${esc(j.customer||'')} · due ${esc(j.dueDateLabel||'')}</div>
+      ${body}<div class="err" id="err-${j.number}"></div>
+    </div>`;
+  }).join('');
+}
+
+async function post(path,payload){
+  const r=await fetch(N8N+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.ok)throw new Error(r.status===404?'webhook not live yet — the n8n shipment workflows still need building':'HTTP '+r.status);
+  const d=await r.json();
+  if(d&&d.error)throw new Error(d.error);
+  return d;
+}
+
+async function getRates(inv,btn){
+  const err=document.getElementById('err-'+inv);err.textContent='';btn.disabled=true;btn.textContent='rating…';
+  try{
+    const p={invoice:inv,parcels:[{length:+val('l',inv),width:+val('w',inv),height:+val('h',inv),weight_oz:+val('o',inv)}]};
+    const d=await post('/webhook/shipment-rates',p);
+    if(!d.rates||!d.rates.length)throw new Error('no rates returned — check the address in Printavo');
+    state.ship[inv]={address:d.address||{},rates:d.rates,chosen:0};
+    render();
+  }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Get rates';}
+}
+const val=(k,inv)=>document.getElementById(k+'-'+inv).value;
+
+async function buyLabel(inv,btn){
+  const err=document.getElementById('err-'+inv);err.textContent='';
+  const s=state.ship[inv];const rate=s.rates[s.chosen||0];
+  btn.disabled=true;btn.textContent='buying…';
+  try{
+    const d=await post('/webhook/shipment-buy',{shipment_id:rate.shipment_id,rate_id:rate.rate_id,invoice:inv});
+    if(!d.label_url)throw new Error('no label returned');
+    s.bought=d;render();
+    window.open(d.label_url,'_blank');   // straight to print
+  }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Buy label';}
+}
+
+/* Mark shipped = Printavo statusUpdate through the existing proxy (same
+   pattern as the Scheduler's G2 picker). The Board's inbound sync then
+   advances the job forward-only — this page never edits Board state. */
+const PV_PROXY=N8N+'/webhook/printavo-proxy';
+async function pv(query){const r=await fetch(PV_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function markShipped(inv,btn){
+  const err=document.getElementById('err-'+inv);err.textContent='';btn.disabled=true;btn.textContent='updating Printavo…';
+  try{
+    // live status list → first status that looks shipped/completed
+    const sd=await pv('{ statuses(first: 100) { edges { node { id name } } } }');
+    const list=(sd?.data?.statuses?.edges||[]).map(e=>e.node).filter(Boolean);
+    const target=list.find(s=>/shipped/i.test(s.name))||list.find(s=>/complete/i.test(s.name));
+    if(!target)throw new Error('no Shipped/Completed status found in Printavo');
+    // resolve visualId → GraphQL id (recent pages, sorted desc)
+    let cursor=null,pid=null;
+    for(let p=0;p<4&&!pid;p++){
+      const after=cursor?`, after: "${cursor}"`:'';
+      const d=await pv(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { id visualId } } } }`);
+      const c=d?.data?.invoices;if(!c)break;
+      for(const ed of c.edges||[])if(ed.node&&String(ed.node.visualId)===String(inv))pid=ed.node.id;
+      if(!c.pageInfo?.hasNextPage)break;cursor=c.pageInfo.endCursor;
+    }
+    if(!pid)throw new Error('invoice not found in recent Printavo pages');
+    const r=await pv(`mutation { statusUpdate(parentId: "${pid}", statusId: "${target.id}") { ... on Invoice { id status { name } } } }`);
+    if(r.errors&&r.errors.length)throw new Error('Printavo rejected the update');
+    btn.textContent='✓ shipped — '+target.name.replace(/[^\w\s]/g,'').trim();
+  }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='✓ Mark shipped in Printavo';}
+}
+
+loadQueue();
+setInterval(()=>{if(!document.hidden)loadQueue();},5*60*1000);
+</script>
+</body>
+</html>
