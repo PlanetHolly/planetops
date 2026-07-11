@@ -5,51 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shipment — Planet Apparel</title>
 <!-- ============================================================
-  SHIPMENT (G5 + WS-3) — ship finished invoices from the app.
-  Queue = Board jobs sitting at the SHIPPING station (invoice-level,
-  read from the shared State API through the gate). Rates + labels go
-  through n8n webhooks (EasyPost key lives in n8n, NEVER here):
+  SHIPMENT (G5 + WS-3, rows + box editor) — ship finished invoices.
+  Queue = Board jobs at the SHIPPING station (invoice-level, read from
+  the shared State API through the gate). ROWS layout (FB, Holly 7/11);
+  click a row to open its box editor + rates.
 
-    POST /webhook/shipment-rates  {invoice, parcels:[{length,width,height,weight_oz}]}
-      → {address:{name,company,street1,street2,city,state,zip},
+  BOXES: each invoice starts with one predicted box; the team ADDS /
+  edits boxes (L·W·H·oz) and records the CONTENTS of each box (audit
+  trail — "in case we get audited"). All boxes ship as one EasyPost
+  shipment (parcels[]).
+
+  Rates + labels run through n8n (EasyPost key lives in n8n, NEVER here):
+    POST /webhook/shipment-rates  {invoice, parcels:[{length,width,height,weight_oz,contents}]}
+      → {address:{name,company,street1,street2,city,state,zip},   ← FROM PRINTAVO ship-to
          rates:[{shipment_id,rate_id,carrier,service,rate,delivery_days}]}
-      (n8n: pull ship-to from Printavo by visualId → EasyPost create shipment)
-
-    POST /webhook/shipment-buy    {shipment_id, rate_id, invoice}
+    POST /webhook/shipment-buy    {shipment_id, rate_id, invoice, parcels:[...]}
       → {label_url, tracking_code, carrier, service}
-      (n8n: buy the rate; ALSO create the client tracking-email DRAFT —
-       draft only, never auto-send, per Holly's standing rule)
-
+      (n8n buys the rate, stamps tracking on the Printavo invoice, and
+       drafts the client tracking email — draft only, never auto-send.)
   Until those workflows exist the buttons fail soft with a clear note.
-  "Mark shipped" = Printavo statusUpdate via the existing proxy — the
-  Board's inbound sync then advances the job (forward-only), so this
-  page never mutates Board state directly.
+
+  "Mark shipped" = Printavo statusUpdate via the existing proxy; the
+  Board's forward-only inbound sync advances the job — this page never
+  mutates Board state directly.
+  FUTURE (not a gate item): printable per-box labels (logo+QR+invoice+
+  customer+dates+delivery) listing each box's contents.
   ============================================================ -->
 <style>
   :root{--yellow:#F7BE00;--tonal-black:#231F20;--grey-line:#e3e3e3;--grey-text:#6b6b6b;--white:#fff;--green:#2e7d32;--red:#c62828;--orange:#ff9800}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f4;color:var(--tonal-black);padding:18px}
   h1{font-size:20px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
-  .sub{color:var(--grey-text);font-size:13px;margin-bottom:16px}
+  .sub{color:var(--grey-text);font-size:13px;margin-bottom:16px;max-width:900px}
   .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
   button{font:inherit;cursor:pointer;border:1px solid var(--grey-line);background:var(--white);border-radius:6px;padding:6px 12px}
   button.primary{background:var(--yellow);border-color:#d9a800;font-weight:700}
+  button.mini{padding:3px 8px;font-size:12px}
   button:disabled{opacity:.5;cursor:default}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px}
-  .card{background:var(--white);border:1px solid var(--grey-line);border-left:5px solid var(--yellow);border-radius:10px;padding:14px 16px}
-  .card h2{font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .card .cust{color:var(--grey-text);font-size:13px;margin:2px 0 8px}
+  input{font:inherit;padding:4px 6px;border:1px solid var(--grey-line);border-radius:4px}
+  table.q{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--grey-line);border-radius:10px;overflow:hidden}
+  table.q th{background:#f0efed;text-align:left;padding:8px 12px;font-size:12px;color:var(--grey-text)}
+  .qrow{border-top:1px solid #eee;cursor:pointer}
+  .qrow:hover{background:#faf6e8}
+  .qrow td{padding:9px 12px;font-size:13px;vertical-align:middle}
+  .jobn{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px}
   .chip{display:inline-block;font-size:11px;background:#eee;border-radius:4px;padding:2px 8px}
-  .parcels label{font-size:11px;color:var(--grey-text);display:block}
-  .parcels input{width:64px;font:inherit;padding:4px;border:1px solid var(--grey-line);border-radius:4px}
-  .prow{display:flex;gap:6px;align-items:flex-end;margin:8px 0}
-  .rates{margin:8px 0}
+  .chip.done{background:#ddf2e2;color:#1a7a3d}
+  .exp{background:#fafaf8;border-top:1px solid #eee}
+  .exp td{padding:14px 18px}
+  .boxtbl{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:13px}
+  .boxtbl th{text-align:left;color:var(--grey-text);font-size:11px;padding:2px 6px}
+  .boxtbl td{padding:3px 6px}
+  .boxtbl input.dim{width:58px}
+  .boxtbl input.oz{width:64px}
+  .boxtbl input.cont{width:100%;min-width:200px}
+  .addr{font-size:12px;color:var(--grey-text);white-space:pre-line;background:#fff;border:1px dashed var(--grey-line);border-radius:6px;padding:8px;margin:8px 0}
   .rates label{display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 6px;border-radius:5px}
   .rates label:hover{background:#faf6e8}
-  .addr{font-size:12px;color:var(--grey-text);white-space:pre-line;background:#fafaf8;border:1px dashed var(--grey-line);border-radius:6px;padding:8px;margin:8px 0}
   .ok{color:var(--green);font-weight:700}
   .err{color:var(--red);font-size:12px;margin-top:6px}
-  .done{border-left-color:var(--green)}
   .track{font-size:13px;margin-top:8px}
   .empty{color:var(--grey-text);padding:40px;text-align:center;font-size:14px}
   a{color:#1565C0}
@@ -57,17 +71,19 @@
 </head>
 <body>
 <h1>📦 Shipment</h1>
-<div class="sub">Everything at the <b>Shipping</b> station, as whole invoices — get rates, buy + print the label, mark it shipped in Printavo. Labels &amp; rates run through EasyPost via n8n.</div>
+<div class="sub">Everything at the <b>Shipping</b> station, as whole invoices. Open a row to set its <b>boxes</b> — add as many as you're shipping, edit each box's size/weight, and note <b>what's in each box</b> (kept for audits). Then rate-shop, buy + print the label, and mark it shipped. Ship-to address comes from Printavo; labels &amp; rates run through EasyPost via n8n.</div>
 <div class="toolbar">
   <button onclick="loadQueue()">↻ Refresh queue</button>
   <span id="stamp" style="font-size:12px;color:var(--grey-text)"></span>
 </div>
-<div class="grid" id="grid"></div>
+<table class="q" id="qtbl"><thead><tr>
+  <th>Invoice</th><th>Customer</th><th>Method</th><th>Pcs</th><th>Boxes</th><th>Due</th><th>Status</th>
+</tr></thead><tbody id="qbody"></tbody></table>
 <div class="empty" id="empty" style="display:none">Nothing at the Shipping station right now. Jobs land here when the floor finishes Post-Prod QC.</div>
 
 <script>
 const N8N='https://primary-production-079f9.up.railway.app';
-const state={jobs:[],ship:{}};   // ship[invoice] = {address, rates, chosen, bought:{label_url,tracking_code,carrier}}
+const state={jobs:[],ship:{},open:null};   // ship[inv]={boxes:[{l,w,h,oz,contents}], address, rates, chosen, bought}
 
 async function loadQueue(){
   const stamp=document.getElementById('stamp');
@@ -84,44 +100,67 @@ async function loadQueue(){
   }
   render();
 }
-
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function qtyOf(j){return (j.workUnits||[]).reduce((a,w)=>a+(+w.qty||0),0);}
+function boxesFor(j){
+  const inv=j.number;
+  if(!state.ship[inv])state.ship[inv]={boxes:[{l:12,w:12,h:6,oz:Math.max(16,qtyOf(j)),contents:''}]};
+  return state.ship[inv].boxes;
+}
 
 function render(){
-  const grid=document.getElementById('grid');
+  const body=document.getElementById('qbody');
   document.getElementById('empty').style.display=state.jobs.length?'none':'block';
-  grid.innerHTML=state.jobs.map(j=>{
-    const s=state.ship[j.number]||{};
-    const qty=(j.workUnits||[]).reduce((a,w)=>a+(+w.qty||0),0);
-    const dm=j.deliveryMethod?`<span class="chip">${esc(j.deliveryMethod)}</span>`:'';
-    let body='';
-    if(s.bought){
-      body=`<div class="track ok">✓ Label bought — ${esc(s.bought.carrier||'')} ${esc(s.bought.service||'')}</div>
-        <div class="track">Tracking: <b>${esc(s.bought.tracking_code)}</b>
-          · <a href="${esc(s.bought.label_url)}" target="_blank" rel="noopener">🖨 open label (print 4×6)</a></div>
-        <div class="track" style="color:var(--grey-text)">Client tracking email drafted in n8n — review &amp; send from the inbox.</div>
-        <button class="primary" style="margin-top:8px" onclick="markShipped('${j.number}',this)">✓ Mark shipped in Printavo</button>`;
-    }else if(s.rates){
-      body=`<div class="addr">${esc([s.address?.name,s.address?.company,s.address?.street1,s.address?.street2,[s.address?.city,s.address?.state,s.address?.zip].filter(Boolean).join(', ')].filter(Boolean).join('\n'))}</div>
-        <div class="rates">${s.rates.map((r,i)=>`<label><input type="radio" name="rate-${j.number}" ${s.chosen===i?'checked':''} onchange="state.ship['${j.number}'].chosen=${i}">
-          <b>$${(+r.rate).toFixed(2)}</b> ${esc(r.carrier)} ${esc(r.service)} ${r.delivery_days?'· '+r.delivery_days+'d':''}</label>`).join('')}</div>
-        <button class="primary" onclick="buyLabel('${j.number}',this)">Buy label</button>`;
-    }else{
-      body=`<div class="prow parcels">
-        <span><label>L (in)</label><input id="l-${j.number}" type="number" value="12"></span>
-        <span><label>W (in)</label><input id="w-${j.number}" type="number" value="12"></span>
-        <span><label>H (in)</label><input id="h-${j.number}" type="number" value="6"></span>
-        <span><label>Weight (oz)</label><input id="o-${j.number}" type="number" value="${Math.max(16,qty)}"></span>
-        <button class="primary" onclick="getRates('${j.number}',this)">Get rates</button>
-      </div>`;
+  document.getElementById('qtbl').style.display=state.jobs.length?'':'none';
+  body.innerHTML=state.jobs.map(j=>{
+    const inv=j.number, s=state.ship[inv]||{}, boxes=boxesFor(j), open=state.open===inv;
+    const statusCell = s.bought ? `<span class="chip done">✓ ${esc(s.bought.tracking_code)}</span>`
+                      : s.rates ? `<span class="chip">rated — pick + buy</span>`
+                      : `<span class="chip">needs rates</span>`;
+    let exp='';
+    if(open){
+      const boxRows=boxes.map((b,i)=>`<tr>
+        <td>${i+1}</td>
+        <td><input class="dim" type="number" value="${b.l}" oninput="setBox('${inv}',${i},'l',this.value)"></td>
+        <td><input class="dim" type="number" value="${b.w}" oninput="setBox('${inv}',${i},'w',this.value)"></td>
+        <td><input class="dim" type="number" value="${b.h}" oninput="setBox('${inv}',${i},'h',this.value)"></td>
+        <td><input class="oz" type="number" value="${b.oz}" oninput="setBox('${inv}',${i},'oz',this.value)"></td>
+        <td><input class="cont" value="${esc(b.contents)}" placeholder="what's in this box (for audit)…" oninput="setBox('${inv}',${i},'contents',this.value)"></td>
+        <td>${boxes.length>1?`<button class="mini" onclick="rmBox('${inv}',${i})">✕</button>`:''}</td></tr>`).join('');
+      let action='';
+      if(s.bought){
+        action=`<div class="track ok">✓ Label bought — ${esc(s.bought.carrier||'')} ${esc(s.bought.service||'')}</div>
+          <div class="track">Tracking <b>${esc(s.bought.tracking_code)}</b> · <a href="${esc(s.bought.label_url)}" target="_blank" rel="noopener">🖨 open label (4×6)</a> · <span style="color:var(--grey-text)">client tracking email drafted in n8n</span></div>
+          <button class="primary" style="margin-top:8px" onclick="markShipped('${inv}',this)">✓ Mark shipped in Printavo</button>`;
+      }else if(s.rates){
+        action=`<div class="addr">${esc([s.address&&s.address.name,s.address&&s.address.company,s.address&&s.address.street1,s.address&&s.address.street2,[s.address&&s.address.city,s.address&&s.address.state,s.address&&s.address.zip].filter(Boolean).join(', ')].filter(Boolean).join('\n'))||'(ship-to from Printavo)'}</div>
+          <div class="rates">${s.rates.map((r,i)=>`<label><input type="radio" name="r-${inv}" ${s.chosen===i?'checked':''} onchange="state.ship['${inv}'].chosen=${i}"><b>$${(+r.rate).toFixed(2)}</b> ${esc(r.carrier)} ${esc(r.service)} ${r.delivery_days?'· '+r.delivery_days+'d':''}</label>`).join('')}</div>
+          <button class="primary" onclick="buyLabel('${inv}',this)">Buy label for ${boxes.length} box${boxes.length>1?'es':''}</button>
+          <button class="mini" onclick="getRates('${inv}',this)">↻ re-rate</button>`;
+      }else{
+        action=`<button class="primary" onclick="getRates('${inv}',this)">Get rates for ${boxes.length} box${boxes.length>1?'es':''}</button>`;
+      }
+      exp=`<tr class="exp"><td colspan="7">
+        <b>Boxes</b> — add every box you're shipping; note the contents of each for audits.
+        <table class="boxtbl"><tr><th>#</th><th>L (in)</th><th>W (in)</th><th>H (in)</th><th>Weight (oz)</th><th>Contents</th><th></th></tr>
+        ${boxRows}</table>
+        <button class="mini" onclick="addBox('${inv}')">+ Add box</button>
+        <div style="margin-top:12px">${action}</div>
+        <div class="err" id="err-${inv}"></div>
+      </td></tr>`;
     }
-    return `<div class="card ${s.bought?'done':''}">
-      <h2>#${esc(j.number)} ${dm}<span class="chip">${qty} pcs</span></h2>
-      <div class="cust">${esc(j.customer||'')} · due ${esc(j.dueDateLabel||'')}</div>
-      ${body}<div class="err" id="err-${j.number}"></div>
-    </div>`;
+    return `<tr class="qrow" onclick="toggle('${inv}')">
+      <td class="jobn">#${esc(inv)}</td><td>${esc(j.customer||'')}</td>
+      <td>${j.deliveryMethod?`<span class="chip">${esc(j.deliveryMethod)}</span>`:'—'}</td>
+      <td>${qtyOf(j)}</td><td>${boxes.length}</td><td>${esc(j.dueDateLabel||'')}</td><td>${statusCell}</td>
+    </tr>${exp}`;
   }).join('');
 }
+
+function toggle(inv){ state.open = state.open===inv ? null : inv; render(); }
+function setBox(inv,i,k,v){ state.ship[inv].boxes[i][k] = k==='contents'?v:(+v||0); if(k!=='contents')state.ship[inv].rates=null; }
+function addBox(inv){ state.ship[inv].boxes.push({l:12,w:12,h:6,oz:16,contents:''}); state.ship[inv].rates=null; render(); }
+function rmBox(inv,i){ state.ship[inv].boxes.splice(i,1); state.ship[inv].rates=null; render(); }
 
 async function post(path,payload){
   const r=await fetch(N8N+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -130,52 +169,47 @@ async function post(path,payload){
   if(d&&d.error)throw new Error(d.error);
   return d;
 }
+const parcelsOf=inv=>state.ship[inv].boxes.map(b=>({length:b.l,width:b.w,height:b.h,weight_oz:b.oz,contents:b.contents||''}));
 
 async function getRates(inv,btn){
   const err=document.getElementById('err-'+inv);err.textContent='';btn.disabled=true;btn.textContent='rating…';
   try{
-    const p={invoice:inv,parcels:[{length:+val('l',inv),width:+val('w',inv),height:+val('h',inv),weight_oz:+val('o',inv)}]};
-    const d=await post('/webhook/shipment-rates',p);
-    if(!d.rates||!d.rates.length)throw new Error('no rates returned — check the address in Printavo');
-    state.ship[inv]={address:d.address||{},rates:d.rates,chosen:0};
+    const d=await post('/webhook/shipment-rates',{invoice:inv,parcels:parcelsOf(inv)});
+    if(!d.rates||!d.rates.length)throw new Error('no rates returned — check the ship-to address in Printavo');
+    Object.assign(state.ship[inv],{address:d.address||{},rates:d.rates,chosen:0});
     render();
   }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Get rates';}
 }
-const val=(k,inv)=>document.getElementById(k+'-'+inv).value;
-
 async function buyLabel(inv,btn){
   const err=document.getElementById('err-'+inv);err.textContent='';
   const s=state.ship[inv];const rate=s.rates[s.chosen||0];
   btn.disabled=true;btn.textContent='buying…';
   try{
-    const d=await post('/webhook/shipment-buy',{shipment_id:rate.shipment_id,rate_id:rate.rate_id,invoice:inv});
+    const d=await post('/webhook/shipment-buy',{shipment_id:rate.shipment_id,rate_id:rate.rate_id,invoice:inv,parcels:parcelsOf(inv)});
     if(!d.label_url)throw new Error('no label returned');
     s.bought=d;render();
-    window.open(d.label_url,'_blank');   // straight to print
+    window.open(d.label_url,'_blank');
   }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Buy label';}
 }
 
-/* Mark shipped = Printavo statusUpdate through the existing proxy (same
-   pattern as the Scheduler's G2 picker). The Board's inbound sync then
-   advances the job forward-only — this page never edits Board state. */
+/* Mark shipped = Printavo statusUpdate through the existing proxy; the Board's
+   forward-only inbound sync then advances the job — this page never edits Board state. */
 const PV_PROXY=N8N+'/webhook/printavo-proxy';
 async function pv(query){const r=await fetch(PV_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function markShipped(inv,btn){
   const err=document.getElementById('err-'+inv);err.textContent='';btn.disabled=true;btn.textContent='updating Printavo…';
   try{
-    // live status list → first status that looks shipped/completed
     const sd=await pv('{ statuses(first: 100) { edges { node { id name } } } }');
-    const list=(sd?.data?.statuses?.edges||[]).map(e=>e.node).filter(Boolean);
+    const list=(sd&&sd.data&&sd.data.statuses&&sd.data.statuses.edges||[]).map(e=>e.node).filter(Boolean);
     const target=list.find(s=>/shipped/i.test(s.name))||list.find(s=>/complete/i.test(s.name));
     if(!target)throw new Error('no Shipped/Completed status found in Printavo');
-    // resolve visualId → GraphQL id (recent pages, sorted desc)
     let cursor=null,pid=null;
     for(let p=0;p<4&&!pid;p++){
       const after=cursor?`, after: "${cursor}"`:'';
       const d=await pv(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { id visualId } } } }`);
-      const c=d?.data?.invoices;if(!c)break;
+      const c=d&&d.data&&d.data.invoices;if(!c)break;
       for(const ed of c.edges||[])if(ed.node&&String(ed.node.visualId)===String(inv))pid=ed.node.id;
-      if(!c.pageInfo?.hasNextPage)break;cursor=c.pageInfo.endCursor;
+      if(!c.pageInfo||!c.pageInfo.hasNextPage)break;cursor=c.pageInfo.endCursor;
     }
     if(!pid)throw new Error('invoice not found in recent Printavo pages');
     const r=await pv(`mutation { statusUpdate(parentId: "${pid}", statusId: "${target.id}") { ... on Invoice { id status { name } } } }`);
@@ -185,7 +219,7 @@ async function markShipped(inv,btn){
 }
 
 loadQueue();
-setInterval(()=>{if(!document.hidden)loadQueue();},5*60*1000);
+setInterval(()=>{if(!document.hidden&&state.open===null)loadQueue();},5*60*1000);
 </script>
 </body>
 </html>
