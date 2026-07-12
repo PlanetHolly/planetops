@@ -218,7 +218,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .timer-action-block{background:var(--white);border-radius:12px;padding:16px;box-shadow:var(--shadow-sm)}
 .current-stage-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.38);margin-bottom:4px}
 .current-stage-name{font-family:var(--font-head);font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase;line-height:1;margin-bottom:14px}
-.live-timer{font-family:var(--font-head);font-weight:900;font-size:52px;letter-spacing:.02em;line-height:1;margin-bottom:4px;transition:color .3s}
+.live-timer{font-family:var(--font-head);font-weight:900;font-size:34px;letter-spacing:.02em;line-height:1;margin-bottom:4px;transition:color .3s}
 .live-timer.running{animation:tick-pulse 2s ease-in-out infinite}
 .live-timer.paused{color:var(--orange)}
 @keyframes tick-pulse{0%,100%{opacity:1}50%{opacity:.75}}
@@ -227,8 +227,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .variance-fill{height:100%;border-radius:2px;transition:width .5s,background .5s}
 .gates-locked-msg{text-align:center;padding:18px 10px;color:rgba(0,0,0,.32);font-size:13px;font-weight:600;background:var(--bg);border-radius:10px}
 
+/* ── GREEN LIGHT (post-prod release gate) + RUNAWAY WARNING ── */
+.greenlight-blocked{text-align:center;padding:16px 12px;background:rgba(198,40,40,.06);border:1.5px dashed rgba(198,40,40,.35);border-radius:10px}
+.gl-title{font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:#b3261e;margin-bottom:5px}
+.gl-sub{font-size:12px;color:rgba(0,0,0,.55);line-height:1.45}
+.greenlight-ok{display:inline-block;background:#1e9e4a;color:#fff;font-weight:800;font-size:10.5px;letter-spacing:.04em;padding:3px 9px;border-radius:5px;margin-bottom:10px}
+.runaway-warn{background:rgba(255,152,0,.14);border:1.5px solid rgba(255,152,0,.5);border-radius:9px;padding:9px 12px;font-size:12px;font-weight:600;color:#8a4b00;line-height:1.45;margin-bottom:12px}
+/* Global "N timers running" banner — impossible to miss, tap to jump to Running */
+#running-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:800;font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:7px 18px;border-radius:9px 9px 0 0;cursor:pointer;background:#2e7d32;color:#fff;box-shadow:0 -3px 14px rgba(0,0,0,.22)}
+#running-banner.rb-off{display:none}
+/* Print-complete → "release for post-production?" call-to-action */
+.release-cta{position:fixed;right:18px;bottom:18px;z-index:900;max-width:340px;background:var(--white);border:2px solid #1e9e4a;border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px;line-height:1.45}
+.release-cta .cta-row{display:flex;gap:8px;margin-top:10px}
+.release-cta button{flex:1;height:34px;border-radius:8px;border:none;font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.release-cta .cta-yes{background:#1e9e4a;color:#fff}
+.release-cta .cta-no{background:rgba(0,0,0,.06);color:rgba(0,0,0,.55)}
+
 /* ── ACTION BUTTONS ── */
-.action-btn-primary{width:100%;height:56px;border-radius:14px;border:none;font-family:var(--font-head);font-weight:900;font-size:20px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:8px}
+.action-btn-primary{width:100%;height:40px;border-radius:12px;border:none;font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:8px}
 .action-btn-primary:active{transform:scale(.96) translateY(1px) !important;box-shadow:none !important}
 .action-btn-yellow{background:linear-gradient(135deg,#FFCC00,#F7BE00,#E8A800);color:#000;box-shadow:0 5px 16px rgba(247,190,0,.45),inset 0 1px 0 rgba(255,255,255,.3)}
 .action-btn-blue{background:linear-gradient(135deg,#42A5F5,#2196F3,#1565C0);color:white;box-shadow:0 5px 16px rgba(33,150,243,.4),inset 0 1px 0 rgba(255,255,255,.2)}
@@ -237,7 +253,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .action-btn-green{background:linear-gradient(135deg,#66BB6A,#43A047,#2E7D32);color:white;box-shadow:0 5px 16px rgba(67,160,71,.4),inset 0 1px 0 rgba(255,255,255,.2)}
 .action-btn-orange{background:linear-gradient(135deg,#FFA726,#FF9800,#E65100);color:white;box-shadow:0 5px 16px rgba(255,152,0,.4),inset 0 1px 0 rgba(255,255,255,.2)}
 .btn-row{display:flex;gap:8px;margin-top:10px}
-.btn-sm{flex:1;height:50px;border-radius:12px;border:none;font-family:var(--font-head);font-weight:800;font-size:15px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+.btn-sm{flex:1;height:36px;border-radius:10px;border:none;font-family:var(--font-head);font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s}
 .btn-sm:active{transform:scale(.96)}
 .btn-pause-sm{background:rgba(255,152,0,.12);color:#c55e00}
 .btn-resume-sm{background:rgba(33,150,243,.12);color:#1565c0}
@@ -3140,19 +3156,34 @@ function renderActionBlock(w){
   const varColor  = variance>50?'var(--red)':variance>20?'var(--orange)':'var(--green)';
 
   if(w.timer.state === 'idle'){
+    // GREEN LIGHT: a post-prod service can't start until a human releases the invoice.
+    const blocked = stageBlockReason(w, currentStage);
+    if(blocked){
+      block.innerHTML = `
+        <div class="greenlight-blocked">
+          <div class="gl-title">⛔ Awaiting green light</div>
+          <div class="gl-sub">Not yet released for post-production. Set the invoice status to
+            <b>“Ready for Post Production Services”</b> to start this service.</div>
+        </div>`;
+      return;
+    }
     block.innerHTML = `
+      <div class="greenlight-ok">🟢 Released for post-production</div>
       <div class="current-stage-label">Next Stage</div>
       <div class="current-stage-name" style="color:${sm.color}">${stageName}</div>
       <div style="font-size:12px;color:${w.plannedMin?'rgba(0,0,0,.38)':'var(--orange)'};margin-bottom:14px">${w.plannedMin ? w.plannedMin + ' min planned' : '⚠ Minutes not yet planned'}</div>
       <button class="action-btn-primary ${sm.btnClass}" onclick="startStage('${w.id}','${currentStage}')">
         ▶ Start ${stageName}
       </button>`;
+    // only show the green banner for post-prod WUs (everything else has no gate)
+    if(!isPostProdWu(w)) block.querySelector('.greenlight-ok')?.remove();
 
   } else if(w.timer.state === 'running'){
     const failBtn = currentStage === 'setup'
       ? `<button class="btn-sm" style="border:1.5px solid var(--orange);color:var(--orange);background:rgba(255,152,0,.07)" onclick="openFailSetupModal('${w.id}')">⏸ Hold Setup</button>`
       : '';
     block.innerHTML = `
+      ${isRunaway(w) ? `<div class="runaway-warn">⚠ Still running? This is <b>${variance}% over</b> the ${w.plannedMin} min planned — pause it or complete it.</div>` : ''}
       <div class="current-stage-label">Running Now</div>
       <div class="current-stage-name" style="color:${sm.color}">${stageName}</div>
       <div class="live-timer running" id="live-timer-${w.id}" style="color:${sm.color}">${fmtTime(elapsed)}</div>
@@ -3169,9 +3200,10 @@ function renderActionBlock(w){
       ? `<button class="btn-sm" style="border:1.5px solid var(--orange);color:var(--orange);background:rgba(255,152,0,.07)" onclick="openFailSetupModal('${w.id}')">⏸ Hold Setup</button>`
       : '';
     block.innerHTML = `
+      ${w.timer.needsReview ? `<div class="runaway-warn">⚠ Auto-paused — ${w.timer.reviewReason || 'left running'}. On Complete, use “Forgot to log time accurately” to enter the real time.</div>` : ''}
       <div class="current-stage-label">Paused</div>
       <div class="current-stage-name" style="color:var(--orange)">${stageName}</div>
-      <div class="live-timer paused">${fmtTime(elapsed)}</div>
+      <div class="live-timer paused" id="live-timer-${w.id}">${fmtTime(elapsed)}</div>
       <div class="planned-time">${w.plannedMin ? 'Planned: '+w.plannedMin+' min' : '⚠ Minutes not yet planned'}</div>
       <div class="btn-row">
         <button class="btn-sm btn-resume-sm" onclick="resumeStage('${w.id}')">▶ Resume</button>
@@ -3196,11 +3228,161 @@ function toggleGate(wuId, gKey){
 
 <script>
 /* ============================================================
+   TIMER SAFEGUARDS  (Holly 7/11 — a press-run timer was found at 22:04:10)
+   ------------------------------------------------------------
+   The 22-hour timer accrued while NOBODY had a page open, so a live
+   interval alone can never catch it. The real fix is reconciling stale
+   timers on LOAD and on every WS-0 merge — see reconcileStaleTimers().
+   Layers:
+     1. requireOperator on start   — every minute has a name on it
+     2. grace %, then "still running?"  — 50% over projected (the app's
+        calibrated variance band: median abs. variance ~28% over 217 imprints)
+     3. shop-close auto-pause      — timers can't run overnight
+     4. hard cap                   — force-pause + needs-review backstop
+     5. global "N timers running"  — a forgotten timer is caught same-day
+   ============================================================ */
+const RUNAWAY_GRACE   = 0.50;               // warn past projected × 1.50
+const TIMER_HARD_CAP_MS = 12 * 3600 * 1000; // absolute backstop
+const SHOP_CLOSE_HOUR = 18;                 // 6pm — matches isWorkHours(); change if the real close differs
+const SHOP_OPEN_HOUR  = 7;
+
+/* Would this run have crossed shop close? (a timer started yesterday, or
+   before close today and still running after it) */
+function crossedShopClose(startTs, now){
+  const s = new Date(startTs), n = new Date(now);
+  if(n.toDateString() !== s.toDateString()) return true;         // spans a day boundary
+  return s.getHours() < SHOP_CLOSE_HOUR && n.getHours() >= SHOP_CLOSE_HOUR;
+}
+/* Pause a runaway timer and flag it so the operator must confirm the real
+   time — routes into the existing 'forgot to log time' HH:MM override. */
+function _forcePause(t, reason){
+  if(!t || t.state !== 'running') return false;
+  t.state   = 'paused';
+  t.pauseTs = Date.now();
+  t.needsReview   = true;      // surfaces in the completion modal + Reports
+  t.reviewReason  = reason;
+  return true;
+}
+/* THE 22-HOUR FIX. Runs on load and after every state merge. */
+function reconcileStaleTimers(){
+  const now = Date.now();
+  let paused = 0;
+  const check = t => {
+    if(!t || t.state !== 'running' || !t.startTs) return;
+    const ran = now - t.startTs - (t.totalPausedMs || 0);
+    if(ran > TIMER_HARD_CAP_MS)      { if(_forcePause(t, 'ran past the ' + (TIMER_HARD_CAP_MS/3600000) + 'h cap — confirm your actual time')) paused++; }
+    else if(crossedShopClose(t.startTs, now)) { if(_forcePause(t, 'ran past shop close — confirm your actual time')) paused++; }
+  };
+  state.jobs.forEach(j => {
+    (j.workUnits || []).forEach(w => check(w.timer));
+    if(j.projectTimers) Object.values(j.projectTimers).forEach(check);
+  });
+  (state.prepTasks || []).forEach(t => check(t.timer));
+  if(paused){
+    saveState();
+    showToast('⏸ ' + paused + ' timer' + (paused>1?'s':'') + ' auto-paused (left running) — confirm the actual time');
+  }
+  return paused;
+}
+/* Is this timer past its grace window? (projected × 1.50) */
+function isRunaway(w){
+  const t = w && w.timer;
+  if(!t || t.state !== 'running' || !w.plannedMin) return false;
+  return getLiveElapsed(w) > w.plannedMin * 60000 * (1 + RUNAWAY_GRACE);
+}
+/* Persistent, impossible-to-miss count of live timers. */
+function updateRunningBanner(){
+  let n = 0;
+  state.jobs.forEach(j => {
+    (j.workUnits || []).forEach(w => { if(w.timer && w.timer.state === 'running') n++; });
+    if(j.projectTimers) Object.values(j.projectTimers).forEach(t => { if(t && t.state === 'running') n++; });
+  });
+  (state.prepTasks || []).forEach(t => { if(t.timer && t.timer.state === 'running') n++; });
+  let el = document.getElementById('running-banner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'running-banner';
+    el.onclick = () => switchTab('active');
+    document.body.appendChild(el);
+  }
+  el.className = n ? 'rb-on' : 'rb-off';
+  el.textContent = n ? '⏱ ' + n + ' timer' + (n>1?'s':'') + ' running — tap to see' : '';
+}
+
+/* ============================================================
+   GREEN LIGHT — post-production release gate  (Holly 7/11)
+   ------------------------------------------------------------
+   A fold-and-bag / post-production service CANNOT start until a HUMAN
+   releases the invoice by setting the status to "Ready for Post
+   Production Services". Holly's explicit decision: no auto-open — the
+   checkpoint is deliberate. The job can still be SCHEDULED; it just
+   can't be STARTED. Matched by PATTERN against the live status name so
+   it survives the Monday taxonomy rename (same approach as G2).
+   The "nobody set it" failure is covered by the loud call-to-action
+   fired when the last print imprint completes (see checkJobAutoAdvance).
+   ============================================================ */
+const READY_FOR_POSTPROD = /ready\s*(for)?\s*post[\s-]*production|released\s*(for)?\s*post[\s-]*production/i;
+const isPostProdWu = w => w && (w.category === 'finishing' || w.category === 'sewing');
+function jobPostProdReleased(job){
+  return READY_FOR_POSTPROD.test((job && (job.printavoStatus || job.lastSyncedPrintavoStatus)) || '');
+}
+/* Returns a human-readable reason a stage may NOT start, or null if clear. */
+function stageBlockReason(w, stage){
+  if(!isPostProdWu(w)) return null;
+  const job = getJob(w.jobId);
+  if(!job || jobPostProdReleased(job)) return null;
+  return 'Awaiting green light — release the invoice ("Ready for Post Production Services") before starting';
+}
+
+/* The print just finished and post-prod work is waiting on a human release.
+   Ask NOW — a human still decides, it just can't be silently forgotten. */
+async function promptPostProdRelease(job){
+  const banner = document.createElement('div');
+  banner.className = 'release-cta';
+  banner.innerHTML = `<div><b>Print complete on #${job.number}</b> — post-production is waiting on a green light.</div>
+    <div class="cta-row">
+      <button class="cta-yes" id="cta-yes-${job.id}">🟢 Release for post-production</button>
+      <button class="cta-no">Not yet</button>
+    </div>`;
+  document.body.appendChild(banner);
+  banner.querySelector('.cta-no').onclick = () => banner.remove();
+  banner.querySelector('.cta-yes').onclick = async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true; btn.textContent = 'releasing…';
+    const ok = await setPostProdReleasedStatus(job);
+    if(ok){ banner.remove(); showToast('🟢 #' + job.number + ' released for post-production'); buildBoard(); }
+    else  { btn.disabled = false; btn.textContent = '⚠ failed — retry'; }
+  };
+  setTimeout(() => banner.remove(), 60000);   // don't nag forever; the gate still blocks the start
+}
+/* Find the "Ready for Post Production" status in Printavo's LIVE list (pattern-matched,
+   so Monday's taxonomy rename can't break it) and set it on the invoice. */
+async function setPostProdReleasedStatus(job){
+  if(!job.printavoId) return false;
+  try {
+    const cache  = await loadPrintavoStatusIds();          // { name: id }
+    const name   = Object.keys(cache).find(n => READY_FOR_POSTPROD.test(n));
+    if(!name){ showToast('⚠ No "Ready for Post Production" status found in Printavo'); return false; }
+    const res = await printavoFetch(`mutation { statusUpdate(parentId: "${job.printavoId}", statusId: "${cache[name]}") { ... on Invoice { id status { name } } } }`);
+    if(res?.errors?.length) return false;
+    job.printavoStatus = name;                              // opens the green light immediately
+    job.lastSyncedPrintavoStatus = name;                    // and don't let the inbound poll echo it back
+    saveState();
+    return true;
+  } catch(e){ console.warn('release failed', e); return false; }
+}
+
+/* ============================================================
    TIMER ACTIONS — WU stages
    ============================================================ */
 function startStage(wuId, stage){
   const w = getWu(wuId);
   if(!w) return;
+  // SAFEGUARD 1: no anonymous timers — every minute gets a name on it.
+  if(!state.operator){ requireOperator(() => startStage(wuId, stage)); return; }
+  // SAFEGUARD (green light): a post-prod service can't start before it's released — see canStartStage()
+  const block = stageBlockReason(w, stage);
+  if(block){ showToast('⛔ ' + block); return; }
   if(stage === 'setup') w.setupFailed = false; // clear any prior failure
   w.activeStage = stage;
   w.timer = { state:'running', stage, startTs:Date.now(), pauseTs:null, totalPausedMs:0, elapsedMs:0, operator:state.operator };
@@ -3629,6 +3811,9 @@ function checkJobAutoAdvance(jobId){
     if(finWus.length > 0){
       job.station = 'postprod';
       showToast('📦 All imprints done → Post Production!');
+      // GREEN LIGHT CTA: the gate is human-set by design (Holly), so the moment the print
+      // finishes we ask for the release — it can be decided, but never silently forgotten.
+      if(!jobPostProdReleased(job)) promptPostProdRelease(job);
     } else {
       job.station = 'readyqc';
       showToast('📦 All imprints done → Post-Prod QC!');
@@ -4770,7 +4955,13 @@ function matchesSearch(job){
 /* ============================================================
    TICKER  (1s interval — updates all live displays)
    ============================================================ */
+let _lastReconcileMin = -1;
 setInterval(() => {
+  // SAFEGUARD: keep the running-timer banner honest every second, and re-run the
+  // stale-timer sweep once a minute (catches shop-close while a page IS open).
+  updateRunningBanner();
+  const min = new Date().getMinutes();
+  if(min !== _lastReconcileMin){ _lastReconcileMin = min; if(reconcileStaleTimers()) buildBoard(); }
 
   // ── WU stage timers ──
   state.jobs.flatMap(j => j.workUnits)
@@ -4948,7 +5139,7 @@ async function pullAndMergeState(){
     if(res.ok){
       const saved = await res.json();
       _stampChanged();                     // protect local edits made this instant
-      if(saved && mergeServerState(saved)){ _reseedHashes(); buildBoard(); }
+      if(saved && mergeServerState(saved)){ _reseedHashes(); reconcileStaleTimers(); buildBoard(); }
     }
   } catch(e){ console.warn('PlanetOps: background pull failed — will retry', e); }
   finally { _pullBusy = false; }
@@ -5126,7 +5317,7 @@ async function pushStateToServer(opts){
         const r = await fetch(STATE_API_URL + '/api/state');
         if(r.ok){
           const saved = await r.json();
-          if(saved && mergeServerState(saved)){ _reseedHashes(); buildBoard(); }
+          if(saved && mergeServerState(saved)){ _reseedHashes(); reconcileStaleTimers(); buildBoard(); }
         }
       } catch(e){ console.warn('PlanetOps: pre-push merge skipped (server unreachable)', e); }
     }
@@ -5465,6 +5656,9 @@ async function syncFromPrintavo(force = false){
       if(existing){
         // ── Inbound status sync: check if Printavo changed the status ──
         const statusName = inv.status?.name || '';
+        // Keep the CURRENT status on the job unconditionally — the green-light gate
+        // pattern-matches this, so it must reflect Printavo truth on every poll.
+        if(statusName) existing.printavoStatus = statusName;
         let statusChanged = false;
         if(statusName && existing.lastSyncedPrintavoStatus !== statusName){
           statusChanged = true;
@@ -6843,6 +7037,10 @@ window.addEventListener('hashchange', routeHash);
 
 (async () => {
   await loadState();          // shared state must finish loading before the board is built
+  // 🔑 THE 22-HOUR FIX: a timer left running while NO page was open can only be caught
+  // here, on load. Auto-pause anything that crossed shop close or blew the hard cap.
+  reconcileStaleTimers();
+  updateRunningBanner();
   buildBoard();
   routeHash();                // Bug #3: honor an initial #hash once the board exists
   // Inventory load is independent of the Printavo sync — the sync's fresh-window early
