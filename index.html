@@ -3243,15 +3243,22 @@ function toggleGate(wuId, gKey){
    ============================================================ */
 const RUNAWAY_GRACE   = 0.50;               // warn past projected × 1.50
 const TIMER_HARD_CAP_MS = 12 * 3600 * 1000; // absolute backstop
-const SHOP_CLOSE_HOUR = 18;                 // 6pm — matches isWorkHours(); change if the real close differs
-const SHOP_OPEN_HOUR  = 7;
 
-/* Would this run have crossed shop close? (a timer started yesterday, or
-   before close today and still running after it) */
+/* REAL shop hours (Holly, 7/11): normal 6:00am–2:30pm · OT runs to 4:30pm.
+   Auto-pause uses the OT close — pausing at 2:30 would wrongly kill legitimate
+   OT work, but past 4:30pm nobody is on the press, so a still-running timer is
+   by definition a runaway. Minutes-since-midnight (2:30/4:30 need precision). */
+const SHOP_OPEN_MIN     = 6 * 60;           // 6:00am
+const SHOP_CLOSE_MIN    = 14 * 60 + 30;     // 2:30pm — normal close (informational)
+const SHOP_OT_CLOSE_MIN = 16 * 60 + 30;     // 4:30pm — OT close = the auto-pause line
+const _minOfDay = d => d.getHours() * 60 + d.getMinutes();
+
+/* Would this run have crossed OT close? (started yesterday, or started before
+   4:30pm and still running after it) */
 function crossedShopClose(startTs, now){
   const s = new Date(startTs), n = new Date(now);
-  if(n.toDateString() !== s.toDateString()) return true;         // spans a day boundary
-  return s.getHours() < SHOP_CLOSE_HOUR && n.getHours() >= SHOP_CLOSE_HOUR;
+  if(n.toDateString() !== s.toDateString()) return true;                 // spans a day boundary
+  return _minOfDay(s) < SHOP_OT_CLOSE_MIN && _minOfDay(n) >= SHOP_OT_CLOSE_MIN;
 }
 /* Pause a runaway timer and flag it so the operator must confirm the real
    time — routes into the existing 'forgot to log time' HH:MM override. */
@@ -3271,7 +3278,7 @@ function reconcileStaleTimers(){
     if(!t || t.state !== 'running' || !t.startTs) return;
     const ran = now - t.startTs - (t.totalPausedMs || 0);
     if(ran > TIMER_HARD_CAP_MS)      { if(_forcePause(t, 'ran past the ' + (TIMER_HARD_CAP_MS/3600000) + 'h cap — confirm your actual time')) paused++; }
-    else if(crossedShopClose(t.startTs, now)) { if(_forcePause(t, 'ran past shop close — confirm your actual time')) paused++; }
+    else if(crossedShopClose(t.startTs, now)) { if(_forcePause(t, 'ran past shop close (4:30pm OT) — confirm your actual time')) paused++; }
   };
   state.jobs.forEach(j => {
     (j.workUnits || []).forEach(w => check(w.timer));
@@ -5448,7 +5455,10 @@ function isWorkHours(){
   const day = now.getDay(); // 0=Sun, 6=Sat
   if(day === 0 || day === 6) return false;
   const h = now.getHours();
-  return h >= 7 && h < 18; // 7 AM – 6 PM
+  // Real shop day is 6:00am–2:30pm, OT to 4:30pm (Holly 7/11). This window gates the
+  // Printavo/ShipStation polls — it started at 7am, so the board was NOT syncing during
+  // the first hour of every shift. Opens at 6am now, with a buffer past OT close.
+  return h >= 6 && h < 18; // 6 AM – 6 PM
 }
 
 // Outbound: PlanetOps station → Printavo status name (for statusUpdate mutation)
