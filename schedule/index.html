@@ -249,6 +249,28 @@
   /* FB2: press-check block in the expanded details */
   .pcblock{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
   .pcnote-in{font:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--grey-line);border-radius:5px;width:240px;margin-left:4px}
+  /* STEP 3: timer console in the expanded row */
+  .tcon{background:#fff;border:1px solid var(--grey-line);border-left:4px solid #2e7d32;border-radius:9px;padding:11px 13px;margin-top:10px}
+  .tcon-none{border-left-color:var(--grey-line);color:var(--grey-text);font-size:12px}
+  .tconhead{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:7px}
+  .topr{font-size:11px;background:#eef2f6;border-radius:4px;padding:1px 7px;color:#243b53}
+  .tsteps{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+  .tstep{font-size:11px;font-weight:700;border-radius:5px;padding:2px 7px;background:#f0efed;color:var(--grey-text)}
+  .tstep.done{background:#ddf2e2;color:#1a7a3d}
+  .tstep.now{background:#ff9800;color:#231a00}
+  .tsep{color:var(--grey-line);font-size:11px}
+  .tclock{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;letter-spacing:.02em;margin-bottom:8px;color:#2e7d32}
+  .tclock.paused{color:#ff9800}
+  .tplan{display:block;font-family:inherit;font-size:11px;font-weight:600;color:var(--grey-text);letter-spacing:0}
+  .twarn{background:rgba(255,152,0,.14);border:1px solid rgba(255,152,0,.5);border-radius:7px;padding:6px 9px;font-size:11.5px;font-weight:600;color:#8a4b00;margin-bottom:8px}
+  .tblock{background:rgba(198,40,40,.06);border:1px dashed rgba(198,40,40,.35);border-radius:7px;padding:8px 10px;font-size:11.5px;font-weight:600;color:#b3261e}
+  .tdone{color:#1a7a3d;font-weight:800;font-size:12px}
+  .tctl{display:flex;gap:6px;flex-wrap:wrap}
+  .tbtn{font:inherit;font-size:12px;font-weight:800;border:none;border-radius:7px;padding:7px 12px;cursor:pointer}
+  .tstart{background:#2e7d32;color:#fff}
+  .tpause{background:rgba(255,152,0,.16);color:#c55e00}
+  .tresume{background:rgba(33,150,243,.16);color:#1565c0}
+  .tcomplete{background:linear-gradient(135deg,#66BB6A,#43A047);color:#fff}
   /* WS-1c: live floor-timer chip */
   .chip.tchip{background:#2e7d32;color:#fff;font-weight:700}
   .chip.tchip.paused{background:#ff9800;color:#231a00}
@@ -454,7 +476,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -550,17 +572,151 @@ async function loadBoardTimers(){
     const r=await fetch('/api/state');   // gate session cookie = the auth
     if(!r.ok)return;
     const doc=await r.json();
-    const map={};
-    ((doc&&doc.jobs)||[]).forEach(j=>(j.workUnits||[]).forEach(w=>{
-      const m=String(w.label||'').match(/^(\d+)\s*-\s*(\d+)/);
-      if(m)map[m[1]+'-'+m[2]]={t:w.timer||{},activeStage:w.activeStage};
-    }));
-    boardWU=map;
+    boardWU=indexBoardDoc(doc);
     if(typeof renderAll==='function')renderAll();
   }catch(e){}
 }
+/* Index the board doc by scheduler parentKey ("27433-1"). Board WU labels read
+   "27433-1"; scheduler imprints read "27433 - 1" — normalise on both sides. */
+function indexBoardDoc(doc){
+  const map={};
+  ((doc&&doc.jobs)||[]).forEach(j=>(j.workUnits||[]).forEach(w=>{
+    const m=String(w.label||'').match(/^(\d+)\s*-\s*(\d+)/);
+    if(m)map[m[1]+'-'+m[2]]={
+      t:w.timer||{}, activeStage:w.activeStage, wuId:w.id, jobId:j.id,
+      category:w.category, plannedMin:w.plannedMin,
+      pipeline:STAGE_PIPE[w.category]||[],
+      gates:w.gates||{}, requiredGates:REQ_GATES[w.category]||[],
+      printavoStatus:j.printavoStatus||j.lastSyncedPrintavoStatus||'',
+      jobNumber:j.number
+    };
+  }));
+  return map;
+}
+
+/* ── STEP 3: the Scheduler is now a TIMER CONSOLE (Holly's recorded spec:
+   "start the setup, stop the setup, start the press check ... in the expanded
+   view"). It operates the SAME work-unit timers the Board owns, in the shared
+   /api/state, so there is one set of timers — not two.
+
+   MERGE-SAFE WRITE: re-GET the doc immediately before mutating and POSTing, and
+   stamp the job's _ts so the Board's WS-0 merge treats it as newer. The
+   read-modify-write window is milliseconds, and the Board's own merge-on-push
+   reconciles anything concurrent.
+
+   COMPLETE deliberately hands off to the Board's imprint detail: the completion
+   pop-up drives finalizeStage → stageHistory → pipeline advance → station move →
+   Printavo sync. Forking that here would split the production data spine. It
+   moves into the Scheduler wholesale at the Board→Blanks merge. ── */
+const STAGE_PIPE={screen:['setup','pressCheck','pressRun'],heat:['pressRun'],finishing:['service'],sewing:['service']};
+const REQ_GATES={screen:['blanks','films','screensBurned','screensTaped','ink'],heat:['blanks','dtfOrdered','dtfArrived','dtfPrepped'],finishing:[],sewing:[]};
+const STAGE_NAME={setup:'Setup',pressCheck:'Press Check',pressRun:'Press Run',service:'Service'};
+const SCHED_READY_POSTPROD=/ready\s*(for)?\s*post[\s-]*production|released\s*(for)?\s*post[\s-]*production/i;
+
+let _timerBusy=false;
+async function boardTimerAction(parentKey, action){
+  if(_timerBusy) return;
+  const who=schedOperator();
+  if(!who){ alert('Pick your name first — every minute gets attributed to an operator.'); return; }
+  _timerBusy=true;
+  try{
+    const r=await fetch('/api/state');                 // FRESH read, immediately before the write
+    if(!r.ok) throw new Error('state unreachable');
+    const doc=await r.json();
+    let hit=null;
+    ((doc&&doc.jobs)||[]).forEach(j=>(j.workUnits||[]).forEach(w=>{
+      const m=String(w.label||'').match(/^(\d+)\s*-\s*(\d+)/);
+      if(m && m[1]+'-'+m[2]===parentKey) hit={j,w};
+    }));
+    if(!hit) throw new Error('this imprint is not on the Board yet');
+    const {j,w}=hit, now=Date.now();
+    const pipe=STAGE_PIPE[w.category]||[];
+    const stage=w.activeStage&&w.activeStage!=='done'?w.activeStage:(pipe[0]||null);
+    if(!stage) throw new Error('nothing left to run on this imprint');
+
+    if(action==='start'){
+      const blocked=schedBlockReason(w,j);
+      if(blocked) throw new Error(blocked);
+      w.activeStage=stage;
+      w.timer={state:'running',stage,startTs:now,pauseTs:null,totalPausedMs:0,elapsedMs:0,operator:who};
+    } else if(action==='pause'){
+      if(w.timer.state!=='running') throw new Error('not running');
+      w.timer.state='paused'; w.timer.pauseTs=now;
+    } else if(action==='resume'){
+      if(w.timer.state!=='paused') throw new Error('not paused');
+      w.timer.totalPausedMs=(w.timer.totalPausedMs||0)+(now-w.timer.pauseTs);
+      w.timer.pauseTs=null; w.timer.state='running';
+      if(!w.timer.operator) w.timer.operator=who;
+    }
+    j._ts=now;                                          // WS-0: mark this job as the newest writer
+    const p=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(doc)});
+    if(!p.ok) throw new Error('save failed');
+    boardWU=indexBoardDoc(doc);
+    renderAll();
+  }catch(e){ alert('⛔ '+(e.message||'could not update the timer')); }
+  finally{ _timerBusy=false; }
+}
+
+/* Green light + gates, mirrored from the Board so the Scheduler refuses the same starts. */
+function schedBlockReason(w,j){
+  if(w.category==='finishing'||w.category==='sewing'){
+    const st=j.printavoStatus||j.lastSyncedPrintavoStatus||'';
+    if(!SCHED_READY_POSTPROD.test(st))
+      return 'Awaiting green light — release the invoice ("Ready for Post Production Services") before starting post-production';
+  }
+  const need=(REQ_GATES[w.category]||[]).filter(g=>!(w.gates||{})[g]);
+  if(need.length) return 'Gates not clear yet: '+need.join(', ');
+  return null;
+}
+/* Operator — the Scheduler keeps its own light selection, mirrored into the timer. */
+function schedOperator(){
+  if(store.operator) return store.operator;
+  const who=(prompt('Who is running this? (your name)')||'').trim();
+  if(who){ store.operator=who; save(); }
+  return who;
+}
 const wuElapsed=t=>t.state==='running'?(Date.now()-t.startTs)-(t.totalPausedMs||0)
   :t.state==='paused'?((t.pauseTs-t.startTs)-(t.totalPausedMs||0)):(t.elapsedMs||0);
+/* STEP 3: the timer console rendered inside the expanded row. */
+function timerConsole(j){
+  const e=boardWU[j.parentKey];
+  if(!e) return `<div class="tcon tcon-none">⏱ Not on the Board yet — it appears here once the job reaches the floor.</div>`;
+  const t=e.t||{}, pipe=e.pipeline||[], done=e.activeStage==='done';
+  const stage=done?null:(e.activeStage&&e.activeStage!=='done'?e.activeStage:pipe[0]);
+  const elapsed=wuElapsed(t);
+  const planned=(e.plannedMin||0)*60000;
+  const pct=planned?Math.round(((elapsed-planned)/planned)*100):null;
+  const over=t.state==='running'&&planned&&elapsed>planned*1.5;
+  const blocked=stage?schedBlockReason({category:e.category,gates:e.gates},{printavoStatus:e.printavoStatus}):null;
+
+  const steps=pipe.map(s=>{
+    const idx=pipe.indexOf(s), cur=pipe.indexOf(e.activeStage);
+    const st=done||(cur>-1&&idx<cur)?'done':(s===stage?'now':'todo');
+    return `<span class="tstep ${st}">${st==='done'?'✓':st==='now'?'▶':'○'} ${STAGE_NAME[s]||s}</span>`;
+  }).join('<span class="tsep">→</span>');
+
+  let ctl;
+  if(done) ctl=`<div class="tdone">✓ All stages complete</div>`;
+  else if(blocked) ctl=`<div class="tblock">⛔ ${escHtml(blocked)}</div>`;
+  else if(t.state==='running') ctl=`
+      <button class="tbtn tpause" data-tmr="${j.parentKey}|pause">⏸ Pause</button>
+      <button class="tbtn tcomplete" data-tmrdone="${j.parentKey}">✓ Complete &amp; document</button>`;
+  else if(t.state==='paused') ctl=`
+      <button class="tbtn tresume" data-tmr="${j.parentKey}|resume">▶ Resume</button>
+      <button class="tbtn tcomplete" data-tmrdone="${j.parentKey}">✓ Complete &amp; document</button>`;
+  else ctl=`<button class="tbtn tstart" data-tmr="${j.parentKey}|start">▶ Start ${STAGE_NAME[stage]||stage} — actively producing</button>`;
+
+  return `<div class="tcon">
+    <div class="tconhead"><b>⏱ Production timer</b>${t.operator?`<span class="topr">${escHtml(t.operator)}</span>`:''}</div>
+    <div class="tsteps">${steps}</div>
+    ${t.needsReview?`<div class="twarn">⚠ Auto-paused — ${escHtml(t.reviewReason||'left running')}. Confirm the real time when completing.</div>`:''}
+    ${over&&!t.needsReview?`<div class="twarn">⚠ Still running? ${pct}% over the ${e.plannedMin} min planned.</div>`:''}
+    ${t.state!=='idle'?`<div class="tclock ${t.state}">${fmtDur(elapsed)}${e.plannedMin?`<span class="tplan">planned ${e.plannedMin}m${pct!==null?` · ${pct>0?'+':''}${pct}%`:''}</span>`:''}</div>`:''}
+    <div class="tctl">${ctl}</div>
+  </div>`;
+}
+const fmtDur=ms=>{const s=Math.max(0,Math.floor(ms/1000));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');};
+
 function timerChip(j){
   const e=boardWU[j.parentKey];if(!e)return '';
   const t=e.t||{};
@@ -1070,6 +1226,7 @@ function xPanel(j){
         <span>Status</span><span>${statusPill(j)}${j.statusOverridden?' <span class="pending-note" title="Chosen in the app and already written to Printavo — clears when the feed catches up">✎ set in app · mirrored to Printavo</span>':''} <button class="splitbtn" data-stchg="${j.invoice}" title="G2: change the invoice status — updates ALL imprints of invoice ${j.invoice} here AND writes straight back to Printavo">✎ status</button><span data-stslot="${j.invoice}"></span></span>
         <span>Press check</span><span>${pcBlock(j)}</span>
       </div>
+      ${timerConsole(j)}
       ${(()=>{const e=estimateFor(j);if(!e)return '';
         const strokeCtl=e.workType==='screen_print'?` · strokes ${[1,2,3].map(n=>`<button class="strkbtn ${(store.strokes[j.imprint]||2)===n?'on':''}" data-strk="${j.imprint}|${n}">×${n}</button>`).join('')}`:'';
         const v=store.timeVerified[j.imprint];
@@ -2000,6 +2157,25 @@ function wireMain(){
       if(!p[k]&&!auto)delete p[k];            // plain off = the default, don't store it; an explicit 0 only survives to WAIVE an auto 1K+ flag
       if(!Object.keys(p).length)delete store.pcheck[imp];
       save();renderAll();
+    });
+  });
+  // STEP 3: timer console — start / pause / resume (merge-safe write to the Board's state)
+  main.querySelectorAll('[data-tmr]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const [key,action]=btn.dataset.tmr.split('|');
+      btn.disabled=true; btn.textContent='…';
+      boardTimerAction(key,action);
+    });
+  });
+  // COMPLETE hands off to the Board's documented completion (finalizeStage lives there —
+  // forking it would split the production data spine). Deep-links straight to the imprint.
+  main.querySelectorAll('[data-tmrdone]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const key=btn.dataset.tmrdone, wu=boardWU[key];
+      if(!wu){alert('This imprint is not on the Board yet.');return;}
+      window.open('../index.html#active','_blank');   // Running cockpit → tap the card → document & complete
     });
   });
   // G4: production-notes reader — the details block, big and readable
