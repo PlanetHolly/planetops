@@ -250,6 +250,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .pms-callout .pc-label{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.4)}
 .pms-callout .pc-value{font-family:var(--font-head);font-weight:900;font-size:17px;margin-top:2px}
 .pms-callout .pc-value.none{font-size:12px;font-weight:600;color:rgba(0,0,0,.35)}
+/* Step 6: PM project summary */
+.ps-head{font-family:var(--font-head);font-weight:900;font-size:15px;margin-bottom:4px}
+.ps-pm{font-size:12px;color:rgba(0,0,0,.6);margin-bottom:10px}
+.ps-warn{color:#b3261e;font-weight:700}
+.ps-sec{background:#fafaf8;border:1px solid var(--grey-line,#e3e3e3);border-radius:9px;padding:10px 12px;margin-bottom:8px;font-size:12.5px}
+.ps-sec.ps-change{background:rgba(179,38,30,.05);border-color:rgba(179,38,30,.3)}
+.ps-row{padding:5px 0;border-top:1px solid rgba(0,0,0,.05);line-height:1.45}
+.ps-sec b + .ps-row{border-top:none}
+.ps-imp{display:inline-block;font-family:var(--font-head);font-weight:800;font-size:11px;background:rgba(0,0,0,.07);border-radius:4px;padding:1px 6px;margin-right:5px}
+.ps-run{font-size:11.5px;color:rgba(0,0,0,.55);margin-top:2px}
+.ps-btn{font-family:var(--font-head);font-weight:800;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--grey-line,#e3e3e3);background:#fff;border-radius:6px;padding:4px 9px;cursor:pointer}
 
 /* ── ACTION BUTTONS ── */
 .action-btn-primary{width:100%;height:40px;border-radius:12px;border:none;font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -993,6 +1004,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
   </div>
 </div>
 
+<!-- STEP 6: PM PROJECT SUMMARY -->
+<div class="modal-overlay" id="summary-modal" onclick="handleOverlayClick(event,'summary-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 Project Summary</div>
+    <div class="modal-sub">Everything the floor recorded — changes, issues, and how it was produced. Drafts to the PM; never auto-sends.</div>
+    <div id="summary-body" style="max-height:52vh;overflow:auto;margin:6px 0 4px"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('summary-modal')">Close</button>
+      <button class="btn-confirm" id="summary-send">📧 Draft summary to PM</button>
+    </div>
+  </div>
+</div>
+
 <!-- SKIP MODAL (blanks advance + film-before-screen) -->
 <div class="modal-overlay" id="skip-modal" onclick="handleOverlayClick(event,'skip-modal')">
   <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -1364,6 +1389,9 @@ function makeJob(id,number,customer,clientTag,dueDate,dueDateLabel,urgent,statio
     blanksCheckInSessions:[], // partial check-in log
     blanksNote: null,         // free-text ETA / arrival note
     qcChecks:{ qtyVerified:false, printQuality:false, garmentCheck:false, packingSlip:false, qcOperator:null, qcCompletedAt:null },
+    pm: opts.pm||null,                        // project manager (Printavo invoice Owner)
+    printavoStatus: opts.printavoStatus||null,// current Printavo status — drives the green-light gate
+    summarySentAt: null,                      // when the PM project summary was drafted
     // Outsourced fields
     type: opts.type||'inhouse',       // 'inhouse' | 'outsourced'
     vendor: opts.vendor||null,
@@ -5231,6 +5259,126 @@ function pressCheckBadge(job){
 }
 
 /* ============================================================
+   STEP 6 — PM PROJECT SUMMARY
+   ------------------------------------------------------------
+   Holly: "if they changed it … the project manager needs to know … they
+   would get that in their PROJECT SUMMARY. I wouldn't want that to be
+   emailed separately." So every change note the floor records is
+   aggregated into ONE summary per project and drafted to the PM.
+   PM = the Printavo invoice Owner (verified: User { id name email }).
+   n8n contract:  POST /webhook/project-summary  { job, pm, summary }
+                  → creates a DRAFT email to the PM (never auto-send).
+   FUTURE: print the summary as the 4×6 ROLLO sticker for the stored sample.
+   ============================================================ */
+const PM_BOT_EMAILS = ['tech@planetapparel.com'];   // "Automations" — a system account, not a human PM
+
+/* Roll every imprint's stageHistory up into one project summary. */
+function buildProjectSummary(job){
+  const imprints = [], changes = [], issues = [];
+  let totalMs = 0;
+  (job.workUnits || []).forEach(w => {
+    const hist = w.stageHistory || [];
+    if(!hist.length) return;
+    const wuMs = hist.reduce((a,h) => a + (h.elapsedMs||0), 0);
+    totalMs += wuMs;
+    const run  = hist.find(h => h.stage === 'pressRun') || {};
+    const pms  = (hist.find(h => h.pmsData) || {}).pmsData || null;
+    const rd   = run.pressRunData || null;
+    const rec = {
+      imprint: w.label, placement: w.placement, category: w.categoryLabel || w.category,
+      qty: run.qty ?? w.qty ?? null,
+      minutes: Math.round(wuMs/60000),
+      plannedMin: w.plannedMin || null,
+      operators: [...new Set(hist.map(h => h.operator).filter(Boolean))],
+      pms, sampleSaved: hist.some(h => h.sampleSaved === true),
+      run: rd ? { stroke: rd.stroke, screens: rd.totalScreens, dryerSpeed: rd.dryerSpeed,
+                  flash1: rd.flash1, flash2: rd.flash2,
+                  specialtyInks: (rd.specialtyInks||[]).map(i => i.label || i.id) } : null,
+    };
+    imprints.push(rec);
+    // ── the things the PM must be told ──
+    if(pms && pms.changed){
+      changes.push({ imprint: w.label, type: 'Pantone / ink changed',
+        detail: `called out ${pms.calledOut || '—'} · actually ran ${pms.actual || '—'}` });
+    }
+    hist.filter(h => h.wentAsPlanned === false).forEach(h => {
+      issues.push({ imprint: w.label, type: 'Did not go as planned', detail: h.notes || '(no note)' });
+    });
+    hist.filter(h => h.varianceReason).forEach(h => {
+      const planned = (w.plannedMin||0) * 60000;
+      const pct = planned ? Math.round(((h.elapsedMs - planned)/planned)*100) : 0;
+      if(Math.abs(pct) > 50) issues.push({ imprint: w.label, type: 'Time variance ' + (pct>0?'+':'') + pct + '%', detail: h.varianceReason });
+    });
+    hist.filter(h => h.estimated).forEach(() => {
+      issues.push({ imprint: w.label, type: 'Time was estimated', detail: 'timer was corrected by hand' });
+    });
+    hist.filter(h => h.notes && h.wentAsPlanned !== false).forEach(h => {
+      issues.push({ imprint: w.label, type: 'Note', detail: h.notes });
+    });
+  });
+  return {
+    job: { number: job.number, customer: job.customer, name: job.clientTag || null,
+           dueDate: job.dueDate || null, printavoUrl: job.printavoUrl || null },
+    pm: job.pm || null,
+    pmIsBot: !!(job.pm && PM_BOT_EMAILS.includes((job.pm.email||'').toLowerCase())),
+    totalMinutes: Math.round(totalMs/60000),
+    imprints, changes, issues,
+    hasAnythingToFlag: changes.length > 0 || issues.length > 0,
+  };
+}
+
+function openProjectSummary(jobId){
+  const job = getJob(jobId);
+  if(!job) return;
+  const s = buildProjectSummary(job);
+  const box = document.getElementById('summary-body');
+  const pmLine = !s.pm ? `<span class="ps-warn">⚠ No project manager on the Printavo invoice</span>`
+    : s.pmIsBot ? `<span class="ps-warn">⚠ Owner is “${escH(s.pm.name)}” (${escH(s.pm.email)}) — a system account, not a person. Reassign the Printavo Owner before sending.</span>`
+    : `${escH(s.pm.name)} · ${escH(s.pm.email)}`;
+  box.innerHTML = `
+    <div class="ps-head"><b>#${escH(s.job.number)}</b> · ${escH(s.job.customer||'')} · ${s.totalMinutes} min total</div>
+    <div class="ps-pm"><b>Project manager:</b> ${pmLine}</div>
+    ${s.changes.length ? `<div class="ps-sec ps-change"><b>⚠ Changes the PM must know (${s.changes.length})</b>${
+      s.changes.map(c => `<div class="ps-row"><span class="ps-imp">${escH(c.imprint)}</span> <b>${escH(c.type)}</b> — ${escH(c.detail)}</div>`).join('')}</div>` : ''}
+    ${s.issues.length ? `<div class="ps-sec"><b>Notes &amp; issues (${s.issues.length})</b>${
+      s.issues.map(c => `<div class="ps-row"><span class="ps-imp">${escH(c.imprint)}</span> <b>${escH(c.type)}</b> — ${escH(c.detail)}</div>`).join('')}</div>` : ''}
+    <div class="ps-sec"><b>How it was produced</b>${s.imprints.map(i => `
+      <div class="ps-row"><span class="ps-imp">${escH(i.imprint)}</span> ${escH(i.placement||'')} · ${i.qty ?? '—'} pcs · ${i.minutes}m${i.plannedMin?` (planned ${i.plannedMin}m)`:''}
+        ${i.run ? `<div class="ps-run">${i.run.stroke||'—'} stroke · ${i.run.screens||'—'} screens · dryer ${i.run.dryerSpeed||'—'}${i.run.flash1?` · flash ${i.run.flash1}s`:''}${i.run.specialtyInks&&i.run.specialtyInks.length?` · ${escH(i.run.specialtyInks.join(', '))}`:''}${i.sampleSaved?' · 🧵 sample saved':''}</div>` : ''}
+        ${i.pms ? `<div class="ps-run">Pantone: ${i.pms.changed?`<b style="color:#b3261e">CHANGED</b> — called out ${escH(i.pms.calledOut||'—')}, ran ${escH(i.pms.actual||'—')}`:`as called out (${escH(i.pms.actual||i.pms.calledOut||'—')})`}</div>` : ''}
+        ${i.operators.length?`<div class="ps-run">by ${escH(i.operators.join(', '))}</div>`:''}
+      </div>`).join('')}</div>
+    ${!s.imprints.length ? '<div class="ps-row">No timed production recorded on this project yet.</div>' : ''}`;
+  const btn = document.getElementById('summary-send');
+  btn.disabled = false;
+  btn.textContent = job.summarySentAt ? '📧 Re-draft summary to PM' : '📧 Draft summary to PM';
+  btn.onclick = () => sendProjectSummary(job.id);
+  openModal('summary-modal');
+}
+
+async function sendProjectSummary(jobId){
+  const job = getJob(jobId);
+  const s = buildProjectSummary(job);
+  const btn = document.getElementById('summary-send');
+  if(!s.pm || s.pmIsBot){ showToast('⚠ Set a real Project Manager (Owner) on the Printavo invoice first'); return; }
+  btn.disabled = true; btn.textContent = 'drafting…';
+  try {
+    const res = await fetch(PROJECT_SUMMARY_HOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ job: s.job, pm: s.pm, summary: s })
+    });
+    if(!res.ok) throw new Error(res.status === 404 ? 'webhook not live yet — the n8n project-summary workflow still needs building' : 'HTTP ' + res.status);
+    job.summarySentAt = Date.now();
+    saveState();
+    btn.textContent = '✓ Draft created — review & send from the inbox';
+    showToast('📧 Summary drafted to ' + s.pm.name);
+  } catch(e){
+    btn.disabled = false; btn.textContent = '⚠ ' + e.message;
+  }
+}
+const PROJECT_SUMMARY_HOOK = 'https://primary-production-079f9.up.railway.app/webhook/project-summary';
+
+/* ============================================================
    WS-1d: REPORTS v1 — completed production, from stageHistory
    Read-only table: per-job production time vs estimate, variance
    flags, run-doc capture (PMS change / sample / issues), grouped
@@ -5307,7 +5455,7 @@ async function renderReports(){
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--white);border-radius:8px;overflow:hidden">
         <tr style="background:#f0efed;text-align:left">
-          <th style="padding:6px 10px">Job</th><th>Customer</th><th>Time</th><th>vs Plan</th><th>Operators</th><th>Capture</th><th style="text-align:right;padding-right:10px">Revenue</th></tr>
+          <th style="padding:6px 10px">Job</th><th>Customer</th><th>Time</th><th>vs Plan</th><th>Operators</th><th>Capture</th><th style="text-align:right;padding-right:10px">Revenue</th><th>Summary</th></tr>
         ${list.map(r => {
           const varPct = r.plannedMs ? Math.round((r.totalMs - r.plannedMs) / r.plannedMs * 100) : null;
           const vc = varPct === null ? '' : varPct > 20 ? 'color:var(--red);font-weight:700' : varPct < -20 ? 'color:var(--green)' : '';
@@ -5319,6 +5467,9 @@ async function renderReports(){
             <td>${r.ops.join(', ') || '—'}</td>
             <td>${r.flags.join(' ') || '—'}</td>
             <td style="text-align:right;padding-right:10px">${r.revenue != null ? '$' + r.revenue.toLocaleString(undefined,{maximumFractionDigits:0}) : '—'}</td>
+            <td><button class="ps-btn" onclick="openProjectSummary('${r.j.id}')">${
+              buildProjectSummary(r.j).changes.length ? '⚠ PM must see' : (r.j.summarySentAt ? '✓ drafted' : '📋 Summary')
+            }</button></td>
           </tr>`;
         }).join('')}
       </table>
@@ -5576,7 +5727,9 @@ async function loadPrintavoStatusIds(){
 const PRINTAVO_LIST_PAGES = 4;   // 4 × 25 = up to 100 invoices of cushion
 function printavoListQuery(cursor){
   const afterClause = cursor ? `, after: "${cursor}"` : '';
-  return `{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${afterClause}) { pageInfo { endCursor hasNextPage } edges { node { id visualId nickname dueAt status { name } deliveryMethod { name } contact { fullName customer { id companyName } } } } } }`;
+  // owner = the Printavo PROJECT MANAGER (the Owner field is the assignment source of truth).
+  // Verified shape: User { id name email }.
+  return `{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${afterClause}) { pageInfo { endCursor hasNextPage } edges { node { id visualId nickname dueAt status { name } deliveryMethod { name } owner { id name email } contact { fullName customer { id companyName } } } } } }`;
 }
 
 // Step 2: detail query — imprints + line items (with size breakdown) + URLs for a single invoice
@@ -5711,6 +5864,7 @@ async function syncFromPrintavo(force = false){
         // Keep the CURRENT status on the job unconditionally — the green-light gate
         // pattern-matches this, so it must reflect Printavo truth on every poll.
         if(statusName) existing.printavoStatus = statusName;
+        if(inv.owner) existing.pm = { id: inv.owner.id, name: inv.owner.name, email: inv.owner.email };  // project manager
         let statusChanged = false;
         if(statusName && existing.lastSyncedPrintavoStatus !== statusName){
           statusChanged = true;
@@ -5990,6 +6144,8 @@ function mapInvoiceToJob(inv){
   const dm = mapDeliveryMethod(inv.deliveryMethod?.name);
   return makeJob(jobId, inv.visualId, jobName, company, dueDate, fmtDueLabel(dueDate),
                  false, 'blanks', workUnits, {
+                   pm: inv.owner ? { id: inv.owner.id, name: inv.owner.name, email: inv.owner.email } : null,
+                   printavoStatus: inv.status?.name || null,
                    deliveryMethod: dm, printavoId: inv.id,
                    customerId: inv.contact?.customer?.id || null,
                    printavoUrl: inv.printavoUrl || null,
