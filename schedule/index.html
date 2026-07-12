@@ -249,6 +249,9 @@
   /* FB2: press-check block in the expanded details */
   .pcblock{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
   .pcnote-in{font:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--grey-line);border-radius:5px;width:240px;margin-left:4px}
+  /* Project-manager chip (Printavo invoice Owner) */
+  .pmchip{display:inline-block;font-size:10.5px;font-weight:800;background:#eef2f6;color:#243b53;border-radius:4px;padding:2px 7px;letter-spacing:.02em}
+  .pmchip.pmbot{background:#fdecea;color:#b3261e}
   /* STEP 3: timer console in the expanded row */
   .tcon{background:#fff;border:1px solid var(--grey-line);border-left:4px solid #2e7d32;border-radius:9px;padding:11px 13px;margin-top:10px}
   .tcon-none{border-left-color:var(--grey-line);color:var(--grey-text);font-size:12px}
@@ -750,6 +753,46 @@ async function pvStatusList(){
   }catch(e){console.warn('G2: status list failed',e);}
   return _pvStatuses||[];
 }
+/* ── PROJECT MANAGER (Holly 7/11) ─────────────────────────────
+   The PM rides along on the invoice — Printavo's OWNER field is the assignment
+   source of truth (verified schema: User { id name email }) — but it was never
+   surfaced on the Scheduler ("nowhere on these boxes does it say who the project
+   manager is"). Pulled through the same proxy the status picker uses, cached once.
+   "Automations" (tech@) is a system account, not a person — flagged, never treated
+   as a PM. ── */
+const PM_BOTS=['tech@planetapparel.com'];
+let pmMap=null;
+async function loadPMs(){
+  if(pmMap) return pmMap;
+  const map={};
+  try{
+    let cursor=null;
+    for(let p=0;p<4;p++){                                  // 4 × 25 = the recent-invoice window
+      const after=cursor?`, after: "${cursor}"`:'';
+      const d=await pvFetch(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { visualId owner { id name email } } } } }`);
+      const c=d&&d.data&&d.data.invoices; if(!c) break;
+      (c.edges||[]).forEach(e=>{const n=e.node; if(n&&n.owner) map[String(n.visualId)]={name:n.owner.name,email:n.owner.email};});
+      if(!c.pageInfo||!c.pageInfo.hasNextPage) break;
+      cursor=c.pageInfo.endCursor;
+    }
+    if(Object.keys(map).length){ pmMap=map; if(typeof renderAll==='function') renderAll(); }
+  }catch(e){ console.warn('PM load failed',e); }
+  return pmMap||map;
+}
+function pmFor(j){
+  const p=(pmMap||{})[String(j.invoice)];
+  if(!p) return null;
+  return { name:p.name, email:p.email, isBot:PM_BOTS.includes(String(p.email||'').toLowerCase()) };
+}
+/* Compact chip for the row; full line for the expanded details. */
+function pmChip(j){
+  const p=pmFor(j);
+  if(!p) return '';
+  if(p.isBot) return `<span class="pmchip pmbot" title="Printavo Owner is “${escHtml(p.name)}” (${escHtml(p.email)}) — a system account, not a person. Reassign the Owner in Printavo.">👤 no PM</span>`;
+  const initials=p.name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  return `<span class="pmchip" title="Project manager: ${escHtml(p.name)} · ${escHtml(p.email)}">👤 ${escHtml(initials)}</span>`;
+}
+
 const _pvInvCache={};
 async function pvResolveInvoiceId(visual){
   if(_pvInvCache[visual])return _pvInvCache[visual];
@@ -1152,6 +1195,7 @@ function jobCard(j){
       ${j.pallet&&j.pallet!=='N/A'?`<span class="chip pallet" title="Pallet size — production sequences the day to minimize pallet switches">${j.pallet}</span>`:''}
       ${j.postProdType&&j.postProdType!=='N/A'?`<span class="chip out">${ppLabel(j.postProdType)}</span>`:''}
       ${pcChip(j)}
+      ${pmChip(j)}
       ${timerChip(j)}
       ${arrStateBadge(j)}
       ${ob?`<span class="arr-badge ${ob.cls}">${ob.txt}</span>`:''}</div>
@@ -1225,6 +1269,11 @@ function xPanel(j){
         <span>QC gate</span><span>${store.qc[j.imprint]?`<span class="printed">✓ ${store.qc[j.imprint].by} · ${fmtShort(store.qc[j.imprint].at)}</span>`:'<span class="pending">not signed off — click the QC chip on the row</span>'}</span>
         <span>Status</span><span>${statusPill(j)}${j.statusOverridden?' <span class="pending-note" title="Chosen in the app and already written to Printavo — clears when the feed catches up">✎ set in app · mirrored to Printavo</span>':''} <button class="splitbtn" data-stchg="${j.invoice}" title="G2: change the invoice status — updates ALL imprints of invoice ${j.invoice} here AND writes straight back to Printavo">✎ status</button><span data-stslot="${j.invoice}"></span></span>
         <span>Press check</span><span>${pcBlock(j)}</span>
+        <span>Project manager</span><span>${(()=>{const p=pmFor(j);
+          if(!p) return '<span class="pending">— not loaded from Printavo —</span>';
+          return p.isBot
+            ? `<span class="pending">⚠ Owner is “${escHtml(p.name)}” (${escHtml(p.email)}) — a system account, not a person. Reassign the Owner in Printavo.</span>`
+            : `<b>${escHtml(p.name)}</b> · ${escHtml(p.email)}`;})()}</span>
       </div>
       ${timerConsole(j)}
       ${(()=>{const e=estimateFor(j);if(!e)return '';
@@ -1536,7 +1585,7 @@ function renderList(){
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
   const rowFor=j=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td></tr>`
+      <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td><td></td></tr>`
     :`<tr class="${store.parked[j.imprint]?'parked':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
@@ -1553,7 +1602,8 @@ function renderList(){
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
-    <td>${statusPill(j)}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?18:17}">${xPanel(j)}</td></tr>`:''}`;
+    <td>${statusPill(j)}</td>
+    <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?19:18}">${xPanel(j)}</td></tr>`:''}`;
   let rows;
   if(listShowAll)rows=list.map(rowFor).join('');
   else{
@@ -1570,7 +1620,7 @@ function renderList(){
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
     :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}<th title="Project manager — the Printavo invoice Owner">PM</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
@@ -2673,6 +2723,7 @@ loadSharedStore();
 loadBoardTimers();   // WS-1c: floor timers on rows — refresh every minute while visible
 setInterval(()=>{if(!document.hidden)loadBoardTimers();},60*1000);
 pvStatusList();      // Harden #1: warm the Printavo status cache so ✎ status opens INSTANTLY (no click-time fetch)
+loadPMs();           // Project manager (Printavo invoice Owner) — shown on rows, in the list, and in the details
 if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().then(()=>renderAll()); // curve from Jean's sheet; ⏱ chips recompute
 
 /* ── history playback: fetch a past day's end-of-day snapshot, render read-only ── */
