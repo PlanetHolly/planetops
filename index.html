@@ -242,6 +242,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .release-cta button{flex:1;height:34px;border-radius:8px;border:none;font-family:var(--font-head);font-weight:800;font-size:12px;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
 .release-cta .cta-yes{background:#1e9e4a;color:#fff}
 .release-cta .cta-no{background:rgba(0,0,0,.06);color:rgba(0,0,0,.55)}
+/* Step 5: press-check request banner + the mock-up's Pantone callout */
+.pc-req{background:#ff9800;color:#231a00;border-radius:9px;padding:9px 12px;font-family:var(--font-head);font-weight:900;font-size:12px;letter-spacing:.04em;margin-bottom:12px}
+.pc-noreq{background:rgba(0,0,0,.05);color:rgba(0,0,0,.5);border-radius:9px;padding:9px 12px;font-family:var(--font-head);font-weight:900;font-size:12px;letter-spacing:.04em;margin-bottom:12px}
+.pc-req-note{font-family:var(--font-body,inherit);font-weight:600;font-size:11px;letter-spacing:0;margin-top:3px;opacity:.85;text-transform:none}
+.pms-callout{background:#f0efed;border-radius:9px;padding:10px 12px;margin-bottom:12px}
+.pms-callout .pc-label{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.4)}
+.pms-callout .pc-value{font-family:var(--font-head);font-weight:900;font-size:17px;margin-top:2px}
+.pms-callout .pc-value.none{font-size:12px;font-weight:600;color:rgba(0,0,0,.35)}
 
 /* ── ACTION BUTTONS ── */
 .action-btn-primary{width:100%;height:40px;border-radius:12px;border:none;font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -932,15 +940,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
     </div>
     <!-- WS-1b: PMS capture — shown on Press Check completion (screen print) -->
     <div class="hidden" id="comp-pms-section">
-      <div class="press-form-label" style="margin-bottom:6px">Ink Color vs Mock-Up <span style="color:var(--red)">*</span></div>
+      <!-- Step 5: the mock-up's Pantone callout, pulled from the Printavo imprint details -->
+      <div class="pms-callout" id="comp-pms-callout"></div>
+      <div class="press-form-label" style="margin-bottom:6px">Was that color used? <span style="color:var(--red)">*</span></div>
       <div class="stroke-toggle" style="margin-bottom:10px">
-        <button class="stroke-btn" id="pms-asspec"  onclick="selectPmsChanged(false)">✓ As Called Out</button>
+        <button class="stroke-btn" id="pms-asspec"  onclick="selectPmsChanged(false)">✓ Used as called out</button>
         <button class="stroke-btn" id="pms-changed" onclick="selectPmsChanged(true)">✎ Changed / Adjusted</button>
       </div>
       <div class="comp-field" id="comp-pms-field">
         <label>Actual PMS / Ink Used <span id="comp-pms-req" class="hidden" style="color:var(--red)">*</span></label>
         <input type="text" id="comp-pms" placeholder="e.g. PMS 021 C, white no underbase...">
-        <div style="font-size:11px;color:rgba(0,0,0,.36);margin-top:4px">Goes to the project summary — the PM sees any change</div>
+        <div style="font-size:11px;color:rgba(0,0,0,.36);margin-top:4px">A change here goes to the PM's project summary</div>
       </div>
     </div>
     <!-- WS-1b: sample saved — shown on Press Run completion (screen print) -->
@@ -3167,16 +3177,25 @@ function renderActionBlock(w){
         </div>`;
       return;
     }
+    // Step 5: on the press-check stage, say plainly whether Jean asked for one.
+    // The stage is MANDATORY either way — Holly: "they can't skip press check, they
+    // have to at least start it and stop it so that it pops up."
+    let pcBanner = '';
+    if(currentStage === 'pressCheck'){
+      const req = pressCheckRequest(w);
+      pcBanner = req
+        ? `<div class="pc-req">🎯 PRESS CHECK REQUESTED${req.reasons && req.reasons.length ? ' — ' + escH(req.reasons.join(' + ')) : ''}${req.note ? `<div class="pc-req-note">“${escH(req.note)}”</div>` : ''}</div>`
+        : `<div class="pc-noreq">NO PRESS CHECK REQUIRED<div class="pc-req-note">Still start &amp; stop it — the pop-up locks in the Pantone actually run.</div></div>`;
+    }
     block.innerHTML = `
-      <div class="greenlight-ok">🟢 Released for post-production</div>
+      ${isPostProdWu(w) ? '<div class="greenlight-ok">🟢 Released for post-production</div>' : ''}
+      ${pcBanner}
       <div class="current-stage-label">Next Stage</div>
       <div class="current-stage-name" style="color:${sm.color}">${stageName}</div>
       <div style="font-size:12px;color:${w.plannedMin?'rgba(0,0,0,.38)':'var(--orange)'};margin-bottom:14px">${w.plannedMin ? w.plannedMin + ' min planned' : '⚠ Minutes not yet planned'}</div>
       <button class="action-btn-primary ${sm.btnClass}" onclick="startStage('${w.id}','${currentStage}')">
         ▶ Start ${stageName}
       </button>`;
-    // only show the green banner for post-prod WUs (everything else has no gate)
-    if(!isPostProdWu(w)) block.querySelector('.greenlight-ok')?.remove();
 
   } else if(w.timer.state === 'running'){
     const failBtn = currentStage === 'setup'
@@ -3339,6 +3358,18 @@ function stageBlockReason(w, stage){
   const job = getJob(w.jobId);
   if(!job || jobPostProdReleased(job)) return null;
   return 'Awaiting green light — release the invoice ("Ready for Post Production Services") before starting';
+}
+
+/* Step 5: did Jean request a press check on THIS imprint? (set in the Scheduler queue,
+   read from its shared doc). Scheduler imprints read "27433 - 1"; board WU labels read
+   "27433-1" — normalise the spaces before matching. */
+function pressCheckRequest(w){
+  const job = getJob(w && w.jobId);
+  if(!job) return null;
+  const list = _schedPc[String(job.number)];
+  if(!list || !list.length) return null;
+  const norm = s => String(s || '').replace(/\s+/g, '');
+  return list.find(e => norm(e.imp) === norm(w.label)) || null;
 }
 
 /* The print just finished and post-prod work is waiting on a human release.
@@ -3632,6 +3663,16 @@ function openCompletionModal(wuId){
   const isScreen = w.category === 'screen';
   // PMS lock-in happens at press-check approval (screen print)
   document.getElementById('comp-pms-section').classList.toggle('hidden', !(stage === 'pressCheck' && isScreen));
+  // Step 5: show the mock-up's Pantone callout and PRE-FILL it, so "as called out" is one tap
+  // and any deviation is a deliberate act that lands in the PM's summary.
+  if(stage === 'pressCheck' && isScreen){
+    const co = w.pmsCallout;
+    const cal = document.getElementById('comp-pms-callout');
+    cal.innerHTML = co
+      ? `<div class="pc-label">Mock-up calls for</div><div class="pc-value">${escH(co)}</div>`
+      : `<div class="pc-label">Mock-up calls for</div><div class="pc-value none">— no Pantone found in the imprint details —</div>`;
+    document.getElementById('comp-pms').value = co || '';   // pre-filled; edit only if it changed
+  }
   // Sample-saved is asked at end of run (screen print)
   document.getElementById('comp-sample-section').classList.toggle('hidden', !(stage === 'pressRun' && isScreen));
   // Went-as-planned is asked on non-screen completions (heat, finishing, sewing, post-prod services)
@@ -3709,7 +3750,8 @@ function confirmCompletion(){
     if(state.selectedPmsChanged === null){ showToast('⚠ Was the ink color as called out, or changed?'); return; }
     const pmsText = document.getElementById('comp-pms').value.trim();
     if(state.selectedPmsChanged === true && !pmsText){ showToast('⚠ Enter the actual PMS / ink used'); return; }
-    extraData.pmsData = { changed: state.selectedPmsChanged, actual: pmsText || null };
+    // Keep BOTH sides — the PM summary needs "called out X, actually ran Y".
+    extraData.pmsData = { changed: state.selectedPmsChanged, actual: pmsText || null, calledOut: w.pmsCallout || null };
   }
   if(compStage === 'pressRun' && isScreen){
     if(state.selectedSampleSaved === null){ showToast('⚠ Was a sample saved for storage?'); return; }
@@ -5893,6 +5935,18 @@ function updateSyncUI(status, msg){
   }
 }
 
+/* Pull the Pantone/PMS the mock-up calls out of the imprint details.
+   Matches "PMS 021 C", "Pantone 185 C", "PMS: 300", and plain "White"/"Black"
+   when a colour line is given. Returns a display string or null. */
+function parsePmsCallout(details){
+  const d = details || '';
+  const codes = [...d.matchAll(/\b(?:PMS|PANTONE)\s*:?\s*([0-9]{2,4}\s*[A-Z]{0,2}|(?:COOL|WARM)\s*GR[AE]Y\s*[0-9]{1,2}\s*[A-Z]?)\b/gi)]
+    .map(m => 'PMS ' + m[1].toUpperCase().replace(/\s+/g, ' ').trim());
+  if(codes.length) return [...new Set(codes)].join(' · ');
+  const line = d.match(/(?:ink\s*colou?rs?|colou?rs?|pms)\s*:\s*([^\r\n]+)/i);
+  return line ? line[1].trim().slice(0, 60) : null;
+}
+
 function mapInvoiceToJob(inv){
   // Job name = nickname (e.g. "Yesteryear USA Made Bandana"); company = tag
   const jobName  = inv.nickname || inv.contact?.customer?.companyName || inv.contact?.fullName || 'Unknown';
@@ -5921,6 +5975,10 @@ function mapInvoiceToJob(inv){
               null, null, null, screenCount, inkType, null,
               { blanks:false, films:false, screensBurned:false, screensTaped:false, ink:false,
                 dtfOrdered:false, dtfArrived:false, dtfPrepped:false }, null);
+    // Step 5: the Pantone the MOCK-UP calls out — pre-filled into the press-check pop-up so the
+    // operator confirms "was this used, or changed?" (Holly: "it should bring in the Pantone color
+    // that was called out on the mock-up… was this used, was this not used").
+    w.pmsCallout = parsePmsCallout(imp.details);
     return w;
   }).filter(Boolean);
 
