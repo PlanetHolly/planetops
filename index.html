@@ -261,6 +261,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .ps-imp{display:inline-block;font-family:var(--font-head);font-weight:800;font-size:11px;background:rgba(0,0,0,.07);border-radius:4px;padding:1px 6px;margin-right:5px}
 .ps-run{font-size:11.5px;color:rgba(0,0,0,.55);margin-top:2px}
 .ps-btn{font-family:var(--font-head);font-weight:800;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--grey-line,#e3e3e3);background:#fff;border-radius:6px;padding:4px 9px;cursor:pointer}
+/* Step 4: Running cockpit — flags + inline quick actions */
+.active-wu-card.awu-runaway{border:1.5px solid rgba(255,152,0,.75);box-shadow:0 0 0 3px rgba(255,152,0,.12)}
+.active-wu-card.awu-review{border:1.5px solid rgba(179,38,30,.65);box-shadow:0 0 0 3px rgba(179,38,30,.10)}
+.awu-flag{background:#ff9800;color:#231a00;font-family:var(--font-head);font-weight:900;font-size:10px;letter-spacing:.04em;border-radius:6px;padding:4px 8px;margin-bottom:7px}
+.active-wu-card.awu-review .awu-flag{background:#b3261e;color:#fff}
+.awu-actions{display:flex;gap:6px;margin-top:9px}
+.awu-btn{flex:1;height:30px;border:none;border-radius:7px;font-family:var(--font-head);font-weight:800;font-size:11px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.awu-pause{background:rgba(255,152,0,.14);color:#c55e00}
+.awu-resume{background:rgba(33,150,243,.14);color:#1565c0}
+.awu-done{background:linear-gradient(135deg,#66BB6A,#43A047);color:#fff}
 
 /* ── ACTION BUTTONS ── */
 .action-btn-primary{width:100%;height:40px;border-radius:12px;border:none;font-family:var(--font-head);font-weight:900;font-size:15px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -4791,28 +4801,45 @@ function renderActiveTab(){
   const total = running.length + prepRunning.length;
   if(!total){
     empty.classList.remove('hidden');
-    sub.textContent = 'Nothing running right now';
+    sub.textContent = 'Nothing actively producing right now';
     return;
   }
   empty.classList.add('hidden');
-  sub.textContent = total + ' timer' + (total !== 1 ? 's' : '') + ' on the clock';
+  const live    = running.filter(({w}) => w.timer.state === 'running').length;
+  const flagged = running.filter(({w}) => isRunaway(w) || w.timer.needsReview).length;
+  sub.innerHTML = total + ' on the clock · <b>' + live + ' actively producing</b>'
+    + (flagged ? ` · <span style="color:#b3261e;font-weight:800">⚠ ${flagged} need${flagged===1?'s':''} attention</span>` : '');
 
-  // WU stage timers
+  // WU stage timers — the COCKPIT: what's actively producing, who's on it, and
+  // whether it's gone runaway. Quick pause/resume/complete inline; the full
+  // end-of-run documentation still happens in the imprint detail (tap the card).
   running.forEach(({ w, j }) => {
     const card  = document.createElement('div');
-    card.className = 'active-wu-card';
     const stage = w.timer.stage || w.activeStage;
     const sc    = stageColor(stage);
+    const over  = isRunaway(w);
+    const review = !!w.timer.needsReview;
+    card.className = 'active-wu-card' + (over ? ' awu-runaway' : '') + (review ? ' awu-review' : '');
+    const planned = w.plannedMin ? w.plannedMin * 60000 : 0;
+    const pct = planned ? Math.round(((getLiveElapsed(w) - planned) / planned) * 100) : null;
     card.innerHTML = `
+      ${review ? `<div class="awu-flag">⚠ AUTO-PAUSED — ${escH(w.timer.reviewReason || 'left running')}</div>` : ''}
+      ${over && !review ? `<div class="awu-flag">⚠ STILL RUNNING? ${pct}% over plan</div>` : ''}
       <div class="awu-num">#${j.number} · ${w.label}</div>
-      <div class="awu-customer">${j.customer}</div>
+      <div class="awu-customer">${escH(j.customer || '')}</div>
       <div class="awu-stage-row">
         <div class="awu-stage-dot" style="background:${sc}"></div>
         <div class="awu-stage-label" style="color:${sc}">${stageLabel(w, stage)}</div>
         ${w.timer.state==='paused'?'<span style="font-size:10px;color:var(--orange);font-weight:700;margin-left:4px">⏸ PAUSED</span>':''}
       </div>
       <div class="awu-timer" id="awu-t-${w.id}">${fmtTime(getLiveElapsed(w))}</div>
-      <div class="awu-planned">${w.plannedMin ? 'Planned: '+w.plannedMin+' min' : '⚠ Minutes not yet planned'} · ${w.timer.operator||'—'}</div>`;
+      <div class="awu-planned">${w.plannedMin ? 'Planned: '+w.plannedMin+' min'+(pct!==null?' · '+(pct>0?'+':'')+pct+'%':'') : '⚠ Minutes not yet planned'} · ${escH(w.timer.operator||'—')}</div>
+      <div class="awu-actions">
+        ${w.timer.state==='running'
+          ? `<button class="awu-btn awu-pause" onclick="event.stopPropagation();pauseStage('${w.id}')">⏸ Pause</button>`
+          : `<button class="awu-btn awu-resume" onclick="event.stopPropagation();resumeStage('${w.id}')">▶ Resume</button>`}
+        <button class="awu-btn awu-done" onclick="event.stopPropagation();completeStage('${w.id}')">✓ Complete</button>
+      </div>`;
     card.onclick = () => { openJobSheet(j.id); setTimeout(() => openImprintDetail(w.id), 60); };
     grid.appendChild(card);
   });
