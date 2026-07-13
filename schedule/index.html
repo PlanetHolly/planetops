@@ -963,6 +963,14 @@ function estBadge(j){
 }
 function statusPill(j){
   const e=mockEntry(j);
+  // G2: an in-app override is NEWER than anything the feeds know. The mockups feed (e.stat) is
+  // fetched once at load and then goes stale, so without this the pill kept showing the OLD
+  // status while the very same row announced "✎ set in app · mirrored to Printavo" — the board
+  // contradicted itself and looked broken even though Printavo had been updated correctly.
+  // Deliberately NOT reusing e.stat.color: that colour belongs to the status we just replaced.
+  if(j.statusOverridden){
+    return `<span class="stpill" style="background:var(--grey-bg);color:var(--grey-text);border:1px solid var(--grey-line)" title="Chosen in the app and already written to Printavo — clears when the feed catches up">${escHtml(cleanStatus(j.status))}</span>`;
+  }
   if(e&&e.stat&&e.stat.name){
     const c=e.stat.color||'#9aa1ab';
     const n=parseInt(c.slice(1),16),lum=(0.299*((n>>16)&255)+0.587*((n>>8)&255)+0.114*(n&255))/255;
