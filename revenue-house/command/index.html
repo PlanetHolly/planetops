@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planet Sales · Retention Command Center</title>
+<title>Planet Sales · Revenue House Command Center</title>
 <style>
   :root{
     --gold:#F7BE00; --ink:#111; --line:#e2e2e6; --bg:#f4f4f5; --card:#fff;
@@ -736,9 +736,9 @@ function renderHome(app){
   // header
   const hd = el("header");
   hd.innerHTML = OSVG +
-    '<div class="crumb">Planet Sales › Revenue House</div>'+
-    '<h1>Retention Command Center</h1>'+
-    '<div class="sub">Every word Planet Apparel says to a customer through retention — every email, every call, every automation. Search it, or tap in.</div>';
+    '<div class="crumb">Planet Sales</div>'+
+    '<h1>Revenue House Command Center</h1>'+
+    '<div class="sub">Every word Planet Apparel says to a customer — every email, every call, every automation. Search it, or tap in.</div>';
   app.appendChild(hd);
 
   // omnisearch
@@ -939,7 +939,7 @@ function scriptCard(s){
 function gapCard(g){
   const c=el("div","ecard gap");
   c.innerHTML='<div class="nm">'+esc(g.name)+'</div><div class="cd">'+esc(g.code)+'</div>'+
-    '<div class="subj">'+esc(g.notes||gapReason(g))+'</div>'+
+    '<div class="subj">'+esc(g.subject||g.notes||gapReason(g))+'</div>'+
     '<div class="row"><span class="gaptag">'+esc(g.publishStatus)+'</span><span class="chip planned">🕓 '+esc(gapReason(g))+'</span></div>';
   c.onclick=()=>nav((g.channel==="call"?"#/calls/":"#/scripts/")+slugify(g.code));
   return c;
@@ -956,7 +956,18 @@ function renderScriptDetail(app, slug, parent){
   const parentHash = parent==="calls"?"#/calls":"#/scripts";
   if(!s){
     const g=IDX.gapByCode[code];
-    if(g){ return renderGapDetail(app, g, parentLabel, parentHash); }
+    if(g){
+      if(g.bodyText && g.bodyText.trim()){
+        setCrumb([["Command Center","#/"],[parentLabel,parentHash],[g.name,null]]);
+        app.appendChild(sectionHead(g.name, esc(g.code)+" · DRAFT · "+esc(g.publishStatus)));
+        const banner=el("div");
+        banner.style.cssText="margin:14px 0;padding:10px 14px;border:1px dashed #f0c14b;background:#fffdf5;color:#7c4a03;border-radius:8px;font-size:13.5px;font-weight:600";
+        banner.textContent="🟡 DRAFT — not yet live. Copy as written in the Sheet (row "+(g.sheetRow||"?")+"). It will not send until you flip it live.";
+        app.appendChild(banner);
+        return renderEmailFrame(app, g);
+      }
+      return renderGapDetail(app, g, parentLabel, parentHash);
+    }
     setCrumb([["Command Center","#/"],[parentLabel,parentHash],["Not found",null]]);
     app.appendChild(el("div","empty",'<div class="big">No script for "'+esc(slug)+'"</div>'));
     return;
@@ -1817,11 +1828,11 @@ window.addEventListener("hashchange", route);
     const e=el("div","empty",'<div class="big">Data unavailable</div>'+
       '<div>The live feed is unreachable and no cached or sample data was found.<br>Open this page from the deployed site, or place <span class="mono">sample-data.json</span> beside it.</div>');
     $("app").appendChild(e);
-    foot.innerHTML="Planet Apparel · Retention Command Center · data unavailable";
+    foot.innerHTML="Planet Apparel · Revenue House Command Center · data unavailable";
     return;
   }
   IDX = buildIndex(DATA);
-  foot.innerHTML="Planet Apparel · Planet Sales › Revenue House › <b style='color:#6b7280'>Retention Command Center</b><br>"+
+  foot.innerHTML="Planet Apparel · Planet Sales › Revenue House › <b style='color:#6b7280'>Command Center</b><br>"+
     "One Sheet is the editor · this page renders it · release v"+esc((DATA.meta.releaseVersion||"1"))+
     " · "+DATA.scripts.length+" live scripts · "+DATA.touchpoints.length+" automations · "+DATA.stages.length+" stages · source: "+esc(SOURCE);
   if(!location.hash) location.hash="#/";

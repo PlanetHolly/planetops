@@ -283,8 +283,8 @@
         {
           "id": "command-center",
           "kind": "surface",
-          "name": "Retention Command Center",
-          "blurb": "Kiosk for the whole retention system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
+          "name": "Revenue House Command Center",
+          "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
           "type": "live-app",
           "url": "../revenue-house/command/",
           "status": "live",
