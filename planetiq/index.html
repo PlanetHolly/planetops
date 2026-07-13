@@ -56,6 +56,24 @@ svg{display:block;width:100%;height:auto;}
 .datatable th:first-child,.datatable td:first-child{text-align:left;}
 .datatable thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
 .note{font-size:.72rem;color:var(--pa-tonal);background:#FBFBF4;border-left:3px solid var(--pa-yellow);padding:.6rem .8rem;border-radius:5px;margin:1rem 0;}
+.q8scn{display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.72rem;font-weight:700;color:var(--ink);margin:.2rem 0 .8rem;}
+.q8scn b{font-weight:900;}
+.q8wrap{overflow-x:auto;}
+.q8tbl{width:100%;border-collapse:collapse;font-size:.74rem;min-width:720px;}
+.q8tbl th,.q8tbl td{padding:.4rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+.q8tbl th:first-child,.q8tbl td:first-child,.q8tbl th:nth-child(2),.q8tbl td:nth-child(2){text-align:left;}
+.q8tbl thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+.q8tbl tbody tr.mstart td{border-top:2px solid #000;}
+.q8tbl .cov-ok{color:var(--up);font-weight:900;}
+.q8tbl .cov-warn{color:#B98300;font-weight:900;}
+.q8tbl .cov-low{color:var(--down);font-weight:900;}
+.q8tbl .muted{color:var(--flat);}
+.q8ann{width:100%;border-collapse:collapse;font-size:.72rem;margin:.5rem 0 .2rem;min-width:640px;}
+.q8ann th,.q8ann td{padding:.32rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+.q8ann th:first-child,.q8ann td:first-child{text-align:left;white-space:normal;}
+.q8ann thead th{font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+details.q8det{margin:.8rem 0 .4rem;}
+details.q8det summary{font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:var(--ink);}
 .grid2{display:grid;grid-template-columns:1fr;gap:0;}
 @media(min-width:860px){.grid2{grid-template-columns:1fr 1fr;gap:1.1rem;}}
 footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.68rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;line-height:1.6;}
@@ -71,6 +89,9 @@ footer a{color:inherit;}
 
   <h2>The Seven Questions</h2>
   <div class="cards" id="cards"></div>
+
+  <h2>Question 8 · Line P&amp;L — SP quota coverage <span id="q8badge"></span></h2>
+  <div id="q8"></div>
 
   <h2>Trends</h2>
   <div id="charts"></div>
@@ -199,6 +220,74 @@ chart({title:"Google CPC — spend vs sales, monthly",basis:"mixed",unit:"USD",
   series:[{name:"CPC sales",key:"Google CPC sales monthly"},{name:"Spend",key:"Google CPC spend monthly"}],
   tipExtra:p=>{const r=PIQ_SERIES["Google CPC ROAS monthly"].points.find(x=>x.p===p);return r?`<div class="r"><span>ROAS</span><span><b>${r.v.toFixed(2)}×</b></span></div>`:"";},
   foot:"Interface figures (official invoice PDFs land the 5th business day — Brian) · hover for ROAS"});
+
+/* ---------- Question 8 · Line P&L — SP quota coverage ---------- */
+(function renderQ8(){
+  const LP=(typeof PIQ_LINEPNL!=="undefined")?PIQ_LINEPNL:null;
+  if(!LP){document.getElementById("q8").innerHTML='<div class="note">Line P&L block not present in data.js — run refresh_planetiq.py --apply.</div>';return;}
+  const num=v=>typeof v==="number";
+  const covClass=r=>r>=1?"cov-ok":r>=0.7?"cov-warn":"cov-low";
+  const covPct=r=>num(r)?`<span class="${covClass(r)}">${Math.round(r*100)}%</span>`:'<span class="muted">—</span>';
+  const gap=v=>num(v)?fmtUSD(v):`<span class="muted">${v||"—"}</span>`;
+  const statusPill=s=>{const k=s==="PARTIAL"?"prov":s==="NONE"?"open":"live";const txt=s||"—";return `<span class="pill ${k}">${txt}</span>`;};
+  // quota $/mo that applies to a bucket, per scenario ('bandana'/'apparel' key or null)
+  const qkey=b=>/bandana/i.test(b)&&/in-house/i.test(b)?"bandana":/apparel/i.test(b)&&/in-house/i.test(b)?"apparel":null;
+  const sc=LP.live.scenarios;
+  const quota=(b,which)=>{const k=qkey(b);return k?sc[which][k]:null;};
+
+  /* stale badge — decays vs today from the emitted last_refresh (n8n stamps it) */
+  const today=new Date();
+  const lr=new Date(LP.live.lastRefresh+"T00:00:00");
+  const ageDays=Math.floor((today-lr)/86400000);
+  const stale=ageDays>35;
+  document.getElementById("q8badge").innerHTML=
+    `<span class="pill ${stale?"open":"live"}" style="font-size:.58rem">${stale?"⚠ STALE "+ageDays+"D":"● CURRENT"}</span>`;
+
+  /* scenario legend */
+  const scLine=(o,which)=>`<span><b>${o.label}</b> — Bandana ${num(o.bandana)?fmtUSD(o.bandana):o.bandana}/mo · Apparel ${num(o.apparel)?fmtUSD(o.apparel):o.apparel}/mo</span>`;
+
+  /* live coverage table, grouped by month */
+  const rows=LP.live.rows.slice();
+  let lastMonth=null,body="";
+  for(const r of rows){
+    const mstart=r.month!==lastMonth;lastMonth=r.month;
+    const qC=quota(r.bucket,"optionC"),qR=quota(r.bucket,"recut");
+    body+=`<tr class="${mstart?"mstart":""}">`+
+      `<td>${mstart?plab(r.month):""}</td>`+
+      `<td>${r.bucket}</td>`+
+      `<td>${num(r.spActual)?fmtUSD(r.spActual):"—"}</td>`+
+      `<td>${statusPill(r.coverage)}</td>`+
+      `<td>${qC!=null&&num(qC)?fmtUSD(qC):'<span class="muted">—</span>'}</td>`+
+      `<td>${covPct(r.covC)}</td>`+
+      `<td>${qR!=null&&num(qR)?fmtUSD(qR):'<span class="muted">—</span>'}</td>`+
+      `<td>${covPct(r.covRecut)}</td>`+
+      `<td>${gap(r.gapRev)}</td>`+
+      `</tr>`;
+  }
+  const liveHtml=
+    `<div class="q8scn">${scLine(sc.optionC)}<br>${scLine(sc.recut)}</div>`+
+    `<div class="q8wrap"><table class="q8tbl"><thead><tr>`+
+    `<th>Month</th><th>Line bucket</th><th>SP Actual</th><th>Cost coverage</th>`+
+    `<th>Quota · Opt C</th><th>Cov %</th><th>Quota · Re-cut</th><th>Cov %</th><th>Gap (rev needed)</th>`+
+    `</tr></thead><tbody>${body}</tbody></table></div>`+
+    `<div class="note"><b>Reading Q8:</b> In-house SP Actual = Real Revenue (Pulse col X) − Production Cost (col Y); outsourced SP Actual = Real Revenue (vendor COGS already netted). `+
+    `Quota = the Option-C annual SP pool ÷ 12 ($564K bandana / $165K apparel = $47.0K / $13.75K per month); the re-cut scenario scales both to the $100.7K/mo actual overhead (×108.3%, pending Holly's ruling). `+
+    `<b>Cost coverage:</b> <span class="pill prov">PARTIAL</span> = Net Profit Pipeline costs in-house single-imprint screen print only (DTF / embroidery / multi-imprint / finishing not yet costed); `+
+    `<span class="pill open">NONE</span> = Production Cost (col Y) not landing this month → SP Actual is Real Rev with no cost deducted, so margin is OVERSTATED. Basis: Pulse-cash — never blended with QB-accrual. `+
+    `Data as of ${LP.asOf} · last month-end refresh ${LP.live.lastRefresh} (n8n job stamps it; badge above reddens past 35 days).</div>`;
+
+  /* 2025 annual (QB) reference — the other half of the Line P&L home */
+  const a=LP.annual;
+  const val=v=>num(v)?fmtUSD(v):`<span class="muted">${v||"—"}</span>`;
+  const arows=a.rows.map(r=>`<tr><td>${r.line}</td><td>${val(r.rev)}</td><td>${val(r.cogs)}</td>`+
+    `<td>${r.realRev?r.realRev:'<span class="muted">—</span>'}</td><td>${val(r.spTarget)}</td></tr>`).join("");
+  const annHtml=`<details class="q8det"><summary>2025 annual line P&amp;L (QB-accrual reference) <span class="pill qb">QB accrual</span></summary>`+
+    `<div class="q8wrap"><table class="q8ann"><thead><tr><th>Line</th><th>Revenue</th><th>COGS</th><th>Real Rev</th><th>SP target (yr)</th></tr></thead>`+
+    `<tbody>${arows}</tbody></table></div>`+
+    `<div class="note">2025 per-line COGS was never captured — it exists only at department grain, with <b>$237,972 unallocated</b>. That gap is the finding, shown here rather than smeared across lines. Revenue ties to Sales-by-Product $1,747,301.63.</div></details>`;
+
+  document.getElementById("q8").innerHTML=liveHtml+annHtml;
+})();
 </script>
 </body>
 </html>
