@@ -1376,8 +1376,7 @@ const state = {
     billingCycleStart: '2026-04-13',
     lastOrderSyncAt: null,
     subView: 'orders',         // 'orders' | 'bins' | 'log'
-    shipStationApiKey: '',
-    shipStationApiSecret: '',
+    // P0 2026-07-12: ShipStation creds REMOVED from browser state — server-side only (n8n proxy cred)
   },
 };
 
@@ -5516,8 +5515,7 @@ function buildStatePayload(){
       sessions:             state.fulfillment.sessions,
       billingCycleStart:    state.fulfillment.billingCycleStart,
       lastOrderSyncAt:      state.fulfillment.lastOrderSyncAt,
-      shipStationApiKey:    state.fulfillment.shipStationApiKey,
-      shipStationApiSecret: state.fulfillment.shipStationApiSecret,
+      // P0 2026-07-12: shipStation creds removed from the synced payload (server-side only)
       _ts:                  state.fulfillment._ts,
     },
   };
@@ -5589,8 +5587,8 @@ function applyLoadedFF(ff){
   // One-time migration: shift launch cycle from Apr 9 to Apr 13
   if(state.fulfillment.billingCycleStart === '2026-04-09') state.fulfillment.billingCycleStart = '2026-04-13';
   if(ff.lastOrderSyncAt)      state.fulfillment.lastOrderSyncAt      = ff.lastOrderSyncAt;
-  if(ff.shipStationApiKey)    state.fulfillment.shipStationApiKey    = ff.shipStationApiKey;
-  if(ff.shipStationApiSecret) state.fulfillment.shipStationApiSecret = ff.shipStationApiSecret;
+  // P0 2026-07-12: legacy shipStationApiKey/Secret in saved blobs are deliberately NOT rehydrated —
+  // the next save writes a payload without them, scrubbing the stored state.
   // Always re-sync bin metadata from defaults (preserves live qty)
   initFulfillmentBins();
 }
@@ -6934,18 +6932,11 @@ async function syncShipStationOrders(){
   const btn = document.getElementById('ff-sync-btn');
   if(btn) btn.textContent = '⟳ Syncing…';
   try {
-    const key    = state.fulfillment.shipStationApiKey;
-    const secret = state.fulfillment.shipStationApiSecret;
-    if(!key || !secret){
-      showToast('⚠ ShipStation API credentials not set — open Settings');
-      if(btn) btn.textContent = '⟳ Sync Orders';
-      openFulfillmentSettings();
-      return;
-    }
+    // P0 2026-07-12: auth lives server-side in the n8n proxy's credential — no keys in the browser
     const resp = await fetch(SS_PROXY, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ apiKey: key, apiSecret: secret, orderStatus: 'awaiting_shipment' })
+      body: JSON.stringify({ orderStatus: 'awaiting_shipment' })
     });
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -6979,9 +6970,9 @@ async function syncShipStationOrders(){
   }
 }
 
-// Auto-sync ShipStation every 20 min during work hours
-if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders();
-setInterval(() => { if(isWorkHours() && state.fulfillment.shipStationApiKey) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
+// Auto-sync ShipStation every 20 min during work hours (auth is server-side; no key gate needed)
+if(isWorkHours()) syncShipStationOrders();
+setInterval(() => { if(isWorkHours()) syncShipStationOrders(); }, SYNC_INTERVAL_MS);
 
 // ── Settings modal ───────────────────────────────────────────
 function openFulfillmentSettings(){
@@ -6989,10 +6980,7 @@ function openFulfillmentSettings(){
   const html = `
     <div style="padding:16px">
       <div style="font-family:var(--font-head);font-size:15px;font-weight:900;margin-bottom:12px">Fulfillment Settings</div>
-      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Key</label>
-      <input id="ff-ss-key" type="text" value="${ff.shipStationApiKey||''}" placeholder="API Key" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
-      <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">ShipStation API Secret</label>
-      <input id="ff-ss-secret" type="password" value="${ff.shipStationApiSecret||''}" placeholder="API Secret" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:10px">
+      <div style="font-size:11px;color:rgba(0,0,0,.45);margin-bottom:10px">ShipStation connection is managed server-side — no keys needed here.</div>
       <label style="display:block;font-size:11px;font-weight:700;margin-bottom:3px">Billing Cycle Start</label>
       <input id="ff-cycle-start" type="date" value="${ff.billingCycleStart||'2026-04-13'}" style="width:100%;border:1px solid rgba(0,0,0,.15);border-radius:5px;padding:7px 9px;font-size:12px;box-sizing:border-box;margin-bottom:14px">
       <div style="display:flex;gap:8px">
@@ -7014,8 +7002,6 @@ function openFulfillmentSettings(){
 }
 
 function saveFulfillmentSettings(){
-  state.fulfillment.shipStationApiKey    = document.getElementById('ff-ss-key').value.trim();
-  state.fulfillment.shipStationApiSecret = document.getElementById('ff-ss-secret').value.trim();
   state.fulfillment.billingCycleStart    = document.getElementById('ff-cycle-start').value;
   saveState();
   const modal = document.getElementById('ff-settings-modal');
