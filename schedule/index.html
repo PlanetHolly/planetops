@@ -804,7 +804,14 @@ const _pvInvCache={};
 async function pvResolveInvoiceId(visual){
   if(_pvInvCache[visual])return _pvInvCache[visual];
   let cursor=null;
-  for(let p=0;p<4;p++){   // same 4×25 recent-invoice window the Board's sync walks
+  // 20×25 = the last ~500 invoices (~4 months). Printavo hard-caps `first` at 25, so depth can
+  // only come from more pages. This is NOT expensive: line ~819 bails the moment the page's
+  // minimum visualId drops below the target (sorted desc = we've walked past it), so a RECENT
+  // invoice still resolves in ONE request. The old p<4 cap silently truncated the walk and made
+  // real jobs unwritable — 27073 (on-hold, on today's Auto Press board) needs 6 pages and was
+  // failing with "not in Printavo's recent pages" purely because of the cap, not because it was
+  // missing. Cost measured: 27433 = 1 req / 0.4s · 27178 = 4 req / 1.6s · 27073 = 6 req / 3.2s.
+  for(let p=0;p<20;p++){
     const after=cursor?`, after: "${cursor}"`:'';
     let d;
     try{d=await pvFetch(`{ invoices(first: 25, sortOn: VISUAL_ID, sortDescending: true${after}) { pageInfo { endCursor hasNextPage } edges { node { id visualId } } } }`);}
@@ -2149,7 +2156,7 @@ function wireMain(){
         sel.disabled=true;
         slot.append(' resolving invoice…');
         const pid=await pvResolveInvoiceId(inv);
-        if(!pid){slot.innerHTML=' <span class="pending">⚠ invoice not in Printavo\'s recent pages — update it there directly</span>';return;}
+        if(!pid){slot.innerHTML=' <span class="pending">⚠ couldn\'t find invoice '+inv+' in Printavo (older than the last ~500) — <b>nothing was changed</b>. Set the status in Printavo directly.</span>';return;}
         const mut=`mutation { statusUpdate(parentId: "${pid}", statusId: "${chosen.id}") { ... on Invoice { id status { name } } } }`;
         let r=null;
         try{r=await pvFetch(mut);}catch(err){}
