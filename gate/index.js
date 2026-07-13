@@ -14,6 +14,9 @@
      SS_PROXY_URL         n8n shipstation-proxy webhook
      SHIPSTATION_KEY / SHIPSTATION_SECRET   ShipStation creds (server-side ONLY)
      ALERT_WEBHOOK_URL    n8n webhook that posts to 🚨 System Alerts
+     SHIPDECK_FEED_URL    n8n shipdeck-feed webhook (reads SHIP_LEDGER)
+     SHIPDECK_BUY_URL     n8n easypost-proxy webhook (buy/void — THE MONEY PATH)
+     SHIPDECK_SECRET      shared secret header; n8n rejects + alerts without it
      PORT                 (Railway sets)
 */
 
@@ -400,6 +403,92 @@ app.post('/api/shipstation/sync', async (req, res) => {
     res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
   } catch (e) { res.status(502).json({ error: 'shipstation proxy unreachable: ' + e.message }); }
 });
+
+/* ── Ship Deck ─────────────────────────────────────────────────────────────
+   A label buy spends real money, so these routes are deliberately stricter
+   than the two proxies above (which lean on SameSite=Lax alone): they also
+   demand a matching Origin and a per-session CSRF token.
+
+   Order truth lives in SHIP_LEDGER; n8n owns every write. The browser sends
+   only {orderId, service} — never an address, a rate id, or a price — so a
+   forged request cannot redirect a parcel or name its own cost. */
+const SHIPDECK_SECRET = process.env.SHIPDECK_SECRET || '';
+const csrfFor = sid => hmac(sid + ':shipdeck');   // derived per session; nothing extra to store or expire
+
+// Browsers send Origin on every non-GET fetch, same-origin included. Absent means
+// we cannot prove same-origin, and on a money route "cannot prove" resolves to no.
+// Compare scheme AND host — a host-only match would accept an http:// origin.
+function sameOrigin(req) {
+  const o = req.headers.origin || req.headers.referer;
+  if (!o) return false;
+  try { return new URL(o).origin === `${req.protocol}://${req.headers.host}`; } catch { return false; }
+}
+
+async function requireShipdeckPost(req, res) {
+  const s = await requireSession(req, res);
+  if (!s) return null;
+  if (!SHIPDECK_SECRET) { res.status(500).json({ error: 'ship deck not configured (SHIPDECK_SECRET)' }); return null; }
+  if (!sameOrigin(req)) {
+    await alert('shipdeck_bad_origin', { msg: 'A Ship Deck money route was called with a foreign/absent Origin — a valid session cookie was presented. Investigate.', ip: req.ip, origin: req.headers.origin || null });
+    res.status(403).json({ error: 'bad origin' }); return null;
+  }
+  if (!timingEq(String(req.headers['x-csrf-token'] || ''), csrfFor(s.sid))) {
+    await alert('shipdeck_bad_csrf', { msg: 'A Ship Deck money route was called without a valid per-session CSRF token.', ip: req.ip });
+    res.status(403).json({ error: 'bad csrf token' }); return null;
+  }
+  return s;
+}
+
+// n8n rejects any shipdeck call missing this header, and alerts on repeats — so a
+// probe fired straight at the raw webhook URL is noticed rather than silent.
+const shipdeckHeaders = () => ({ 'Content-Type': 'application/json', 'x-shipdeck-secret': SHIPDECK_SECRET });
+
+app.get('/api/shipdeck/feed', async (req, res) => {
+  const s = await requireSession(req, res);
+  if (!s) return;
+  res.set('Cache-Control', 'no-store, private').set('Vary', 'Cookie');
+  if (!process.env.SHIPDECK_FEED_URL || !SHIPDECK_SECRET) return res.status(500).json({ error: 'ship deck not configured (SHIPDECK_FEED_URL/SHIPDECK_SECRET)' });
+  try {
+    const r = await fetch(process.env.SHIPDECK_FEED_URL, { method: 'POST', headers: shipdeckHeaders(), body: '{}', signal: AbortSignal.timeout(15000) });
+    const data = await r.json();
+    // The buy/void POSTs must echo this back. A cross-origin attacker cannot read
+    // this response, so they can never obtain the token.
+    res.status(r.status).json({ ...data, csrf: csrfFor(s.sid) });
+  } catch (e) { res.status(502).json({ error: 'ship deck feed unreachable: ' + e.message }); }
+});
+
+async function shipdeckCommand(req, res, action) {
+  const s = await requireShipdeckPost(req, res);
+  if (!s) return;
+  if (!process.env.SHIPDECK_BUY_URL) return res.status(500).json({ error: 'ship deck not configured (SHIPDECK_BUY_URL)' });
+  const orderId = String(req.body.orderId || '').trim();
+  if (!orderId) return res.status(400).json({ error: 'orderId required' });
+
+  const body = {
+    action, orderId,
+    service: String(req.body.service || '').trim() || undefined,
+    reason: action === 'void' ? String(req.body.reason || '').slice(0, 200) : undefined,
+    // Trusted because the SERVER recorded it. The gate PIN is shared, so this is a
+    // session+device, not a person — any operator name from the client is display-only.
+    actor: { sid: s.sid, ip: req.ip },
+  };
+  logEvent('shipdeck_' + action, { orderId, ip: req.ip });
+  try {
+    const r = await fetch(process.env.SHIPDECK_BUY_URL, { method: 'POST', headers: shipdeckHeaders(), body: JSON.stringify(body), signal: AbortSignal.timeout(60000) });
+    res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
+  } catch (e) {
+    // A timeout is NOT proof the buy failed — n8n may have charged already. Never
+    // tell the operator "it failed" (they would click again and buy twice); say it
+    // is unconfirmed and let the reconcile settle it against EasyPost.
+    await alert('shipdeck_unconfirmed', {
+      msg: `Ship Deck ${action} for order ${orderId} never returned a confirmation. If this was a BUY, a label may ALREADY have been purchased — check SHIP_LEDGER buy_events for a BUY_INTENT with no BUY_CONFIRMED before anyone retries.`,
+      orderId, action, error: e.message,
+    });
+    res.status(502).json({ error: 'the shipping service did not confirm — do NOT retry until this is checked', unconfirmed: true });
+  }
+}
+app.post('/api/shipdeck/buy',  (req, res) => shipdeckCommand(req, res, 'buy'));
+app.post('/api/shipdeck/void', (req, res) => shipdeckCommand(req, res, 'void'));
 
 /* ── Auth middleware BEFORE static — every non-public path needs a session ─ */
 app.use(async (req, res, next) => {
