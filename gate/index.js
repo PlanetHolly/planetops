@@ -50,7 +50,7 @@ const DENY_PREFIXES = ['/gate/', '/state-api/', '/_planning/', '/.git/', '/node_
 const DENY_EXACT    = ['/PLAN.md', '/PLAN-REVIEW-LOG.md'];
 
 // Finance zone — requires the second PIN (server-side map; registry labels are display-only)
-const FINANCE_PREFIXES = ['/planetiq/'];
+const FINANCE_PREFIXES = ['/planetiq/', '/pricing/'];   // margin/SP-bearing pages — finance PIN, not just the team PIN
 const FINANCE_EXACT    = ['/clock/admin.html', '/clock/report.html'];
 
 const FINANCE_IDLE_MIN = 60;   // finance unlock re-prompts after 60 min idle
