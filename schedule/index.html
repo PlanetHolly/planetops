@@ -483,6 +483,13 @@ const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},al
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
+// Heal state poisoned by the .splitbtn selector collision: every ✎ status / park / tracking
+// click ran the split handler with no data-split, writing store.splits["undefined"]. Harmless
+// to the model (no imprint is named "undefined") but hasLocalEdits() counts it, so the board
+// reads as permanently dirty and the CHANGES badge is inflated. Drop the junk keys.
+['splits','moves','alloc'].forEach(k=>{
+  Object.keys(store[k]||{}).forEach(id=>{if(id==='undefined'||id==='null'||id==='')delete store[k][id];});
+});
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();schedPush();}
 
@@ -2107,13 +2114,16 @@ function wireMain(){
   main.querySelectorAll('[data-stchg]').forEach(btn=>{
     btn.addEventListener('click',async e=>{
       e.stopPropagation();
-      console.log('[PA-DIAG] ✎ status clicked, invoice',btn.dataset.stchg);   // diag: reveals if the handler fires in Holly's live env
       if(histCsv)return;   // read-only history snapshot
       const inv=btn.dataset.stchg;
-      const slot=main.querySelector(`[data-stslot="${inv}"]`);
+      let slot=main.querySelector(`[data-stslot="${inv}"]`);
       if(!slot||slot.querySelector('select'))return;
       slot.textContent=' loading statuses…';
       const list=await pvStatusList();
+      // A WS-0 merge can legitimately renderAll() while we were awaiting Printavo, which
+      // replaces #main and leaves the node above detached. Re-resolve against the live DOM
+      // or the dropdown gets appended to an orphan and never appears.
+      slot=main.querySelector(`[data-stslot="${inv}"]`)||slot;
       if(!list.length){slot.innerHTML=' <span class="pending">⚠ could not load Printavo statuses — try again</span>';return;}
       slot.innerHTML='';
       const sel=document.createElement('select');
@@ -2197,7 +2207,6 @@ function wireMain(){
   main.querySelectorAll('[data-pc]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
-      console.log('[PA-DIAG] press-check clicked',b.dataset.pc);   // diag: reveals if the handler fires in Holly's live env
       const [imp,k]=b.dataset.pc.split('|');
       const j=jobs.find(x=>x.imprint===imp);
       const auto=k==='qty'&&j&&j.qty>=1000;
@@ -2538,7 +2547,13 @@ function wireMain(){
     });
   });
   // split + rejoin
-  main.querySelectorAll('.splitbtn').forEach(btn=>{
+  // .splitbtn is a SHARED STYLE worn by ~10 unrelated buttons (✎ status, park, tracking,
+  // notes, invsvc, errands…). Binding to the bare class made every one of them ALSO run the
+  // split handler: it wrote store.splits[undefined] and forced an extra renderAll(). The
+  // sync buttons survived that; the async ✎ picker did not — its slot was torn out of the DOM
+  // mid-await, so the dropdown was built and appended to an orphan node. Match on the data
+  // attribute, not the paint.
+  main.querySelectorAll('.splitbtn[data-split],.splitbtn[data-rejoin]').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
       if(btn.dataset.rejoin){
