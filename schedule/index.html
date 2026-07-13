@@ -863,7 +863,12 @@ function arrStateBadge(j){
 }
 const INK={Waterbase:'var(--wb)',Plastisol:'var(--pl)',Discharge:'var(--dc)'};
 const inkColor=i=>/Heat Applied/.test(i)?'var(--ha)':(INK[i]||'#9aa1ab');
-const cleanStatus=s=>s.replace(/[👕🚀✈️🏁🚧🔧📦📨]/g,'').replace(/\s+/g,' ').trim();
+// The /u flag is LOAD-BEARING, not decoration. Without it JS reads this character class as raw
+// UTF-16 code units, so it strips the shared HIGH surrogate (D83D/D83C) off every emoji in that
+// range — including ones NOT listed here — and leaves an orphaned low surrogate behind. That's
+// what turned Printavo's 🛰️/🚫/🏠/🏗️ statuses into unrenderable garbage in the ✎ picker. The
+// listed emoji still vanish whole; unlisted ones now survive intact. Never drop the u.
+const cleanStatus=s=>String(s).replace(/[👕🚀✈️🏁🚧🔧📦📨]/gu,'').replace(/\s+/g,' ').trim();
 const fmtDay=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?'—':dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});};
 const fmtShort=d=>{if(!d)return '—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?'—':dt.toLocaleDateString('en-US',{weekday:'short'})+' '+(dt.getMonth()+1)+'/'+dt.getDate();};
 const iso=dt=>dt.toISOString().slice(0,10);
