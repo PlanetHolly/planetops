@@ -2620,7 +2620,12 @@ function applyMove(imp,target){
 }
 function jumpTo(imp){
   const j=jobs.find(x=>x.imprint===imp);if(!j)return;
-  highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
+  // Jump to the BOARD by label, never by index. This was activeTab=0 back when Board WAS tab 0;
+  // when Queue was promoted to first (Jean 7/9) the jump silently started landing on the Queue,
+  // which renders <tr> rows — so the .job card highlight below matched nothing and a calendar
+  // bar click dumped you on the wrong tab. Resolve the index so reordering tabs can't break it.
+  const boardTab=TABS.findIndex(t=>t.label==='Board');
+  highlightImp=j.imprint;activeTab=boardTab>=0?boardTab:0;arrCollapsed=false;collapsedUnsch=false;
   if(j.date){
     collapsedDays.delete(j.date);
     const dr=dateRange();
@@ -2647,27 +2652,7 @@ document.getElementById('searchbox').addEventListener('keydown',e=>{
   const norm=s=>s.toLowerCase().replace(/\s+/g,'');
   const j=jobs.find(x=>norm(x.imprint).includes(norm(q)))||jobs.find(x=>x.nickname.toLowerCase().includes(q));
   if(!j){sb.style.borderColor='var(--red)';setTimeout(()=>sb.style.borderColor='',900);return;}
-  jumpTo(j.imprint);return;
-  highlightImp=j.imprint;activeTab=0;arrCollapsed=false;collapsedUnsch=false;
-  if(j.date){
-    collapsedDays.delete(j.date);
-    const dr=dateRange();
-    if(!dr.includes(j.date)){
-      if(store.range.mode==='custom'){
-        if(j.date<store.range.start)store.range.start=j.date;
-        if(j.date>store.range.end)store.range.end=j.date;
-      }else{
-        store.range={mode:'custom',start:j.date<dr[0]?j.date:dr[0],end:j.date>dr[dr.length-1]?j.date:dr[dr.length-1]};
-      }
-      localStorage.setItem(KEY,JSON.stringify(store));
-    }
-  }
-  if(isOut(j)){
-    const ad=store.arrived[j.imprint];
-    if(ad)collapsedArrDates.delete('a:'+ad);
-    else{const k=store.eta[j.imprint]||j.date||'';collapsedArrDates.delete(k?'d:'+k:'nodate');}
-  }
-  renderAll();
+  jumpTo(j.imprint);
 });
 document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
 document.getElementById('fileInput').addEventListener('change',e=>{
