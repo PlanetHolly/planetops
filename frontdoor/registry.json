@@ -403,6 +403,17 @@
           "status": "live",
           "access": "open",
           "icon": "🧣"
+        },
+        {
+          "id": "revenue-discovery",
+          "kind": "surface",
+          "name": "Discovery — What We Actually Know",
+          "blurb": "Every number graded A-F for reliability. What we know, what we don't, and what I got wrong.",
+          "type": "doc",
+          "url": "../pricing/discovery.html",
+          "status": "live",
+          "access": "pin",
+          "icon": "🔎"
         }
       ]
     },
