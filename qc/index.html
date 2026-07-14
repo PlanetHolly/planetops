@@ -1,0 +1,498 @@
+<meta charset="utf-8">
+<title>QC Gate — Planet Apparel</title>
+<style>
+  :root{ --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323; --pa-line:#e2e2e2;
+         --pass:#1a7f45; --flag:#c0392b; --na:#7a7a7a; --bg:#fafafa; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--pa-tonal);
+        font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+        font-size:15px; line-height:1.5; }
+
+  /* ---------- header: minimal. she opens it and goes. ---------- */
+  header{ background:var(--pa-black); color:#fff; padding:14px 20px;
+          display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+          position:sticky; top:0; z-index:20; }
+  header h1{ margin:0; font-size:15px; letter-spacing:.14em; text-transform:uppercase; font-weight:800; }
+  header .oh{ color:var(--pa-yellow); font-weight:800; font-size:19px; }
+  .meta{ display:flex; gap:10px; margin-left:auto; flex-wrap:wrap; align-items:center; }
+  .meta input{ background:#111; border:1px solid #3a3a3a; color:#fff; border-radius:5px;
+               padding:6px 9px; font:inherit; font-size:13px; width:120px; }
+  .meta label{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#9a9a9a; display:block; margin-bottom:3px; }
+
+  /* ---------- project type selector: dictates the form ---------- */
+  .picker{ background:#fff; border-bottom:2px solid var(--pa-black); padding:14px 20px;
+           display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+           position:sticky; top:51px; z-index:19; }
+  .picker .lab{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:800; color:#666; margin-right:4px; }
+  .tbtn{ border:2px solid var(--pa-line); background:#fff; color:var(--pa-tonal);
+         border-radius:6px; padding:9px 16px; font:inherit; font-weight:700; font-size:13px; cursor:pointer; }
+  .tbtn:hover{ border-color:#bbb; }
+  .tbtn.on{ background:var(--pa-black); border-color:var(--pa-black); color:#fff; }
+  .tbtn.on .dot{ color:var(--pa-yellow); }
+  .untrialed{ font-size:11px; color:#8a6d00; background:#fff8e1; border:1px solid #f0d98a;
+              border-radius:4px; padding:3px 8px; font-weight:700; }
+  .reorder{ margin-left:auto; display:flex; align-items:center; gap:8px; font-weight:700; font-size:13px; }
+  .reorder input{ width:17px; height:17px; accent-color:var(--pa-black); }
+
+  /* ---------- running tally ---------- */
+  .tally{ background:var(--pa-tonal); color:#fff; padding:8px 20px; font-size:12.5px;
+          display:flex; gap:16px; position:sticky; top:110px; z-index:18; }
+  .tally .p{ color:#6ee7a0; } .tally .f{ color:#ff8b7d; } .tally .u{ color:#b9b9b9; }
+  .tally .n{ color:#cfcfcf; }
+
+  main{ max-width:900px; margin:0 auto; padding:22px 20px 140px; }
+
+  .zone{ background:#fff; border:1px solid var(--pa-line); border-radius:8px; margin-bottom:14px; overflow:hidden; }
+  .zone-head{ width:100%; text-align:left; background:#fff; border:0; cursor:pointer;
+              padding:13px 16px; display:flex; align-items:center; gap:10px; font:inherit; }
+  .zone-title{ font-weight:800; text-transform:uppercase; letter-spacing:.09em; font-size:12.5px; }
+  .zbadge{ margin-left:auto; font-size:11px; font-weight:700; color:#888;
+           background:#f2f2f2; border-radius:20px; padding:3px 10px; }
+  .zbadge.has{ background:var(--pa-black); color:#fff; }
+  .zbadge.flag{ background:var(--flag); color:#fff; }
+  .zone-body{ display:none; border-top:1px solid var(--pa-line); }
+  .zone.open .zone-body{ display:block; }
+  .caret{ color:#bbb; font-size:11px; }
+  .zone.open .caret{ transform:rotate(90deg); }
+
+  .chk{ border-bottom:1px solid #f0f0f0; padding:12px 16px; display:flex; gap:12px; align-items:flex-start; }
+  .chk:last-child{ border-bottom:0; }
+  .chk.hidden{ display:none; }
+  .chk-main{ flex:1; min-width:0; }
+  .chk-label{ font-weight:600; }
+  .chk-num{ display:inline-block; min-width:22px; font-weight:800; color:#bbb; font-size:12px; }
+  .chk[data-state="pass"]{ background:#f4fbf6; }
+  .chk[data-state="flag"]{ background:#fdf5f4; }
+  .chk[data-state="na"]{ background:#f7f7f7; }
+  .chk[data-state="pass"] .chk-label{ color:var(--pass); }
+  .chk[data-state="flag"] .chk-label{ color:var(--flag); }
+  .chk[data-state="na"] .chk-label{ color:var(--na); text-decoration:line-through; }
+
+  /* the example lives INSIDE the number — collapsed. not in her way. */
+  .why{ margin-top:5px; }
+  .why summary{ cursor:pointer; font-size:11.5px; color:#999; list-style:none; font-weight:700; }
+  .why summary::-webkit-details-marker{ display:none; }
+  .why summary:before{ content:"？ "; }
+  .why summary:hover{ color:var(--pa-tonal); }
+  .why .body{ font-size:13px; color:#666; background:#fbfbfb; border-left:3px solid var(--pa-yellow);
+              padding:9px 12px; margin-top:6px; border-radius:0 4px 4px 0; }
+
+  .acts{ display:flex; gap:5px; flex-shrink:0; }
+  .abtn{ border:1.5px solid var(--pa-line); background:#fff; border-radius:5px;
+         padding:6px 11px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; color:#777; }
+  .abtn:hover{ border-color:#999; }
+  .chk[data-state="pass"] .abtn.pass{ background:var(--pass); border-color:var(--pass); color:#fff; }
+  .chk[data-state="flag"] .abtn.flag{ background:var(--flag); border-color:var(--flag); color:#fff; }
+  .chk[data-state="na"]   .abtn.na  { background:var(--na);   border-color:var(--na);   color:#fff; }
+
+  /* a flag with no note can't be routed — so it can't be sent */
+  .chk-note{ display:none; margin-top:9px; }
+  .chk[data-state="flag"] .chk-note{ display:block; }
+  .chk-note .req{ font-size:10px; text-transform:uppercase; letter-spacing:.09em;
+                  font-weight:800; color:var(--flag); margin-bottom:4px; }
+  .chk-note textarea{ width:100%; min-height:52px; border:1.5px solid #e8c9c4; border-radius:5px;
+                      padding:8px; font:inherit; font-size:13px; resize:vertical; }
+  .chk.note-missing .chk-note textarea{ border-color:var(--flag); background:#fff6f5; }
+
+  /* handoff: a physical action, not a checkbox */
+  .chk.physical .chk-label:after{ content:" ✋ physical step"; font-size:10px; font-weight:800;
+    letter-spacing:.06em; color:#8a6d00; background:#fff8e1; border:1px solid #f0d98a;
+    border-radius:3px; padding:1px 5px; margin-left:7px; text-transform:uppercase; }
+
+  footer{ position:fixed; bottom:0; left:0; right:0; background:var(--pa-black);
+          padding:11px 20px; display:flex; gap:10px; align-items:center; z-index:30; }
+  .fbtn{ background:var(--pa-yellow); color:var(--pa-black); border:0; border-radius:6px;
+         padding:11px 18px; font:inherit; font-weight:800; font-size:13.5px; cursor:pointer; }
+  .fbtn.alt{ background:transparent; color:#fff; border:1.5px solid #555; }
+  .fbtn:hover{ opacity:.9; }
+  .saved{ color:#8a8a8a; font-size:11.5px; margin-left:auto; }
+
+  .toast{ position:fixed; bottom:70px; left:50%; transform:translateX(-50%);
+          background:var(--pa-tonal); color:#fff; padding:11px 20px; border-radius:6px;
+          font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s; z-index:40; }
+  .toast.on{ opacity:1; }
+</style>
+
+<header>
+  <span class="oh">Ø</span>
+  <h1>QC Gate</h1>
+  <div class="meta">
+    <div><label>Invoice #</label><input id="job" placeholder="27422" oninput="save()"></div>
+    <div><label>Checked by</label><input id="checker" placeholder="name" oninput="save()"></div>
+  </div>
+</header>
+
+<div class="picker">
+  <span class="lab">Project type</span>
+  <button class="tbtn on" data-p="bandana" onclick="setProd('bandana')"><span class="dot">●</span> Bandana</button>
+  <button class="tbtn"    data-p="apparel" onclick="setProd('apparel')"><span class="dot">●</span> Apparel</button>
+  <label class="reorder" style="margin-left:14px">
+    <input type="checkbox" id="isOut" onchange="retype()"> Outsourced</label>
+  <span class="untrialed" id="untrialed" style="display:none">not yet trialed</span>
+  <label class="reorder"><input type="checkbox" id="isReorder" onchange="retype()"> This is a reorder</label>
+</div>
+
+<div class="tally" id="tally"></div>
+
+<main id="zones"></main>
+
+<footer>
+  <button class="fbtn" onclick="copySummary()">📋 Copy findings</button>
+  <button class="fbtn alt" onclick="sendJean()">⚑ Send production flags to Jean</button>
+  <button class="fbtn alt" onclick="resetRun()">Start a new invoice</button>
+  <span class="saved" id="saved"></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================================
+   QC GATE — Planet Apparel
+   Rebuilt 2026-07-14 from the ride-along with Malia on invoice 27422.
+   Spec: QC_Gate_Rebuild_Spec_2026-07-14.md
+
+   The form is chosen by PRODUCT (bandana / apparel) x OUTSOURCED (yes / no).
+   Outsourced used to be its own "type", but nothing keyed off it — the In-House
+   and Outsourced apparel forms showed identical checks. It is now a toggle that
+   actually does something: PO, the date square, and the packaging imprint.
+
+   BANDANA + OUTSOURCED = SUBLIMATION. Added 7/14 from the 27437 ride-along.
+   Only the plain BANDANA form has been trialed with Malia.
+   ========================================================================== */
+
+var PROD = 'bandana';           /* bandana | apparel  — the buttons */
+var TYPE = 'bandana';           /* derived: bandana | subl | inhouse | outsourced */
+var TYPE_LABEL = { bandana:'Bandana', subl:'Bandana · Sublimated (Outsourced)',
+                   inhouse:'Apparel · In-House', outsourced:'Apparel · Outsourced' };
+var TRIALED = { bandana:true, subl:false, inhouse:false, outsourced:false };
+
+/* the toggle IS the form. bandana + outsourced is the sublimation run. */
+function derive(){
+  var out = document.getElementById('isOut').checked;
+  return PROD === 'bandana' ? (out ? 'subl' : 'bandana')
+                            : (out ? 'outsourced' : 'inhouse');
+}
+
+/* t: which project types show this check. ro:'only' = reorder-only. na: N/A is allowed.
+   why: the example/explainer — collapsed, inside the number, out of her way. */
+var ZONES = [
+ { title:'Order & Dates', checks:[
+   { id:1,  t:'bandana subl inhouse outsourced', label:'Owner (rep) noted' },
+   { id:2,  t:'bandana inhouse', label:'Date triangle fits — production due · customer in-hands · transit time',
+     why:'Check the date FIRST, then the ship method — that is the order you actually work in. The gap between production due and customer due has to genuinely cover the ship method, not just look close. Also worth noticing: are there SPARE days? Sometimes production could be pushed a day later and still hit the customer date. That is useful to Jean, not just "it fits".' },
+   { id:28, t:'subl outsourced', label:'Date SQUARE fits — production due · date it ARRIVES BACK from the vendor · date it must LEAVE here · customer in-hands',
+     why:'Outsourced adds a fourth date, so the triangle becomes a square. Holly, 27437: "the date it is going to arrive from our outsourced partner, and then the date that it needs to leave here." The arrival date lives on the PO, not the invoice — so you cannot finish this check until the PO exists. If the PO is not there yet, FLAG it and say so; do not pass a square you could not draw.' },
+   { id:3,  t:'bandana subl inhouse outsourced', label:'Ship method noted' },
+   { id:4,  t:'bandana subl inhouse outsourced', na:true, label:'Production Availability — is there an open slot for the production due date?',
+     why:'You flag it, you do not fix it. A flag does not mean the job cannot be done — it means Jean needs to look. On 27422 the due date was the 22nd with no real space; that is a flag. N/A ONLY when the job is fully outsourced and nothing runs on our floor — Holly, 27437: "production availability doesn\'t matter in this case."' },
+   { id:5,  t:'bandana subl inhouse outsourced', label:'Production due date set EARLIER than the customer due date' },
+ ]},
+
+ { title:'Purchase Order (outsourced)', checks:[
+   { id:29, t:'subl outsourced', label:'The PO is ATTACHED to the invoice',
+     why:'New rule, 7/14, and it is the big one. Production does not need the PO — QC does, because the PO is the only place the vendor\'s commitment lives (their dates, their cost). On 27437 nothing was attached and Holly had to dig it out of QuickBooks by hand. Every outsourced job needs the PO on it. If it is not there, that is a flag even if you go and find it.' },
+   { id:30, t:'subl outsourced', label:'The PO has actually been SENT to the vendor',
+     why:'This is the check that explains the others. On 27437 the PM had not sent the PO yet — which is WHY there were no dates, no expense, and no Dropbox folder. If the PO has not gone out, flag it once here rather than failing four checks downstream.' },
+   { id:31, t:'subl outsourced', label:'PO read — the vendor\'s dates and cost are understood',
+     why:'You are not approving the price. You are confirming you can read what the vendor agreed to, so the date square can be filled in.' },
+   { id:32, t:'subl outsourced', label:'The PO carries the "Date to arrive to PA" — filled in by the vendor',
+     why:'Holly added this line to the PO template on 27437 precisely because it was missing. Blank line = we do not know when the goods land = we cannot schedule the packaging day. Flag it.' },
+ ]},
+
+ { title:'Shipping', checks:[
+   { id:6,  t:'bandana subl inhouse outsourced', label:'Shipping notes read — labels, box markings, split shipment' },
+   { id:7,  t:'bandana subl inhouse outsourced', label:'Shipping address looked up — anything odd?',
+     why:'Google the address. Missing suite or unit number? Big apartment complex? On 27422 it turned out to be a warehouse. If nothing comes up at all, that itself is worth a flag — it may be missing a character.' },
+   { id:8,  t:'bandana subl inhouse outsourced', label:'Delivery method at the TOP matches the fees & totals at the BOTTOM',
+     why:'This is the bottom-of-the-invoice check. Top says ground, bottom should say ground.' },
+   { id:9,  t:'bandana subl inhouse outsourced', na:true, label:'Unusual shipping noted & clear — split / blind / overnight',
+     why:'Rare. Mark N/A if there is nothing unusual — do not leave it blank, or Rosa will wonder if anyone looked. Outsourced still ships from HERE in most cases — the vendor sends it back to us and we send it out — so do not skip this just because it is outsourced.' },
+ ]},
+
+ { title:'Production Notes', checks:[
+   { id:10, t:'bandana subl inhouse outsourced', label:'Production notes clear and understood',
+     why:'Your jurisdiction is whether the notes are CLEAR. If they are not — if you would have to ask "you said this, can you clarify?" — that is a flag, and the note IS your question. Press-check notes are NOT in this gate; they get written later, under Jean, so they are blank when you run this. Do not fail a job for that. OUTSOURCED: you often cannot know the flow because the return date is not there yet. Fill it out to the best of your knowledge and flag ONLY what is genuinely beyond you — Holly, 27437: "you would only flag it when it is beyond your knowledge base."' },
+   { id:11, t:'bandana inhouse outsourced', na:true, label:'Blanks ordered AND the notes are up to date',
+     why:'This happens LATER, under Jean. If the blanks are not ordered yet, this fails — flag it or mark N/A. Do not pass it. A silent pass here is how a QC ends up meaning nothing.' },
+ ]},
+
+ { title:'Tags', checks:[
+   { id:12, t:'bandana subl inhouse outsourced', label:'Tags correct — #in · #out · #in-mix · #out-mix · PM initials',
+     why:'We no longer use #inhouse / #outsourced. It is #in, #out, #in-mix, #out-mix. MIX matters most on apparel, when both happen on one job. Sublimation should read #out unless it comes back to be folded.' },
+   { id:13, t:'bandana subl inhouse outsourced', na:true, label:'Rush job? Then #rush must be on it',
+     why:'If the invoice carries a rush fee it MUST carry #rush. N/A if it is not a rush job.' },
+ ]},
+
+ { title:'Files', checks:[
+   { id:14, t:'bandana subl inhouse outsourced', label:'Production file (seps file) is attached',
+     why:'Production file = seps file = separation file. Same thing — seps.io labels them inconsistently. Either name is fine. The seps file MUST be there. The mock-up is a bonus, not a substitute.' },
+   { id:15, t:'bandana subl inhouse outsourced', label:'Opened it — does the production file match the mock-up?',
+     why:'The Peekskill rule (mockup said 12", the sep file was 10"). HOW: open the production file next to the mock-up. Everything WHITE becomes the bandana color; everything BLACK becomes white. Work it in quadrants — take a quarter at a time rather than eyeballing the whole thing. Zoom in on any small text. You are hunting for missing dots, dropped text, wrong sizes. If you cannot open the file, FLAG it — do not pass it.' },
+ ]},
+
+ { title:'Line Items, Imprint & Color', checks:[
+   { id:16, t:'subl inhouse outsourced', label:'Quantities, item numbers and colors match the quote the customer approved' },
+   { id:17, t:'bandana subl inhouse outsourced', label:'The mock-up inside the imprint matches the line items',
+     why:'Also sanity-check the imprint SIZE. An 18" imprint is something we do maybe twice a year — if you see one, it is worth a second look before it prints.' },
+   { id:18, t:'bandana inhouse outsourced', label:'Imprint color — PMS # checked against the PHYSICAL Pantone book',
+     why:'Physical book. Not off-screen. Screens lie.' },
+   { id:33, t:'subl', label:'Mock-up matches the file the CUSTOMER PROVIDED — are they the same?',
+     why:'This REPLACES the PMS check. Sublimation has no color requirement — Holly, 27437: "you can send us a photo of whatever, your room, and we would just sublimate it. It does not need that level of technicality." So there is no PMS to look up. What you check instead is fidelity: pull up what the customer sent us, put it next to the mock-up, and confirm nothing changed on the way through.' },
+   { id:34, t:'subl outsourced', na:true, label:'Second imprint line for PACKAGING is on the invoice',
+     why:'About 95% of outsourced work comes back HERE to be packaged. That packaging is in-house production, so it needs its own imprint line — otherwise there is nothing for Jean to schedule on the day the goods land. Holly, 27437: "it needs a second imprint that says packaging bandanas... so that when they come back, we know that we can schedule that for the day it is due to arrive." N/A only if the vendor ships direct to the customer and it never touches us.' },
+   { id:19, t:'bandana', label:'Bandana base color — does the blank itself match what the customer approved?',
+     why:'27433: the imprint PMS was right, but the bandana in the mock-up was the wrong yellow (should have been PMS 102). The customer had already approved it. The imprint can be perfect and the bandana still be the wrong color — check the BLANK, not just the print. If it is wrong, flag it and ask seps.io for a mock-up revision (the production file does not need updating — it prints black and white anyway).' },
+   { id:20, t:'bandana inhouse outsourced', na:true, label:'Ink change reflected, if there is one',
+     why:'27422 had a red-to-white ink change. Check it carried through. N/A if there is no ink change.' },
+ ]},
+
+ { title:'Reorder — pull the previous order', checks:[
+   { id:35, t:'subl', ro:'only', label:'New mock-up matches the PREVIOUS mock-up — and the files match the previous order',
+     why:'This is the sublimation reorder check, and it replaces the Pantone/ink comparison. You are hunting for a SWAP. Holly, 27437: "it would be good that the mock-up on the new one matched the previous mock-up, that the files match the previous order... that there was not a swap." Digital against digital — there is no physical sample to pull.' },
+   { id:21, t:'bandana subl inhouse outsourced', ro:'only', na:true, label:'Physical previous sample pulled',
+     why:'If the reorder had two mock-ups but only one was actually produced, pull whatever exists — and make a note so everyone knows. SUBLIMATION: we do not currently keep physical samples, so this is N/A. (Holly is considering starting to save one per run so Rosa can compare when the goods land — until that exists, mark it N/A.)' },
+   { id:22, t:'bandana inhouse outsourced', ro:'only', label:'Pantones match what ACTUALLY printed last time',
+     why:'Not just the mock-up — the real sample. The mock-up can be right and the last print still be different.' },
+   { id:23, t:'bandana inhouse outsourced', ro:'only', label:'Ink type checked against the previous order' },
+   { id:24, t:'bandana subl inhouse outsourced', ro:'only', label:'Any other flags on the previous order?' },
+   { id:25, t:'bandana subl inhouse outsourced', ro:'only', na:true, physical:true, label:'Sample handed to Jean',
+     why:'This is a physical handoff, not a checkbox. The sample has to physically reach Jean or the whole reorder check was for nothing. N/A on sublimation while we keep no physical samples.' },
+ ]},
+
+ { title:'Inventory & Expense', checks:[
+   { id:26, t:'bandana subl', na:true, label:'Bandana inventory — do we have enough in-house to cover this?',
+     why:'Go PHYSICALLY count it — the system numbers are not trustworthy, and the colour NAMES do not match reality either ("sky blue" is actually light blue, "yellow" is bright yellow). On 27433 Malia counted 84 units against a need of 48, passed it, and left Jean a note so he did not order stock we already had. That is the check paying for itself. If you cannot get a trustworthy number, mark N/A — do not guess. OUTSOURCED: the vendor supplies the blanks, so this is N/A.' },
+   { id:27, t:'bandana subl inhouse outsourced', na:true, label:'Expense entered',
+     why:'The last step. If Jean has not ordered the blanks yet, there IS no expense — mark it N/A, do not pass it. OUTSOURCED: no PO sent means no expense to enter. Mark N/A and write "awaiting PO to be sent" in the note.' },
+ ]},
+];
+
+/* ---------- render ---------- */
+function render(){
+  var host = document.getElementById('zones');
+  host.innerHTML = '';
+  ZONES.forEach(function(z, zi){
+    var visible = z.checks.filter(shows);
+    if(!visible.length) return;
+    var sec = document.createElement('section');
+    sec.className = 'zone open';
+    var body = visible.map(function(c){
+      return '<div class="chk'+(c.physical?' physical':'')+'" data-id="'+c.id+'" data-label="'+esc(c.label)+'">'+
+        '<div class="chk-main">'+
+          '<div class="chk-label"><span class="chk-num">'+c.id+'</span>'+esc(c.label)+'</div>'+
+          (c.why ? '<details class="why"><summary>example</summary><div class="body">'+esc(c.why)+'</div></details>' : '')+
+          '<div class="chk-note"><div class="req">Flag reason — required</div>'+
+            '<textarea placeholder="What is wrong, and what needs to happen?" oninput="onNote(this)"></textarea></div>'+
+        '</div>'+
+        '<div class="acts">'+
+          '<button class="abtn pass" onclick="setState(this,\'pass\')">✓</button>'+
+          '<button class="abtn flag" onclick="setState(this,\'flag\')">⚑</button>'+
+          (c.na ? '<button class="abtn na" onclick="setState(this,\'na\')">N/A</button>' : '')+
+        '</div></div>';
+    }).join('');
+    sec.innerHTML = '<button class="zone-head" onclick="this.parentNode.classList.toggle(\'open\')">'+
+        '<span class="caret">▶</span><span class="zone-title">'+esc(z.title)+'</span>'+
+        '<span class="zbadge"></span></button>'+
+      '<div class="zone-body">'+body+'</div>';
+    host.appendChild(sec);
+  });
+  restore();
+  update();
+}
+function shows(c){
+  if(c.ro === 'only' && !document.getElementById('isReorder').checked) return false;
+  return c.t.split(/\s+/).indexOf(TYPE) !== -1;
+}
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function setProd(p){ PROD = p; retype(); }
+function retype(){
+  TYPE = derive();
+  var b = document.querySelectorAll('.tbtn');
+  for(var i=0;i<b.length;i++) b[i].classList.toggle('on', b[i].getAttribute('data-p')===PROD);
+  document.getElementById('untrialed').style.display = TRIALED[TYPE] ? 'none' : '';
+  render(); save();
+}
+
+/* ---------- state ---------- */
+function setState(btn, val){
+  var chk = btn.closest('.chk');
+  if(chk.getAttribute('data-state') === val) chk.removeAttribute('data-state');
+  else chk.setAttribute('data-state', val);
+  chk.classList.remove('note-missing');
+  if(chk.getAttribute('data-state')==='flag'){
+    var ta = chk.querySelector('textarea'); if(ta) setTimeout(function(){ ta.focus(); },0);
+  }
+  update(); save();
+}
+function onNote(ta){
+  var chk = ta.closest('.chk');
+  if(ta.value.trim()) chk.classList.remove('note-missing');
+  save();
+}
+
+function counts(){
+  var c = document.querySelectorAll('.chk'), r = {pass:0,flag:0,na:0,none:0,total:c.length};
+  for(var i=0;i<c.length;i++){
+    var s = c[i].getAttribute('data-state');
+    if(s==='pass') r.pass++; else if(s==='flag') r.flag++; else if(s==='na') r.na++; else r.none++;
+  }
+  return r;
+}
+function update(){
+  var r = counts();
+  document.getElementById('tally').innerHTML =
+    '<span class="p">'+r.pass+' passed</span><span class="f">'+r.flag+' flagged</span>'+
+    '<span class="n">'+r.na+' N/A</span><span class="u">'+r.none+' not yet checked</span>'+
+    '<span class="u" style="margin-left:auto">'+TYPE_LABEL[TYPE]+
+      (document.getElementById('isReorder').checked?' · reorder':'')+' — '+r.total+' checks</span>';
+  var zones = document.querySelectorAll('.zone');
+  for(var z=0;z<zones.length;z++){
+    var ch = zones[z].querySelectorAll('.chk'), done=0, flags=0;
+    for(var i=0;i<ch.length;i++){
+      var s = ch[i].getAttribute('data-state');
+      if(s) done++;
+      if(s==='flag') flags++;
+    }
+    var b = zones[z].querySelector('.zbadge');
+    b.className = 'zbadge' + (flags ? ' has flag' : (done===ch.length && ch.length ? ' has' : (done?' has':'')));
+    b.textContent = flags ? done+'/'+ch.length+' · '+flags+' ⚑'
+                  : (done===ch.length && ch.length ? 'all '+ch.length+' ✓' : done+'/'+ch.length);
+  }
+}
+
+/* ---------- persistence — a closed tab must NOT destroy the run ---------- */
+/* v2 — checks were renumbered 7/14. A v1 run restored onto v2 numbering would
+   put her old answers on the WRONG checks, so the key is versioned. */
+function key(){ return 'qcgate_run_v2'; }
+function save(){
+  var st = { prod:PROD, out:document.getElementById('isOut').checked,
+             reorder:document.getElementById('isReorder').checked,
+             job:document.getElementById('job').value, by:document.getElementById('checker').value, checks:{} };
+  var c = document.querySelectorAll('.chk');
+  for(var i=0;i<c.length;i++){
+    var id = c[i].getAttribute('data-id'), s = c[i].getAttribute('data-state'),
+        ta = c[i].querySelector('textarea'), n = ta ? ta.value : '';
+    if(s || n) st.checks[id] = { s:s||'', n:n };
+  }
+  try{ localStorage.setItem(key(), JSON.stringify(st));
+       document.getElementById('saved').textContent = 'saved';
+       setTimeout(function(){ document.getElementById('saved').textContent=''; }, 1200);
+  }catch(e){ document.getElementById('saved').textContent = '⚠ not saving — copy your findings before you close'; }
+}
+function restore(){
+  var st; try{ st = JSON.parse(localStorage.getItem(key())||'null'); }catch(e){ return; }
+  if(!st) return;
+  var c = document.querySelectorAll('.chk');
+  for(var i=0;i<c.length;i++){
+    var rec = st.checks[c[i].getAttribute('data-id')];
+    if(!rec) continue;
+    if(rec.s) c[i].setAttribute('data-state', rec.s);
+    var ta = c[i].querySelector('textarea'); if(ta && rec.n) ta.value = rec.n;
+  }
+}
+function boot(){
+  var st; try{ st = JSON.parse(localStorage.getItem(key())||'null'); }catch(e){}
+  if(st){
+    /* a run saved before the 7/14 outsourced toggle stored a single `type`. Check
+       IDs did not move, so those answers still land on the right checks. */
+    if(st.prod){ PROD = st.prod; document.getElementById('isOut').checked = !!st.out; }
+    else {
+      PROD = (st.type === 'bandana') ? 'bandana' : 'apparel';
+      document.getElementById('isOut').checked = (st.type === 'outsourced');
+    }
+    document.getElementById('isReorder').checked = !!st.reorder;
+    document.getElementById('job').value = st.job || '';
+    document.getElementById('checker').value = st.by || '';
+  }
+  TYPE = derive();
+  var b = document.querySelectorAll('.tbtn');
+  for(var i=0;i<b.length;i++) b[i].classList.toggle('on', b[i].getAttribute('data-p')===PROD);
+  document.getElementById('untrialed').style.display = TRIALED[TYPE] ? 'none' : '';
+  render();
+  if(st && Object.keys(st.checks||{}).length) toast('Picked up where you left off — invoice '+(st.job||'(no #)'));
+}
+function resetRun(){
+  if(counts().none < counts().total && !confirm('Clear this run and start a new invoice?')) return;
+  try{ localStorage.removeItem(key()); }catch(e){}
+  document.getElementById('job').value = '';
+  document.getElementById('isReorder').checked = false;
+  render(); toast('Cleared — ready for the next invoice');
+}
+
+/* ---------- output: FINDINGS ONLY ---------- */
+function noteOf(chk){ var ta = chk.querySelector('textarea'); return ta ? ta.value.trim() : ''; }
+function guard(){
+  var f = document.querySelectorAll('.chk[data-state="flag"]'), missing = [];
+  for(var i=0;i<f.length;i++) if(!noteOf(f[i])) missing.push(f[i]);
+  if(!missing.length) return true;
+  for(var i=0;i<missing.length;i++) missing[i].classList.add('note-missing');
+  missing[0].closest('.zone').classList.add('open');
+  missing[0].scrollIntoView({behavior:'smooth', block:'center'});
+  toast(missing.length+' flag'+(missing.length>1?'s need':' needs')+' a note before it can be routed');
+  return false;
+}
+
+/* findings only — no job name, no "checked by", no roll-call of what passed.
+   the invoice # stays, so a summary pasted in the wrong place is still traceable. */
+function summary(onlyProduction){
+  var r = counts(), job = (document.getElementById('job').value||'').trim() || '(no invoice #)';
+  var L = ['QC GATE — Invoice '+job];
+  if(!TRIALED[TYPE]) L.push('[' + TYPE_LABEL[TYPE].toUpperCase() + ' FORM — NOT YET TRIALED]');
+  var flags = document.querySelectorAll('.chk[data-state="flag"]');
+  var picked = [];
+  for(var i=0;i<flags.length;i++){
+    if(onlyProduction && PRODUCTION_FLAGS.indexOf(+flags[i].getAttribute('data-id')) === -1) continue;
+    picked.push(flags[i]);
+  }
+  if(!picked.length){
+    L.push(onlyProduction ? 'No production flags.'
+      : (r.flag ? 'No flags in this view.' : 'Everything passed — no flags.'));
+  } else {
+    L.push('');
+    for(var i=0;i<picked.length;i++){
+      L.push('⚑ '+picked[i].getAttribute('data-label'));
+      L.push('   '+noteOf(picked[i]));
+    }
+  }
+  /* N/A carries no information — it stays out of the paste entirely (Holly, 7/14).
+     "Never marked" is NOT the same thing: that means a check was skipped, and she
+     still needs to know. */
+  if(r.none) L.push('\n⚠ '+r.none+' check'+(r.none>1?'s':'')+' never marked.');
+  return L.join('\n');
+}
+
+/* which flags are Jean's problem — production & scheduling, not art or customer.
+   28-32 + 34 are the outsourced ones: the PO, the return date, and the packaging
+   line he has to schedule the day the goods land. All squarely his. */
+var PRODUCTION_FLAGS = [4, 5, 10, 11, 26, 27, 28, 29, 30, 31, 32, 34];
+
+function copy(text, msg){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ fallback(text, msg); });
+  } else fallback(text, msg);
+}
+function fallback(text, msg){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity=0;
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast(msg); }catch(e){ toast('Could not copy — select it manually'); }
+  document.body.removeChild(ta);
+}
+function copySummary(){ if(!guard()) return; copy(summary(false), 'Findings copied — paste onto the invoice'); }
+function sendJean(){
+  if(!guard()) return;
+  var body = summary(true);
+  if(body.indexOf('No production flags.') !== -1){ toast('Nothing here for Jean — no production flags'); return; }
+  copy(body, 'Production flags copied — paste to Jean');
+}
+
+var tt;
+function toast(m){
+  var t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(function(){ t.classList.remove('on'); }, 2600);
+}
+
+boot();
+</script>

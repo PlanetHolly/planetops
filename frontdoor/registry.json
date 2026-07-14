@@ -193,15 +193,36 @@
           "icon": "🏷️"
         },
         {
-          "id": "qc-invoice",
-          "kind": "surface",
-          "name": "QC Interactive Invoice",
-          "blurb": "Malia's line-by-line QC trainer",
-          "type": "tool",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
-          "icon": "🔍"
+          "id": "qc",
+          "kind": "hub",
+          "icon": "✅",
+          "name": "QC",
+          "blurb": "The quality gate before a job goes to production",
+          "children": [
+            {
+              "id": "qc-gate-form",
+              "kind": "surface",
+              "name": "QC Gate",
+              "blurb": "Run the gate on an invoice — bandana, sublimation, apparel",
+              "type": "tool",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Nothing — you read the Printavo invoice and answer. Findings copy to your clipboard.",
+              "url": "../qc/",
+              "icon": "🛡️"
+            },
+            {
+              "id": "qc-invoice",
+              "kind": "surface",
+              "name": "QC Interactive Invoice (trainer)",
+              "blurb": "The old training version — mock invoice, worked examples",
+              "type": "tool",
+              "status": "wip",
+              "access": "open",
+              "note": "Superseded by the QC Gate above for real runs. Still stranded on file:// — Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
+              "icon": "🔍"
+            }
+          ]
         },
         {
           "id": "time-labor",
