@@ -392,6 +392,17 @@
           "status": "live",
           "access": "pin",
           "icon": "🧮"
+        },
+        {
+          "id": "bandana-pricing-desk",
+          "kind": "surface",
+          "name": "Bandana Pricing — Desk (prices only)",
+          "blurb": "Quote reference for the bandana desk. Every price break by product, ink, qty and colors. Prices only — no cost, no margin.",
+          "type": "dashboard",
+          "url": "../bandana-pricing/",
+          "status": "live",
+          "access": "open",
+          "icon": "🧣"
         }
       ]
     },
