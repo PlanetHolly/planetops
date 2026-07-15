@@ -272,6 +272,45 @@
   .vrow .vlink{margin-left:auto;font-size:12.5px;font-weight:800;color:#1f2430;background:#fff8eb;border:1px solid #fde3a7;
     border-radius:8px;padding:8px 13px}
 
+  /* ── activity: health strip + movement ── */
+  .acthead{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:6px 0 2px}
+  .actright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .actasof{font-size:12px;color:var(--mut);font-weight:700;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px 13px;white-space:nowrap}
+  .actasof b{color:#1f2430}
+  .hstrip{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 8px}
+  .hpill{border:1px solid var(--line);border-left-width:4px;border-radius:12px;padding:11px 14px;background:var(--card);
+    min-width:190px;flex:1 1 190px;max-width:300px;display:flex;flex-direction:column;gap:3px}
+  .hpill .hl{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:7px;line-height:1.25}
+  .hpill .ht{font-size:11px;color:var(--mut);font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .hpill .hd{font-size:11.5px;color:#374151;font-weight:600;margin-top:1px}
+  .dotp{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+  .hstate{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 7px;border-radius:999px}
+  .hpill.ok{border-left-color:var(--live)}
+  .hpill.ok .dotp{background:var(--live)} .hpill.ok .hstate{background:#ecfdf5;color:#047857}
+  .hpill.problem{border-left-color:var(--red);background:#fef2f2}
+  .hpill.problem .dotp{background:var(--red)} .hpill.problem .hstate{background:#fee2e2;color:#991b1b}
+  .hpill.staged{opacity:.6;border-left-color:#c4c4cc;background:#fafafb}
+  .hpill.staged .dotp{background:#c4c4cc} .hpill.staged .hstate{background:#eef0f2;color:#64748b}
+  .hpill.nodata{border-left-color:var(--unver);background:#fafafb}
+  .hpill.nodata .dotp{background:var(--unver)} .hpill.nodata .hstate{background:#eef0f2;color:#64748b}
+  .actempty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:16px 18px;
+    color:var(--mut);font-size:13.5px;font-weight:600}
+  /* fix-owner badge — who resolves a problem on this engine */
+  .fixown{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 6px;
+    border-radius:999px;white-space:nowrap;margin-left:auto}
+  .fixown.auto{background:#eef1f5;color:#475569} .fixown.agent{background:#f3ecfd;color:#6d28d9}
+  .fixown.manual{background:#fef3c7;color:#92400e}
+  .hpill .hl .fixown{margin-left:auto}
+  /* prominent fix line on a red problem chip — tells Holly instantly if it's hers */
+  .fixline{font-size:11px;font-weight:800;margin-top:3px;padding:3px 8px;border-radius:7px;
+    display:inline-flex;align-items:center;gap:5px;background:#fee2e2;color:#991b1b}
+  .fixline.agent{background:#f3ecfd;color:#6d28d9} .fixline.auto{background:#eef1f5;color:#334155}
+  .ecard.mv{cursor:default} .ecard.mv:hover{transform:none;box-shadow:none}
+  .slink{margin-left:auto;font-size:12px;font-weight:800;color:#1f2430;background:#fff8eb;border:1px solid #fde3a7;
+    border-radius:8px;padding:7px 12px;min-height:38px;display:inline-flex;align-items:center;white-space:nowrap}
+  .slink:hover{border-color:var(--gold);background:#fffdf3}
+
   /* ── search results ── */
   .sgroup{margin-bottom:22px}
   .sgroup h3{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800;
@@ -324,7 +363,15 @@
 "use strict";
 /* ─────────────────────────── constants & helpers ─────────────────────────── */
 const ENDPOINT = "https://primary-production-079f9.up.railway.app/webhook/command-center-data";
+// Activity feed is a SIBLING webhook on the SAME Railway host — derived from ENDPOINT so the host
+// is never hardcoded twice (a different Data API workflow; isolates the blast radius per the plan).
+const ACTIVITY_ENDPOINT = ENDPOINT.replace("/command-center-data","/retention-activity-data");
 const FETCH_TIMEOUT = 3000;
+// Activity gets its OWN, much longer timeout: a COLD assemble (live Streak scans) is 15–40s, and
+// the main view's 3s budget (tuned for a ~60s-cached feed) would abort every cold load and silently
+// fall through to the offline SAMPLE — canned health + fake customer rows shown as if live. A 5-min
+// cache-warmer keeps warm loads fast; this long timeout is the backstop for the cold case.
+const ACTIVITY_FETCH_TIMEOUT = 45000;
 const LS_KEY = "cc-lastgood-v1";
 
 const AUTO = {
@@ -337,6 +384,7 @@ const AUTO = {
 const AUTO_ORDER = ["auto-send","auto-draft","manual","planned","off"];
 
 let DATA = null, IDX = null, SOURCE = null, SOURCE_TIME = null;
+let ACTIVITY = null, ACTIVITY_SOURCE = null;
 
 const esc = s => (s==null?"":String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
@@ -724,6 +772,7 @@ function route(){
     else if(seg0==="search"){ renderSearchScreen(app, p[1]||""); }
     else if(seg0==="simulator"){ renderSimulator(app); }
     else if(seg0==="validation"){ renderValidation(app); }
+    else if(seg0==="activity"){ renderActivity(app); }
     else { renderHome(app); }
   }catch(err){
     console.error(err);
@@ -759,6 +808,11 @@ function renderHome(app){
   const journeyN = Object.keys(IDX.journeysByType).length;
   const autoLiveN = DATA.touchpoints.filter(t=>!isRetired(t) && t.healthStatus==="live").length;
   const stageN = DATA.stages.length;
+  // Activity movement count is known only when the offline sample carries an activity block; live,
+  // it is fetched on the view itself (separate webhook), so the tile shows a neutral marker.
+  const actMoves = DATA.activity ? ["qc","crosssell","atrisk"].reduce((n,k)=>{
+    const a=(DATA.activity.engines||{})[k]; return n+(Array.isArray(a)?a.length:0);
+  },0) : null;
   const tiles=[
     {ic:"📧",lab:"Scripts",one:"Every email we send",cnt:emailN,csub:"live",hash:"#/scripts"},
     {ic:"📞",lab:"Calls",one:"Talking points for the phone",cnt:callN,csub:"live",hash:"#/calls"},
@@ -766,7 +820,8 @@ function renderHome(app){
     {ic:"⚙️",lab:"Automations",one:"What fires on its own",cnt:autoLiveN,csub:"live",hash:"#/automations"},
     {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"},
     {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"},
-    {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:SIM_SPINE.length,csub:"statuses",hash:"#/simulator"}
+    {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:SIM_SPINE.length,csub:"statuses",hash:"#/simulator"},
+    {ic:"📡",lab:"Activity",one:"What the system did — live retention movement + health",cnt:(actMoves!=null?actMoves:"•"),csub:(actMoves!=null?"moves · 7d":"live"),hash:"#/activity"}
   ];
   const tg = el("div","tiles");
   tiles.forEach(t=>{
@@ -1890,6 +1945,245 @@ function renderValidation(app){
     app.appendChild(r);
   });
   if(!gaps.length){ app.appendChild(el("div","empty",'<div class="big">No gaps</div><div>Every script is written and live.</div>')); }
+}
+
+/* ─────────────────────────── ACTIVITY (retention movement + health) ─────────────────────────── */
+// Read-only render of the shared retention-activity CONTRACT. The page WRITES NOTHING.
+// Fail-soft LOUD: a null movement array, or a sourceStatus !== "ok", renders "source unavailable"
+// — never an empty list that would read as "nothing happened".
+const ACT_ENGINES = [
+  {key:"qc",        label:"QC + Review",        one:"Sale-pipeline boxes with a review sent (field 1078)"},
+  {key:"crosssell", label:"Cross-sell",         one:"Retention-pipeline boxes with cross-sell movement (1025)"},
+  {key:"atrisk",    label:"At-Risk Save-Touch", one:"Save-touch stamps in window (1026–1029; 1030 = presence only)"}
+];
+
+// Format a PT ISO ("2026-07-15T09:00:00-07:00") to a short string IN Pacific time. The server
+// already emits PT and carries meta.tz; we re-format in that zone so a machine in another TZ
+// still reads PT. Falls back to a literal HH:MM lift if the value isn't a parseable instant.
+function fmtPT(iso, withDate){
+  if(iso==null || iso==="") return "";
+  const d = new Date(iso);
+  const lift = ()=>{ const m=String(iso).match(/T(\d{2}):(\d{2})/); return m ? m[1]+":"+m[2] : ""; };
+  if(isNaN(d.getTime())) return lift();
+  const tz = (ACTIVITY && ACTIVITY.meta && ACTIVITY.meta.tz) || "America/Los_Angeles";
+  try{
+    const opt = withDate
+      ? {timeZone:tz, month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}
+      : {timeZone:tz, hour:"numeric", minute:"2-digit"};
+    return new Intl.DateTimeFormat("en-US", opt).format(d);
+  }catch(e){ return lift(); }
+}
+
+// Load the activity payload. bust=true adds a cache-busting query param (the Refresh button).
+// Copies the existing view's fetch discipline (fetchWithTimeout: AbortController + no-store).
+// Falls back to the offline `activity` block for review with no live webhook — first from the
+// already-loaded DATA (if the whole page fell back to sample), then by fetching ./sample-data.json
+// directly (mirrors load()'s step-3 mirror), so the sample renders even when the main DATA is live.
+function validActivity(a){ return a && Array.isArray(a.health) && a.engines; }
+async function loadActivity(bust){
+  // 1. live sibling webhook — long timeout (cold assemble is 15–40s). Refresh MUST send
+  //    refresh=1: the workflow busts its cache on that param only, so a bare ?t= would return
+  //    the same stale cache (the button would look alive but do nothing).
+  try{
+    const url = ACTIVITY_ENDPOINT + (bust ? ("?refresh=1&t="+Date.now()) : "");
+    const d = await fetchWithTimeout(url, ACTIVITY_FETCH_TIMEOUT);
+    if(validActivity(d)){ ACTIVITY_SOURCE="live"; return d; }
+  }catch(e){ /* fall through to the offline sample */ }
+  // 2. activity block already present on the loaded payload
+  if(DATA && validActivity(DATA.activity)){ ACTIVITY_SOURCE="sample"; return DATA.activity; }
+  // 3. static sample-data mirror beside the page
+  try{
+    const d = await fetchWithTimeout("./sample-data.json"+(bust?("?t="+Date.now()):""), FETCH_TIMEOUT);
+    if(d && validActivity(d.activity)){ ACTIVITY_SOURCE="sample"; return d.activity; }
+  }catch(e){}
+  ACTIVITY_SOURCE="none"; return null;
+}
+
+// Overall dot — computed client-side from health[] per the contract rule, so the dot can NEVER
+// disagree with the chips it summarizes (that consistency is the point of the forced-red
+// acceptance test). STAGED entries are excluded entirely — otherwise the strip is amber/red by
+// default pre-flip and Holly learns to ignore it. Equals payload.overall when the server agrees.
+function activityOverall(health){
+  let red=false, amber=false;
+  (health||[]).forEach(h=>{
+    if(h.state==="STAGED") return;                             // inactive by design → never drives the dot
+    if(h.sourceStatus && h.sourceStatus!=="ok"){ amber=true; return; }  // can't trust it → amber, NEVER red
+    if(h.state==="ACTIVE-PROBLEM") red=true;
+  });
+  return red ? "red" : (amber ? "amber" : "green");
+}
+
+function healthPill(h){
+  const src = h.sourceStatus || "ok";
+  const badSrc = (src==="unreadable" || src==="no-data");   // unreadable/no-data => grey, NEVER red
+  let cls, stateLbl;
+  // STAGED wins the label even when its source reads no-data (an inactive wf has no runs) — the
+  // point is to say "off by design", not "broken data". Both render grey / excluded from the dot.
+  if(h.state==="STAGED"){ cls="staged"; stateLbl="staged / inactive by design"; }
+  else if(badSrc){ cls="nodata"; stateLbl="no data"; }
+  else if(h.state==="ACTIVE-PROBLEM"){ cls="problem"; stateLbl="problem"; }
+  else { cls="ok"; stateLbl="ok"; }
+  // Who fixes a problem here. Known enum, but esc'd for consistency; missing => "manual".
+  const rawOwner = (h.fixOwner==="auto"||h.fixOwner==="agent"||h.fixOwner==="manual") ? h.fixOwner : "manual";
+  const FIX_LONG = {auto:"AUTO (self-heals)", agent:"AGENT", manual:"MANUAL (Holly/Jean)"};
+  const pill=el("div","hpill "+cls);
+  // Subtle owner badge on the title row (quiet on OK/STAGED; the red chip also gets the loud line).
+  let html='<div class="hl"><span class="dotp"></span>'+esc(h.label||h.wf||"—")+
+      '<span class="fixown '+rawOwner+'">'+esc(rawOwner.toUpperCase())+'</span></div>'+
+    '<div class="ht"><span class="hstate">'+esc(stateLbl)+'</span>'+(h.schedule?'<span>'+esc(h.schedule)+'</span>':'')+'</div>';
+  if(badSrc && h.state!=="STAGED"){
+    html+='<div class="hd">last run: source unavailable</div>';
+  } else {
+    const when=fmtPT(h.lastRunPT, true);
+    html+='<div class="ht">last run: '+(when?esc(when)+" PT":"—")+
+      (h.lastStatus?' · '+esc(h.lastStatus):'')+'</div>';
+    if(h.detail) html+='<div class="hd">'+esc(h.detail)+'</div>';
+  }
+  // On a red PROBLEM chip, promote the fix owner to a prominent line so Holly instantly knows
+  // whether it's hers to act on (MANUAL), an agent's, or self-healing.
+  if(cls==="problem"){
+    html+='<div class="fixline '+rawOwner+'">→ FIX: '+esc(FIX_LONG[rawOwner])+'</div>';
+  }
+  pill.innerHTML=html;
+  return pill;
+}
+
+// One movement card (qc / crosssell / atrisk): box name, owner mailbox ("from"), date,
+// invoice (qc), step (atrisk), and an [Open in Streak] link from streakUrl.
+function movementCard(row, engineKey){
+  const c=el("div","ecard mv");
+  let html='<div class="nm">'+esc(row.box||"—")+'</div>'+
+    '<div class="cd">from '+esc(row.owner||"—")+(row.date?' · '+esc(row.date):'')+'</div>';
+  const badges=[];
+  if(engineKey==="qc" && row.invoice) badges.push('<span class="cad">#'+esc(row.invoice)+'</span>');
+  if(engineKey==="atrisk" && row.step) badges.push('<span class="cad">'+esc(row.step)+'</span>');
+  if(engineKey==="atrisk" && row.threads!=null) badges.push('<span class="sysbadge">'+esc(row.threads)+' thread'+(+row.threads===1?'':'s')+'</span>');
+  const rw=el("div","row"); rw.innerHTML=badges.join("");
+  // Only wire the link for an https:// URL — never let a javascript:/data: value from the feed
+  // become a clickable href. A non-conforming value simply omits the link.
+  if(row.streakUrl && /^https:\/\//.test(String(row.streakUrl))){
+    const a=el("a","slink","Open in Streak →");
+    a.href=row.streakUrl; a.target="_blank"; a.rel="noopener noreferrer";
+    rw.appendChild(a);
+  }
+  c.innerHTML=html; c.appendChild(rw);
+  return c;
+}
+
+// One movement section. LOUD "source unavailable" when the fetch failed — signalled EITHER by
+// arr===null/undefined OR by engineStatus[engine]==="unreadable" (a Streak failure that arrives as
+// []). Only a genuinely-empty [] with engineStatus "ok" gets the calm "no movement" state — otherwise
+// a failed fetch is indistinguishable from a quiet day (the silent-wrong class).
+function movementSection(app, eng, arr, ds){
+  const engStatus=(ACTIVITY.engineStatus||{})[eng.key];
+  const unreadable = (arr==null) || (engStatus==="unreadable");
+  const h=el("h2","sec"); h.innerHTML=esc(eng.label)+' <span class="sub">'+esc(eng.one)+'</span>'; app.appendChild(h);
+  if(ds){
+    // drafts/skips — automation layer (LEDGER), NOT Streak. null/unreadable never shown as 0.
+    const note=el("div","sheetnote"); note.style.margin="-4px 0 10px";
+    if((ds.sourceStatus && ds.sourceStatus!=="ok") || ds.drafts==null || ds.skips==null){
+      note.textContent="drafts / skips: source unavailable (LEDGER)";
+    } else {
+      note.textContent="drafts "+ds.drafts+" · skips "+ds.skips+" (LEDGER · the drill-down)";
+    }
+    app.appendChild(note);
+  }
+  if(unreadable){
+    app.appendChild(el("div","vbanner",'⚠️ Source unavailable — could not read '+esc(eng.label)+' movement from Streak. This is NOT "nothing happened."'));
+    return;
+  }
+  if(!arr.length){
+    app.appendChild(el("div","actempty","No "+esc(eng.label)+" movement in the window (today + last 7 days)."));
+    return;
+  }
+  const g=el("div","grid"); arr.forEach(r=>g.appendChild(movementCard(r, eng.key))); app.appendChild(g);
+}
+
+function renderActivity(app){
+  setCrumb([["Command Center","#/"],["Activity",null]]);
+  // Spinner first — a slow webhook must never look like a blank page.
+  app.appendChild(el("div","empty",'<div class="big">Loading activity…</div><div>Reading retention movement + engine health.</div>'));
+  loadActivity(false).then(a=>{ ACTIVITY=a; paintActivity(app); });
+}
+
+function paintActivity(app){
+  app.innerHTML="";
+  if(!ACTIVITY){
+    const e=el("div","empty",'<div class="big">Activity unavailable</div>'+
+      '<div>The retention-activity feed is unreachable and no offline sample was found.<br>'+
+      'Open this page from the deployed site (past the PIN gate), or place <span class="mono">sample-data.json</span> beside it.</div>');
+    const btn=el("button","btn ghost","Retry"); btn.style.marginTop="14px";
+    btn.onclick=()=>renderActivity(clear(app));
+    e.appendChild(btn); app.appendChild(e); return;
+  }
+  const A=ACTIVITY, meta=A.meta||{}, engines=A.engines||{};
+
+  // ── SAMPLE guard (M3): if the live webhook was down and we fell back to the offline block, the
+  // health + customer rows are CANNED — mark the whole view loudly so a green topbar (main feed up,
+  // activity webhook down) can never sit over fabricated data. Not left to the small lookback line.
+  if(ACTIVITY_SOURCE==="sample"){
+    const sb=el("div","","⚠ SAMPLE DATA — not live. Health and customer rows below are canned fixtures, not the live retention feed.");
+    sb.style.cssText="background:#fffbeb;border:1.5px solid #f0c14b;color:#7c4a03;border-radius:12px;"+
+      "padding:13px 18px;font-size:13.5px;font-weight:800;margin:6px 0 4px;display:flex;gap:10px;align-items:center";
+    app.appendChild(sb);
+  }
+
+  // ── header: title + "data as of HH:MM PT" + fixed lookback + Refresh ──
+  const hd=el("div","acthead");
+  const asOf=fmtPT(meta.asOf, false);
+  const left=el("div");
+  left.innerHTML='<div class="crumb" style="color:#b45309">Retention · Activity</div>'+
+    '<div style="font-size:22px;font-weight:800;text-transform:uppercase;margin-top:3px">What the system did</div>'+
+    '<div class="sheetnote" style="margin-top:4px">Lookback: <b>today + last 7 days</b>'+
+      (ACTIVITY_SOURCE==="sample"?' · <b style="color:#b45309">offline sample</b>':'')+'</div>';
+  const right=el("div","actright");
+  const asofBadge=el("div","actasof"); asofBadge.innerHTML='data as of <b>'+(asOf?esc(asOf)+" PT":"—")+'</b>';
+  const refresh=el("button","btn ghost","↻ Refresh"); refresh.setAttribute("aria-label","Refresh activity data");
+  refresh.onclick=()=>{ refresh.disabled=true; refresh.textContent="Refreshing…";
+    loadActivity(true).then(a=>{ ACTIVITY=a; paintActivity(app); }); };
+  right.appendChild(asofBadge); right.appendChild(refresh);
+  hd.appendChild(left); hd.appendChild(right);
+  app.appendChild(hd);
+
+  // ── PANEL 1 — health strip (always "now", not date-scoped) ──
+  const overall=activityOverall(A.health);
+  const overallLbl={green:"all clear",amber:"needs a look",red:"problem"}[overall];
+  const h1=el("h2","sec");
+  h1.innerHTML='Health <span class="sub">is anything broken — the strip is always "now"</span>'+
+    '<span class="fresh '+overall+'" style="float:right;margin-top:-2px"><span class="fdot"></span>'+overallLbl+'</span>';
+  app.appendChild(h1);
+  if(!(A.health||[]).length){
+    app.appendChild(el("div","actempty","No health entries in the payload."));
+  } else {
+    const strip=el("div","hstrip");
+    (A.health||[]).forEach(h=>strip.appendChild(healthPill(h)));
+    app.appendChild(strip);
+    app.appendChild(el("div","sheetnote","Grey = staged (inactive by design) or no data — both excluded from the dot. The dot goes red only when a LIVE engine has a problem."));
+    app.appendChild(el("div","sheetnote","Fix owner — AUTO: self-heals · AGENT: a Claude agent handles it · MANUAL: Holly or Jean."));
+  }
+
+  // ── PANEL 2 — movement, grouped by engine ──
+  const ds=A.draftsSkips||{};
+  ACT_ENGINES.forEach(eng=>{
+    // Contract fail-soft signal: a MISSING key or explicit null = unreadable; [] = truly empty.
+    const arr = (eng.key in engines) ? engines[eng.key] : null;
+    movementSection(app, eng, arr, ds[eng.key]);
+  });
+
+  // Open-Deal Guard — rendered as CURRENT STATE, not a movement list (a stale hold must not
+  // read as "activity"). Its own sourceStatus gates the fail-soft banner.
+  const od=engines.opendeal;
+  const h4=el("h2","sec"); h4.innerHTML='Open-Deal Guard <span class="sub">current state — suppressed boxes, not movement</span>'; app.appendChild(h4);
+  if(!od || (od.sourceStatus && od.sourceStatus!=="ok")){
+    app.appendChild(el("div","vbanner","⚠️ Source unavailable — could not read the Open-Deal suppression state."));
+  } else {
+    const card=el("div","panel");
+    card.innerHTML='<h3>Currently suppressed</h3>'+
+      '<div class="fires" style="font-size:24px;font-weight:800;color:#1f2430">'+esc(od.suppressedCount!=null?od.suppressedCount:"—")+
+        ' <span style="font-size:13px;font-weight:600;color:var(--mut)">open-deal box'+(+od.suppressedCount===1?'':'es')+' held from touches</span></div>'+
+      (od.oldestSuppression?'<div class="sheetnote" style="margin-top:8px">Oldest suppression: <b>'+esc(od.oldestSuppression)+'</b> — a stale hold must not read as activity.</div>':'');
+    app.appendChild(card);
+  }
 }
 
 /* ─────────────────────────── shared bits ─────────────────────────── */
