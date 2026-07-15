@@ -19,9 +19,9 @@
     <div class="grid work-grid">
       <form class="panel grid" id="requestForm">
         <div class="form-grid">
-          <label class="full">Job Request Name<input id="jobName" name="title" placeholder="26480_Client_Bandana" required></label>
-          <label>Order #<input name="orderNo" placeholder="26480"></label>
-          <label>Customer<input name="customer" placeholder="Client name"></label>
+          <label class="full">Job Name<input id="jobName" name="title" placeholder="26480_Client_Bandana" required></label>
+          <label>Quote / Invoice #<input name="orderNo" placeholder="26480"></label>
+          <label>Assigned PM<select name="assignedPM"><option value="">Unassigned</option><option>Shara</option><option>Jackie</option><option>Courtney</option><option>Holly</option></select></label>
           <label>Turnaround<select name="turnaround"><option>Normal</option><option>Rush</option></select></label>
           <label>Final Format<select name="finalFormat"><option>Profile</option><option>PDF</option><option>PNG</option></select></label>
         </div>
@@ -196,8 +196,8 @@
         const fd = new FormData(PG.$("#requestForm"));
         const project = fd.get("title") || "Graphics Request";
         const proof = await PG.buildProof({
-          customer: fd.get("customer") || "Planet Apparel",
-          project,
+          customer: fd.get("title") || "Planet Apparel",
+          project: "",
           imprint: (PG.readRows(PG.$("#locationTable"))[0] || {}).width || "Centered",
           colorways: `${productSel.value} / ${selectedVisualLabel()}`,
           scale: Number(PG.$("#scaleInput").value) / 100
@@ -226,7 +226,7 @@
         const a = document.createElement("a");
         a.href = PG.state.mockupCanvas.toDataURL("image/png");
         a.download = PG_SKU.buildFilename({
-          brand: new FormData(PG.$("#requestForm")).get("customer") || "Planet Apparel",
+          brand: new FormData(PG.$("#requestForm")).get("title") || "Planet Apparel",
           sku: skuSel.value,
           color: selectedVisualLabel(),
           layout: PG.$("#layoutSel").value,
@@ -258,6 +258,7 @@
           made_in_usa: selectedSkuRecord().made_in_usa,
           print_method: PG.$("#printMethodOverride").value || selectedSkuRecord().default_print_method,
           product: productSel.value,
+          assignedPM: fd.get("assignedPM") || "",
           colorway: selectedVisualTemplate(),
           colorway_label: selectedVisualLabel(),
           layout: PG.$("#layoutSel").value,
@@ -269,7 +270,7 @@
           body: JSON.stringify({
             order_no: fd.get("orderNo"),
             title: fd.get("title"),
-            customer: fd.get("customer"),
+            customer: fd.get("title"),
             product: productSel.value,
             intake,
             proof: PG.state.proofDataUrl

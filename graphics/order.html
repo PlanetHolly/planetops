@@ -48,7 +48,7 @@
             <tr><th>Created</th><td id="created"></td></tr>
             <tr><th>Started</th><td id="started"></td></tr>
             <tr><th>Completed</th><td id="completed"></td></tr>
-            <tr><th>People</th><td><input id="people" placeholder="Free text"></td></tr>
+            <tr><th>Assigned PM</th><td><input id="people" placeholder="Unassigned"></td></tr>
           </tbody>
         </table>
         <label style="margin-top:14px">Status
@@ -71,14 +71,14 @@
 
     function render() {
       PG.$("#title").textContent = order.title || order.order_no || "Graphics Order";
-      PG.$("#subtitle").textContent = `${order.customer || "No customer"} / ${order.product || ""}`;
+      PG.$("#subtitle").textContent = [order.product, order.intake?.assignedPM ? `PM: ${order.intake.assignedPM}` : ""].filter(Boolean).join(" · ");
       PG.$("#orderNo").textContent = order.order_no || "";
       PG.$("#statusBadge").innerHTML = PG.badge(order.status);
       PG.$("#created").textContent = PG.fmtDate(order.created_at);
       PG.$("#started").textContent = PG.fmtDate(order.started_at);
       PG.$("#completed").textContent = PG.fmtDate(order.completed_at);
       PG.$("#statusSel").value = order.status;
-      PG.$("#people").value = order.intake?.people || "";
+      PG.$("#people").value = order.intake?.people || order.intake?.assignedPM || "";
       PG.$("#projectData").textContent = JSON.stringify(order.intake || {}, null, 2);
       PG.$("#proofLink").href = `/api/graphics/proof/${order.id}`;
       const notes = order.notes || [];
