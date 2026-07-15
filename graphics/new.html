@@ -49,6 +49,7 @@
           </table>
         </div>
         <label>Upload Artwork<input type="file" id="artInput" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+        <button type="button" id="clearArtBtn" class="secondary hidden" style="align-self:flex-start;margin-top:-4px">Remove artwork</button>
         <div class="pms-search">
           <label>PMS Solid Coated<input id="pmsInput" placeholder="Search 7408, black, navy"></label>
           <div class="pms-results hidden" id="pmsResults"></div>
@@ -156,15 +157,38 @@
       }
       productSel.addEventListener("change", async () => {
         updateProductUi();
+        syncGarmentFromColorway();
         await redraw();
       });
-      colorSel.addEventListener("change", redraw);
+      const garmentColor = () => PG.$("#garmentTable input[name=color]");
+      function syncGarmentFromColorway() {
+        const g = garmentColor();
+        if (g && productSel.value !== "paisley") g.value = selectedVisualLabel();
+      }
+      colorSel.addEventListener("change", () => { syncGarmentFromColorway(); redraw(); });
+      // Typing a color in Garment Details picks the matching colorway flat (so the mockup + summary match).
+      const gc = garmentColor();
+      if (gc) gc.addEventListener("input", () => {
+        if (productSel.value === "paisley") return;
+        const val = gc.value.trim().toLowerCase();
+        if (!val) return;
+        const opt = [...colorSel.options].find(o => o.text.toLowerCase() === val)
+                 || [...colorSel.options].find(o => o.text.toLowerCase().includes(val));
+        if (opt && opt.value !== colorSel.value) { colorSel.value = opt.value; redraw(); }
+      });
       PG.$("#scaleInput").addEventListener("input", () => {
         PG.$("#scaleOut").textContent = PG.$("#scaleInput").value + "%";
         redraw();
       });
+      const clearArtBtn = PG.$("#clearArtBtn");
       PG.$("#artInput").addEventListener("change", async e => {
-        if (e.target.files[0]) await PG.setArtFile(e.target.files[0]);
+        if (e.target.files[0]) { await PG.setArtFile(e.target.files[0]); clearArtBtn.classList.remove("hidden"); }
+        redraw();
+      });
+      clearArtBtn.addEventListener("click", () => {
+        PG.$("#artInput").value = "";
+        PG.state.art = null;
+        clearArtBtn.classList.add("hidden");
         redraw();
       });
 
@@ -256,6 +280,7 @@
 
       updateSkuMetadata();
       updateProductUi();
+      syncGarmentFromColorway();
       await redraw();
     })().catch(e => {
       PG.$("#studioMsg").innerHTML = `<span class="error">${PG.esc(e.message)}</span>`;
