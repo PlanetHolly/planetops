@@ -7281,8 +7281,36 @@ function routeHash(){
 }
 window.addEventListener('hashchange', routeHash);
 
+/* One-time heal (2026-07-15). detectCategory used to tag ANY imprint with
+   "Finishing: Yes" as a finishing-only unit, so a screen print that merely also
+   needs finishing showed only the gated post-production Service timer instead of
+   Setup / Press Check / Press Run. The classifier is fixed for newly-imported
+   jobs, but jobs already in shared state stay frozen with the wrong category —
+   the Printavo sync never re-runs classification on an existing job. A print
+   imprint kept its real ink type on the work unit even when misclassified, so a
+   'finishing' unit carrying a real inkType is actually a screen print. Reclassify
+   those, but ONLY units that never started (no running/paused timer, no stage
+   history, not done) so nothing in progress is orphaned. Idempotent — a healed
+   unit is 'screen', so it won't match again. */
+function healMisclassifiedWorkUnits(){
+  let healed = 0;
+  (state.jobs || []).forEach(j => (j.workUnits || []).forEach(w => {
+    const untouched = (!w.timer || w.timer.state === 'idle') && !(w.stageHistory && w.stageHistory.length) && w.activeStage !== 'done';
+    if(w.category === 'finishing' && w.inkType && String(w.inkType).trim() && untouched){
+      w.category      = 'screen';
+      w.categoryLabel = categoryLabel('screen');
+      w.gates         = initGates('screen', w.gates);   // give it the 5 screen pre-press gates (unchecked)
+      w.activeStage   = null;
+      healed++;
+    }
+  }));
+  if(healed){ saveState(); console.log('[heal] reclassified ' + healed + ' finishing→screen work unit(s)'); }
+  return healed;
+}
+
 (async () => {
   await loadState();          // shared state must finish loading before the board is built
+  healMisclassifiedWorkUnits();   // fix jobs imported before the 2026-07-15 classifier fix
   // 🔑 THE 22-HOUR FIX: a timer left running while NO page was open can only be caught
   // here, on load. Auto-pause anything that crossed shop close or blew the hard cap.
   reconcileStaleTimers();
