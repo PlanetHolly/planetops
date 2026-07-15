@@ -182,6 +182,17 @@
           "icon": "🎨"
         },
         {
+          "id": "graphics-templates",
+          "kind": "surface",
+          "name": "Manage Templates",
+          "blurb": "Upload and replace Planet Graphics flats and template art",
+          "type": "tool",
+          "url": "../graphics/templates.html",
+          "status": "live",
+          "access": "open",
+          "icon": "🖼️"
+        },
+        {
           "id": "art-namer",
           "kind": "surface",
           "name": "Art Namer",
@@ -417,8 +428,8 @@
         {
           "id": "bandana-pricing-desk",
           "kind": "surface",
-          "name": "Bandana Pricing — Desk (prices only)",
-          "blurb": "Quote reference for the bandana desk. Every price break by product, ink, qty and colors. Prices only — no cost, no margin.",
+          "name": "Bandana Quote (desk)",
+          "blurb": "Bandana price lookup by product, qty, colors. Prices only. Team quoting tool.",
           "type": "dashboard",
           "url": "../bandana-pricing/",
           "status": "live",
@@ -446,6 +457,17 @@
           "status": "live",
           "access": "pin",
           "icon": "🖩"
+        },
+        {
+          "id": "apparel-quote-team",
+          "kind": "surface",
+          "name": "Apparel Quote (desk)",
+          "blurb": "Quick apparel screen-print quote — garment + decoration + services. Prices only. Team quoting tool.",
+          "type": "tool",
+          "url": "../apparel-quote/",
+          "status": "live",
+          "access": "open",
+          "icon": "👕"
         }
       ]
     },
