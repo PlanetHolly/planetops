@@ -1575,27 +1575,67 @@ function renderJourneyTimeline(app, ct){
 // Training + audit view: pick a Printavo status, see what One Thread does at it.
 // The spine is the ordered customer lifecycle; the actual wiring (touchpoint + joined
 // live script) is resolved from the LIVE feed at render time, so it stays current.
-const SIM_SPINE=[
- {ph:"Quote",          id:"428338", name:"Quote Sent (Manually)"},
- {ph:"Quote",          id:"390317", name:"1: 🚀 Quote Approval Sent 🚀"},
- {ph:"Chase",          id:"433065", name:"2: 🚀 Quote Approval Follow Up 🚀", kind:"timed", planned:"^ot_chase_2"},
- {ph:"Chase",          id:"433066", name:"3: 🚀 Quote Approval Final Follow Up 🚀", kind:"timed", planned:"^ot_chase_3"},
- {ph:"Chase",          id:"433067", name:"4: 🚀 Archived Quote Notice Sent 🚀", kind:"timed", planned:"^ot_chase_final"},
- {ph:"Chase",          id:"427398", name:"🚫 Quote Declined 🚫", kind:"alert", planned:"^ot_quote_declined_alert"},
- {ph:"Approval & Art", id:"390318", name:"✅ Quote Approved ✅"},
- {ph:"Approval & Art", id:"427878", name:"🎨 Art/Order - Ready for Approval (Terms Only)"},
- {ph:"Approval & Art", id:"390319", name:"🚀 Art / Invoice Approval Sent 🚀", kind:"planned", planned:"^ot_art_invoice_approval"},
- {ph:"Approval & Art", id:"427879", name:"🚀 REVISED Art / Invoice Approval Sent 🚀", kind:"planned", planned:"^ot_revised_art_invoice_approval"},
- {ph:"Approval & Art", id:"427880", name:"🚫 Art / Invoice Declined 🚫", kind:"alert", planned:"^ot_art_declined_alert"},
- {ph:"Payment",        id:"390320", name:"✅ Art / Invoice Approved - Awaiting Payment ✅", kind:"timed", planned:"^ot_pay_button_touch"},
- {ph:"Production",     id:"390322", name:"🚧 In Production 🚧", kind:"silent"},
- {ph:"Production",     id:"390323", name:"📦 Production Completed - Ready to Package 📦", kind:"silent"},
- {ph:"Fulfillment",   id:"390324", name:"🚀 Order Ready for Pickup 🚚 🏁"},
- {ph:"Fulfillment",   id:"427877", name:"🚀 Order Ready for Delivery 🚚 🏁", kind:"planned", planned:"^ot_ready_for_delivery_notice"},
- {ph:"Fulfillment",   id:"390325", name:"🚀 Order Shipped ✈️ 🏁", kind:"planned", planned:"^ot_shipped_tracking", pnote:"draft-only until app/EasyPost tracking exists"},
- {ph:"Done",          id:"431010", name:"🤝 Delivered / Picked up 🏁", kind:"final"},
- {ph:"Done",          id:"390327", name:"🚀 Need it Again? 🔁", kind:"retention"}
-];
+// The dropdown is driven by the LIVE Printavo status list (fetched browser-side via
+// the read-only proxy, session-cached), so it always reflects the real statuses —
+// nothing to hand-maintain. Curation below only adds extra "why nothing fires" detail
+// by id; the actual wiring is still resolved from the live feed. No backend touched.
+const PRINTAVO_PROXY="https://primary-production-079f9.up.railway.app/webhook/printavo-proxy";
+const SIM_CURATION={
+ "428338":{ph:"Quote"},
+ "390317":{ph:"Quote"},
+ "433065":{ph:"Chase",kind:"timed",planned:"^ot_chase_2"},
+ "433066":{ph:"Chase",kind:"timed",planned:"^ot_chase_3"},
+ "433067":{ph:"Chase",kind:"timed",planned:"^ot_chase_final"},
+ "427398":{ph:"Chase",kind:"alert",planned:"^ot_quote_declined_alert"},
+ "390318":{ph:"Approval & Art"},
+ "427878":{ph:"Approval & Art"},
+ "390319":{ph:"Approval & Art",kind:"planned",planned:"^ot_art_invoice_approval"},
+ "427879":{ph:"Approval & Art",kind:"planned",planned:"^ot_revised_art_invoice_approval"},
+ "427880":{ph:"Approval & Art",kind:"alert",planned:"^ot_art_declined_alert"},
+ "390320":{ph:"Payment",kind:"timed",planned:"^ot_pay_button_touch"},
+ "390324":{ph:"Fulfillment"},
+ "427877":{ph:"Fulfillment",kind:"planned",planned:"^ot_ready_for_delivery_notice"},
+ "390325":{ph:"Fulfillment",kind:"planned",planned:"^ot_shipped_tracking",pnote:"draft-only until app/EasyPost tracking exists"},
+ "431010":{ph:"Done",kind:"final"},
+ "390327":{ph:"Done",kind:"retention"}
+};
+const SIM_PHASE_ORDER=["Quote","Chase","Approval & Art","Payment","Production","Fulfillment","Done","Archived & other"];
+function simPhaseOf(s){
+  const c=SIM_CURATION[s.id]; if(c&&c.ph) return c.ph;
+  const n=(s.name||"").toLowerCase();
+  if(/archiv|active care|qbo export|export testing|pre-approval payment/.test(n)) return "Archived & other";
+  if(s.type==="QUOTE"){
+    if(/art|digitiz|seps|in-house|invoice approval/.test(n)) return "Approval & Art";
+    return "Quote";
+  }
+  if(/awaiting payment|paid \/ terms|blanks to order/.test(n)) return "Payment";
+  if(/pickup|delivery|shipped|shipbob/.test(n)) return "Fulfillment";
+  if(/delivered|picked up|need it again/.test(n)) return "Done";
+  if(/terms only|approved - awaiting|invoice approved/.test(n)) return "Approval & Art";
+  return "Production";
+}
+function simDefaultKind(row){
+  if(row.type==="INVOICE" && !/pickup|delivery|shipped|delivered|picked up|need it again|awaiting payment|paid \/ terms/i.test(row.name||"")) return "silent";
+  return "none";
+}
+async function simFetchStatuses(){
+  try{
+    const raw=sessionStorage.getItem("cc_sim_statuses");
+    if(raw){ const o=JSON.parse(raw); if(o&&o.t&&(Date.now()-o.t)<3600000&&Array.isArray(o.list)&&o.list.length) return o.list; }
+  }catch(e){}
+  const out=[]; let after=null, guard=0;
+  try{
+    while(guard++<6){
+      const q='{ statuses(first:25'+(after?', after:"'+after+'"':'')+') { pageInfo{endCursor hasNextPage} edges{node{id name type}} } }';
+      const r=await fetch(PRINTAVO_PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q})});
+      const d=await r.json(); const conn=d&&d.data&&d.data.statuses; if(!conn) break;
+      (conn.edges||[]).forEach(e=>out.push({id:String(e.node.id),name:e.node.name,type:e.node.type}));
+      if(conn.pageInfo&&conn.pageInfo.hasNextPage){ after=conn.pageInfo.endCursor; } else break;
+    }
+  }catch(e){ /* fall through to whatever we collected (possibly empty) */ }
+  if(out.length){ try{ sessionStorage.setItem("cc_sim_statuses",JSON.stringify({t:Date.now(),list:out})); }catch(e){} }
+  return out;
+}
 function simNorm(s){ return String(s||"").replace(/\s+/g," ").trim().toLowerCase(); }
 function simTpFor(row){
   return DATA.touchpoints.filter(t=>!isRetired(t) && /printavo/i.test(t.system||"")).find(t=>{
@@ -1629,19 +1669,37 @@ function simEnsureCss(){
 function renderSimulator(app){
   simEnsureCss();
   setCrumb([["Command Center","#/"],["Status Simulator",null]]);
-  app.appendChild(sectionHead("Status Simulator","Pick a Printavo status — see exactly what the customer gets, and where the order goes next. Reflects the current live wiring."));
+  app.appendChild(sectionHead("Status Simulator","Pick a Printavo status — see exactly what the customer gets, and where the order goes next. The list is your live Printavo statuses; the wiring is read live too."));
   const pick=el("div","simpick");
-  const sel=document.createElement("select"); sel.id="simSel"; sel.className="simsel";
-  sel.appendChild(new Option("— choose a status —",""));
-  let og=null, curPh="";
-  SIM_SPINE.forEach((r,i)=>{
-    if(r.ph!==curPh){ curPh=r.ph; og=document.createElement("optgroup"); og.label=r.ph; sel.appendChild(og); }
-    og.appendChild(new Option(r.name, String(i)));
-  });
+  const sel=document.createElement("select"); sel.id="simSel"; sel.className="simsel"; sel.disabled=true;
+  sel.appendChild(new Option("loading your live statuses…",""));
   pick.appendChild(sel);
   app.appendChild(pick);
   const out=el("div",""); out.id="simOut"; app.appendChild(out);
-  sel.addEventListener("change",()=>{ out.innerHTML=""; const v=sel.value; if(v==="") return; simRender(out, SIM_SPINE[+v]); });
+  (async()=>{
+    const live=await simFetchStatuses();
+    if(!document.getElementById("simSel")) return; // navigated away
+    sel.innerHTML="";
+    if(!live.length){
+      sel.appendChild(new Option("— live statuses unavailable —",""));
+      out.appendChild(el("div","simnone",'<div class="simnt">Could not load your live status list</div><div class="simnb">The status service did not respond. Refresh the page to try again.</div>'));
+      return;
+    }
+    const spine=live.map(s=>Object.assign({id:s.id,name:s.name,type:s.type,ph:simPhaseOf(s)}, SIM_CURATION[s.id]||{}));
+    sel.appendChild(new Option("— choose a status ("+spine.length+" live) —",""));
+    const placed=new Set();
+    SIM_PHASE_ORDER.forEach(ph=>{
+      const inPh=spine.map((r,i)=>({r,i})).filter(x=>x.r.ph===ph);
+      if(!inPh.length) return;
+      const og=document.createElement("optgroup"); og.label=ph;
+      inPh.forEach(x=>{ og.appendChild(new Option(x.r.name, String(x.i))); placed.add(x.i); });
+      sel.appendChild(og);
+    });
+    const others=spine.map((r,i)=>({r,i})).filter(x=>!placed.has(x.i));
+    if(others.length){ const og=document.createElement("optgroup"); og.label="Other"; others.forEach(x=>og.appendChild(new Option(x.r.name,String(x.i)))); sel.appendChild(og); }
+    sel.disabled=false;
+    sel.addEventListener("change",()=>{ out.innerHTML=""; const v=sel.value; if(v==="") return; simRender(out, spine[+v]); });
+  })();
 }
 function simRender(out, row){
   const hd=el("div","simhd");
@@ -1660,7 +1718,7 @@ function simRender(out, row){
     });
     return;
   }
-  const k=row.kind||"none";
+  const k=row.kind||simDefaultKind(row);
   let title,body;
   if(k==="timed"){ title="⏱ Timed send — waits for the cadence engine"; body="The copy for this step is written and live ("+(row.planned||"")+"), but it fires on a timer, not the instant this status is set. The Phase 4 cadence engine that runs those clocks is not built yet, so nothing sends here today."; }
   else if(k==="planned"){ title="🧩 Planned — copy is ready, not yet wired"; body="The email ("+(row.planned||"")+") is written and live, but this status is not yet connected to it in the composer. Wiring it is on the batch-two list."+(row.pnote?" Note: "+row.pnote+".":""); }
