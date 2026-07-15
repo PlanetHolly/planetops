@@ -468,6 +468,28 @@
           "status": "live",
           "access": "open",
           "icon": "👕"
+        },
+        {
+          "id": "bandana-quote-team",
+          "kind": "surface",
+          "name": "Bandana Quote (desk)",
+          "blurb": "Quick bandana quote — product, ink, colors, qty, folds, belly bands, ink change. Prices only.",
+          "type": "tool",
+          "url": "../bandana-quote/",
+          "status": "live",
+          "access": "open",
+          "icon": "🏴"
+        },
+        {
+          "id": "bandana-quote-fin",
+          "kind": "surface",
+          "name": "Bandana Quote (SP)",
+          "blurb": "Bandana quote with Sales Profit + whole-project margin.",
+          "type": "tool",
+          "url": "../pricing/bandana-quote-calculator.html",
+          "status": "live",
+          "access": "pin",
+          "icon": "🏴"
         }
       ]
     },

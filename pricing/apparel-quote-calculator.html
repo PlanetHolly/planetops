@@ -110,10 +110,18 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
           <div class="field"><label for="p2">Placement 2 colors</label><input id="p2" type="number" min="0" max="12" step="1" value="0"></div>
         </div>
         <div class="field">
+          <div class="label">Imprint fees</div>
+          <div class="checkgrid" id="imprintFees"></div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="colorChangeCount">Color change count</label><input id="colorChangeCount" type="number" min="0" step="1" value="0"></div>
+          <div class="field"><label for="tapeOutCount">Tape out count</label><input id="tapeOutCount" type="number" min="0" step="1" value="0"></div>
+        </div>
+        <div class="field">
           <div class="label">Services</div>
           <div class="checkgrid" id="services"></div>
         </div>
-        <div class="note">Quantity floors to the Printavo matrix row at or below entered quantity. Box is a separate line at $3.00 per 72 garments.</div>
+        <div class="note">Locations are placements with colors greater than zero. Waterbase carries a 72pc minimum warning. Color change and tape out are project fees amortized into the per-unit price.</div>
       </form>
     </section>
 
@@ -188,13 +196,23 @@ const DATA_SOURCE={
 const SERVICES = [
   {id:'neck1', label:'Inside Neck 1c', unit:q => q < 72 ? 2.25 : 1.50, basis:'unit'},
   {id:'neck2', label:'Inside Neck 2c', unit:q => 2.25, basis:'unit'},
-  {id:'stdFold', label:'Standard Fold', unit:q => 0.50, basis:'unit'},
+  {id:'stdFold', label:'Standard Fold', unit:q => 0.50, cost:q => 0.25, basis:'unit'},
   {id:'customFold', label:'Custom Fold', unit:q => 1.25, basis:'unit'},
-  {id:'foldBag', label:'Fold+Bag', unit:q => 1.50, basis:'unit'},
-  {id:'hangTag', label:'Hang Tag', unit:q => 0.75, basis:'unit'},
-  {id:'polyBag', label:'Poly Bag', unit:q => 0.75, basis:'unit'},
+  {id:'foldBag', label:'Fold+Bag', unit:q => 1.50, cost:q => 0.60, basis:'unit'},
+  {id:'hangTag', label:'Hang Tag', unit:q => 0.75, cost:q => 0.15, basis:'unit'},
+  {id:'polyBag', label:'Poly Bag', unit:q => 0.75, cost:q => 0.35, basis:'unit'},
   {id:'box', label:'Box', unit:q => 3.00, basis:'box'}
 ];
+const IMPRINT_FEES = [
+  {id:'fleece', label:'Fleece', price:0.50, cost:0.25, basis:'location', meta:'$0.50 x locations'},
+  {id:'specialtyInk', label:'Specialty Ink', price:0.70, cost:0.30, basis:'location', meta:'$0.70 x locations'},
+  {id:'waterbase', label:'Waterbase', price:1.00, cost:0.55, basis:'locColor', meta:'$1.00 x locations x colors; 72pc min'},
+  {id:'oversize', label:'Oversize', price:1.00, cost:0.55, basis:'location', meta:'$1.00 x locations; apparel only'}
+];
+const SETUP_FEES = {
+  colorChange: {label:'Color Change', price:25.00, cost:15.00, meta:'$25.00 x loc/color count'},
+  tapeOut: {label:'Tape Out', price:25.00, cost:15.00, meta:'$25.00 x count'}
+};
 const $ = id => document.getElementById(id);
 const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
@@ -205,6 +223,9 @@ const clampInt = (v, min, max) => Math.max(min, Math.min(max, Math.floor(Number(
 
 function setupServices() {
   $('services').innerHTML = SERVICES.map(s => `<label class="check"><input type="checkbox" id="svc_${s.id}">${s.label}</label>`).join('');
+}
+function setupImprintFees() {
+  $('imprintFees').innerHTML = IMPRINT_FEES.map(f => `<label class="check"><input type="checkbox" id="fee_${f.id}">${f.label}</label>`).join('');
 }
 function rowsFor(tier, ink, placement, colors) {
   return (((MATRIX[tier] || {})[ink] || {})[placement] || {})[String(colors)] || null;
@@ -245,13 +266,21 @@ function spCard(title, d) {
   const b = band(d.rate);
   return `<div class="spcard"><div class="top"><h3>${title}</h3><span class="flag ${b.class}">${b.label}</span></div><div class="rate">${pct(d.rate)}</div><div class="spmeta">SP ${money(d.sp)} / price ${money(d.price)}<br>production ${money(d.cost)} @ prod tier ${d.prodQty || 'n/a'}<br>matrix row ${d.matrixQty || 'none'}</div></div>`;
 }
+function projectCard(d) {
+  if (!d.available) return `<div class="spcard"><div class="top"><h3>Total project</h3><span class="flag bad">missing</span></div><div class="spmeta">Whole-job SP blocked until missing matrix rows are resolved.</div></div>`;
+  const b = band(d.rate);
+  return `<div class="spcard"><div class="top"><h3>Total project</h3><span class="flag ${b.class}">${b.label}</span></div><div class="rate">${pct(d.rate)}</div><div class="spmeta">TOTAL PROJECT SP ${money(d.sp)}<br>SP as % of total invoice ${pct(d.rate)}<br>known cost basis ${money(d.cost)} / invoice ${money(d.price)}</div></div>`;
+}
 function readState() {
   const qty = Math.max(1, Math.floor(Number($('qty').value) || 1));
   const blank = Math.max(0, Number($('blankCost').value) || 0);
   const p1 = clampInt($('p1').value, 1, 12);
   const p2 = clampInt($('p2').value, 0, 12);
+  const colorChangeCount = clampInt($('colorChangeCount').value, 0, 999);
+  const tapeOutCount = clampInt($('tapeOutCount').value, 0, 999);
   $('qty').value = qty; $('blankCost').value = blank.toFixed(2); $('p1').value = p1; $('p2').value = p2;
-  return {qty, blank, source:$('source').value, tier:$('tier').value, ink:$('ink').value, p1, p2};
+  $('colorChangeCount').value = colorChangeCount; $('tapeOutCount').value = tapeOutCount;
+  return {qty, blank, source:$('source').value, tier:$('tier').value, ink:$('ink').value, p1, p2, colorChangeCount, tapeOutCount};
 }
 function render() {
   const s = readState();
@@ -262,25 +291,57 @@ function render() {
   if (!p1.available) warnings.push(p1.reason);
   if (!p2.available) warnings.push(p2.reason);
   if (s.qty < 12) warnings.push('Entered quantity is below the first matrix row; calculator uses the 12-piece row.');
+  const locations = (s.p1 > 0 ? 1 : 0) + (s.p2 > 0 ? 1 : 0);
+  const locColors = s.p1 + s.p2;
+  const imprintLines = [];
+  let imprintUnitTotal = 0;
+  let imprintUnitCost = 0;
+  let setupTotal = 0;
+  let setupCost = 0;
+  IMPRINT_FEES.forEach(fee => {
+    if (!$('fee_' + fee.id).checked) return;
+    if (fee.id === 'waterbase' && s.qty < 72) warnings.push('Waterbase / discharge has a 72pc minimum. Quote needs approval or quantity increase.');
+    const multiplier = fee.basis === 'locColor' ? locColors : locations;
+    const amount = fee.price * multiplier;
+    const cost = fee.cost * multiplier;
+    imprintUnitTotal += amount;
+    imprintUnitCost += cost;
+    imprintLines.push({label:fee.label, amount, meta:`${fee.meta}; ${multiplier} charge${multiplier===1?'':'s'}`, cost});
+  });
+  [
+    {count:s.colorChangeCount, ...SETUP_FEES.colorChange},
+    {count:s.tapeOutCount, ...SETUP_FEES.tapeOut}
+  ].forEach(fee => {
+    if (!fee.count) return;
+    const amount = fee.price * fee.count;
+    const cost = fee.cost * fee.count;
+    setupTotal += amount;
+    setupCost += cost;
+    imprintLines.push({label:fee.label, amount:amount / s.qty, meta:`${money(amount)} project fee; ${fee.meta}; ${money(amount / s.qty)} / unit`, cost:cost / s.qty, setup:true});
+  });
   const perUnitServices = [];
   let serviceUnitTotal = 0;
+  let serviceUnitCost = 0;
   let boxTotal = 0;
+  let boxCost = 0;
   SERVICES.forEach(svc => {
     const checked = $('svc_' + svc.id).checked;
     if (!checked) return;
     if (svc.basis === 'box') {
       const boxes = Math.ceil(s.qty / 72);
       boxTotal += boxes * svc.unit(s.qty);
+      boxCost += boxes * (svc.cost ? svc.cost(s.qty) : 0);
       perUnitServices.push({label:svc.label, amount:boxes * svc.unit(s.qty), meta:`${boxes} box line${boxes===1?'':'s'} @ ${money(svc.unit(s.qty))}`, box:true});
     } else {
       const amt = svc.unit(s.qty);
       serviceUnitTotal += amt;
+      serviceUnitCost += svc.cost ? svc.cost(s.qty) : 0;
       perUnitServices.push({label:svc.label, amount:amt, meta:`${money(amt)} / unit`, box:false});
     }
   });
   const p1Price = p1.available ? p1.price : 0;
   const p2Price = p2.available ? p2.price : 0;
-  const perUnit = s.blank + rec + p1Price + p2Price + serviceUnitTotal;
+  const perUnit = s.blank + rec + p1Price + p2Price + imprintUnitTotal + (setupTotal / s.qty) + serviceUnitTotal;
   const total = perUnit * s.qty + boxTotal;
   $('total').textContent = money0(total);
   $('perUnit').textContent = money(perUnit);
@@ -291,17 +352,23 @@ function render() {
   rows.push(row('Garment recovery', money(rec), s.source === 'PA-supplied' ? 'round_up_to_0.05(0.45 + 0.04 x blank)' : 'customer-supplied flat recovery'));
   rows.push(row('P1 decoration', p1.available ? money(p1.price) : 'Unavailable', p1.available ? `${s.p1} colors, matrix row ${p1.matrixQty}` : p1.reason));
   rows.push(row('P2 decoration', s.p2 ? (p2.available ? money(p2.price) : 'Unavailable') : '$0.00', s.p2 ? (p2.available ? `${s.p2} colors, matrix row ${p2.matrixQty}` : p2.reason) : 'No second placement'));
+  imprintLines.forEach(x => rows.push(row(x.label, money(x.amount), x.meta)));
   perUnitServices.filter(x=>!x.box).forEach(x => rows.push(row(x.label, money(x.amount), x.meta)));
-  rows.push(row('Per-unit price', money(perUnit), 'Blank + recovery + decoration + per-unit services', true));
+  rows.push(row('Per-unit price', money(perUnit), 'Blank + recovery + decoration + imprint fees + per-unit services', true));
   rows.push(row('Quantity', s.qty.toLocaleString('en-US'), 'Entered quantity'));
   perUnitServices.filter(x=>x.box).forEach(x => rows.push(row(x.label, money(x.amount), x.meta)));
   rows.push(row('Total', money(total), boxTotal ? 'Per-unit total x quantity + box lines' : 'Per-unit total x quantity', true));
   $('breakdown').innerHTML = rows.join('');
   const combined = {available:p1.available && p2.available, price:p1Price+p2Price, cost:(p1.cost||0)+(p2.cost||0)};
   combined.sp = combined.price - combined.cost; combined.rate = combined.price > 0 ? combined.sp / combined.price : null;
-  $('spPanel').innerHTML = spCard('P1 decoration', p1) + spCard('P2 decoration', p2) + spCard('Combined decoration', combined);
+  const knownCost = (s.blank * s.qty) + ((p1.cost || 0) * s.qty) + ((p2.cost || 0) * s.qty) + (imprintUnitCost * s.qty) + setupCost + (serviceUnitCost * s.qty) + boxCost;
+  const projectSp = total - knownCost;
+  const projectRate = total > 0 ? projectSp / total : null;
+  const project = {available:p1.available && p2.available, price:total, cost:knownCost, sp:projectSp, rate:projectRate};
+  $('spPanel').innerHTML = spCard('P1 decoration', p1) + spCard('P2 decoration', p2) + spCard('Combined decoration', combined) + projectCard(project);
 }
 setupServices();
+setupImprintFees();
 document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', render));
 render();
 </script>
