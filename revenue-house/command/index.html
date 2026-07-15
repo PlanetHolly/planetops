@@ -722,6 +722,7 @@ function route(){
     else if(seg0==="lifecycle" && p[1]){ renderLifecycle(app, p[1]); }
     else if(seg0==="lifecycle"){ renderLifecycle(app, null); }
     else if(seg0==="search"){ renderSearchScreen(app, p[1]||""); }
+    else if(seg0==="simulator"){ renderSimulator(app); }
     else if(seg0==="validation"){ renderValidation(app); }
     else { renderHome(app); }
   }catch(err){
@@ -764,7 +765,8 @@ function renderHome(app){
     {ic:"🧭",lab:"Journeys",one:"What a customer hears, in order",cnt:journeyN,csub:"paths",hash:"#/journeys"},
     {ic:"⚙️",lab:"Automations",one:"What fires on its own",cnt:autoLiveN,csub:"live",hash:"#/automations"},
     {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"},
-    {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"}
+    {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"},
+    {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:SIM_SPINE.length,csub:"statuses",hash:"#/simulator"}
   ];
   const tg = el("div","tiles");
   tiles.forEach(t=>{
@@ -1512,6 +1514,109 @@ function renderJourneyTimeline(app, ct){
     tl.appendChild(entry);
   });
   app.appendChild(tl);
+}
+
+/* ─────────────────────────── STATUS SIMULATOR ─────────────────────────── */
+// Training + audit view: pick a Printavo status, see what One Thread does at it.
+// The spine is the ordered customer lifecycle; the actual wiring (touchpoint + joined
+// live script) is resolved from the LIVE feed at render time, so it stays current.
+const SIM_SPINE=[
+ {ph:"Quote",          id:"428338", name:"Quote Sent (Manually)"},
+ {ph:"Quote",          id:"390317", name:"1: 🚀 Quote Approval Sent 🚀"},
+ {ph:"Chase",          id:"433065", name:"2: 🚀 Quote Approval Follow Up 🚀", kind:"timed", planned:"^ot_chase_2"},
+ {ph:"Chase",          id:"433066", name:"3: 🚀 Quote Approval Final Follow Up 🚀", kind:"timed", planned:"^ot_chase_3"},
+ {ph:"Chase",          id:"433067", name:"4: 🚀 Archived Quote Notice Sent 🚀", kind:"timed", planned:"^ot_chase_final"},
+ {ph:"Chase",          id:"427398", name:"🚫 Quote Declined 🚫", kind:"alert", planned:"^ot_quote_declined_alert"},
+ {ph:"Approval & Art", id:"390318", name:"✅ Quote Approved ✅"},
+ {ph:"Approval & Art", id:"427878", name:"🎨 Art/Order - Ready for Approval (Terms Only)"},
+ {ph:"Approval & Art", id:"390319", name:"🚀 Art / Invoice Approval Sent 🚀", kind:"planned", planned:"^ot_art_invoice_approval"},
+ {ph:"Approval & Art", id:"427879", name:"🚀 REVISED Art / Invoice Approval Sent 🚀", kind:"planned", planned:"^ot_revised_art_invoice_approval"},
+ {ph:"Approval & Art", id:"427880", name:"🚫 Art / Invoice Declined 🚫", kind:"alert", planned:"^ot_art_declined_alert"},
+ {ph:"Payment",        id:"390320", name:"✅ Art / Invoice Approved - Awaiting Payment ✅", kind:"timed", planned:"^ot_pay_button_touch"},
+ {ph:"Production",     id:"390322", name:"🚧 In Production 🚧", kind:"silent"},
+ {ph:"Production",     id:"390323", name:"📦 Production Completed - Ready to Package 📦", kind:"silent"},
+ {ph:"Fulfillment",   id:"390324", name:"🚀 Order Ready for Pickup 🚚 🏁"},
+ {ph:"Fulfillment",   id:"427877", name:"🚀 Order Ready for Delivery 🚚 🏁", kind:"planned", planned:"^ot_ready_for_delivery_notice"},
+ {ph:"Fulfillment",   id:"390325", name:"🚀 Order Shipped ✈️ 🏁", kind:"planned", planned:"^ot_shipped_tracking", pnote:"draft-only until app/EasyPost tracking exists"},
+ {ph:"Done",          id:"431010", name:"🤝 Delivered / Picked up 🏁", kind:"final"},
+ {ph:"Done",          id:"390327", name:"🚀 Need it Again? 🔁", kind:"retention"}
+];
+function simNorm(s){ return String(s||"").replace(/\s+/g," ").trim().toLowerCase(); }
+function simTpFor(row){
+  return DATA.touchpoints.filter(t=>!isRetired(t) && /printavo/i.test(t.system||"")).find(t=>{
+    const m=/statusid\s*(\d+)/i.exec(t.notes||"");
+    if(m && m[1]===row.id) return true;
+    return simNorm(t.trigger)===simNorm(row.name);
+  });
+}
+function simScriptsFor(tpId){
+  return (DATA.touchpoint_scripts||[]).filter(j=>j.touchpointId===tpId)
+    .map(j=>({sendMode:j.sendMode, tier:j.tier, s:DATA.scripts.find(x=>x.code===j.scriptCode && x.publishStatus==="live")}))
+    .filter(x=>x.s);
+}
+function simStampNote(mode){
+  const m=simNorm(mode);
+  if(m==="auto-send") return "Sends automatically into the customer’s existing email thread the moment the order reaches this status, then logs the send to the ledger (script + content hash). The order is not moved to a new status by this.";
+  if(m==="auto-draft"||m==="concierge") return "Writes a ready-to-send draft in the rep’s inbox and pings them on Google Chat. A person reviews it and hits send — nothing goes out on its own.";
+  if(m==="tiered") return "T3 accounts auto-send; T1 / T2 / VIP get a draft for a human touch first.";
+  return "Wired in the plan; exact behavior is confirmed at go-live.";
+}
+function simEnsureCss(){
+  if($("simcss")) return;
+  const st=document.createElement("style"); st.id="simcss";
+  st.textContent=".simpick{margin:16px 0 4px}.simsel{font:inherit;font-size:15px;padding:11px 14px;border:1px solid #d7dbe3;border-radius:10px;background:#fff;min-width:min(440px,100%);color:#1f2430;cursor:pointer}"+
+   ".simhd{margin:16px 0 10px;padding:14px 16px;border:1px solid #e6e8ee;border-radius:12px;background:#fafbfc}.simname{font-weight:800;font-size:18px;color:#1f2430;line-height:1.3}.simmeta{font-size:12.5px;color:#6b7280;margin-top:4px}"+
+   ".simfires{display:flex;align-items:center;gap:10px;margin:10px 0 2px;flex-wrap:wrap}.simbadge{font-weight:800;font-size:12px;letter-spacing:.03em;color:#065f46;background:#d1fae5;padding:4px 11px;border-radius:999px;white-space:nowrap}.simscript{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#374151}"+
+   ".simstamp{font-size:13.5px;color:#374151;background:#f3f4f6;border-radius:10px;padding:11px 14px;margin:7px 0 4px;line-height:1.55}.simstamp b{color:#1f2430}"+
+   ".simnone{padding:16px 18px;border:1px solid #e6e8ee;border-radius:12px;background:#fff;margin-top:10px}.simnt{font-weight:800;font-size:15.5px;color:#1f2430;margin-bottom:6px}.simnb{font-size:14px;color:#4b5563;line-height:1.6}";
+  document.head.appendChild(st);
+}
+function renderSimulator(app){
+  simEnsureCss();
+  setCrumb([["Command Center","#/"],["Status Simulator",null]]);
+  app.appendChild(sectionHead("Status Simulator","Pick a Printavo status — see exactly what the customer gets, and where the order goes next. Reflects the current live wiring."));
+  const pick=el("div","simpick");
+  const sel=document.createElement("select"); sel.id="simSel"; sel.className="simsel";
+  sel.appendChild(new Option("— choose a status —",""));
+  let og=null, curPh="";
+  SIM_SPINE.forEach((r,i)=>{
+    if(r.ph!==curPh){ curPh=r.ph; og=document.createElement("optgroup"); og.label=r.ph; sel.appendChild(og); }
+    og.appendChild(new Option(r.name, String(i)));
+  });
+  pick.appendChild(sel);
+  app.appendChild(pick);
+  const out=el("div",""); out.id="simOut"; app.appendChild(out);
+  sel.addEventListener("change",()=>{ out.innerHTML=""; const v=sel.value; if(v==="") return; simRender(out, SIM_SPINE[+v]); });
+}
+function simRender(out, row){
+  const hd=el("div","simhd");
+  hd.innerHTML='<div class="simname">'+esc(row.name)+'</div><div class="simmeta">Printavo status · id '+esc(row.id)+' · '+esc(row.ph)+' phase</div>';
+  out.appendChild(hd);
+  const tp=simTpFor(row);
+  const scripts=tp?simScriptsFor(tp.id):[];
+  if(tp && scripts.length){
+    scripts.forEach(o=>{
+      const modeLab={"auto-send":"AUTO-SENDS","auto-draft":"DRAFTS FOR REVIEW","concierge":"DRAFTS FOR REVIEW","tiered":"TIER-BASED"}[simNorm(o.sendMode)]||String(o.sendMode||"").toUpperCase();
+      const banner=el("div","simfires");
+      banner.innerHTML='<span class="simbadge">✉ '+esc(modeLab)+'</span><span class="simscript">'+esc(o.s.code)+'</span>';
+      out.appendChild(banner);
+      out.appendChild(el("div","simstamp",'<b>What happens next:</b> '+esc(simStampNote(o.sendMode))));
+      renderEmailFrame(out, o.s);
+    });
+    return;
+  }
+  const k=row.kind||"none";
+  let title,body;
+  if(k==="timed"){ title="⏱ Timed send — waits for the cadence engine"; body="The copy for this step is written and live ("+(row.planned||"")+"), but it fires on a timer, not the instant this status is set. The Phase 4 cadence engine that runs those clocks is not built yet, so nothing sends here today."; }
+  else if(k==="planned"){ title="🧩 Planned — copy is ready, not yet wired"; body="The email ("+(row.planned||"")+") is written and live, but this status is not yet connected to it in the composer. Wiring it is on the batch-two list."+(row.pnote?" Note: "+row.pnote+".":""); }
+  else if(k==="alert"){ title="❗ Internal alert — not a customer email"; body="This status triggers an internal note to the assigned project manager ("+(row.planned||"")+"), never an email to the customer. Planned, pending the PM-routing build."; }
+  else if(k==="silent"){ title="🔇 Silent — production status"; body="This is an internal production milestone. No customer email fires here, by design."; }
+  else if(k==="final"){ title="🏁 Final resting stage"; body="Delivered / Picked Up is the end of the line — no One Thread email fires. The Google review ask is handled separately by the QC engine, five business days later, in Holly’s voice."; }
+  else if(k==="retention"){ title="🔁 Retention lane"; body="Re-order and annual follow-ups are owned by the retention engine, not One Thread’s status scripts."; }
+  else { title="— No customer email at this status"; body="Nothing in One Thread is wired to fire here."; }
+  const card=el("div","simnone");
+  card.innerHTML='<div class="simnt">'+esc(title)+'</div><div class="simnb">'+esc(body)+'</div>';
+  out.appendChild(card);
 }
 
 /* ─────────────────────────── AUTOMATIONS ─────────────────────────── */
