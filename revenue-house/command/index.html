@@ -612,6 +612,23 @@ function buildIndex(D){
     });
   });
 
+  // Navigation pages — so searching a view's name (e.g. "status simulator") surfaces it,
+  // not just its content. These are destinations, not data rows.
+  [
+    {title:"Status Simulator", ic:"🎬", route:"#/simulator", context:"Pick a status, see what fires", hay:"status simulator pick a printavo status what fires email audit training tool"},
+    {title:"Cadence", ic:"🗓️", route:"#/cadence", context:"When every touch sends", hay:"cadence timing when sends schedule clocks"},
+    {title:"Journeys", ic:"🧭", route:"#/journeys", context:"What a customer hears, in order", hay:"journeys customer path order"},
+    {title:"Automations", ic:"⚙️", route:"#/automations", context:"What fires on its own", hay:"automations workflows fires on its own"},
+    {title:"Lifecycle", ic:"🔄", route:"#/lifecycle", context:"NEW to LOST, and what fires", hay:"lifecycle stages new lost"},
+    {title:"Scripts", ic:"📧", route:"#/scripts", context:"Every email we send", hay:"scripts emails"},
+    {title:"Calls", ic:"📞", route:"#/calls", context:"Talking points for the phone", hay:"calls phone talking points"},
+    {title:"Validation", ic:"🚦", route:"#/validation", context:"Gaps and the shared safety gate", hay:"validation gaps errors tripwire safety gate"}
+  ].forEach(p=>searchIdx.push({
+    type:"page", group:"Pages", ic:p.ic, id:p.route, title:p.title, code:p.title,
+    context:p.context, status:"", route:p.route,
+    hay:(p.title+" "+p.hay+" "+p.context).toLowerCase(), name:p.title.toLowerCase(), subj:""
+  }));
+
   return {byCode,slugMap,gapByCode,tpById,fieldsByScript,tsByScript,tsByTouchpoint,journeysByType,searchIdx,levelOf,cadenceOf,cadencesOf};
 }
 
@@ -904,7 +921,7 @@ function renderSearch(container, q){
     container.appendChild(el("div","empty",'<div class="big">No matches for "'+esc(q)+'"</div><div>Try a script code, a customer moment, or a workflow id.</div>'));
     return;
   }
-  const groups=["Scripts","Calls","Automations","Journeys","Stages"];
+  const groups=["Pages","Scripts","Calls","Automations","Journeys","Stages"];
   const byGroup={}; scored.forEach(x=>{ (byGroup[x.it.group]=byGroup[x.it.group]||[]).push(x.it); });
   groups.forEach(g=>{
     const items=byGroup[g]; if(!items||!items.length) return;
