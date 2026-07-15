@@ -324,6 +324,17 @@
           "icon": "🎛️"
         },
         {
+          "id": "status-simulator",
+          "kind": "surface",
+          "name": "Status Simulator",
+          "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
+          "type": "live-app",
+          "url": "../revenue-house/command/#/simulator",
+          "status": "live",
+          "access": "open",
+          "icon": "🎬"
+        },
+        {
           "id": "signals",
           "kind": "surface",
           "name": "Planet Sales Signals",
