@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Graphics Request</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg><span>Planet Graphics</span></a>
+    <nav class="nav"><a href="./">Dashboard</a><a href="new.html" aria-current="page">New Request</a></nav>
+  </header>
+  <main class="wrap">
+    <div class="header-row">
+      <div><h1>New Request</h1><p class="sub">Bandanas first, apparel tee path included.</p></div>
+      <button id="submitBtn" disabled>Submit</button>
+    </div>
+    <div class="grid work-grid">
+      <form class="panel grid" id="requestForm">
+        <div class="form-grid">
+          <label class="full">Job Request Name<input id="jobName" name="title" placeholder="26480_Client_Bandana" required></label>
+          <label>Order #<input name="orderNo" placeholder="26480"></label>
+          <label>Customer<input name="customer" placeholder="Client name"></label>
+          <label>Turnaround<select name="turnaround"><option>Normal</option><option>Rush</option></select></label>
+          <label>Final Format<select name="finalFormat"><option>Profile</option><option>PDF</option><option>PNG</option></select></label>
+        </div>
+        <div>
+          <div class="section-title">Tasks</div>
+          <div class="check-row">
+            <label><input type="checkbox" name="tasks" value="Mockup" checked>Mockup</label>
+            <label><input type="checkbox" name="tasks" value="Art Adjust">Art Adjust</label>
+            <label><input type="checkbox" name="tasks" value="Add Logo to Template" checked>Add Logo to Template</label>
+            <label><input type="checkbox" name="tasks" value="Colorway/Ink Change">Colorway/Ink Change</label>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">Garment Details</div>
+          <table class="mini-table" id="garmentTable">
+            <thead><tr><th>Brand</th><th>Style#</th><th>Color</th></tr></thead>
+            <tbody><tr><td><input name="brand"></td><td><input name="style"></td><td><input name="color"></td></tr></tbody>
+          </table>
+        </div>
+        <div>
+          <div class="section-title">Print Locations</div>
+          <table class="mini-table" id="locationTable">
+            <thead><tr><th>Location</th><th>#Colors</th><th>Width</th><th>Colors/PMS</th></tr></thead>
+            <tbody><tr><td><input name="location" value="Full front"></td><td><input name="colors" value="1"></td><td><input name="width" value="19 in."></td><td><input name="pms"></td></tr></tbody>
+          </table>
+        </div>
+        <label>Upload Artwork<input type="file" id="artInput" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+        <div class="pms-search">
+          <label>PMS Solid Coated<input id="pmsInput" placeholder="Search 7408, black, navy"></label>
+          <div class="pms-results hidden" id="pmsResults"></div>
+        </div>
+        <div class="chips" id="pmsChips"></div>
+        <label>Notes<textarea name="notes" maxlength="1600"></textarea></label>
+      </form>
+      <section class="panel">
+        <div class="studio-toolbar">
+          <label>SKU / Style<select id="skuSel"></select></label>
+          <label>Product<select id="productSel"></select></label>
+          <label id="colorwayField">Colorway<select id="colorSel"></select></label>
+          <label>Layout<select id="layoutSel"><option>Centered</option><option>Tiled</option><option>Cowboy-Style</option></select></label>
+          <div class="layout-note full">Tiled/Cowboy layout affects naming only in v1.</div>
+          <label class="full">Print Method Override<input id="printMethodOverride" placeholder="Uses SKU default if blank"></label>
+        </div>
+        <div id="paisleyGrid" class="paisley-grid hidden"></div>
+        <div class="canvas-shell"><canvas id="preview" width="760" height="760"></canvas></div>
+        <div class="range-line">
+          <label>Imprint Scale<input id="scaleInput" type="range" min="20" max="100" value="72"></label>
+          <output id="scaleOut">72%</output>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button id="generateBtn" type="button">Generate Mockup</button>
+          <button id="downloadBtn" type="button" class="secondary" disabled>Download mockup</button>
+          <button id="downloadProductBtn" type="button" class="secondary" disabled>Download product photo</button>
+        </div>
+        <div id="studioMsg" class="sub" style="margin-top:10px"></div>
+        <canvas id="proofCanvas" class="hidden" width="1700" height="2200"></canvas>
+      </section>
+    </div>
+  </main>
+  <script src="sku.js"></script>
+  <script src="studio.js"></script>
+  <script>
+    (async () => {
+      await PG.initData();
+      const productSel = PG.$("#productSel"), colorSel = PG.$("#colorSel"), skuSel = PG.$("#skuSel"), preview = PG.$("#preview");
+      let selectedPaisley = "paisley-01";
+      PG.fillProductSelects(productSel, colorSel);
+      Object.keys(PG_SKU.SKU_DICTIONARY).forEach(sku => {
+        const option = document.createElement("option");
+        option.value = sku;
+        option.textContent = PG_SKU.displayName(sku, PG_SKU.SKU_DICTIONARY[sku]);
+        skuSel.appendChild(option);
+      });
+      skuSel.value = "PL2219";
+
+      function selectedSkuRecord() {
+        return PG_SKU.getSkuRecord(skuSel.value);
+      }
+
+      function updateSkuMetadata() {
+        const rec = selectedSkuRecord();
+        const width = PG.$("#locationTable input[name=width]");
+        if (width) width.value = rec.size || "";
+        PG.$("#printMethodOverride").placeholder = rec.default_print_method ? `Default: ${rec.default_print_method}` : "Uses SKU default if blank";
+      }
+
+      PG.bindPmsSearch(PG.$("#pmsInput"), PG.$("#pmsResults"), PG.$("#pmsChips"));
+      PG.$("#pmsInput").addEventListener("pmschange", () => {
+        const pmsCell = PG.$("#locationTable input[name=pms]");
+        if (pmsCell) pmsCell.value = PG.pmsText();
+      });
+      skuSel.addEventListener("change", updateSkuMetadata);
+
+      function selectedVisualTemplate() {
+        return productSel.value === "paisley" ? selectedPaisley : colorSel.value;
+      }
+
+      function selectedVisualLabel() {
+        if (productSel.value === "paisley") {
+          return PG.state.manifest.products.paisley.find(x => x.slug === selectedPaisley)?.label || "Paisley 01";
+        }
+        return colorSel.options[colorSel.selectedIndex]?.text || "";
+      }
+
+      function renderPaisleyGrid() {
+        const grid = PG.$("#paisleyGrid");
+        grid.innerHTML = PG.state.manifest.products.paisley.map(item => `
+          <button type="button" class="paisley-tile ${item.slug === selectedPaisley ? "selected" : ""}" data-paisley="${item.slug}">
+            <img src="${item.src}" alt="${item.label}" loading="lazy">
+            <span>${item.label}</span>
+          </button>
+        `).join("");
+        PG.$$("[data-paisley]", grid).forEach(btn => btn.addEventListener("click", async () => {
+          selectedPaisley = btn.dataset.paisley;
+          renderPaisleyGrid();
+          await redraw();
+        }));
+      }
+
+      function updateProductUi() {
+        const isPaisley = productSel.value === "paisley";
+        PG.$("#colorwayField").classList.toggle("hidden", isPaisley);
+        PG.$("#paisleyGrid").classList.toggle("hidden", !isPaisley);
+        if (isPaisley) renderPaisleyGrid();
+      }
+
+      async function redraw() {
+        await PG.selectTemplate(productSel.value, selectedVisualTemplate());
+        const c = PG.composeMockup({ exact: false, scale: Number(PG.$("#scaleInput").value) / 100, texture: 0.16 });
+        preview.width = c.width; preview.height = c.height;
+        preview.getContext("2d").drawImage(c, 0, 0);
+      }
+      productSel.addEventListener("change", async () => {
+        updateProductUi();
+        await redraw();
+      });
+      colorSel.addEventListener("change", redraw);
+      PG.$("#scaleInput").addEventListener("input", () => {
+        PG.$("#scaleOut").textContent = PG.$("#scaleInput").value + "%";
+        redraw();
+      });
+      PG.$("#artInput").addEventListener("change", async e => {
+        if (e.target.files[0]) await PG.setArtFile(e.target.files[0]);
+        redraw();
+      });
+
+      PG.$("#generateBtn").addEventListener("click", async () => {
+        const fd = new FormData(PG.$("#requestForm"));
+        const project = fd.get("title") || "Graphics Request";
+        const proof = await PG.buildProof({
+          customer: fd.get("customer") || "Planet Apparel",
+          project,
+          imprint: (PG.readRows(PG.$("#locationTable"))[0] || {}).width || "Centered",
+          colorways: `${productSel.value} / ${selectedVisualLabel()}`,
+          scale: Number(PG.$("#scaleInput").value) / 100
+        });
+        const pc = PG.$("#proofCanvas");
+        pc.classList.remove("hidden");
+        pc.getContext("2d").drawImage(proof, 0, 0);
+        PG.$("#submitBtn").disabled = false;
+        PG.$("#downloadBtn").disabled = false;
+        PG.$("#downloadProductBtn").disabled = false;
+        PG.$("#studioMsg").textContent = "Mockup generated.";
+      });
+
+      PG.$("#downloadBtn").addEventListener("click", () => {
+        const a = document.createElement("a");
+        const pc = PG.$("#proofCanvas");
+        a.href = pc.toDataURL("image/png");
+        const job = (PG.$("#jobName").value || "Graphics_Mockup").trim().replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+        a.download = `Mockup_${job || "Graphics_Mockup"}.png`;
+        a.click();
+      });
+
+      PG.$("#downloadProductBtn").addEventListener("click", () => {
+        if (!PG.state.mockupCanvas) return;
+        const rec = selectedSkuRecord();
+        const a = document.createElement("a");
+        a.href = PG.state.mockupCanvas.toDataURL("image/png");
+        a.download = PG_SKU.buildFilename({
+          brand: new FormData(PG.$("#requestForm")).get("customer") || "Planet Apparel",
+          sku: skuSel.value,
+          color: selectedVisualLabel(),
+          layout: PG.$("#layoutSel").value,
+          style: "flat",
+          printMethodOverride: PG.$("#printMethodOverride").value || rec.default_print_method,
+          fileName: "mockup.png"
+        });
+        a.click();
+      });
+
+      PG.$("#submitBtn").addEventListener("click", async () => {
+        if (!PG.state.proofDataUrl) return;
+        const form = PG.$("#requestForm");
+        if (!form.reportValidity()) return;
+        const fd = new FormData(form);
+        const intake = {
+          tasks: PG.$$("input[name=tasks]:checked", form).map(x => x.value),
+          turnaround: fd.get("turnaround"),
+          finalFormat: fd.get("finalFormat"),
+          garments: PG.readRows(PG.$("#garmentTable")),
+          printLocations: PG.readRows(PG.$("#locationTable")),
+          pms: PG.state.selectedPms,
+          notes: fd.get("notes"),
+          sku: skuSel.value,
+          fabric: selectedSkuRecord().fabric,
+          size: selectedSkuRecord().size,
+          shape: selectedSkuRecord().shape,
+          product_type: selectedSkuRecord().product_type,
+          made_in_usa: selectedSkuRecord().made_in_usa,
+          print_method: PG.$("#printMethodOverride").value || selectedSkuRecord().default_print_method,
+          product: productSel.value,
+          colorway: selectedVisualTemplate(),
+          colorway_label: selectedVisualLabel(),
+          layout: PG.$("#layoutSel").value,
+          imprintScale: Number(PG.$("#scaleInput").value) / 100,
+          artFiles: PG.state.art ? [{ filename: PG.state.art.name, size: PG.state.art.size, type: PG.state.art.type }] : []
+        };
+        const data = await PG.api("/api/graphics/orders", {
+          method: "POST",
+          body: JSON.stringify({
+            order_no: fd.get("orderNo"),
+            title: fd.get("title"),
+            customer: fd.get("customer"),
+            product: productSel.value,
+            intake,
+            proof: PG.state.proofDataUrl
+          })
+        });
+        location.href = `order.html?id=${data.order.id}`;
+      });
+
+      updateSkuMetadata();
+      updateProductUi();
+      await redraw();
+    })().catch(e => {
+      PG.$("#studioMsg").innerHTML = `<span class="error">${PG.esc(e.message)}</span>`;
+    });
+  </script>
+</body>
+</html>

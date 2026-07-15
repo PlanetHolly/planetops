@@ -173,12 +173,12 @@
         {
           "id": "graphics-suite",
           "kind": "surface",
-          "name": "Graphics Suite",
-          "blurb": "Dashboard · New Request · Order Detail · Templates · Mockup Studio",
+          "name": "Planet Graphics",
+          "blurb": "Simple mockups, colorways, PMS proofs, and request intake",
           "type": "tool",
-          "status": "wip",
+          "url": "../graphics/",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Graphics/",
           "icon": "🎨"
         },
         {

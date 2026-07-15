@@ -333,6 +333,7 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
     res.status(r.status).json(await r.json());
   } catch (e) { res.status(502).json({ error: 'state-api unreachable: ' + e.message }); }
 });
+app.use(require('./graphics')(pool, requireSession));
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance

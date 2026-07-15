@@ -1,0 +1,766 @@
+{
+  "version": 1,
+  "generatedFrom": "Mockup_Engine mockup.py registry",
+  "products": {
+    "bandana": [
+      {
+        "slug": "white",
+        "label": "White",
+        "pantone": "Pantone White",
+        "src": "assets/templates/bandana-white.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "black",
+        "label": "Black",
+        "pantone": "Pantone Black",
+        "src": "assets/templates/bandana-black.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "navy",
+        "label": "Navy Blue",
+        "pantone": "Pantone 534 C",
+        "src": "assets/templates/bandana-navy.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "red",
+        "label": "Red",
+        "pantone": "Pantone 199 C",
+        "src": "assets/templates/bandana-red.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "royal",
+        "label": "Royal Blue",
+        "pantone": "Pantone 2756 C",
+        "src": "assets/templates/bandana-royal.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "yellow",
+        "label": "Light Yellow",
+        "pantone": "Pantone 100 C",
+        "src": "assets/templates/bandana-yellow.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "kellygreen",
+        "label": "Kelly Green",
+        "pantone": "Pantone 347 C",
+        "src": "assets/templates/bandana-kellygreen.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "darkgreen",
+        "label": "Dark Green",
+        "pantone": "Pantone 626 C",
+        "src": "assets/templates/bandana-darkgreen.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "charcoal",
+        "label": "Charcoal",
+        "pantone": "Pantone 424 C",
+        "src": "assets/templates/bandana-charcoal.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "natural",
+        "label": "Natural",
+        "pantone": "Pantone 9064 C",
+        "src": "assets/templates/bandana-natural.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "burgundy",
+        "label": "Burgundy",
+        "pantone": "Pantone 208 C",
+        "src": "assets/templates/bandana-burgundy.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "orange",
+        "label": "Orange",
+        "pantone": "Pantone 165 C",
+        "src": "assets/templates/bandana-orange.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "purple",
+        "label": "Purple",
+        "pantone": "Pantone 2617 C",
+        "src": "assets/templates/bandana-purple.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "hotpink",
+        "label": "Hot Pink",
+        "pantone": "Pantone 213 C",
+        "src": "assets/templates/bandana-hotpink.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "lightpink",
+        "label": "Light Pink",
+        "pantone": "Pantone 210 C",
+        "src": "assets/templates/bandana-lightpink.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "skyblue",
+        "label": "Sky Blue",
+        "pantone": "Pantone 7451 C",
+        "src": "assets/templates/bandana-skyblue.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          118,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1074
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "gold",
+        "label": "Gold",
+        "pantone": "Pantone 1235 C",
+        "src": "assets/templates/bandana-gold.webp",
+        "width": 1200,
+        "height": 1200,
+        "fabricBounds": [
+          124,
+          117,
+          1083,
+          1070
+        ],
+        "imprintZone": [
+          124,
+          114,
+          1083,
+          1073
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "lightgrey",
+        "label": "Light Grey",
+        "pantone": "Pantone 429 C",
+        "src": "assets/templates/bandana-lightgrey.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      },
+      {
+        "slug": "darkbrown",
+        "label": "Dark Brown",
+        "pantone": "Pantone 476 C",
+        "src": "assets/templates/bandana-darkbrown.webp",
+        "width": 1200,
+        "height": 1195,
+        "fabricBounds": [
+          35,
+          33,
+          1161,
+          1150
+        ],
+        "imprintZone": [
+          35,
+          28,
+          1161,
+          1154
+        ],
+        "zoneMode": "fabric-centered-square"
+      }
+    ],
+    "tee": [
+      {
+        "slug": "black",
+        "label": "Black Tee",
+        "src": "assets/templates/tee-black.webp",
+        "width": 960,
+        "height": 1200,
+        "fabricBounds": [
+          0,
+          0,
+          960,
+          1200
+        ],
+        "imprintZone": [
+          278,
+          278,
+          682,
+          682
+        ],
+        "zoneMode": "fixed-fraction-tee"
+      },
+      {
+        "slug": "gold",
+        "label": "Gold Tee",
+        "src": "assets/templates/tee-gold.webp",
+        "width": 960,
+        "height": 1200,
+        "fabricBounds": [
+          0,
+          0,
+          960,
+          1200
+        ],
+        "imprintZone": [
+          278,
+          278,
+          682,
+          682
+        ],
+        "zoneMode": "fixed-fraction-tee"
+      }
+    ],
+    "paisley": [
+      {
+        "slug": "paisley-01",
+        "label": "Paisley 01",
+        "src": "assets/templates/paisley/paisley-01.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-02",
+        "label": "Paisley 02",
+        "src": "assets/templates/paisley/paisley-02.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-03",
+        "label": "Paisley 03",
+        "src": "assets/templates/paisley/paisley-03.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-04",
+        "label": "Paisley 04",
+        "src": "assets/templates/paisley/paisley-04.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-05",
+        "label": "Paisley 05",
+        "src": "assets/templates/paisley/paisley-05.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-06",
+        "label": "Paisley 06",
+        "src": "assets/templates/paisley/paisley-06.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-07",
+        "label": "Paisley 07",
+        "src": "assets/templates/paisley/paisley-07.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-08",
+        "label": "Paisley 08",
+        "src": "assets/templates/paisley/paisley-08.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-09",
+        "label": "Paisley 09",
+        "src": "assets/templates/paisley/paisley-09.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-10",
+        "label": "Paisley 10",
+        "src": "assets/templates/paisley/paisley-10.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-11",
+        "label": "Paisley 11",
+        "src": "assets/templates/paisley/paisley-11.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-12",
+        "label": "Paisley 12",
+        "src": "assets/templates/paisley/paisley-12.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-13",
+        "label": "Paisley 13",
+        "src": "assets/templates/paisley/paisley-13.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-14",
+        "label": "Paisley 14",
+        "src": "assets/templates/paisley/paisley-14.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-15",
+        "label": "Paisley 15",
+        "src": "assets/templates/paisley/paisley-15.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-16",
+        "label": "Paisley 16",
+        "src": "assets/templates/paisley/paisley-16.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-17",
+        "label": "Paisley 17",
+        "src": "assets/templates/paisley/paisley-17.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-18",
+        "label": "Paisley 18",
+        "src": "assets/templates/paisley/paisley-18.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-19",
+        "label": "Paisley 19",
+        "src": "assets/templates/paisley/paisley-19.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-20",
+        "label": "Paisley 20",
+        "src": "assets/templates/paisley/paisley-20.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      },
+      {
+        "slug": "paisley-21",
+        "label": "Paisley 21",
+        "src": "assets/templates/paisley/paisley-21.webp",
+        "width": 680,
+        "height": 680,
+        "imprintZone": [
+          163,
+          163,
+          517,
+          517
+        ],
+        "zoneMode": "paisley-center",
+        "flat": true
+      }
+    ]
+  }
+}
