@@ -435,6 +435,17 @@
           "status": "live",
           "access": "pin",
           "icon": "🔎"
+        },
+        {
+          "id": "apparel-quote-calc",
+          "kind": "surface",
+          "name": "Apparel Quick Quote",
+          "blurb": "Generate a consistent apparel screen-print quote — garment + decoration + services. Shows SP. Replaces freestyle desk quoting.",
+          "type": "tool",
+          "url": "../pricing/apparel-quote-calculator.html",
+          "status": "live",
+          "access": "pin",
+          "icon": "🖩"
         }
       ]
     },
