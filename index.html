@@ -3838,6 +3838,38 @@ function confirmCompletion(){
   closeModal('comp-modal');
 }
 
+/* TEST-ONLY time capture (2026-07-15). Fire-and-forget POST of each completed
+   stage to a SEPARATE test Google Sheet — deliberately NOT the real Project
+   Calculator, so there is zero double-log risk while we prove the capture works.
+   Failures never touch the timer. */
+const TIMER_TEST_LOG_HOOK = 'https://primary-production-079f9.up.railway.app/webhook/timer-test-log';
+function logTimerEvent(w, action, stage, elapsedMs, entry){
+  try {
+    const job = (state.jobs || []).find(j => (j.workUnits || []).some(x => x.id === w.id)) || {};
+    const actualMin   = (elapsedMs != null) ? Math.round(elapsedMs / 6000) / 10 : null;   // ms → min, 1 dp
+    const planned     = w.plannedMin || null;
+    const variancePct = (planned && actualMin != null) ? Math.round(((actualMin - planned) / planned) * 100) : null;
+    const payload = {
+      loggedAt:  new Date().toISOString(),
+      jobNumber: (w.label || '').split('-')[0] || job.number || '',
+      imprint:   w.label || '',
+      customer:  job.customer || job.clientTag || '',
+      workType:  w.category || '',
+      stage:     stage || '',
+      action:    action || '',
+      operator:  (entry && entry.operator) || (w.timer && w.timer.operator) || state.operator || '',
+      plannedMin: planned,
+      actualMin,
+      variancePct,
+      qty:       (entry && entry.qty != null) ? entry.qty : null,
+      varianceReason: (entry && entry.varianceReason) || null,
+      notes:     (entry && entry.notes) || null,
+      source:    'planetops-test',
+    };
+    fetch(TIMER_TEST_LOG_HOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(()=>{});
+  } catch(e){ /* logging must never break the timer */ }
+}
+
 function finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData, extraData){
   const w = getWu(wuId);
   if(!w) return;
@@ -3864,6 +3896,7 @@ function finalizeStage(wuId, qty, notes, elapsed, isEstimated, pressRunData, ext
     // wentAsPlanned (non-screen) — whichever the stage collected
     ...(extraData || {}),
   });
+  logTimerEvent(w, 'completed', stage, elapsed, w.stageHistory[w.stageHistory.length - 1]);   // TEST time capture
 
   w.timer = { state:'idle', stage:null, startTs:null, pauseTs:null, totalPausedMs:0, elapsedMs:elapsed, operator:null };
   state.selectedVarianceReason = null;
