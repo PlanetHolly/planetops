@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<!-- GENERATED COPY of _Claude/AgenticOS/os.html (SoT on Dropbox). Served on the front door. Only divergence: the private "Projects" link is removed. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Apparel — Agentic OS</title>
+<style>
+  :root{
+    --bg:#f4f4f5; --panel:#ffffff; --card:#ffffff; --card2:#ffffff;
+    --line:#dcdce0; --ink:#111; --mut:#6b7280; --mut2:#9ca3af;
+    --yellow:#F7BE00; --yellow-dim:#b45309;
+    --auto:#047857; --sched:#2563eb; --manual:#111;
+    --red:#dc2626; --amber:#b45309;
+    --shadow:0 1px 2px rgba(17,24,39,.06), 0 8px 22px rgba(17,24,39,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.42; padding:0 0 64px;
+  }
+  button,input{font:inherit}
+  .wrap{max-width:1380px;margin:0 auto;padding:0 24px}
+  .booterr{max-width:820px;margin:32px auto;padding:18px 20px;border:1px solid var(--red);border-radius:10px;background:#fef2f2;color:#991b1b;font-weight:800}
+
+  header{background:#111;color:#fff;border-bottom:2px solid var(--yellow);padding:20px 0 16px;margin-bottom:20px}
+  .hd{display:flex;align-items:center;gap:15px}
+  .mark{width:44px;height:44px;border-radius:9px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:800;color:#111;font-size:24px;flex:none}
+  h1{font-size:26px;letter-spacing:.5px;font-weight:800}
+  h1 span{color:var(--yellow)}
+  .sub{color:#d1d5db;font-size:14px;margin-top:2px}
+  .toolbar{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  #search{font-size:15px;padding:10px 14px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--ink);width:240px;outline:none}
+  #search::placeholder{color:var(--mut2)}
+  .hlink,.hbtn{font-size:13px;color:var(--mut);text-decoration:none;border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:9px;white-space:nowrap;cursor:pointer}
+  .hlink:hover,.hbtn:hover{border-color:var(--yellow);color:var(--ink);background:#fffbeb}
+  .legend{display:flex;gap:14px;margin-top:14px;font-size:13px;color:#d1d5db;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+
+  .pill{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
+  .pill.a{background:var(--auto);color:#fff}.pill.s{background:var(--sched);color:#fff}.pill.m{background:#e5e7eb;color:#111}
+
+  .simonbar{display:flex;align-items:center;gap:13px;background:#111;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:18px;cursor:pointer;border:1px solid #111;border-left:5px solid var(--yellow);box-shadow:var(--shadow)}
+  .simonbar:hover{border-color:var(--yellow)}
+  .simonbar .sic{font-size:26px}
+  .simonbar .snm{font-weight:800;font-size:17px}
+  .simonbar .snm span{color:var(--yellow)}
+  .simonbar .srole{font-size:13.5px;color:#d1d5db}
+  .simonbar .scmd{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#1f2937;padding:6px 12px;border-radius:8px;color:var(--yellow);white-space:nowrap}
+
+  .section{margin:22px 0 30px}
+  .section h2{font-size:20px;font-weight:800;letter-spacing:.2px;margin-bottom:12px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+
+  .alerts{display:flex;flex-direction:column;gap:10px}
+  .alertrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:13px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px}
+  .alertrow:has(.sevdot.red){background:#fef2f2;border-color:#fecaca}
+  .alertrow:has(.sevdot.amber){background:#fef3c7;border-color:#fde68a}
+  .sev{font-size:12px;font-weight:900;letter-spacing:.7px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .alertrow:has(.sevdot.red) .sev{color:#991b1b}
+  .alertrow:has(.sevdot.amber) .sev{color:#92400e}
+  .sevdot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .sevdot.red{background:var(--red)}.sevdot.amber{background:var(--amber)}
+  .atitle{font-weight:800;margin-bottom:5px}
+  .alertrow details{color:var(--mut);font-size:13.5px}
+  .alertrow summary{cursor:pointer;color:var(--mut)}
+  .adetail{padding-top:7px}
+  .owner,.age{font-size:12px;font-weight:800;border:1px solid #dcdce0;background:#fff;color:#111;padding:4px 9px;border-radius:20px;white-space:nowrap}
+  .allclear{border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;border-radius:10px;padding:18px;font-weight:800}
+
+  .filters,.clfilters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .fchip,.cchip{font-size:14px;font-weight:700;padding:7px 14px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer;user-select:none}
+  .fchip:hover,.cchip:hover{background:#fffbeb;border-color:var(--yellow);color:#111}
+  .fchip.on,.cchip.on{background:var(--yellow);color:#111;border-color:var(--yellow)}
+
+  .domain{margin-bottom:26px}
+  .dhead{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid var(--line)}
+  .dhead .ic{font-size:22px}
+  .dhead h3{font-size:19px;font-weight:800}
+  .dhead .tag{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--yellow-dim);background:rgba(247,190,0,.10);padding:2px 9px;border-radius:5px}
+  .dhead .agent{font-size:12px;font-weight:800;letter-spacing:.5px;color:#111;background:var(--yellow);padding:3px 11px;border-radius:20px;display:flex;align-items:center;gap:5px}
+  .dhead .blurb{font-size:13.5px;color:var(--mut2);margin-left:auto;font-style:italic}
+
+  .btns{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:1000px){.btns{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:720px){.btns{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.btns{grid-template-columns:1fr}}
+  .btn{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;text-align:left;cursor:pointer;box-shadow:var(--shadow);transition:transform .07s ease,border-color .15s ease;position:relative;display:flex;flex-direction:column;gap:5px;min-height:84px;color:var(--ink)}
+  .btn:hover{transform:translateY(-2px);border-color:var(--yellow);background:#fffbeb}
+  .btn:active{transform:translateY(0)}
+  .btn .nm{font-size:16px;font-weight:700;line-height:1.25;padding-right:46px}
+  .btn .cmd{font-size:12.5px;color:var(--mut2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}
+  .btn .rp{position:absolute;top:12px;right:12px}
+  .btn.info{cursor:default;background:#f9fafb}
+  .btn.info:hover{transform:none;border-color:var(--line)}
+  .btn .arrow{position:absolute;bottom:11px;right:13px;font-size:13px;color:var(--mut2)}
+  .empty{text-align:center;color:var(--mut2);padding:36px 0;font-size:16px}
+
+  .fleetwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fleetdetails{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .fleetdetails summary{cursor:pointer;padding:13px 16px;font-weight:800;color:var(--ink)}
+  .flist{padding:0 14px 14px;display:flex;flex-direction:column;gap:7px;max-height:56vh;overflow:auto}
+  .frow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:9px 13px;background:var(--card)}
+  .frow .fn{font-weight:600;font-size:14.5px;flex:1;min-width:0}
+  .frow .fw{font-size:12.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+  .frow .fa{font-size:11px;font-weight:800;color:#111;background:#fff;border:1px solid #dcdce0;padding:2px 9px;border-radius:16px;flex:none}
+  .fnote{margin-top:9px;font-size:12px;color:var(--mut2)}
+
+  .clog{display:flex;flex-direction:column;gap:8px}
+  .crow{display:grid;grid-template-columns:110px 84px 140px 1fr auto;gap:12px;align-items:start;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:9px;padding:11px 12px}
+  .crow.break{border-left-color:#dc2626;background:#fef2f2}
+  .ctype{font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+  .cdate,.ccomp,.cown{font-size:12.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+  .cwhat{font-weight:650}
+  .clnote{font-size:12.5px;color:var(--mut2);margin-top:10px}
+
+  .band{border-radius:12px;padding:14px 18px;margin-top:14px;border:1px solid var(--line)}
+  .band .bt{font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:800;margin-bottom:9px}
+  .band.tools{background:#ffffff;border-color:#dcdce0}
+  .band.tools .bt,.band.memory .bt{color:var(--mut)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:12.5px;color:var(--mut);font-weight:600}
+  .mem{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .memcol{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .memcol .h{font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:3px}
+  .memcol .d{font-size:12.5px;color:var(--mut)}
+  footer{margin-top:28px;text-align:center;color:var(--mut2);font-size:12px}
+  footer b{color:var(--mut)}
+
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);background:#111;color:#fff;padding:13px 22px;border-radius:11px;font-size:15px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.38);opacity:0;transition:transform .25s ease,opacity .25s ease;z-index:50;border:1px solid #111;border-left:4px solid var(--yellow)}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  #ov{position:fixed;inset:0;background:rgba(17,24,39,.45);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+  #ov.show{display:flex}
+  .modal{background:#fff;border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;max-height:80vh;overflow:auto;box-shadow:0 20px 60px rgba(17,24,39,.22)}
+  .modal h3{padding:18px 22px;font-size:19px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+  .modal h3 .x{margin-left:auto;cursor:pointer;color:var(--mut2);font-size:24px;line-height:1}
+  .mlist{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .mlist .mi{border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer;font-weight:600;font-size:14.5px;background:var(--card)}
+  .mlist .mi:hover{border-color:var(--yellow);background:#fffbeb}
+  .mlist .mi .c{display:block;font-size:12px;color:var(--mut2);font-family:ui-monospace,Menlo,monospace;font-weight:400;margin-top:2px}
+
+  @media(max-width:820px){
+    .wrap{padding:0 16px}
+    .hd{align-items:flex-start;flex-wrap:wrap}
+    .toolbar{width:100%;margin-left:0;justify-content:flex-start}
+    #search{width:min(100%,360px)}
+    .simonbar{align-items:flex-start;flex-wrap:wrap}
+    .simonbar .scmd{margin-left:0}
+    .alertrow,.crow{grid-template-columns:1fr}
+    .owner,.age{width:max-content}
+    .dhead{align-items:flex-start;flex-wrap:wrap}
+    .dhead .blurb{margin-left:0;width:100%}
+    .fleetwrap,.mem{grid-template-columns:1fr}
+    .frow{align-items:flex-start;flex-direction:column}
+    .frow .fw{white-space:normal}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="wrap">
+      <div class="hd">
+        <div class="mark">P</div>
+        <div>
+          <h1>PLANET APPAREL <span>AGENTIC OS</span></h1>
+          <div class="sub" id="tagline">Run a skill to begin</div>
+        </div>
+        <div class="toolbar">
+          <input id="search" type="search" placeholder="Search skills..." autocomplete="off">
+          <button class="hbtn" id="fleetjump" type="button">📡 What runs when →</button>
+        </div>
+      </div>
+      <div class="legend">
+        <span><span class="pill m">👆 MANUAL</span> click copies the command</span>
+        <span><span class="pill a">☁️ AUTO</span> already runs automatically</span>
+        <span><span class="pill s">⏰ SCHEDULED</span> runs on a timer</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="simonbar" id="simonbar" style="display:none">
+      <span class="sic">🤵</span>
+      <div>
+        <div class="snm">SIMON <span>· CHIEF OF STAFF</span></div>
+        <div class="srole" id="simonrole"></div>
+      </div>
+      <span class="scmd" id="simoncmd"></span>
+    </div>
+
+    <section class="section" id="alerts">
+      <h2>🚨 Alert Center</h2>
+      <div id="alertlist"></div>
+    </section>
+
+    <section class="section" id="directory">
+      <h2>Directory</h2>
+      <div class="filters" id="filters"></div>
+      <div id="board"></div>
+    </section>
+
+    <section class="section" id="fleet">
+      <h2>📡 The Fleet</h2>
+      <div class="fleetwrap" id="fleetbody"></div>
+      <div class="fnote" id="fleetnote"></div>
+    </section>
+
+    <section class="section" id="changelog">
+      <h2>🧾 Change Log</h2>
+      <div class="clfilters" id="clfilters"></div>
+      <div id="clog"></div>
+      <div class="clnote">Weekly agent (Treeger) scans breaks for repeat offenders.</div>
+    </section>
+
+    <section class="section">
+      <div class="band tools">
+        <div class="bt">🔌 Tools</div>
+        <div class="chips" id="tools"></div>
+      </div>
+      <div class="band memory">
+        <div class="bt">🧠 Memory</div>
+        <div class="mem" id="memory"></div>
+      </div>
+    </section>
+
+    <footer id="foot"></footer>
+  </main>
+</div>
+
+<div id="toast"></div>
+<div id="ov">
+  <div class="modal">
+    <h3><span id="mtitle"></span><span class="x" onclick="closeModal()">&times;</span></h3>
+    <div class="mlist" id="mlist"></div>
+  </div>
+</div>
+
+<script src="os-data.js"></script>
+<script>
+(() => {
+  const D = window.OS_DATA;
+  if(!D){
+    document.getElementById("app").innerHTML = '<div class="booterr">Could not load os-data.js</div>';
+    return;
+  }
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const RUN = { manual:{cls:"m",ico:"👆"}, auto:{cls:"a",ico:"☁️"}, sched:{cls:"s",ico:"⏰"} };
+  let activeFilter = "all";
+  let query = "";
+  let typeFilter = "all";
+
+  document.getElementById("tagline").textContent = D.brand?.tagline || "Run a skill to begin";
+  document.getElementById("fleetjump").onclick = () => document.getElementById("fleet").scrollIntoView({behavior:"smooth",block:"start"});
+
+  if(D.brand.orchestrator){
+    const o=D.brand.orchestrator, sb=document.getElementById("simonbar");
+    sb.style.display="flex";
+    document.getElementById("simonrole").textContent=o.role;
+    document.getElementById("simoncmd").textContent=o.cmd+"  ⧉";
+    sb.onclick=()=>navigator.clipboard.writeText(o.cmd).then(
+      ()=>toast(`Copied “${o.cmd}” — paste into Claude Code and tell Simon what you need`),
+      ()=>toast(`Copy this: ${o.cmd}`));
+  }
+
+  const fbar = document.getElementById("filters");
+  fbar.innerHTML = `<div class="fchip on" data-f="all">All</div>` +
+    D.domains.map(d=>`<div class="fchip" data-f="${esc(d.id)}">${esc(d.icon)} ${esc(d.agent||d.name)}</div>`).join("");
+  fbar.querySelectorAll(".fchip").forEach(c=>c.onclick=()=>{
+    activeFilter=c.dataset.f;
+    fbar.querySelectorAll(".fchip").forEach(x=>x.classList.toggle("on",x===c));
+    render();
+  });
+
+  document.getElementById("search").addEventListener("input",e=>{query=e.target.value.toLowerCase().trim();render();});
+
+  function matches(sk,d){
+    if(!query) return true;
+    return (sk.name+" "+sk.cmd+" "+(d.agent||"")+" "+d.name).toLowerCase().includes(query);
+  }
+
+  function renderAlerts(){
+    const rank = s => s==="red"?0:1;
+    const list = (D.alerts || []).filter(a => a.status === "active");
+    list.sort((a,b) => rank(a.sev)-rank(b.sev) || b.since.localeCompare(a.since));
+    const box = document.getElementById("alertlist");
+    if(!list.length){
+      box.innerHTML = `<div class="allclear">✅ All clear — no active alerts.</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="alerts">` + list.map(a=>{
+      const sev = a.sev === "red" ? "red" : "amber";
+      const days = ageDays(a.since);
+      const label = days === 0 ? "today" : `${days}d`;
+      return `<div class="alertrow">
+        <div class="sev"><span class="sevdot ${sev}"></span>${esc(sev.toUpperCase())}</div>
+        <div>
+          <div class="atitle">${esc(a.title)}</div>
+          <details><summary>Details</summary><div class="adetail">${esc(a.detail)}</div></details>
+        </div>
+        <div class="owner">👤 ${esc(a.owner).toUpperCase()}</div>
+        <div class="age">since ${esc(a.since)} · ${esc(label)}</div>
+      </div>`;
+    }).join("") + `</div>`;
+  }
+
+  function ageDays(d){
+    return Math.max(0, Math.round((Date.now() - new Date(d+"T00:00:00").getTime())/864e5));
+  }
+
+  function render(){
+    const board=document.getElementById("board");
+    let html="", shown=0;
+    D.domains.forEach(d=>{
+      if(activeFilter!=="all" && activeFilter!==d.id) return;
+      const sks=d.skills.filter(sk=>matches(sk,d));
+      if(!sks.length) return;
+      shown+=sks.length;
+      const agent=d.agent?`<span class="agent">👤 ${esc(d.agent).toUpperCase()}</span>`:"";
+      html+=`<div class="domain"><div class="dhead"><span class="ic">${esc(d.icon)}</span><h3>${esc(d.name)}</h3>${agent}<span class="tag">${esc(d.tag)}</span><span class="blurb">${esc(d.blurb)}</span></div><div class="btns">`;
+      sks.forEach((sk,i)=>{
+        const r=RUN[sk.run]||RUN.manual;
+        const isInfo = sk.launch.type==="info";
+        const isLink = sk.launch.type==="link";
+        const isMenu = sk.launch.type==="menu";
+        const arrow = isLink ? "↗ open" : isMenu ? "⋯ list" : isInfo ? "" : "⧉ copy";
+        html+=`<button class="btn ${isInfo?'info':''}" data-d="${esc(d.id)}" data-i="${i}">
+          <span class="rp pill ${r.cls}">${r.ico}</span>
+          <span class="nm">${esc(sk.name)}</span>
+          <span class="cmd">${esc(sk.cmd)}</span>
+          ${arrow?`<span class="arrow">${esc(arrow)}</span>`:''}
+        </button>`;
+      });
+      html+=`</div></div>`;
+    });
+    board.innerHTML = shown ? html : `<div class="empty">No skills match "${esc(query)}".</div>`;
+    board.querySelectorAll(".btn").forEach(b=>{
+      b.onclick=()=>{
+        const d=D.domains.find(x=>x.id===b.dataset.d);
+        const sks=d.skills.filter(sk=>matches(sk,d));
+        activate(sks[+b.dataset.i]);
+      };
+    });
+  }
+
+  function activate(sk){
+    const t=sk.launch.type;
+    if(t==="info"){ toast(`“${sk.name}” runs automatically — nothing to click.`); return; }
+    if(t==="link"){ window.open(sk.launch.url,"_blank"); return; }
+    if(t==="menu"){ openModal(sk); return; }
+    const text=sk.launch.text||sk.cmd;
+    navigator.clipboard.writeText(text).then(
+      ()=>toast(`Copied “${text}” — paste into Claude Code`),
+      ()=>toast(`Copy this: ${text}`)
+    );
+  }
+
+  let toastT;
+  function toast(msg){
+    const el=document.getElementById("toast");
+    el.textContent=msg; el.classList.add("show");
+    clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2600);
+  }
+
+  window.openModal = function(sk){
+    document.getElementById("mtitle").innerHTML=`🛠️ ${esc(sk.name)}`;
+    const ml=document.getElementById("mlist");
+    ml.style.display=""; ml.style.padding="";
+    ml.innerHTML=sk.children.map((c,i)=>`<div class="mi" data-c="${i}">${esc(c.name)}<span class="c">${esc(c.cmd)}</span></div>`).join("");
+    ml.querySelectorAll(".mi").forEach(mi=>mi.onclick=()=>{
+      const c=sk.children[+mi.dataset.c];
+      navigator.clipboard.writeText(c.cmd).then(()=>{toast(`Copied “${c.cmd}”`);closeModal();});
+    });
+    document.getElementById("ov").classList.add("show");
+  };
+  window.closeModal = function(){document.getElementById("ov").classList.remove("show");};
+
+  function renderFleet(){
+    const F = D.fleet || {timed:[],event:[]};
+    const row = f => `<div class="frow"><span class="fn">${esc(f.n)}</span><span class="fw">${esc(f.when)}</span><span class="fa">👤 ${esc(f.who).toUpperCase()}</span></div>`;
+    document.getElementById("fleetbody").innerHTML = `
+      <details class="fleetdetails" open>
+        <summary>⏰ On a timer (${(F.timed || []).length})</summary>
+        <div class="flist">${(F.timed || []).map(row).join("")}</div>
+      </details>
+      <details class="fleetdetails" open>
+        <summary>⚡ Event-driven (${(F.event || []).length})</summary>
+        <div class="flist">${(F.event || []).map(row).join("")}</div>
+      </details>`;
+    document.getElementById("fleetnote").innerHTML = `Snapshot ${esc(F.snapshot)} · live truth: n8n Executions · claude.ai/code/routines.`;
+  }
+
+  const clfilters = document.getElementById("clfilters");
+  clfilters.innerHTML = [
+    ["all","All"],["break","Breaks"],["fix","Fixes"],["ship","Ships"]
+  ].map(([id,label])=>`<div class="cchip ${id==="all"?"on":""}" data-t="${id}">${label}</div>`).join("");
+  clfilters.querySelectorAll(".cchip").forEach(c=>c.onclick=()=>{
+    typeFilter=c.dataset.t;
+    clfilters.querySelectorAll(".cchip").forEach(x=>x.classList.toggle("on",x===c));
+    renderChangelog();
+  });
+
+  function renderChangelog(){
+    const list = (D.changelog || []).slice().sort((a,b) => b.date.localeCompare(a.date)).filter(c => typeFilter==="all" || c.type===typeFilter);
+    const el = document.getElementById("clog");
+    if(!list.length){
+      el.innerHTML = `<div class="empty">No change-log entries yet.</div>`;
+      return;
+    }
+    el.innerHTML = `<div class="clog">` + list.map(c=>`<div class="crow ${c.type==="break"?"break":""}">
+      <div class="cdate">${esc(c.date)}</div>
+      <div class="ctype">${esc(c.type)}</div>
+      <div class="ccomp">${esc(c.component)}</div>
+      <div class="cwhat">${esc(c.what)}</div>
+      <div class="cown">👤 ${esc(c.owner)}</div>
+    </div>`).join("") + `</div>`;
+  }
+
+  function renderBands(){
+    document.getElementById("tools").innerHTML = (D.tools || []).map(t=>`<span class="chip">${esc(t)}</span>`).join("");
+    document.getElementById("memory").innerHTML = (D.memory || []).map(m=>`<div class="memcol"><div class="h">${esc(m.folder)}</div><div class="d">${esc(m.desc)}</div></div>`).join("");
+  }
+
+  function renderFooter(){
+    const total=D.domains.reduce((n,d)=>n+d.skills.length,0);
+    const active=(D.alerts || []).filter(a=>a.status==="active").length;
+    document.getElementById("foot").innerHTML=`<b>Planet Apparel Agentic OS</b> · Simon + ${esc(D.domains.length)} directors · ${esc(total)} skills · ${esc(active)} active alerts · synced from os-data.js · updated ${esc(D.brand.updated)}`;
+  }
+
+  document.getElementById("ov").onclick=e=>{if(e.target.id==="ov")closeModal();};
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+  renderAlerts();
+  render();
+  renderFleet();
+  renderChangelog();
+  renderBands();
+  renderFooter();
+})();
+</script>
+</body>
+</html>

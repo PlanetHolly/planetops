@@ -634,12 +634,13 @@
         {
           "id": "agentic-os",
           "kind": "surface",
-          "name": "Agent OS (Dashboard · Projects · Architecture)",
-          "blurb": "The AI-workforce layer that watches for failures — Fix Agent, heartbeats, 🚨 System Alerts",
+          "name": "Agentic OS",
+          "blurb": "The AI workforce — who does what, live automations, 🚨 Alert Center, and a Change Log of what keeps breaking",
           "type": "dashboard",
-          "status": "wip",
+          "url": "../os/",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox _Claude/AgenticOS/",
+          "note": "Served copy — source of truth is Dropbox _Claude/AgenticOS/os.html; re-copy on change",
           "icon": "🤖"
         },
         {
