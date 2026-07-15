@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manage Templates</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><img class="pa-icon" src="assets/pa-mark.svg" alt=""><span>Planet Graphics</span></a>
+    <nav class="nav">
+      <a href="./">Dashboard</a>
+      <a href="new.html">New Request</a>
+      <a href="templates.html" aria-current="page">Templates</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="header-row">
+      <div>
+        <h1>Manage Templates</h1>
+        <p class="sub">Replace an existing flat or add a new color/template. Best results: upload a transparent-background PNG of the flat.</p>
+      </div>
+    </div>
+
+    <div class="grid detail-grid">
+      <section class="panel">
+        <div class="section-title">Current templates</div>
+        <div id="templatesGrid"><p class="sub">Loading templates...</p></div>
+      </section>
+
+      <aside class="panel">
+        <div class="section-title">Add new template</div>
+        <form id="templateForm" class="grid">
+          <label>Product
+            <select id="productInput">
+              <option value="bandana">Bandana</option>
+              <option value="paisley">Paisley Bandana</option>
+              <option value="tee">Apparel Tee</option>
+            </select>
+          </label>
+          <label>Slug<input id="slugInput" maxlength="40" placeholder="navy"></label>
+          <label>Label<input id="labelInput" maxlength="160" placeholder="Navy Blue"></label>
+          <label>Pantone<input id="pantoneInput" maxlength="120" placeholder="Pantone 534 C"></label>
+          <label>Template file<input id="fileInput" type="file" accept="image/png,image/webp,image/jpeg"></label>
+          <div class="preview-wrap hidden" id="previewWrap">
+            <canvas id="uploadPreview" width="500" height="500"></canvas>
+            <div class="sub" id="detectSummary"></div>
+          </div>
+          <button id="saveBtn" type="button" disabled>Upload / Save</button>
+          <div id="message" class="sub"></div>
+        </form>
+      </aside>
+    </div>
+  </main>
+
+  <script src="studio.js"></script>
+  <script>
+    const productLabels = { bandana: "Bandana", paisley: "Paisley", tee: "Apparel Tee" };
+    let manifest = null;
+    let pending = null;
+
+    function slugifyTemplate(value) {
+      return String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+    }
+
+    function canvasEl(w, h) {
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(w));
+      c.height = Math.max(1, Math.round(h));
+      return c;
+    }
+
+    function imageFromFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function computeFabricBounds(ctx, w, h) {
+      const data = ctx.getImageData(0, 0, w, h).data;
+      let minX = w, minY = h, maxX = -1, maxY = -1, count = 0;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const a = data[(y * w + x) * 4 + 3];
+          if (a > 200) {
+            count++;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (count < 100 || count === w * h) return [0, 0, w, h];
+      return [minX, minY, maxX + 1, maxY + 1];
+    }
+
+    function computeImprintZone(product, fabricBounds, w, h) {
+      if (product === "bandana") return fabricBounds;
+      if (product === "paisley") {
+        const side = Math.min(w, h) * 0.52;
+        const cx = w / 2, cy = h / 2;
+        return [Math.round(cx - side / 2), Math.round(cy - side / 2), Math.round(cx + side / 2), Math.round(cy + side / 2)];
+      }
+      return [Math.round(w * 0.29), Math.round(h * 0.29), Math.round(w * 0.71), Math.round(h * 0.71)];
+    }
+
+    function drawPreview(source, zone) {
+      const preview = PG.$("#uploadPreview");
+      const max = 520;
+      const scale = Math.min(1, max / Math.max(source.width, source.height));
+      preview.width = Math.round(source.width * scale);
+      preview.height = Math.round(source.height * scale);
+      const ctx = preview.getContext("2d");
+      ctx.clearRect(0, 0, preview.width, preview.height);
+      ctx.drawImage(source, 0, 0, preview.width, preview.height);
+      ctx.strokeStyle = "#f7be00";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 6]);
+      ctx.strokeRect(zone[0] * scale, zone[1] * scale, (zone[2] - zone[0]) * scale, (zone[3] - zone[1]) * scale);
+      ctx.setLineDash([]);
+    }
+
+    async function prepareFile(file) {
+      const product = PG.$("#productInput").value;
+      const img = await imageFromFile(file);
+      const source = canvasEl(img.naturalWidth || img.width, img.naturalHeight || img.height);
+      const sctx = source.getContext("2d", { willReadFrequently: true });
+      sctx.drawImage(img, 0, 0, source.width, source.height);
+      const fabricBounds = computeFabricBounds(sctx, source.width, source.height);
+      const imprintZone = computeImprintZone(product, fabricBounds, source.width, source.height);
+      const image = source.toDataURL("image/webp", 0.9);
+      pending = {
+        product,
+        slug: slugifyTemplate(PG.$("#slugInput").value),
+        label: PG.$("#labelInput").value.trim(),
+        pantone: PG.$("#pantoneInput").value.trim(),
+        flat: product === "paisley",
+        width: source.width,
+        height: source.height,
+        fabricBounds,
+        imprintZone,
+        image
+      };
+      drawPreview(source, imprintZone);
+      PG.$("#previewWrap").classList.remove("hidden");
+      PG.$("#detectSummary").textContent = `${source.width}x${source.height} / fabric [${fabricBounds.join(", ")}] / imprint [${imprintZone.join(", ")}]`;
+      PG.$("#saveBtn").disabled = !pending.slug;
+    }
+
+    async function loadTemplates() {
+      try {
+        manifest = await PG.api("/api/graphics/templates");
+      } catch {
+        // Fallback to the static seed manifest (local preview / API hiccup) — same as studio.js
+        manifest = await (await fetch("assets/manifest.json", { cache: "no-store" })).json();
+      }
+      renderTemplates();
+    }
+
+    function renderTemplates() {
+      const root = PG.$("#templatesGrid");
+      root.innerHTML = ["bandana", "paisley", "tee"].map(product => {
+        const items = manifest.products[product] || [];
+        return `<div class="template-group">
+          <div class="section-title">${productLabels[product]}</div>
+          <div class="template-grid">
+            ${items.map(item => renderTemplateCard(product, item)).join("")}
+          </div>
+        </div>`;
+      }).join("");
+      PG.$$("[data-replace]").forEach(btn => btn.addEventListener("click", () => {
+        const [product, slug] = btn.dataset.replace.split("/");
+        const item = (manifest.products[product] || []).find(x => x.slug === slug);
+        PG.$("#productInput").value = product;
+        PG.$("#slugInput").value = item.slug;
+        PG.$("#labelInput").value = item.label || "";
+        PG.$("#pantoneInput").value = item.pantone || "";
+        PG.$("#fileInput").click();
+      }));
+      PG.$$("[data-remove]").forEach(btn => btn.addEventListener("click", async () => {
+        const [product, slug] = btn.dataset.remove.split("/");
+        if (!confirm(`Remove ${product}/${slug}? Static seed templates will revert automatically.`)) return;
+        await PG.api(`/api/graphics/templates/${encodeURIComponent(product)}/${encodeURIComponent(slug)}`, { method: "DELETE" });
+        await loadTemplates();
+      }));
+    }
+
+    function renderTemplateCard(product, item) {
+      const imgSrc = item.dbBacked ? `${item.src}?t=${Date.now()}` : item.src;
+      return `<div class="template-card">
+        <img src="${imgSrc}" alt="${PG.esc(item.label || item.slug)}" loading="lazy">
+        <strong>${PG.esc(item.label || item.slug)}</strong>
+        <small>${PG.esc(item.slug)}${item.pantone ? " / " + PG.esc(item.pantone) : ""}</small>
+        <div class="template-actions">
+          <button type="button" class="secondary" data-replace="${product}/${item.slug}">Replace</button>
+          ${item.dbBacked ? `<button type="button" class="secondary" data-remove="${product}/${item.slug}">Remove</button>` : ""}
+        </div>
+      </div>`;
+    }
+
+    PG.$("#productInput").addEventListener("change", () => {
+      if (pending) prepareFile(PG.$("#fileInput").files[0]);
+    });
+    PG.$("#slugInput").addEventListener("input", () => {
+      PG.$("#slugInput").value = slugifyTemplate(PG.$("#slugInput").value);
+      if (pending) pending.slug = PG.$("#slugInput").value;
+      PG.$("#saveBtn").disabled = !pending || !pending.slug;
+    });
+    PG.$("#fileInput").addEventListener("change", async e => {
+      if (e.target.files[0]) await prepareFile(e.target.files[0]);
+    });
+    PG.$("#saveBtn").addEventListener("click", async () => {
+      if (!pending) return;
+      pending.slug = slugifyTemplate(PG.$("#slugInput").value);
+      pending.label = PG.$("#labelInput").value.trim() || pending.slug;
+      pending.pantone = PG.$("#pantoneInput").value.trim();
+      pending.product = PG.$("#productInput").value;
+      pending.flat = pending.product === "paisley";
+      await PG.api("/api/graphics/templates", { method: "POST", body: JSON.stringify(pending) });
+      PG.$("#message").textContent = "Template saved.";
+      PG.$("#templateForm").reset();
+      PG.$("#previewWrap").classList.add("hidden");
+      PG.$("#saveBtn").disabled = true;
+      pending = null;
+      await loadTemplates();
+    });
+
+    loadTemplates().catch(e => {
+      PG.$("#templatesGrid").innerHTML = `<p class="error">${PG.esc(e.message)}</p>`;
+    });
+  </script>
+</body>
+</html>

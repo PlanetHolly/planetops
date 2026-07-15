@@ -50,3 +50,17 @@ Railway app, behind the existing PIN gate, orders in the existing Postgres.
 Generative AI · production seps/vectorize/EMB · resolution rescue · Pantone Connect API · full
 Solid-Coated set · true tiled/cowboy compositing (metadata only) · binary art storage (art = refs)
 · Printavo/n8n auto-attach.
+
+## 2026-07-15 — Option B: in-app template uploader
+
+- New `graphics/templates.html` "Manage Templates" page: existing flats grouped (Bandana/Paisley/
+  Tee) with Replace buttons + an add-new form. Upload auto-detects fabric bounds + imprint zone
+  client-side (alpha>200 bbox, matching the Python), shows a preview outline, uploads as WebP.
+- `gate/graphics.js`: `graphics_templates` Postgres table (UNIQUE product+slug, upsert) + 4
+  self-guarded routes: GET templates (static manifest merged with DB overrides), GET template-img,
+  POST (upsert), DELETE (revert to seed). Ephemeral-FS safe (images in Postgres).
+- `studio.js` + `templates.html` load the manifest from `/api/graphics/templates`, falling back to
+  the static seed `manifest.json` (keeps local preview + resilience).
+- Registry: "Manage Templates" surface (access open, team PIN).
+- Verified: Manage Templates grid renders all 42 seed templates via fallback; studio still
+  composites (no regression). Upload->DB round-trip verified by code review (confirms on deploy).

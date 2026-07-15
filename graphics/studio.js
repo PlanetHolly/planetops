@@ -26,7 +26,13 @@ const PG = (() => {
   }
 
   async function initData() {
-    if (!state.manifest) state.manifest = await loadJson("assets/manifest.json");
+    if (!state.manifest) {
+      try {
+        state.manifest = await loadJson("/api/graphics/templates");
+      } catch {
+        state.manifest = await loadJson("assets/manifest.json");
+      }
+    }
     if (!state.pms.length) state.pms = await loadJson("assets/pms.json");
     return state;
   }

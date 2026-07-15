@@ -162,6 +162,34 @@ canvas { display: block; width: 100%; height: auto; }
 .note-item small { color: var(--muted); }
 .proof-img { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .error { color: #b91c1c; font-weight: 800; }
+.template-group { margin-top: 18px; }
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.template-card {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.template-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #ece9e2;
+  border: 1px solid var(--line);
+}
+.template-card strong { font-size: 13px; }
+.template-card small { color: var(--muted); word-break: break-word; }
+.template-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.template-actions button { padding: 7px 9px; font-size: 12px; }
+.preview-wrap { display: grid; gap: 8px; }
+.preview-wrap canvas { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #ece9e2; }
 
 @media (max-width: 980px) {
   .work-grid, .detail-grid, .dashboard-grid { grid-template-columns: 1fr; }
