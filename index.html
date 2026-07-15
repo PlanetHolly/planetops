@@ -6190,11 +6190,20 @@ function detectCategory(details, typeName, nickname){
   const n = (nickname || '').toLowerCase();
   if(d.includes('sew') || d.includes('stitch')) return 'sewing';
   if(d.includes('dtf') || n.includes('dtf') || d.includes('heat transfer') || d.includes('heat press')) return 'heat';
-  // Printavo details include "Finishing: No" on every imprint — only treat as finishing
-  // if the Finishing field has an actual value (not "No") or other finishing keywords present
-  const finishMatch = d.match(/finishing\s*:\s*(\S+)/);
-  const finishActive = finishMatch ? !['no','none','n/a','false'].includes(finishMatch[1]) : false;
-  if(finishActive || d.includes('fold') || d.includes('belly band') || d.includes('barcode') || d.includes('hang tag')) return 'finishing';
+  // A "Finishing: Yes" attribute (or fold/hang-tag keywords) means the print ALSO needs
+  // finishing afterward — it does NOT make the imprint a finishing-only unit. Only classify
+  // as 'finishing' when the imprint has NO printing component; otherwise a screen print that
+  // merely needs finishing loses its Setup / Press Check / Press Run timers and gets only the
+  // gated post-production Service timer (the "timers don't work" bug, 2026-07-15).
+  // A print imprint carries ink info in its details ("Ink Type: …", "Ink(s): N/colors").
+  const hasPrint = /ink\s*type\s*:/i.test(details || '') || /ink\(s\)\s*:/i.test(details || '') || /\d+\s*[\/\-]?\s*colors?/i.test(details || '');
+  if(!hasPrint){
+    // Printavo details include "Finishing: No" on every imprint — only treat as finishing
+    // if the Finishing field has an actual value (not "No") or other finishing keywords present.
+    const finishMatch = d.match(/finishing\s*:\s*(\S+)/);
+    const finishActive = finishMatch ? !['no','none','n/a','false'].includes(finishMatch[1]) : false;
+    if(finishActive || d.includes('fold') || d.includes('belly band') || d.includes('barcode') || d.includes('hang tag')) return 'finishing';
+  }
   return 'screen';
 }
 
