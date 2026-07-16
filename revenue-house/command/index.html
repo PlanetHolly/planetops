@@ -838,7 +838,7 @@ function renderHome(app){
     {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"},
     {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"},
     {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:SIM_SPINE.length,csub:"statuses",hash:"#/simulator"},
-    {ic:"📡",lab:"Activity",one:"What the system did — live retention movement + health",cnt:(actMoves!=null?actMoves:"•"),csub:(actMoves!=null?"moves · 7d":"live"),hash:"#/activity"}
+    {ic:"📡",lab:"Watchtower",one:"One view over every engine — it rings when something breaks",cnt:(actMoves!=null?actMoves:"•"),csub:(actMoves!=null?"moves · 7d":"live"),hash:"#/activity"}
   ];
   const tg = el("div","tiles");
   tiles.forEach(t=>{
@@ -2164,7 +2164,7 @@ function movementSection(app, eng, arr, ds){
 }
 
 function renderActivity(app){
-  setCrumb([["Command Center","#/"],["Activity",null]]);
+  setCrumb([["Command Center","#/"],["The Watchtower",null]]);
   // Spinner first — a slow webhook must never look like a blank page.
   app.appendChild(el("div","empty",'<div class="big">Loading activity…</div><div>Reading retention movement + engine health.</div>'));
   loadActivity(false).then(a=>{ ACTIVITY=a; paintActivity(app); });
@@ -2196,8 +2196,9 @@ function paintActivity(app){
   const hd=el("div","acthead");
   const asOf=fmtPT(meta.asOf, false);
   const left=el("div");
-  left.innerHTML='<div class="crumb" style="color:#b45309">Retention · Activity</div>'+
-    '<div style="font-size:22px;font-weight:800;text-transform:uppercase;margin-top:3px">What the system did</div>'+
+  left.innerHTML='<div class="crumb" style="color:#b45309">Retention · The Watchtower</div>'+
+    '<div style="font-size:22px;font-weight:800;text-transform:uppercase;margin-top:3px">The Watchtower</div>'+
+    '<div style="font-size:13px;color:#6b7280;margin-top:2px">What the system did — one view over every engine</div>'+
     '<div class="sheetnote" style="margin-top:4px">Lookback: <b>today + last 7 days</b>'+
       (ACTIVITY_SOURCE==="sample"?' · <b style="color:#b45309">offline sample</b>':'')+'</div>';
   const right=el("div","actright");
