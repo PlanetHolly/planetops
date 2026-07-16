@@ -943,11 +943,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
       <div class="press-form-two-col">
         <div>
           <label class="press-form-label">Total Screens Used <span style="color:var(--red)">*</span></label>
-          <input type="number" id="comp-total-screens" class="press-form-input" placeholder="e.g. 3" min="1">
+          <input type="number" inputmode="numeric" id="comp-total-screens" class="press-form-input" placeholder="e.g. 3" min="1">
         </div>
         <div>
           <label class="press-form-label">Dryer Speed (fpm) <span style="color:var(--red)">*</span></label>
-          <input type="number" id="comp-dryer-speed" class="press-form-input" placeholder="e.g. 12" min="1">
+          <input type="number" inputmode="numeric" id="comp-dryer-speed" class="press-form-input" placeholder="e.g. 12" min="1">
         </div>
       </div>
       <div class="press-form-two-col">
@@ -3684,8 +3684,14 @@ function openCompletionModal(wuId){
     state.selectedStroke = null;
     document.getElementById('stroke-single').classList.remove('selected');
     document.getElementById('stroke-double').classList.remove('selected');
-    document.getElementById('comp-total-screens').value = '';
-    document.getElementById('comp-dryer-speed').value   = '';
+    // 4c (Holly): pre-fill so the press team types less. Screens = the known color count;
+    // dryer speed + stroke usually repeat run-to-run, so pre-fill from the last completion.
+    // All still editable — these are head-starts, not locks.
+    const _scr = parseInt(w.screens);
+    document.getElementById('comp-total-screens').value = (_scr && _scr > 0) ? _scr : '';
+    document.getElementById('comp-dryer-speed').value   = localStorage.getItem('pa_last_dryer') || '';
+    const _lastStroke = localStorage.getItem('pa_last_stroke');
+    if(_lastStroke === 'single' || _lastStroke === 'double') selectStroke(_lastStroke);
     document.getElementById('comp-flash1').value = '';
     document.getElementById('comp-flash2').value = '';
     buildInkCheckGrid();
@@ -3835,6 +3841,7 @@ function confirmCompletion(){
     const flash2 = parseInt(document.getElementById('comp-flash2').value) || null;
     const specialtyInks = getSelectedInks();
     pressRunData = { stroke:state.selectedStroke, totalScreens, dryerSpeed, flash1, flash2, specialtyInks };
+    try { localStorage.setItem('pa_last_dryer', String(dryerSpeed)); localStorage.setItem('pa_last_stroke', state.selectedStroke); } catch(e){}   // 4c: remember for next run's pre-fill
   }
 
   const qty     = showQty ? (parseInt(document.getElementById('comp-qty').value) || w.qty) : w.qty;
