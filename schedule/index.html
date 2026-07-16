@@ -1029,7 +1029,15 @@ function capFor(lane,date,isOT){
 }
 
 /* ───────── Model ───────── */
-let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
+let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null,searchQ='';
+// Live search filter (Holly 2026-07-16): typing an invoice # pulls up ALL its imprints across
+// the board/queue. Empty = show everything. Matches invoice, imprint label, or nickname.
+function matchesQ(j){
+  if(!searchQ)return true;
+  return (j.imprint||'').toLowerCase().replace(/\s+/g,'').includes(searchQ)
+      || String(j.invoice||'').toLowerCase().includes(searchQ)
+      || (j.nickname||'').toLowerCase().includes(searchQ);
+}
 const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Merch)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
 /* G1: display alias — Holly renamed the finishing event "bandanas" → "merchandise".
    The raw CSV value from Printavo stays 'Packaging (Bandana)' until Printavo's field
@@ -1372,7 +1380,7 @@ function laneBlock(lane,dayJobs,isOT,date){
   }
   const lanesum=(pkeys.length||endInkWarn||switchWarn)?`<div class="lanesum">${pkeys.length?`<span>Pallets: ${pkeys.map(k=>k+'×'+pallets[k]).join(' · ')}${pkeys.length>1?' (mixed)':''}</span>`:''}${switchWarn}${endInkWarn}</div>`:'';
   const lkey=date+'|'+lane.key;
-  const lclosed=!expandedLanes.has(lkey);   // Holly 2026-07-16: stations start COLLAPSED; expand to open
+  const lclosed=!searchQ&&!expandedLanes.has(lkey);   // stations start COLLAPSED; expand to open — but search auto-opens them
   const printedN=rows.filter(isPrinted).length;
   const statusTxt=`${rows.length} job${rows.length>1?'s':''}${printedN?` · ${printedN} printed`:''}`;
   return `<div class="lane ${lclosed?'lclosed':''}">
@@ -1394,11 +1402,12 @@ function dayChips(dayJobs,isOT,date){
   }).join('');
 }
 function dayRow(d,filterLane){
-  const dayJobs=jobs.filter(j=>j.date===d&&(!filterLane||laneOf(j.station)===filterLane));
+  const dayJobs=jobs.filter(j=>j.date===d&&(!filterLane||laneOf(j.station)===filterLane)&&matchesQ(j));
+  if(searchQ&&!dayJobs.length)return '';                    // during search, hide days with no match
   const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
   const lanes=(filterLane?[filterLane]:LANES).map(l=>laneBlock(l,dayJobs,isOT,d)).join('');
   const total=dayJobs.reduce((a,j)=>a+j.minutes,0);
-  const closed=collapsedDays.has(d);
+  const closed=!searchQ&&collapsedDays.has(d);              // search auto-expands the day
   return `<section class="dayrow ${closed?'closed':''}${d===todayISO()?' today':''}" data-date="${d}">
     <div class="drhead" data-toggle="${d}">
       <span class="chev">▾</span>
@@ -1569,7 +1578,7 @@ function renderPickups(){
 }
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
-  const un=unscheduled.filter(j=>!isOut(j)).sort((a,b)=>{
+  const un=unscheduled.filter(j=>!isOut(j)&&matchesQ(j)).sort((a,b)=>{
     const pa=store.parked[a.imprint]?1:0,pb=store.parked[b.imprint]?1:0;
     if(pa!==pb)return pa-pb;                       // parked (not ready) sink to the bottom of the pool
     return (a.prodDue||'9999')<(b.prodDue||'9999')?-1:1;});
@@ -1605,7 +1614,7 @@ function renderList(){
     return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
   };
   const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||(!!store.arrived[j.imprint]&&invReleasable(j)));
-  let list=listShowAll?all:all.filter(inQueue);
+  let list=(listShowAll?all:all.filter(inQueue)).filter(matchesQ);   // search filter (Holly)
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]).length;   // parked jobs don't count — they're captured but NOT ready (estimator gray-out semantics)
   const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]).length;
   if(listSort.key&&SORTVAL[listSort.key]){
@@ -2677,13 +2686,19 @@ function jumpTo(imp){
   }
   renderAll();
 }
+// Live filter (Holly 2026-07-16): typing an invoice # pulls up ALL its imprints across the
+// board/queue and auto-expands to show them. The searchbox sits outside #main, so re-rendering
+// doesn't disturb what's being typed. Enter still jumps to the first match to scroll it into view.
+document.getElementById('searchbox').addEventListener('input',e=>{
+  searchQ=e.target.value.trim().toLowerCase().replace(/\s+/g,'');
+  renderAll();
+});
 document.getElementById('searchbox').addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
-  const sb=e.target,q=sb.value.trim().toLowerCase();if(!q)return;
+  const q=e.target.value.trim().toLowerCase();if(!q)return;
   const norm=s=>s.toLowerCase().replace(/\s+/g,'');
-  const j=jobs.find(x=>norm(x.imprint).includes(norm(q)))||jobs.find(x=>x.nickname.toLowerCase().includes(q));
-  if(!j){sb.style.borderColor='var(--red)';setTimeout(()=>sb.style.borderColor='',900);return;}
-  jumpTo(j.imprint);
+  const j=jobs.find(x=>norm(x.imprint).includes(norm(q)))||jobs.find(x=>(x.nickname||'').toLowerCase().includes(q));
+  if(j)jumpTo(j.imprint);
 });
 document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
 document.getElementById('fileInput').addEventListener('change',e=>{
