@@ -123,10 +123,13 @@
   .dayrow.dragover{outline:2px dashed var(--yellow);outline-offset:-2px}
   .openday{color:var(--grey-text);font-size:12.5px;font-style:italic}
 
-  .lane{margin-bottom:12px}
+  /* Each station is its own bordered card so the day's stations read as distinct,
+     not one blurred list (Holly 2026-07-16). */
+  .lane{margin-bottom:10px;border:1px solid var(--grey-line);border-left:4px solid #b8c0cc;border-radius:9px;background:#fbfbfc;padding:9px 12px 11px}
   .lane:last-child{margin-bottom:0}
-  .lane-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-  .lane-name{font-family:'Barlow Condensed';font-weight:600;font-size:14.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--tonal)}
+  .lane-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .lane-name{font-family:'Barlow Condensed';font-weight:700;font-size:15.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--tonal)}
+  .lane-status{font-size:11px;font-weight:600;color:var(--grey-text)}
   .cap{font-size:11px;font-weight:600;color:var(--grey-text);cursor:pointer;border-bottom:1px dashed transparent}
   .cap:hover{border-bottom-color:var(--grey-text)}
   .cap input{width:52px;font:inherit;border:1px solid var(--yellow);border-radius:4px;padding:0 3px}
@@ -1026,7 +1029,7 @@ function capFor(lane,date,isOT){
 }
 
 /* ───────── Model ───────── */
-let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,collapsedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
+let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
 const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Merch)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
 /* G1: display alias — Holly renamed the finishing event "bandanas" → "merchandise".
    The raw CSV value from Printavo stays 'Packaging (Bandana)' until Printavo's field
@@ -1369,9 +1372,12 @@ function laneBlock(lane,dayJobs,isOT,date){
   }
   const lanesum=(pkeys.length||endInkWarn||switchWarn)?`<div class="lanesum">${pkeys.length?`<span>Pallets: ${pkeys.map(k=>k+'×'+pallets[k]).join(' · ')}${pkeys.length>1?' (mixed)':''}</span>`:''}${switchWarn}${endInkWarn}</div>`:'';
   const lkey=date+'|'+lane.key;
-  const lclosed=collapsedLanes.has(lkey);
+  const lclosed=!expandedLanes.has(lkey);   // Holly 2026-07-16: stations start COLLAPSED; expand to open
+  const printedN=rows.filter(isPrinted).length;
+  const statusTxt=`${rows.length} job${rows.length>1?'s':''}${printedN?` · ${printedN} printed`:''}`;
   return `<div class="lane ${lclosed?'lclosed':''}">
     <div class="lane-head" data-lanetoggle="${lkey}" title="Click to collapse/expand this station"><span class="chev">▾</span><span class="lane-name">${lane.label}${lane.key==='auto'&&isOT?' · OT':''}</span>
+      <span class="lane-status">${statusTxt}</span>
       <span class="cap ${cls}t" data-date="${date}" data-lane="${lane.key}" title="Click to change this day's max minutes">${used}/${cap} min</span></div>
     <div class="capbar ${cls}"><i style="width:${pct}%"></i></div>
     ${lclosed?'':lanesum+`<div class="cardgrid">${rows.map(jobCard).join('')}</div>`}
@@ -2088,7 +2094,7 @@ function wireMain(){
     h.addEventListener('click',e=>{
       if(e.target.closest('.cap,input,button,select'))return;
       const k=h.dataset.lanetoggle;
-      collapsedLanes.has(k)?collapsedLanes.delete(k):collapsedLanes.add(k);
+      expandedLanes.has(k)?expandedLanes.delete(k):expandedLanes.add(k);
       renderAll();
     });
   });
@@ -2650,6 +2656,7 @@ function jumpTo(imp){
   // bar click dumped you on the wrong tab. Resolve the index so reordering tabs can't break it.
   const boardTab=TABS.findIndex(t=>t.label==='Board');
   highlightImp=j.imprint;activeTab=boardTab>=0?boardTab:0;arrCollapsed=false;collapsedUnsch=false;
+  const _jl=laneOf(j.station); if(j.date&&_jl)expandedLanes.add(j.date+'|'+_jl.key);   // open the station the jumped imprint lives in
   if(j.date){
     collapsedDays.delete(j.date);
     const dr=dateRange();
