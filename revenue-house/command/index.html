@@ -899,7 +899,7 @@ function renderHome(app){
     {ic:"⚙️",lab:"Automations",one:"What fires on its own",cnt:autoLiveN,csub:"live",hash:"#/automations"},
     {ic:"🔄",lab:"Lifecycle",one:"NEW → LOST, and what fires",cnt:stageN,csub:"stages",hash:"#/lifecycle"},
     {ic:"🗓️",lab:"Cadence",one:"When every touch sends",cnt:cadenceModel(true).reduce((n,s)=>n+s.groups.length,0),csub:"touches",hash:"#/cadence"},
-    {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:SIM_SPINE.length,csub:"statuses",hash:"#/simulator"},
+    {ic:"🎬",lab:"Status Simulator",one:"Pick a status, see what fires",cnt:"•",csub:"statuses",hash:"#/simulator"},
     {ic:"📡",lab:"Watchtower",one:"One view over every engine — it rings when something breaks",cnt:(actMoves!=null?actMoves:"•"),csub:(actMoves!=null?"moves · 7d":"live"),hash:"#/activity"}
   ];
   const tg = el("div","tiles");
