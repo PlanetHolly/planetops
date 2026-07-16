@@ -3905,5 +3905,168 @@
     "sourceStatus": "ok"
    }
   }
+ },
+ "flightlog": {
+  "meta": {
+   "asOf": "2026-07-15T09:14:00-07:00",
+   "cacheAgeSec": 42,
+   "windowDays": 30
+  },
+  "agents": [
+   {
+    "system": "mark",
+    "displayName": "Mark — Bandana Quote Bot",
+    "openCount": 1,
+    "incidents": [
+     {
+      "signature": "mark:quote-send",
+      "subjects": ["Cedar Farms Co-op"],
+      "failCount": 2,
+      "firstSeen": "2026-07-13T18:04:00-07:00",
+      "lastSeen": "2026-07-14T09:12:00-07:00",
+      "fixOwner": "manual",
+      "severity": "warn",
+      "alerted": true,
+      "firstFailEventId": "mark-20260713T180400-a1b2c3",
+      "lastAction": "Quote Cedar Farms Co-op — 750 bandanas (L②) — Gmail send rejected on the retry too",
+      "detail": "Gmail API returned 550 mailbox-unavailable on both attempts (bounce from purchasing@cedarfarms.coop). No self-heal path — the address itself is bad; needs a human to confirm the contact.",
+      "comms": {
+       "to": "purchasing@cedarfarms.coop",
+       "from": "bandanas@planetapparel.com",
+       "subject": "Your Planet Apparel bandana quote — Cedar Farms Co-op (750 pcs)",
+       "body_html": "<p>Hi Cedar Farms team,</p><p>Thanks for reaching out! Here is your quote for <b>750 custom bandanas</b> at the L② tier. Pricing, turnaround, and the art-approval link are below.</p><p>750 × 22\" cotton bandana, 1-color print — <b>$1,942.50</b> ($2.59/ea)</p><p>Reply to approve and we'll send the mockup within 2 business days.</p><p>— Mark, Planet Apparel</p>"
+      }
+     }
+    ],
+    "recent": [
+     {
+      "eventId": "mark-20260715T092000-r1r1r1",
+      "ts": "2026-07-15T09:20:00-07:00",
+      "action": "Quoted Reliant Realty — 500 bandanas (L②)",
+      "result": "pass",
+      "signature": "mark:quote-send",
+      "subject": "Reliant Realty",
+      "selfCorrected": "",
+      "fixOwner": "manual",
+      "detail": "Quote sent and logged; watchdog armed.",
+      "comms": {
+       "to": "ops@reliantrealty.com",
+       "from": "bandanas@planetapparel.com",
+       "subject": "Your Planet Apparel bandana quote — Reliant Realty (500 pcs)",
+       "body_html": "<p>Hi Reliant Realty,</p><p>Here's your quote for <b>500 custom bandanas</b> (L② tier), 1-color print: <b>$1,395.00</b> ($2.79/ea).</p><p>Reply to approve and we'll get the mockup going.</p><p>— Mark, Planet Apparel</p>"
+      }
+     },
+     {
+      "eventId": "mark-20260715T090500-s2s2s2",
+      "ts": "2026-07-15T09:05:00-07:00",
+      "action": "Quoted Summit Athletic Club — 300 bandanas (L③)",
+      "result": "pass",
+      "signature": "mark:quote-send",
+      "subject": "Summit Athletic Club",
+      "selfCorrected": "",
+      "fixOwner": "manual",
+      "detail": "",
+      "comms": null
+     },
+     {
+      "eventId": "mark-20260715T084000-d3d3d3",
+      "ts": "2026-07-15T08:40:00-07:00",
+      "action": "Quote Delta Print Group — 1,000 bandanas — first send failed, retried",
+      "result": "fail",
+      "signature": "mark:quote-send",
+      "subject": "Delta Print Group",
+      "selfCorrected": "auto",
+      "fixOwner": "manual",
+      "detail": "First Gmail send hit a transient 503; automatic retry 8s later succeeded. Closed in-run, no alert.",
+      "comms": null
+     },
+     {
+      "eventId": "mark-20260714T091200-c4c4c4",
+      "ts": "2026-07-14T09:12:00-07:00",
+      "action": "Quote Cedar Farms Co-op — 750 bandanas (L②) — retry send rejected",
+      "result": "fail",
+      "signature": "mark:quote-send",
+      "subject": "Cedar Farms Co-op",
+      "selfCorrected": "",
+      "fixOwner": "manual",
+      "detail": "Second attempt — Gmail 550 mailbox-unavailable again. Final give-up; open incident.",
+      "comms": {
+       "to": "purchasing@cedarfarms.coop",
+       "from": "bandanas@planetapparel.com",
+       "subject": "Your Planet Apparel bandana quote — Cedar Farms Co-op (750 pcs)",
+       "body_html": "<p>Hi Cedar Farms team,</p><p>Resending your quote for <b>750 custom bandanas</b> (L②). Pricing and the approval link are below.</p><p>750 × 22\" cotton bandana, 1-color print — <b>$1,942.50</b> ($2.59/ea)</p><p>— Mark, Planet Apparel</p>"
+      }
+     },
+     {
+      "eventId": "mark-20260713T180400-a1b2c3",
+      "ts": "2026-07-13T18:04:00-07:00",
+      "action": "Quote Cedar Farms Co-op — 750 bandanas (L②) — send rejected",
+      "result": "fail",
+      "signature": "mark:quote-send",
+      "subject": "Cedar Farms Co-op",
+      "selfCorrected": "",
+      "fixOwner": "manual",
+      "detail": "First attempt — Gmail 550 mailbox-unavailable (bounce). Opened the incident.",
+      "comms": null
+     }
+    ]
+   },
+   {
+    "system": "atrisk",
+    "displayName": "Nova — At-Risk Save-Touch Bot",
+    "openCount": 1,
+    "incidents": [
+     {
+      "signature": "atrisk:dead-letter",
+      "subjects": ["Echo Studio"],
+      "failCount": 1,
+      "firstSeen": "2026-07-15T07:57:00-07:00",
+      "lastSeen": "2026-07-15T07:57:00-07:00",
+      "fixOwner": "agent",
+      "severity": "warn",
+      "alerted": false,
+      "firstFailEventId": "atrisk-20260715T075700-e5e5e5",
+      "lastAction": "Save-touch #2 to Echo Studio — dead-lettered after 3 Streak write retries",
+      "detail": "Streak thread-write returned 500 on all three retries; the touch was queued to the dead-letter table. Handed to the repair agent — not yet swept, so no human has been pinged.",
+      "comms": null
+     }
+    ],
+    "recent": [
+     {
+      "eventId": "atrisk-20260715T091500-h6h6h6",
+      "ts": "2026-07-15T09:15:00-07:00",
+      "action": "Save-touch #1 sent to Harbor Dental Group",
+      "result": "pass",
+      "signature": "atrisk:save-touch",
+      "subject": "Harbor Dental Group",
+      "selfCorrected": "",
+      "fixOwner": "agent",
+      "detail": "",
+      "comms": null
+     },
+     {
+      "eventId": "atrisk-20260715T075700-e5e5e5",
+      "ts": "2026-07-15T07:57:00-07:00",
+      "action": "Save-touch #2 to Echo Studio — dead-lettered",
+      "result": "fail",
+      "signature": "atrisk:dead-letter",
+      "subject": "Echo Studio",
+      "selfCorrected": "",
+      "fixOwner": "agent",
+      "detail": "Streak write failed 3× (500); queued to dead-letter for the repair agent.",
+      "comms": null
+     }
+    ]
+   }
+  ],
+  "ingestErrors": [
+   {
+    "eventId": "mark-20260715T101100-bad001",
+    "ts": "2026-07-15T10:11:00-07:00",
+    "system": "mark",
+    "reason": "signature prefix ≠ system — got 'bandana:quote-send' with system 'mark' (col C must equal the signature prefix)",
+    "raw": "mark-20260715T101100-bad001,2026-07-15T10:11:00-07:00,mark,Quoted Oakline Gym,pass,bandana:quote-send,,manual,info,Oakline Gym"
+   }
+  ]
  }
 }

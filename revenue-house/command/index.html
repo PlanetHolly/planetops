@@ -311,6 +311,62 @@
     border-radius:8px;padding:7px 12px;min-height:38px;display:inline-flex;align-items:center;white-space:nowrap}
   .slink:hover{border-color:var(--gold);background:#fffdf3}
 
+  /* ── activity: per-agent FLIGHT LOG ── */
+  .flpanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:2px 0 14px}
+  .flpanel.hasopen{border-color:#fecaca}
+  .flhead{display:flex;align-items:baseline;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+  .flname{font-size:17px;font-weight:800}
+  .flmeta{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+  .flopen{color:#991b1b;background:#fee2e2;border-radius:999px;padding:2px 9px}
+  .flclear{color:#047857;background:#ecfdf5;border-radius:999px;padding:2px 9px}
+  .flsubhead{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800;margin:12px 0 8px}
+  /* pinned open-incident card (red, stays until resolved) */
+  .pincard{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--red);border-radius:12px;overflow:hidden;margin-bottom:9px}
+  .pincard.crit{border-left-color:#7f1d1d;box-shadow:0 0 0 2px rgba(220,38,38,.12)}
+  .pincard>summary{cursor:pointer;list-style:none;padding:12px 15px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .pincard>summary::-webkit-details-marker{display:none}
+  .pincard>summary::after{content:"▸";color:var(--red);font-weight:800;margin-left:auto;order:9}
+  .pincard[open]>summary::after{content:"▾"}
+  .pdot{width:9px;height:9px;border-radius:50%;background:var(--red);flex:0 0 auto;box-shadow:0 0 0 3px rgba(220,38,38,.12)}
+  .psig{font-size:13px;font-weight:800;color:#991b1b;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .pcount{font-size:12px;font-weight:700;color:#7f1d1d}
+  .alertmark{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 7px;border-radius:999px}
+  .alertmark.yes{background:#fee2e2;color:#991b1b}
+  .alertmark.no{background:#fef3c7;color:#92400e}
+  .pinbody{padding:0 15px 14px;display:flex;flex-direction:column;gap:9px}
+  .subjlist{font-size:12.5px;color:#374151;line-height:1.7}
+  .subjlist .lbl,.pinln .lbl{font-weight:800;color:var(--mut);text-transform:uppercase;font-size:10px;letter-spacing:.4px;margin-right:5px}
+  .subjchip{display:inline-block;font-size:12px;font-weight:700;background:#fff;border:1px solid #fecaca;color:#991b1b;border-radius:6px;padding:2px 8px;margin:2px 3px 0 0}
+  .pinln{font-size:13px;color:#1f2430;line-height:1.5}
+  /* recent chronological feed */
+  .feed{display:flex;flex-direction:column;gap:5px}
+  .flrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fbfbfc;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px}
+  details.flrow{padding:0}
+  details.flrow>summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 12px}
+  details.flrow>summary::-webkit-details-marker{display:none}
+  details.flrow>summary::after{content:"✉ view";color:var(--mut);font-weight:800;font-size:10.5px;white-space:nowrap}
+  details.flrow[open]>summary::after{content:"✉ hide"}
+  .fltime{font-size:11px;font-weight:700;color:var(--mut);white-space:nowrap;min-width:62px}
+  .flact{font-weight:600;color:#1f2430;flex:1 1 200px;min-width:0}
+  .flsubj{font-size:11.5px;font-weight:700;color:#475569;background:#eef0f2;border-radius:6px;padding:2px 8px}
+  .flpill{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .flpill.pass{background:#ecfdf5;color:#047857}
+  .flpill.fail{background:#fee2e2;color:#991b1b}
+  .flpill.recovered{background:#eef1f5;color:#475569}
+  .flpill.other{background:#eef0f2;color:#475569}
+  .flbody{padding:0 12px 12px}
+  .flbody .frame,.pinbody .frame{margin-top:4px}
+  /* ingest-error strip (emitter bugs) — muted, at the bottom */
+  .ingesthead{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#92400e;margin:18px 0 8px}
+  .ingestempty{font-size:12px;color:var(--mut);font-weight:600}
+  .ingestbox{display:flex;flex-direction:column;gap:6px}
+  .ingestrow{background:#fffdf6;border:1px dashed #f0c14b;border-radius:9px;padding:9px 12px;font-size:12px;color:#7c4a03;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .igtime{font-weight:700;white-space:nowrap}
+  .igsys{font-weight:800;background:#fef3c7;border-radius:5px;padding:1px 7px}
+  .igreason{font-weight:600;color:#78350f}
+  .igid{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;color:#a16207}
+  .igraw{flex-basis:100%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#78350f;background:#fff;border:1px solid #fde68a;border-radius:6px;padding:6px 8px;overflow-x:auto;white-space:pre}
+
   /* ── search results ── */
   .sgroup{margin-bottom:22px}
   .sgroup h3{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:800;
@@ -339,7 +395,7 @@
   @media print{
     body{background:#fff}
     .topbar,.omni,.actions,.frametoggle{display:none!important}
-    .ecard,.frame,.panel,.acard,.stpanel,.tcard,.vrow{break-inside:avoid}
+    .ecard,.frame,.panel,.acard,.stpanel,.tcard,.vrow,.flpanel,.pincard{break-inside:avoid}
     .detail{grid-template-columns:1fr}
     .grid{display:block} .grid .ecard{margin-bottom:10px}
     details{display:block!important} details .texp,.branch .bc{display:block!important}
@@ -366,12 +422,17 @@ const ENDPOINT = "https://primary-production-079f9.up.railway.app/webhook/comman
 // Activity feed is a SIBLING webhook on the SAME Railway host — derived from ENDPOINT so the host
 // is never hardcoded twice (a different Data API workflow; isolates the blast radius per the plan).
 const ACTIVITY_ENDPOINT = ENDPOINT.replace("/command-center-data","/retention-activity-data");
+// Flight-log feed is a THIRD sibling webhook on the SAME Railway host — derived identically so the
+// host is never hardcoded again (per-agent event log; own workflow, own blast radius).
+const FLIGHTLOG_ENDPOINT = ENDPOINT.replace("/command-center-data","/watchtower-flightlog");
 const FETCH_TIMEOUT = 3000;
 // Activity gets its OWN, much longer timeout: a COLD assemble (live Streak scans) is 15–40s, and
 // the main view's 3s budget (tuned for a ~60s-cached feed) would abort every cold load and silently
 // fall through to the offline SAMPLE — canned health + fake customer rows shown as if live. A 5-min
 // cache-warmer keeps warm loads fast; this long timeout is the backstop for the cold case.
 const ACTIVITY_FETCH_TIMEOUT = 45000;
+// Flight-log gets its own long budget for the same cold-assemble reason (reads the whole LOG tab).
+const FLIGHTLOG_FETCH_TIMEOUT = 45000;
 const LS_KEY = "cc-lastgood-v1";
 
 const AUTO = {
@@ -385,6 +446,7 @@ const AUTO_ORDER = ["auto-send","auto-draft","manual","planned","off"];
 
 let DATA = null, IDX = null, SOURCE = null, SOURCE_TIME = null;
 let ACTIVITY = null, ACTIVITY_SOURCE = null;
+let FLIGHTLOG = null, FLIGHTLOG_SOURCE = null;
 
 const esc = s => (s==null?"":String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
@@ -2063,6 +2125,24 @@ async function loadActivity(bust){
   ACTIVITY_SOURCE="none"; return null;
 }
 
+// Load the per-agent flight-log payload — SAME fetch discipline + SAME 3-step fallback as
+// loadActivity, but its OWN source flag so a flight-log outage never masquerades as the activity
+// feed's state (they're independent webhooks; either can be down alone).
+function validFlightlog(f){ return f && Array.isArray(f.agents); }
+async function loadFlightlog(bust){
+  try{
+    const url = FLIGHTLOG_ENDPOINT + (bust ? ("?refresh=1&t="+Date.now()) : "");
+    const d = await fetchWithTimeout(url, FLIGHTLOG_FETCH_TIMEOUT);
+    if(validFlightlog(d)){ FLIGHTLOG_SOURCE="live"; return d; }
+  }catch(e){ /* fall through to the offline sample */ }
+  if(DATA && validFlightlog(DATA.flightlog)){ FLIGHTLOG_SOURCE="sample"; return DATA.flightlog; }
+  try{
+    const d = await fetchWithTimeout("./sample-data.json"+(bust?("?t="+Date.now()):""), FETCH_TIMEOUT);
+    if(d && validFlightlog(d.flightlog)){ FLIGHTLOG_SOURCE="sample"; return d.flightlog; }
+  }catch(e){}
+  FLIGHTLOG_SOURCE="none"; return null;
+}
+
 // Overall dot — computed client-side from health[] per the contract rule, so the dot can NEVER
 // disagree with the chips it summarizes (that consistency is the point of the forced-red
 // acceptance test). STAGED entries are excluded entirely — otherwise the strip is amber/red by
@@ -2163,11 +2243,171 @@ function movementSection(app, eng, arr, ds){
   const g=el("div","grid"); arr.forEach(r=>g.appendChild(movementCard(r, eng.key))); app.appendChild(g);
 }
 
+// ── FLIGHT LOG renderers ──────────────────────────────────────────────────
+// EVERY field below is emitter-supplied / customer data → esc() on the way in. comms may be null.
+// Normalize the fix-owner enum (unknown => manual) exactly like healthPill does.
+function fixOwnerOf(v){ return (v==="auto"||v==="agent"||v==="manual") ? v : "manual"; }
+
+// Comms → the existing email-frame chrome. body_html renders in a sandboxed iframe (sandbox=""
+// disables scripts) — the SAME safe path the Scripts view uses; headers are esc'd/textContent.
+function commsFrame(comms){
+  const frame=el("div","frame");
+  const fh=el("div","fh");
+  fh.innerHTML='<div class="ln"><span class="k">From</span><span class="v">'+esc(comms.from||"—")+'</span></div>'+
+    '<div class="ln"><span class="k">To</span><span class="v">'+esc(comms.to||"—")+'</span></div>';
+  const subjEl=el("div","subj"); subjEl.textContent=comms.subject||"(no subject)"; fh.appendChild(subjEl);
+  frame.appendChild(fh);
+  const hasBody = typeof comms.body_html==="string" && comms.body_html.trim();
+  if(hasBody){
+    const iframe=document.createElement("iframe");
+    iframe.setAttribute("sandbox","");
+    iframe.setAttribute("title","Message preview");
+    iframe.srcdoc = comms.body_html;          // sandboxed; scripts + same-origin disabled
+    frame.appendChild(iframe);
+  } else if(comms.body_truncated){
+    const b=el("div","body"); b.textContent="Body stored at ref: "+(comms.ref||"(no ref)"); frame.appendChild(b);
+  }
+  return frame;
+}
+
+// One pinned OPEN-incident card (red, stays until resolved). Coalesced summary + subjects + fix
+// owner + alert marker on the face; lastAction/detail/comms behind the expand.
+function incidentCard(inc){
+  const subjects = Array.isArray(inc.subjects) ? inc.subjects : [];
+  const m = subjects.length;
+  const n = (inc.failCount!=null) ? inc.failCount : 0;
+  const owner = fixOwnerOf(inc.fixOwner);
+  const since = fmtPT(inc.firstSeen, true) || inc.firstSeen || "—";
+  const d = el("details","pincard"+(inc.severity==="critical"?" crit":""));
+  const sum = el("summary");
+  sum.innerHTML='<span class="pdot"></span>'+
+    '<span class="psig">'+esc(inc.signature||"—")+'</span>'+
+    '<span class="pcount">'+esc(n)+' failure'+(n===1?'':'s')+' · '+esc(m)+' subject'+(m===1?'':'s')+' affected · since '+esc(since)+'</span>'+
+    '<span class="fixown '+owner+'">'+esc(owner.toUpperCase())+'</span>'+
+    '<span class="alertmark '+(inc.alerted?'yes':'no')+'">'+(inc.alerted?'alerted':'not yet alerted')+'</span>';
+  d.appendChild(sum);
+  const body = el("div","pinbody");
+  if(subjects.length){
+    const sl=el("div","subjlist");
+    sl.innerHTML='<span class="lbl">Subjects</span>'+subjects.map(s=>'<span class="subjchip">'+esc(s)+'</span>').join("");
+    body.appendChild(sl);
+  }
+  if(inc.lastAction) body.appendChild(el("div","pinln",'<span class="lbl">Last action</span>'+esc(inc.lastAction)));
+  if(inc.detail)     body.appendChild(el("div","pinln",'<span class="lbl">Detail</span>'+esc(inc.detail)));
+  if(inc.comms)      body.appendChild(commsFrame(inc.comms));   // guard: null comms → nothing
+  d.appendChild(body);
+  return d;
+}
+
+// One recent flight-log row: time · action · PASS/FAIL/recovered pill · subject. A fail that
+// self-corrected reads "recovered (auto/agent)"; a plain pass is quiet green. Expandable iff comms.
+function recentRow(r){
+  const time = esc(fmtPT(r.ts, false) || "—");
+  let pillCls, pillTxt;
+  if(r.result==="fail"){
+    if(r.selfCorrected==="auto"||r.selfCorrected==="agent"){ pillCls="recovered"; pillTxt="recovered ("+esc(r.selfCorrected)+")"; }
+    else { pillCls="fail"; pillTxt="FAIL"; }
+  } else if(r.result==="pass"){ pillCls="pass"; pillTxt="pass"; }
+  else { pillCls="other"; pillTxt=esc(r.result==null?"—":String(r.result).toUpperCase()); }
+  const face='<span class="fltime">'+time+'</span>'+
+    '<span class="flact">'+esc(r.action||"—")+'</span>'+
+    '<span class="flpill '+pillCls+'">'+pillTxt+'</span>'+
+    (r.subject?'<span class="flsubj">'+esc(r.subject)+'</span>':'');
+  if(r.comms){
+    const d=el("details","flrow hascomms");
+    const sum=el("summary"); sum.innerHTML=face; d.appendChild(sum);
+    const b=el("div","flbody");
+    if(r.detail) b.appendChild(el("div","pinln",esc(r.detail)));
+    b.appendChild(commsFrame(r.comms));
+    d.appendChild(b);
+    return d;
+  }
+  const row=el("div","flrow"); row.innerHTML=face; return row;
+}
+
+function agentPanel(ag){
+  const incidents = Array.isArray(ag.incidents) ? ag.incidents : [];
+  const panel = el("div","flpanel"+(incidents.length?" hasopen":""));
+  const head = el("div","flhead");
+  const openN = incidents.length;
+  head.innerHTML='<div class="flname">'+esc(ag.displayName||ag.system||"—")+'</div>'+
+    '<div class="flmeta">'+(openN
+      ? '<span class="flopen">'+esc(openN)+' open incident'+(openN===1?'':'s')+'</span>'
+      : '<span class="flclear">no open incidents</span>')+'</div>';
+  panel.appendChild(head);
+  // PINNED open incidents at the top.
+  incidents.forEach(inc=>panel.appendChild(incidentCard(inc)));
+  // Recent feed — rendered in the ORDER THE SERVER SENDS (canonical append/row order, already
+  // reversed to newest-first by the workflow). Per the contract, append order is canonical and `ts`
+  // is explicitly NOT the ordering key (cross-terminal clock skew) — so we do NOT re-sort by ts.
+  const recent = Array.isArray(ag.recent) ? ag.recent : [];
+  panel.appendChild(el("div","flsubhead","Recent flight log"));
+  if(!recent.length){
+    panel.appendChild(el("div","actempty","No recent events logged for this agent in the window."));
+  } else {
+    const feed=el("div","feed"); recent.forEach(r=>feed.appendChild(recentRow(r))); panel.appendChild(feed);
+  }
+  return panel;
+}
+
+// Muted ⚠ Ingest-errors strip — malformed rows the reader rejected (a BROKEN EMITTER is exactly
+// what the board exists to surface). Small, at the very bottom.
+function renderIngestErrors(app, errs){
+  const list = Array.isArray(errs) ? errs : [];
+  app.appendChild(el("div","ingesthead","⚠ Ingest errors"+(list.length?(" · "+list.length):"")+" (malformed emitter rows)"));
+  if(!list.length){ app.appendChild(el("div","ingestempty","No malformed rows — every emitter wrote clean events.")); return; }
+  const box=el("div","ingestbox");
+  list.forEach(e=>{
+    const row=el("div","ingestrow");
+    row.innerHTML='<span class="igtime">'+esc(fmtPT(e.ts, true)||"—")+'</span>'+
+      '<span class="igsys">'+esc(e.system||"—")+'</span>'+
+      '<span class="igreason">'+esc(e.reason||"malformed row")+'</span>'+
+      (e.eventId?'<span class="igid">'+esc(e.eventId)+'</span>':'')+
+      (e.raw?'<div class="igraw">'+esc(e.raw)+'</div>':'');
+    box.appendChild(row);
+  });
+  app.appendChild(box);
+}
+
+// The FLIGHT LOG section — one panel per agent (open-incident agents first), then the ingest strip.
+// Fail-soft LOUD: an unreadable source says so; it NEVER renders empty-as-if-healthy.
+function renderFlightlog(app){
+  const h=el("h2","sec");
+  h.innerHTML='Flight Log <span class="sub">per agent — what each bot did, with open failures pinned</span>';
+  app.appendChild(h);
+  if(FLIGHTLOG_SOURCE==="none" || !FLIGHTLOG){
+    app.appendChild(el("div","vbanner",'⚠️ Flight-log source unavailable — could not read the Watchtower flight log. This is NOT "every agent is healthy."'));
+    return;
+  }
+  if(FLIGHTLOG_SOURCE==="sample"){
+    const sb=el("div","","⚠ SAMPLE FLIGHT LOG — not live. Agent incidents and rows below are canned fixtures.");
+    sb.style.cssText="background:#fffbeb;border:1.5px solid #f0c14b;color:#7c4a03;border-radius:12px;"+
+      "padding:11px 16px;font-size:12.5px;font-weight:800;margin:2px 0 8px";
+    app.appendChild(sb);
+  }
+  const agents=(Array.isArray(FLIGHTLOG.agents)?FLIGHTLOG.agents:[]).slice();
+  if(!agents.length){
+    app.appendChild(el("div","actempty","No agents are reporting to the Watchtower yet."));
+  } else {
+    // Agents with any OPEN incident float to the top; ties broken by openCount desc, stable otherwise.
+    agents.sort((a,b)=>{
+      const ao=(Array.isArray(a.incidents)&&a.incidents.length)?0:1;
+      const bo=(Array.isArray(b.incidents)&&b.incidents.length)?0:1;
+      if(ao!==bo) return ao-bo;
+      return (b.openCount||0)-(a.openCount||0);
+    });
+    agents.forEach(ag=>app.appendChild(agentPanel(ag)));
+  }
+  renderIngestErrors(app, FLIGHTLOG.ingestErrors);
+}
+
 function renderActivity(app){
   setCrumb([["Command Center","#/"],["The Watchtower",null]]);
   // Spinner first — a slow webhook must never look like a blank page.
-  app.appendChild(el("div","empty",'<div class="big">Loading activity…</div><div>Reading retention movement + engine health.</div>'));
-  loadActivity(false).then(a=>{ ACTIVITY=a; paintActivity(app); });
+  app.appendChild(el("div","empty",'<div class="big">Loading activity…</div><div>Reading retention movement + engine health + the agent flight log.</div>'));
+  // Fetch both feeds in parallel; each has its own timeout + fallback + source flag.
+  Promise.all([loadActivity(false), loadFlightlog(false)])
+    .then(([a,f])=>{ ACTIVITY=a; FLIGHTLOG=f; paintActivity(app); });
 }
 
 function paintActivity(app){
@@ -2205,7 +2445,7 @@ function paintActivity(app){
   const asofBadge=el("div","actasof"); asofBadge.innerHTML='data as of <b>'+(asOf?esc(asOf)+" PT":"—")+'</b>';
   const refresh=el("button","btn ghost","↻ Refresh"); refresh.setAttribute("aria-label","Refresh activity data");
   refresh.onclick=()=>{ refresh.disabled=true; refresh.textContent="Refreshing…";
-    loadActivity(true).then(a=>{ ACTIVITY=a; paintActivity(app); }); };
+    Promise.all([loadActivity(true), loadFlightlog(true)]).then(([a,f])=>{ ACTIVITY=a; FLIGHTLOG=f; paintActivity(app); }); };
   right.appendChild(asofBadge); right.appendChild(refresh);
   hd.appendChild(left); hd.appendChild(right);
   app.appendChild(hd);
@@ -2249,6 +2489,9 @@ function paintActivity(app){
       (od.oldestSuppression?'<div class="sheetnote" style="margin-top:8px">Oldest suppression: <b>'+esc(od.oldestSuppression)+'</b> — a stale hold must not read as activity.</div>':'');
     app.appendChild(card);
   }
+
+  // ── PANEL 3 — the per-agent FLIGHT LOG (pinned open failures + recent feed + ingest strip) ──
+  renderFlightlog(app);
 }
 
 /* ─────────────────────────── shared bits ─────────────────────────── */
