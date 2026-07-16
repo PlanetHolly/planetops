@@ -126,82 +126,100 @@
           ]
         },
         {
-          "id": "priority-guide",
-          "kind": "surface",
-          "name": "Priority Production (internal)",
-          "blurb": "Rush prioritization quick reference",
-          "type": "reference",
-          "url": "../priority-guide/",
-          "status": "live",
-          "access": "open",
-          "icon": "🚦"
+          "id": "guides",
+          "kind": "hub",
+          "name": "Guides",
+          "blurb": "Production reference — box guide, flow map, priority + rush windows.",
+          "icon": "📖",
+          "children": [
+            {
+              "id": "boxes",
+              "kind": "surface",
+              "name": "Box Guide",
+              "blurb": "Fulfillment box sizes & stock levels",
+              "type": "reference",
+              "url": "../boxes/",
+              "status": "live",
+              "access": "open",
+              "icon": "📦"
+            },
+            {
+              "id": "prod-flow-map",
+              "kind": "surface",
+              "name": "Production Flow Map v3",
+              "blurb": "Status taxonomy + trigger layers",
+              "type": "system-map",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
+              "icon": "🗺️"
+            },
+            {
+              "id": "priority-guide",
+              "kind": "surface",
+              "name": "Priority Production (internal)",
+              "blurb": "Rush prioritization quick reference",
+              "type": "reference",
+              "url": "../priority-guide/",
+              "status": "live",
+              "access": "open",
+              "icon": "🚦"
+            },
+            {
+              "id": "rush",
+              "kind": "surface",
+              "name": "Rush Windows (customer-facing)",
+              "blurb": "Rush ship windows explained for customers",
+              "type": "reference",
+              "url": "../rush/",
+              "status": "wip",
+              "access": "open",
+              "note": "untracked — not pushed yet",
+              "icon": "⏱️"
+            }
+          ]
         },
         {
-          "id": "rush",
-          "kind": "surface",
-          "name": "Rush Windows (customer-facing)",
-          "blurb": "Rush ship windows explained for customers",
-          "type": "reference",
-          "url": "../rush/",
-          "status": "wip",
-          "access": "open",
-          "note": "untracked — not pushed yet",
-          "icon": "⏱️"
-        },
-        {
-          "id": "boxes",
-          "kind": "surface",
-          "name": "Box Guide",
-          "blurb": "Fulfillment box sizes & stock levels",
-          "type": "reference",
-          "url": "../boxes/",
-          "status": "live",
-          "access": "open",
-          "icon": "📦"
-        },
-        {
-          "id": "prod-flow-map",
-          "kind": "surface",
-          "name": "Production Flow Map v3",
-          "blurb": "Status taxonomy + trigger layers",
-          "type": "system-map",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
-          "icon": "🗺️"
-        },
-        {
-          "id": "graphics-suite",
-          "kind": "surface",
-          "name": "Planet Graphics",
-          "blurb": "Simple mockups, colorways, PMS proofs, and request intake",
-          "type": "tool",
-          "url": "../graphics/",
-          "status": "live",
-          "access": "open",
-          "icon": "🎨"
-        },
-        {
-          "id": "graphics-templates",
-          "kind": "surface",
-          "name": "Manage Templates",
-          "blurb": "Upload and replace Planet Graphics flats and template art",
-          "type": "tool",
-          "url": "../graphics/templates.html",
-          "status": "live",
-          "access": "open",
-          "icon": "🖼️"
-        },
-        {
-          "id": "art-namer",
-          "kind": "surface",
-          "name": "Art Namer",
-          "blurb": "Produced-job mockups → Google/LLM-optimized web assets + SKU",
-          "type": "tool",
-          "status": "live",
-          "access": "open",
-          "note": "CLI today (art-namer/cli.py); Feed lane per art-namer/SPEC.md. Output → Website Shared Drive Website_Ready/Bandanas/",
-          "icon": "🏷️"
+          "id": "graphics",
+          "kind": "hub",
+          "name": "Graphics",
+          "blurb": "Art and graphics tools — Planet Graphics, template management, art naming.",
+          "icon": "🎨",
+          "children": [
+            {
+              "id": "graphics-suite",
+              "kind": "surface",
+              "name": "Planet Graphics",
+              "blurb": "Simple mockups, colorways, PMS proofs, and request intake",
+              "type": "tool",
+              "url": "../graphics/",
+              "status": "live",
+              "access": "open",
+              "icon": "🎨"
+            },
+            {
+              "id": "graphics-templates",
+              "kind": "surface",
+              "name": "Manage Templates",
+              "blurb": "Upload and replace Planet Graphics flats and template art",
+              "type": "tool",
+              "url": "../graphics/templates.html",
+              "status": "live",
+              "access": "open",
+              "icon": "🖼️"
+            },
+            {
+              "id": "art-namer",
+              "kind": "surface",
+              "name": "Art Namer",
+              "blurb": "Produced-job mockups → Google/LLM-optimized web assets + SKU",
+              "type": "tool",
+              "status": "live",
+              "access": "open",
+              "note": "CLI today (art-namer/cli.py); Feed lane per art-namer/SPEC.md. Output → Website Shared Drive Website_Ready/Bandanas/",
+              "icon": "🏷️"
+            }
+          ]
         },
         {
           "id": "qc",
@@ -313,26 +331,81 @@
           "icon": "🏠"
         },
         {
-          "id": "command-center",
-          "kind": "surface",
-          "name": "Revenue House Command Center",
-          "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
-          "type": "live-app",
-          "url": "../revenue-house/command/",
-          "status": "live",
-          "access": "open",
-          "icon": "🎛️"
-        },
-        {
-          "id": "status-simulator",
-          "kind": "surface",
-          "name": "Status Simulator",
-          "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
-          "type": "live-app",
-          "url": "../revenue-house/command/#/simulator",
-          "status": "live",
-          "access": "open",
-          "icon": "🎬"
+          "id": "retention",
+          "kind": "hub",
+          "name": "Retention",
+          "blurb": "Keeping customers — the live retention system, playbook, scripts, and the Save Touch.",
+          "icon": "🤝",
+          "children": [
+            {
+              "id": "command-center",
+              "kind": "surface",
+              "name": "Revenue House Command Center",
+              "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
+              "type": "live-app",
+              "url": "../revenue-house/command/",
+              "status": "live",
+              "access": "open",
+              "icon": "🎛️"
+            },
+            {
+              "id": "status-simulator",
+              "kind": "surface",
+              "name": "Status Simulator",
+              "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
+              "type": "live-app",
+              "url": "../revenue-house/command/#/simulator",
+              "status": "live",
+              "access": "open",
+              "icon": "🎬"
+            },
+            {
+              "id": "retention-map",
+              "kind": "surface",
+              "name": "Retention — Live System Map",
+              "blurb": "Three cadence engines, every automation, the alarms",
+              "type": "system-map",
+              "url": "../revenue-house/retention/",
+              "status": "live",
+              "access": "open",
+              "dataSource": "status.json (hand-maintained)",
+              "icon": "🧲"
+            },
+            {
+              "id": "save-touch",
+              "kind": "surface",
+              "name": "The Save Touch",
+              "blurb": "Win-back / at-risk retention team playbook",
+              "type": "reference",
+              "url": "../save-touch/",
+              "status": "live",
+              "access": "open",
+              "icon": "🆘"
+            },
+            {
+              "id": "retention-playbook",
+              "kind": "surface",
+              "name": "Retention Playbook",
+              "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
+              "type": "reference",
+              "url": "../revenue-house/playbook/",
+              "status": "live",
+              "access": "open",
+              "icon": "📓"
+            },
+            {
+              "id": "retention-registry",
+              "kind": "surface",
+              "name": "Retention — Master Script Registry",
+              "blurb": "36-row control sheet governing the retention n8n fleet",
+              "type": "report",
+              "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Drive sheet · governs Systems A/B/C",
+              "icon": "📇"
+            }
+          ]
         },
         {
           "id": "signals",
@@ -347,40 +420,6 @@
           "icon": "📡"
         },
         {
-          "id": "retention-map",
-          "kind": "surface",
-          "name": "Retention — Live System Map",
-          "blurb": "Three cadence engines, every automation, the alarms",
-          "type": "system-map",
-          "url": "../revenue-house/retention/",
-          "status": "live",
-          "access": "open",
-          "dataSource": "status.json (hand-maintained)",
-          "icon": "🧲"
-        },
-        {
-          "id": "save-touch",
-          "kind": "surface",
-          "name": "The Save Touch",
-          "blurb": "Win-back / at-risk retention team playbook",
-          "type": "reference",
-          "url": "../save-touch/",
-          "status": "live",
-          "access": "open",
-          "icon": "🆘"
-        },
-        {
-          "id": "retention-playbook",
-          "kind": "surface",
-          "name": "Retention Playbook",
-          "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
-          "type": "reference",
-          "url": "../revenue-house/playbook/",
-          "status": "live",
-          "access": "open",
-          "icon": "📓"
-        },
-        {
           "id": "ship-estimate",
           "kind": "surface",
           "name": "Bandana Shipping Estimator",
@@ -390,18 +429,6 @@
           "status": "live",
           "access": "open",
           "icon": "🚚"
-        },
-        {
-          "id": "retention-registry",
-          "kind": "surface",
-          "name": "Retention — Master Script Registry",
-          "blurb": "36-row control sheet governing the retention n8n fleet",
-          "type": "report",
-          "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
-          "status": "live",
-          "access": "open",
-          "dataSource": "Drive sheet · governs Systems A/B/C",
-          "icon": "📇"
         },
         {
           "id": "pipeline-dashboard",
@@ -415,37 +442,68 @@
           "icon": "🚰"
         },
         {
-          "id": "bandana-pricing",
-          "kind": "surface",
-          "name": "Bandana Pricing (internal)",
-          "blurb": "Every price break by product × ink × qty × colors. Shows SP + margin.",
-          "type": "dashboard",
-          "url": "../pricing/bandana-pricing.html",
-          "status": "live",
-          "access": "pin",
-          "icon": "💰"
-        },
-        {
-          "id": "apparel-matrix-review",
-          "kind": "surface",
-          "name": "Apparel Matrix Review",
-          "blurb": "The 10 apparel matrices + the 25% garment markup — review before go-live.",
-          "type": "report",
-          "url": "../pricing/apparel-matrix-review.html",
-          "status": "live",
-          "access": "pin",
-          "icon": "🧮"
-        },
-        {
-          "id": "bandana-pricing-desk",
-          "kind": "surface",
-          "name": "Bandana Quote (desk)",
-          "blurb": "Bandana price lookup by product, qty, colors. Prices only. Team quoting tool.",
-          "type": "dashboard",
-          "url": "../bandana-pricing/",
-          "status": "live",
-          "access": "open",
-          "icon": "🧣"
+          "id": "pricing",
+          "kind": "hub",
+          "name": "Pricing",
+          "blurb": "Internal pricing tools — matrices, price lookups, and SP/margin views behind the desks.",
+          "icon": "🏷️",
+          "children": [
+            {
+              "id": "bandana-pricing",
+              "kind": "surface",
+              "name": "Bandana Pricing (internal)",
+              "blurb": "Every price break by product × ink × qty × colors. Shows SP + margin.",
+              "type": "dashboard",
+              "url": "../pricing/bandana-pricing.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "💰"
+            },
+            {
+              "id": "apparel-matrix-review",
+              "kind": "surface",
+              "name": "Apparel Matrix Review",
+              "blurb": "The 10 apparel matrices + the 25% garment markup — review before go-live.",
+              "type": "report",
+              "url": "../pricing/apparel-matrix-review.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🧮"
+            },
+            {
+              "id": "bandana-quote-fin",
+              "kind": "surface",
+              "name": "Bandana Quote (SP)",
+              "blurb": "Bandana quote with Sales Profit + whole-project margin.",
+              "type": "tool",
+              "url": "../pricing/bandana-quote-calculator.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🏴"
+            },
+            {
+              "id": "apparel-quote-calc",
+              "kind": "surface",
+              "name": "Apparel Quick Quote",
+              "blurb": "Generate a consistent apparel screen-print quote — garment + decoration + services. Shows SP. Replaces freestyle desk quoting.",
+              "type": "tool",
+              "url": "../pricing/apparel-quote-calculator.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🖩"
+            },
+            {
+              "id": "bandana-pricing-desk",
+              "kind": "surface",
+              "name": "Bandana Quote (desk)",
+              "blurb": "Bandana price lookup by product, qty, colors. Prices only. Team quoting tool.",
+              "type": "dashboard",
+              "url": "../bandana-pricing/",
+              "status": "live",
+              "access": "open",
+              "icon": "🧣"
+            }
+          ]
         },
         {
           "id": "revenue-discovery",
@@ -457,17 +515,6 @@
           "status": "live",
           "access": "pin",
           "icon": "🔎"
-        },
-        {
-          "id": "apparel-quote-calc",
-          "kind": "surface",
-          "name": "Apparel Quick Quote",
-          "blurb": "Generate a consistent apparel screen-print quote — garment + decoration + services. Shows SP. Replaces freestyle desk quoting.",
-          "type": "tool",
-          "url": "../pricing/apparel-quote-calculator.html",
-          "status": "live",
-          "access": "pin",
-          "icon": "🖩"
         },
         {
           "id": "desks",
@@ -532,17 +579,6 @@
               "icon": "🔥"
             }
           ]
-        },
-        {
-          "id": "bandana-quote-fin",
-          "kind": "surface",
-          "name": "Bandana Quote (SP)",
-          "blurb": "Bandana quote with Sales Profit + whole-project margin.",
-          "type": "tool",
-          "url": "../pricing/bandana-quote-calculator.html",
-          "status": "live",
-          "access": "pin",
-          "icon": "🏴"
         }
       ]
     },
