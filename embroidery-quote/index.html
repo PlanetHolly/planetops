@@ -37,11 +37,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .note { color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
-.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:end; box-shadow:var(--shadow); }
 .hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
 .total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
+.heroProfit .profitMeta { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; color:#f7df92; font-size:.9rem; font-weight:900; }
+.heroProfit .profitMeta span { display:inline-flex; align-items:center; min-height:28px; border:1px solid rgba(247,223,146,.45); border-radius:6px; padding:3px 8px; }
 .perunit { text-align:right; }
 .perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
+.perunit .revenueBlock { margin-bottom:12px; }
+.perunit span { display:block; color:#c9c5bc; font-size:.78rem; font-weight:800; }
 .marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
 .metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
@@ -149,13 +153,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="results">
       <div class="flagbar" id="flags"></div>
       <section class="hero">
-        <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
-        <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
-      </section>
-      <section class="marginHero">
-        <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on embroidery desk</div></div>
-        <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Sell price less landed cost</div></div>
-        <div class="metric"><small>Margin % of invoice</small><b id="marginPct">0.0%</b><div class="sub">Margin dollars divided by invoice</div></div>
+        <div class="heroProfit">
+          <small>Order profit</small>
+          <div class="total" id="marginTotal">$0</div>
+          <div class="profitMeta"><span id="marginUnit">$0.00 / unit</span><span id="marginPct">0.0% margin</span></div>
+        </div>
+        <div class="perunit">
+          <div class="revenueBlock"><small>Order total</small><b id="orderTotal">$0</b></div>
+          <small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
+        </div>
       </section>
       <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
       <section class="internal"><h2>SP detail - target vs survival</h2><div class="spgrid" id="spPanel"></div></section>
@@ -171,9 +177,9 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 EMBROIDERY MODEL PROVENANCE
 Source: bear_embroidery_costs.json.
 Embroidery is 100% outsourced to Bear. Bear grid is the all-in decoration cost.
-Price: round up to nearest $0.05 from Landed / (1 - target SP%).
+Price: round up to nearest $0.05 from Landed / (1 - sliding target SP%).
 Landed/unit = Bear decoration cost/unit + digitizing/unit.
-Target SP: 44.5%. Survival SP: 33%.
+Target SP slides by quantity via sp_curve. Survival SP: 33%.
 */
 const EMBROIDERY_DATA = {
   "_meta": {
@@ -181,47 +187,170 @@ const EMBROIDERY_DATA = {
     "as_of": "2026-07-16",
     "source": "2026 Price Builder_All Pricing Tabs_02.23.2026.xlsx, tab CURVES_PRODUCTION rows 17-23 ('Bear Designz Master Curve Embroidery', updated 2/16/26). Grade B (real vendor curve). Ties to EVIDENCE/J3_embroidery_engine.md survival+target grids to the penny.",
     "model": "Embroidery is 100% OUTSOURCED to Bear (PA does not stitch) -> the Bear grid IS the all-in decoration cost, no PA application labor. Cost drives sell via SP markup, same as DTF/promo.",
-    "stitch_bands": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
-    "stitch_band_ranges": {"0-7k":"1-6,999 stitches","7-14k":"7,000-13,999","14-21k":"14,000-20,999","21-28k":"21,000-27,999","28-35k":"28,000-35,000"},
-    "qty_rows": [1,6,12,24,48,96,192],
+    "stitch_bands": [
+      "0-7k",
+      "7-14k",
+      "14-21k",
+      "21-28k",
+      "28-35k"
+    ],
+    "stitch_band_ranges": {
+      "0-7k": "1-6,999 stitches",
+      "7-14k": "7,000-13,999",
+      "14-21k": "14,000-20,999",
+      "21-28k": "21,000-27,999",
+      "28-35k": "28,000-35,000"
+    },
+    "qty_rows": [
+      1,
+      6,
+      12,
+      24,
+      48,
+      96,
+      192
+    ],
     "qty_floor_note": "Printavo FLOORS between rows (never interpolates). A qty between rows uses the LOWER row's per-unit price (higher per-unit). e.g. qty 30 -> row 24; qty 200 -> row 192.",
-    "over_grid_note": "Stitch count > 35,000 is off-grid -> custom quote required."
+    "over_grid_note": "Stitch count > 35,000 is off-grid -> custom quote required.",
+    "changelog": [
+      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $."
+    ]
   },
-
   "sp_formula": {
     "sell = bear_cost / (1 - SP)": true,
-    "target_SP": 0.445, "target_divisor": 0.555,
-    "survival_SP": 0.33, "survival_divisor": 0.670,
-    "round_up_to": 0.05
+    "target_SP": 0.445,
+    "target_divisor": 0.555,
+    "survival_SP": 0.33,
+    "survival_divisor": 0.67,
+    "round_up_to": 0.05,
+    "_superseded": "Flat target replaced by sp_curve (sliding by qty). Survival divisor 0.670 still used for the floor."
   },
-
   "embroidery_note": "Embroidery is PA's one break-even / shrinking line (~30% actual SP, -65% YoY). The shrink is DEMAND, not price (Fable ruling). Quote at target 44.5%; you MAY move toward the 33% survival floor to win price-sensitive jobs, but NEVER quote below survival. Run it as a thin retention service that keeps one-stop customers whose screen-print work clears target.",
-
   "digitizing": {
     "model": "One-time per NEW design (art -> stitch file). Charged once regardless of qty; spread over qty for the per-unit view.",
-    "default": 25.00,
+    "default": 25,
     "options_note": "Empowered's real card is $15 / $25 / $40 by complexity. Bear's exact digitizing rate is UNCONFIRMED - default $25, adjustable. Reused/existing design = $0.",
     "reused_design": 0
   },
-
   "vendor_routing": {
     "default": "Bear",
-    "options": ["Bear","Empowered"],
+    "options": [
+      "Bear",
+      "Empowered"
+    ],
     "bear_note": "Default. 0/140 cells below Bear cost; multi-placement is fine on Bear.",
     "empowered_warning": "Backup only. Multi-placement (2+ placements) at qty >= 48 sells BELOW COST on Empowered (45/140 cells). If Empowered + placements>=2 + qty>=48: HARD FLAG 're-quote or route to Bear' (~$381 SP per misroute). Empowered digitizing is really $15/$25/$40, not $10."
   },
-
   "placements_note": "First placement (P1) + each additional (P2+) is priced off the same Bear grid at its own stitch band. Job = sum of placements. A P2 may never appear without a P1.",
-
   "bear_cost": {
-    "_cols": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
-    "1":   [9.82, 12.13, 15.02, 17.32, 19.64],
-    "6":   [8.09, 9.82, 12.70, 15.02, 17.32],
-    "12":  [6.35, 8.09, 9.24, 10.97, 12.70],
-    "24":  [4.62, 5.78, 6.35, 7.51, 8.66],
-    "48":  [4.04, 5.20, 5.78, 6.93, 8.09],
-    "96":  [3.18, 4.34, 5.20, 6.35, 7.51],
-    "192": [2.89, 3.76, 4.91, 6.07, 7.22]
+    "1": [
+      9.82,
+      12.13,
+      15.02,
+      17.32,
+      19.64
+    ],
+    "6": [
+      8.09,
+      9.82,
+      12.7,
+      15.02,
+      17.32
+    ],
+    "12": [
+      6.35,
+      8.09,
+      9.24,
+      10.97,
+      12.7
+    ],
+    "24": [
+      4.62,
+      5.78,
+      6.35,
+      7.51,
+      8.66
+    ],
+    "48": [
+      4.04,
+      5.2,
+      5.78,
+      6.93,
+      8.09
+    ],
+    "96": [
+      3.18,
+      4.34,
+      5.2,
+      6.35,
+      7.51
+    ],
+    "192": [
+      2.89,
+      3.76,
+      4.91,
+      6.07,
+      7.22
+    ],
+    "_cols": [
+      "0-7k",
+      "7-14k",
+      "14-21k",
+      "21-28k",
+      "28-35k"
+    ]
+  },
+  "sp_curve": {
+    "note": "Margin % SLIDES with order quantity (mirrors the screen-print Master Curve: fat margins on small orders, thin on volume). Replaces the old flat 44.5%. Never below survival 33%. Holly-approved shape 2026-07-16; tune band values here.",
+    "bands": [
+      {
+        "max": 11,
+        "sp": 0.62
+      },
+      {
+        "max": 23,
+        "sp": 0.58
+      },
+      {
+        "max": 47,
+        "sp": 0.54
+      },
+      {
+        "max": 71,
+        "sp": 0.5
+      },
+      {
+        "max": 143,
+        "sp": 0.47
+      },
+      {
+        "max": 287,
+        "sp": 0.445
+      },
+      {
+        "max": 499,
+        "sp": 0.42
+      },
+      {
+        "max": 999,
+        "sp": 0.4
+      },
+      {
+        "max": 2499,
+        "sp": 0.37
+      },
+      {
+        "max": 4999,
+        "sp": 0.35
+      },
+      {
+        "max": null,
+        "sp": 0.34
+      }
+    ],
+    "survival_floor": 0.33,
+    "round_up_to_dtf": 0.25,
+    "round_up_to_embroidery": 0.05
   }
 };
 

@@ -37,11 +37,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .note { color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
-.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:end; box-shadow:var(--shadow); }
 .hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
 .total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
+.heroProfit .profitMeta { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; color:#f7df92; font-size:.9rem; font-weight:900; }
+.heroProfit .profitMeta span { display:inline-flex; align-items:center; min-height:28px; border:1px solid rgba(247,223,146,.45); border-radius:6px; padding:3px 8px; }
 .perunit { text-align:right; }
 .perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
+.perunit .revenueBlock { margin-bottom:12px; }
+.perunit span { display:block; color:#c9c5bc; font-size:.78rem; font-weight:800; }
 .marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
 .metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
@@ -154,13 +158,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="results">
       <div class="flagbar" id="flags"></div>
       <section class="hero">
-        <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
-        <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
-      </section>
-      <section class="marginHero">
-        <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on DTF desk</div></div>
-        <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Sell price less landed cost</div></div>
-        <div class="metric"><small>Margin % of invoice</small><b id="marginPct">0.0%</b><div class="sub">Margin dollars divided by invoice</div></div>
+        <div class="heroProfit">
+          <small>Order profit</small>
+          <div class="total" id="marginTotal">$0</div>
+          <div class="profitMeta"><span id="marginUnit">$0.00 / unit</span><span id="marginPct">0.0% margin</span></div>
+        </div>
+        <div class="perunit">
+          <div class="revenueBlock"><small>Order total</small><b id="orderTotal">$0</b></div>
+          <small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
+        </div>
       </section>
       <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
       <section class="internal"><h2>SP detail - target vs survival</h2><div class="spgrid" id="spPanel"></div></section>
@@ -174,9 +180,9 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 /*
 DTF / HEAT-TRANSFER MODEL PROVENANCE
 Source: supacolor_dtf_costs.json.
-Price: round up to nearest $0.25 from Landed / (1 - target SP%).
+Price: round up to nearest $0.25 from Landed / (1 - sliding target SP%).
 Landed/unit = (transfer cost + labor + inbound shipping/unit) x locations.
-Target SP: 44.5%. Survival SP: 33%. Application labor comes from the embedded PA application rules.
+Target SP slides by quantity via sp_curve. Survival SP: 33%. Application labor comes from the embedded PA application rules.
 */
 const DTF_DATA = {
   "_meta": {
@@ -211,7 +217,8 @@ const DTF_DATA = {
       "5000+"
     ],
     "changelog": [
-      "2026-07-16 v2: added 1-9 band (price from a single garment); uniform labor + optional garment-difficulty toggle (dropped transfer-type 25%); added inbound shipping spread over qty."
+      "2026-07-16 v2: added 1-9 band (price from a single garment); uniform labor + optional garment-difficulty toggle (dropped transfer-type 25%); added inbound shipping spread over qty.",
+      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $."
     ]
   },
   "application_labor": {
@@ -232,7 +239,8 @@ const DTF_DATA = {
     "survival_SP": 0.33,
     "survival_divisor": 0.67,
     "round_up_to": 0.25,
-    "color_adder": "none - DTF is full-color transfer pricing"
+    "color_adder": "none - DTF is full-color transfer pricing",
+    "_superseded": "Flat target replaced by sp_curve (sliding by qty). Survival divisor 0.670 still used for the floor."
   },
   "garment_to_transfer": {
     "_rule": "Garment material dictates the transfer. Default is Wearable (WE) - 83 of 122 real orders. Poly/performance needs a blocker to stop dye migration.",
@@ -1005,11 +1013,62 @@ const DTF_DATA = {
     "model": "Inbound freight from Supacolor to PA, entered as a total $ and spread over the order qty. Negligible per-unit at volume; dominant on a 1-piece sample.",
     "default_estimate_total": 15,
     "default_note": "$15 is a placeholder estimate — set the real Supacolor shipping. Outbound (PA->customer) is separate; usually passed to the customer or a flat sample-ship fee."
+  },
+  "sp_curve": {
+    "note": "Margin % SLIDES with order quantity (mirrors the screen-print Master Curve: fat margins on small orders, thin on volume). Replaces the old flat 44.5%. Never below survival 33%. Holly-approved shape 2026-07-16; tune band values here.",
+    "bands": [
+      {
+        "max": 11,
+        "sp": 0.62
+      },
+      {
+        "max": 23,
+        "sp": 0.58
+      },
+      {
+        "max": 47,
+        "sp": 0.54
+      },
+      {
+        "max": 71,
+        "sp": 0.5
+      },
+      {
+        "max": 143,
+        "sp": 0.47
+      },
+      {
+        "max": 287,
+        "sp": 0.445
+      },
+      {
+        "max": 499,
+        "sp": 0.42
+      },
+      {
+        "max": 999,
+        "sp": 0.4
+      },
+      {
+        "max": 2499,
+        "sp": 0.37
+      },
+      {
+        "max": 4999,
+        "sp": 0.35
+      },
+      {
+        "max": null,
+        "sp": 0.34
+      }
+    ],
+    "survival_floor": 0.33,
+    "round_up_to_dtf": 0.25,
+    "round_up_to_embroidery": 0.05
   }
 };
 
-const TARGET_SP = DTF_DATA.sp_formula.target_SP;
-const SURVIVAL_SP = DTF_DATA.sp_formula.survival_SP;
+const SURVIVAL_SP = Number((DTF_DATA.sp_curve || {}).survival_floor || DTF_DATA.sp_formula.survival_SP);
 const ROUND_UP_TO = DTF_DATA.sp_formula.round_up_to;
 const $ = id => document.getElementById(id);
 const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -1022,6 +1081,16 @@ const readDifficulty = () => Boolean($('difficultyLineup').checked);
 let recommendedTransfer = '';
 let transferWasOverridden = false;
 function roundUpTo(value, increment) { return Math.ceil((Number(value) || 0) / increment) * increment; }
+function targetSpForQty(qty) {
+  const bands = ((DTF_DATA.sp_curve || {}).bands || []).map((band, index, all) => {
+    const previousMax = index === 0 ? 0 : Number(all[index - 1].max || 0);
+    const min = previousMax + 1;
+    return {min, max: band.max == null ? null : Number(band.max), sp: Number(band.sp)};
+  });
+  const match = bands.find(band => band.max == null || qty <= band.max) || bands[bands.length - 1] || {min:1, max:null, sp:Number(DTF_DATA.sp_formula.target_SP || 0)};
+  const label = match.max == null ? match.min.toLocaleString('en-US') + '+' : match.min.toLocaleString('en-US') + '-' + match.max.toLocaleString('en-US');
+  return {sp: match.sp, label};
+}
 function row(name, val, meta, strong) { return '<div class="row' + (strong ? ' strong' : '') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div></div>'; }
 function spDetailItem(name, value) { return '<div class="detailItem"><span>' + name + '</span><span>' + value + '</span></div>'; }
 function flagBlock(kind, text) { return '<div class="flagBlock ' + kind + '">' + text + '</div>'; }
@@ -1069,13 +1138,17 @@ function calculate() {
   const laborUnit = baseLaborUnit * (difficultyApplied ? 1 + difficultyUplift : 1);
   const laborMode = difficultyApplied ? 'Difficulty uplift applied: garment-shape driven, not transfer-type' : 'Uniform standard labor: no garment-shape difficulty uplift';
   const shippingUnit = shippingTotal / qty;
-  const landedUnit = (transferUnit + laborUnit + shippingUnit) * locations; const landedTotal = landedUnit * qty; const targetPriceRaw = landedUnit / (1 - TARGET_SP); const targetPrice = roundUpTo(targetPriceRaw, ROUND_UP_TO); const survivalPriceRaw = landedUnit / (1 - SURVIVAL_SP); const survivalPrice = roundUpTo(survivalPriceRaw, ROUND_UP_TO); const priceUnit = Math.max(targetPrice, survivalPrice); const orderTotal = priceUnit * qty; const marginUnit = priceUnit - landedUnit; const marginTotal = marginUnit * qty; const achievedSp = orderTotal > 0 ? marginTotal / orderTotal : 0; const achievedPct = achievedSp * 100;
-  $('orderTotal').textContent = money0(orderTotal); $('perUnit').textContent = money(priceUnit); $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + locations + ' location' + (locations === 1 ? '' : 's'); $('marginTotal').textContent = money0(marginTotal); $('marginUnit').textContent = money(marginUnit); $('marginPct').textContent = pct(achievedPct);
+  const targetBand = targetSpForQty(qty);
+  const targetSP = targetBand.sp;
+  const targetDivisor = 1 - targetSP;
+  const survivalDivisor = 1 - SURVIVAL_SP;
+  const landedUnit = (transferUnit + laborUnit + shippingUnit) * locations; const landedTotal = landedUnit * qty; const targetPriceRaw = landedUnit / targetDivisor; const targetPrice = roundUpTo(targetPriceRaw, ROUND_UP_TO); const survivalPriceRaw = landedUnit / survivalDivisor; const survivalPrice = roundUpTo(survivalPriceRaw, ROUND_UP_TO); const priceUnit = Math.max(targetPrice, survivalPrice); const orderTotal = priceUnit * qty; const marginUnit = priceUnit - landedUnit; const marginTotal = marginUnit * qty; const achievedSp = orderTotal > 0 ? marginTotal / orderTotal : 0; const achievedPct = achievedSp * 100;
+  $('orderTotal').textContent = money0(orderTotal); $('perUnit').textContent = money(priceUnit); $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + locations + ' location' + (locations === 1 ? '' : 's'); $('marginTotal').textContent = money0(marginTotal); $('marginUnit').textContent = money(marginUnit) + ' / unit'; $('marginPct').textContent = pct(achievedPct) + ' margin';
   $('costBreakdown').innerHTML = [row('Transfer base cost / unit', money(transferUnit), type + ' ' + transfer.name + ', size ' + size + ', qty band ' + costLookup.band), row('Application labor / unit', money(laborUnit), laborMode + '. ' + DTF_DATA.application_labor.basis), row('Inbound shipping / unit', money(shippingUnit), money(shippingTotal) + ' total Supacolor freight spread over ' + qty.toLocaleString('en-US') + ' pcs'), row('Transfers per garment', String(locations), 'Transfer, labor, and inbound shipping are multiplied by locations'), row('Total landed cost / unit', money(landedUnit), money0(landedTotal) + ' total landed cost', true)].join('');
   const targetGoverns = targetPrice >= survivalPrice;
-  $('spPanel').innerHTML = '<div class="spcard"><div class="top"><h3>Target SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(TARGET_SP * 100) + '</div><div class="spmeta">Divisor ' + DTF_DATA.sp_formula.target_divisor + '. Rounded up to nearest ' + money(ROUND_UP_TO) + '.</div></div>' + '<div class="spcard"><div class="top"><h3>Survival SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : 'neutral', 'floor') + '</div><div class="rate">' + pct(SURVIVAL_SP * 100) + '</div><div class="spmeta">Divisor ' + DTF_DATA.sp_formula.survival_divisor + '. Below this is a red flag.</div></div>' + '<div class="spcard"><div class="top"><h3>Achieved SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : achievedSp >= TARGET_SP ? 'good' : 'warn', achievedSp >= TARGET_SP ? 'good' : 'check') + '</div><div class="rate">' + pct(achievedPct) + '</div><div class="spmeta">Margin % of invoice after rounding.</div></div>' + '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill(targetGoverns ? 'good' : 'warn', targetGoverns ? 'target governs' : 'survival governs') + '</div><div class="detailList">' + spDetailItem('Transfer cost / unit', money(transferUnit)) + spDetailItem('Labor / unit', money(laborUnit)) + spDetailItem('Inbound shipping / unit', money(shippingUnit)) + spDetailItem('Landed cost / unit', money(landedUnit)) + spDetailItem('Target price raw', money(targetPriceRaw)) + spDetailItem('Target price rounded', money(targetPrice)) + spDetailItem('Survival price raw', money(survivalPriceRaw)) + spDetailItem('Survival price rounded', money(survivalPrice)) + spDetailItem('Selected sell price', money(priceUnit)) + spDetailItem('Achieved margin % of invoice', pct(achievedPct)) + '</div><div class="spmeta">Final sell is max(target price, survival price). Target normally governs because 44.5% is above the 33% survival floor.</div></div>';
-  $('priceDecision').innerHTML = [row('Target sell / unit', money(targetPrice), pct(TARGET_SP * 100) + ' target SP from landed / ' + DTF_DATA.sp_formula.target_divisor), row('Survival sell / unit', money(survivalPrice), pct(SURVIVAL_SP * 100) + ' survival SP from landed / ' + DTF_DATA.sp_formula.survival_divisor), row('Selected customer price', money(priceUnit), targetGoverns ? 'Target price is higher than survival price' : 'Survival floor is higher than target price', true), row('Invoice margin shown to PM', money0(marginTotal) + ' total / ' + pct(achievedPct), money(marginUnit) + ' per unit', true)].join('');
-  const flags = []; if (qty < 10) flags.push(flagBlock('warn', "SAMPLE / PROTOTYPE - DTF is the only 1-piece service; priced at Supacolor's floor cost.")); if (costLookup.belowMin) flags.push(flagBlock('warn', costLookup.note.toUpperCase() + ': ' + qty.toLocaleString('en-US') + ' pcs priced at ' + costLookup.band + '. BELOW VENDOR MIN.')); if ((type === 'WE' || type === 'W1') && size === 'SQ' && transfer.sq_estimated) flags.push(flagBlock('warn', 'SQ COST ESTIMATED - verify before quoting. Source notes say WE_SQ and W1_SQ were estimated from cropped screenshots.')); if (type === 'PUFF') flags.push(flagBlock('warn', 'PUFF PLACEHOLDER - Holly is still collecting full 613 Originals size/qty pricing. Single estimated transfer cost is used.')); if (difficultyApplied) flags.push(flagBlock('warn', 'DIFFICULT LINE-UP - labor is ' + money(laborUnit) + ' per pc from garment-shape difficulty, not transfer type.')); if (achievedSp < SURVIVAL_SP) flags.push(flagBlock('bad', 'BELOW SURVIVAL - achieved ' + pct(achievedPct) + ' is under ' + pct(SURVIVAL_SP * 100) + '.')); else if (achievedSp >= TARGET_SP) flags.push(flagBlock('good', 'AT/ABOVE TARGET - achieved ' + pct(achievedPct) + ' clears the ' + pct(TARGET_SP * 100) + ' target.')); $('flags').innerHTML = flags.join('');
+  $('spPanel').innerHTML = '<div class="spcard"><div class="top"><h3>Target SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(targetSP * 100) + '</div><div class="spmeta">Qty band ' + targetBand.label + '. Margin slides with quantity - smaller orders carry more. Rounded up to nearest ' + money(ROUND_UP_TO) + '.</div></div>' + '<div class="spcard"><div class="top"><h3>Survival SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : 'neutral', 'floor') + '</div><div class="rate">' + pct(SURVIVAL_SP * 100) + '</div><div class="spmeta">Divisor ' + survivalDivisor.toFixed(3) + '. Below this is a red flag.</div></div>' + '<div class="spcard"><div class="top"><h3>Achieved SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : achievedSp >= targetSP ? 'good' : 'warn', achievedSp >= targetSP ? 'good' : 'check') + '</div><div class="rate">' + pct(achievedPct) + '</div><div class="spmeta">Margin % of invoice after rounding.</div></div>' + '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill(targetGoverns ? 'good' : 'warn', targetGoverns ? 'target governs' : 'survival governs') + '</div><div class="detailList">' + spDetailItem('Transfer cost / unit', money(transferUnit)) + spDetailItem('Labor / unit', money(laborUnit)) + spDetailItem('Inbound shipping / unit', money(shippingUnit)) + spDetailItem('Landed cost / unit', money(landedUnit)) + spDetailItem('Target price raw', money(targetPriceRaw)) + spDetailItem('Target price rounded', money(targetPrice)) + spDetailItem('Survival price raw', money(survivalPriceRaw)) + spDetailItem('Survival price rounded', money(survivalPrice)) + spDetailItem('Selected sell price', money(priceUnit)) + spDetailItem('Achieved margin % of invoice', pct(achievedPct)) + '</div><div class="spmeta">Final sell is max(target price, survival price). Target uses the current quantity band; survival remains the 33% floor.</div></div>';
+  $('priceDecision').innerHTML = [row('Target sell / unit', money(targetPrice), pct(targetSP * 100) + ' target SP for qty band ' + targetBand.label + ' from landed / ' + targetDivisor.toFixed(3)), row('Survival sell / unit', money(survivalPrice), pct(SURVIVAL_SP * 100) + ' survival SP from landed / ' + survivalDivisor.toFixed(3)), row('Selected customer price', money(priceUnit), targetGoverns ? 'Target price is higher than survival price' : 'Survival floor is higher than target price', true), row('Order profit shown to PM', money0(marginTotal) + ' total / ' + pct(achievedPct), money(marginUnit) + ' per unit', true)].join('');
+  const flags = []; if (qty < 10) flags.push(flagBlock('warn', "SAMPLE / PROTOTYPE - DTF is the only 1-piece service; priced at Supacolor's floor cost.")); if (costLookup.belowMin) flags.push(flagBlock('warn', costLookup.note.toUpperCase() + ': ' + qty.toLocaleString('en-US') + ' pcs priced at ' + costLookup.band + '. BELOW VENDOR MIN.')); if ((type === 'WE' || type === 'W1') && size === 'SQ' && transfer.sq_estimated) flags.push(flagBlock('warn', 'SQ COST ESTIMATED - verify before quoting. Source notes say WE_SQ and W1_SQ were estimated from cropped screenshots.')); if (type === 'PUFF') flags.push(flagBlock('warn', 'PUFF PLACEHOLDER - Holly is still collecting full 613 Originals size/qty pricing. Single estimated transfer cost is used.')); if (difficultyApplied) flags.push(flagBlock('warn', 'DIFFICULT LINE-UP - labor is ' + money(laborUnit) + ' per pc from garment-shape difficulty, not transfer type.')); if (achievedSp < SURVIVAL_SP) flags.push(flagBlock('bad', 'BELOW SURVIVAL - achieved ' + pct(achievedPct) + ' is under ' + pct(SURVIVAL_SP * 100) + '.')); else if (achievedSp >= targetSP) flags.push(flagBlock('good', 'AT/ABOVE TARGET - achieved ' + pct(achievedPct) + ' clears the ' + pct(targetSP * 100) + ' target for qty band ' + targetBand.label + '.')); $('flags').innerHTML = flags.join('');
 }
 function bind() { populateMaterials(); populateTransfers(); $('shippingTotal').value = Number((DTF_DATA.shipping || {}).default_estimate_total || 0).toFixed(2); const firstMaterial = selectedMaterialRow(); recommendedTransfer = firstMaterial.transfer; $('transferType').value = recommendedTransfer; populateSizes(false); updateTransferNote(); $('material').addEventListener('change', applyMaterialRecommendation); $('transferType').addEventListener('change', () => { transferWasOverridden = $('transferType').value !== recommendedTransfer; populateSizes(false); updateTransferNote(); calculate(); }); $('size').addEventListener('change', () => { updateSizeHelper(); calculate(); }); $('quoteForm').addEventListener('input', calculate); $('quoteForm').addEventListener('change', calculate); $('provenance').textContent = 'Provenance: ' + DTF_DATA._meta.title + '. As-of ' + DTF_DATA._meta.as_of + '. Source: ' + DTF_DATA._meta.source + '. Grade: ' + DTF_DATA._meta.grade; calculate(); }
 bind();
