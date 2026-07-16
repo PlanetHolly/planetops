@@ -1665,9 +1665,21 @@ function simEnsureCss(){
    ".simfires{display:flex;align-items:center;gap:10px;margin:10px 0 2px;flex-wrap:wrap}.simbadge{font-weight:800;font-size:12px;letter-spacing:.03em;color:#065f46;background:#d1fae5;padding:4px 11px;border-radius:999px;white-space:nowrap}"+
    ".simscript{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#374151}.simtag{font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}"+
    ".simstamp{font-size:13.5px;color:#374151;background:#f3f4f6;border-radius:10px;padding:11px 14px;margin:7px 0 4px;line-height:1.55}.simstamp b{color:#1f2430}"+
-   ".simnone{padding:16px 18px;border:1px solid #e6e8ee;border-radius:12px;background:#fff;margin-top:10px}.simnt{font-weight:800;font-size:15.5px;color:#1f2430;margin-bottom:6px}.simnb{font-size:14px;color:#4b5563;line-height:1.6}";
+   ".simnone{padding:16px 18px;border:1px solid #e6e8ee;border-radius:12px;background:#fff;margin-top:10px}.simnt{font-weight:800;font-size:15.5px;color:#1f2430;margin-bottom:6px}.simnb{font-size:14px;color:#4b5563;line-height:1.6}"+
+   ".simcad{margin:12px 0 6px;padding:13px 16px;border:1px solid #e6e8ee;border-radius:12px;background:#fbfcfe}.simcadname{font-weight:800;font-size:14.5px;color:#1f2430;margin-bottom:4px}.simcadhow{font-size:13px;color:#4b5563;line-height:1.55;margin-bottom:8px}"+
+   ".simcadstep{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px dashed #e6e8ee;font-size:13px}.scstep{font-family:ui-monospace,Menlo,monospace;color:#374151}.scwait{color:#1f2430;font-weight:700;white-space:nowrap;text-align:right}.scq{color:#b45309;font-weight:800}.simcadfoot{font-size:12px;color:#6b7280;margin-top:9px;font-style:italic;line-height:1.5}"+
+   ".simgap{margin:8px 0 4px;padding:12px 15px;border:1px solid #fcd34d;border-left:4px solid #f59e0b;background:#fffbeb;border-radius:10px;font-size:13.5px;color:#78350f;line-height:1.55}.simgap b{color:#92400e}";
   document.head.appendChild(st);
 }
+// Cadence per timed automation: name, how it works, the steps we KNOW, and a gap
+// call-out where a timing was never decided (so Holly can rule on it as she reviews).
+const SIM_CADENCE={
+ "Auto-Chase 1–4":{name:"Auto-Chase ladder",how:"Timed reminders into the same email thread while a quote sits unapproved. A reply stops it (flips to 'In Conversation'); a PM moving the status also stops it. After the last step the quote is archived.",steps:[{label:"^ot_quote_sent",wait:"day 0 (the quote)"},{label:"^ot_chase_2",wait:"+1 working day"},{label:"^ot_chase_3",wait:"+2 working days"},{label:"^ot_chase_final",wait:"+6 working days, then archive"}],gap:null},
+ "Waiting on Customer":{name:"Waiting ladder",how:"Gentle bumps while we wait on the customer for something specific (art, info, a decision). A reply stops it (flips to 'In Conversation'); a PM status move stops it; after the 3rd bump with no reply it parks and stops nudging.",steps:[{label:"^ot_waiting_bump_1",wait:"?"},{label:"^ot_waiting_bump_2",wait:"?"},{label:"^ot_waiting_bump_3",wait:"?"},{label:"^ot_waiting_park",wait:"after bump 3, still no reply"}],gap:"The bump spacing was never decided (ruling R2). How many days between each bump? A gentle default would be +2 / +3 / +5 working days, then park — but it is your call."},
+ "Sample Pack Purchased → Samples Sent":{name:"Samples journey",how:"Two emails: the shipped notice goes out by hand (Shara types the tracking), then the arrival check-in fires on a timer.",steps:[{label:"^ot_sample_shipped",wait:"sent by hand (no timer)"},{label:"^ot_sample_arrival_checkin",wait:"+3 days after shipped"}],gap:null},
+ "Approved — Awaiting Payment":{name:"Pay-button nudge",how:"If a customer approves the artwork but does not pay, one reminder with the pay button goes out. A reply, or the payment landing, stops it.",steps:[{label:"^ot_pay_button_touch",wait:"+2 hours after art approval, if still unpaid"}],gap:null},
+ "In Conversation":{name:"In-Conversation (a live reply)",how:"Where an order lands after the customer replies — no automated sends, because a human is talking to them. Optionally the PM is nudged if the thread then goes quiet.",steps:[{label:"PM stale-nudge",wait:"?"}],gap:"How many quiet days in 'In Conversation' before we nudge the PM to follow up? (ruling R4 — undecided. Recommendation: nudge the PM only, never auto-re-engage the customer.)"}
+};
 function renderSimulator(app){
   simEnsureCss();
   setCrumb([["Command Center","#/"],["Status Simulator",null]]);
@@ -1697,6 +1709,15 @@ function simRender(out, row){
   if(row.badge==="KILL"||row.badge==="RETIRE"){
     out.appendChild(el("div","simnone",'<div class="simnt">✗ Retiring — do not recreate in Printavo</div><div class="simnb">'+esc(row.note||"Being removed in the new taxonomy.")+'</div>'));
     return;
+  }
+  const cad=SIM_CADENCE[row.name];
+  if(cad){
+    const box=el("div","simcad");
+    let h='<div class="simcadname">🗓️ '+esc(cad.name)+'</div><div class="simcadhow">'+esc(cad.how)+'</div>';
+    cad.steps.forEach(function(s){ var q=(s.wait==="?"); h+='<div class="simcadstep"><span class="scstep">'+esc(s.label)+'</span><span class="'+(q?"scwait scq":"scwait")+'">'+esc(q?"⚠ not set":s.wait)+'</span></div>'; });
+    h+='<div class="simcadfoot">Every timed touch fires only Mon to Fri, 9am to 4pm PT (skips US holidays). A customer reply, or a PM moving the status, stops it.</div>';
+    box.innerHTML=h; out.appendChild(box);
+    if(cad.gap) out.appendChild(el("div","simgap",'<b>⚠️ Decision needed — '+esc(cad.name)+':</b> '+esc(cad.gap)));
   }
   const live=(row.scripts||[]).map(code=>({code, s:DATA.scripts.find(x=>x.code===code && x.publishStatus==="live")}));
   if(live.length){
