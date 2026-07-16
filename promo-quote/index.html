@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Apparel Promo Quote Calculator</title>
+<style>
+:root {
+  --yellow:#F7BE00; --ink:#111; --paper:#f6f4ef; --card:#fff; --muted:#666; --line:#ded9cc;
+  --soft:#f0eee8; --good:#138a55; --warn:#b98200; --bad:#c93d35; --shadow:0 18px 60px rgba(0,0,0,.09);
+  color-scheme:light dark;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { font-family:Montserrat, Avenir Next, Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(135deg,#fffaf0 0%,var(--paper) 42%,#e9e7e0 100%); color:var(--ink); line-height:1.45; }
+button,input,select { font:inherit; }
+.shell { width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
+header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px; padding:16px 0 24px; }
+.mark { width:54px; height:54px; border:3px solid var(--ink); border-radius:50%; position:relative; display:grid; place-items:center; font-weight:900; letter-spacing:0; background:var(--yellow); box-shadow:8px 8px 0 var(--ink); }
+.mark:after { content:""; position:absolute; width:78px; height:3px; background:var(--ink); transform:rotate(-34deg); }
+h1 { margin:0; font-size:clamp(1.55rem, 3vw, 3rem); line-height:1; letter-spacing:0; text-transform:uppercase; }
+.kicker { margin:5px 0 0; color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.badge { border:1px solid var(--ink); padding:8px 10px; font-size:.72rem; text-transform:uppercase; font-weight:900; background:var(--card); white-space:nowrap; }
+.layout { display:grid; grid-template-columns:minmax(300px, 410px) 1fr; gap:18px; align-items:start; }
+.panel { background:rgba(255,255,255,.86); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.panel h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--ink); color:#fff; }
+.form { padding:16px; display:grid; gap:14px; }
+.field { display:grid; gap:6px; }
+label,.label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:900; color:#393731; }
+input[type="number"],select { width:100%; border:1px solid #cfc8b8; background:#fff; color:#111; border-radius:6px; min-height:42px; padding:8px 10px; outline:none; }
+input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(247,190,0,.25); }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.checkgrid { display:grid; gap:8px; }
+.check { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; min-height:40px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:800; }
+.check input { width:17px; height:17px; accent-color:var(--yellow); }
+.check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
+.note { color:var(--muted); font-size:.78rem; }
+.helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
+.results { display:grid; gap:18px; }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
+.hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
+.total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
+.perunit { text-align:right; }
+.perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
+.marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
+.metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
+.metric small { display:block; color:var(--muted); text-transform:uppercase; font-weight:950; letter-spacing:.09em; font-size:.68rem; }
+.metric.dark small { color:#c9c1b0; }
+.metric b { display:block; margin-top:10px; font-size:clamp(1.45rem, 3vw, 2.7rem); line-height:1; font-weight:950; font-variant-numeric:tabular-nums; }
+.metric .sub { color:var(--muted); font-size:.78rem; font-weight:800; margin-top:6px; }
+.metric.dark .sub { color:#f7df92; }
+.breakdown { padding:0; }
+.rows { padding:10px 16px 16px; }
+.row { display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+.row:last-child { border-bottom:0; }
+.row .name { font-weight:850; }
+.row .meta { color:var(--muted); font-size:.78rem; margin-top:2px; }
+.row .val { font-variant-numeric:tabular-nums; font-weight:900; text-align:right; }
+.row.strong { border-top:3px solid var(--ink); margin-top:4px; padding-top:14px; }
+.internal { border:1px solid #26231d; background:#181715; color:#f8f3e6; box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.internal h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--yellow); color:#111; }
+.spgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:16px; }
+.spcard { background:#22201c; border:1px solid #3a352a; border-radius:8px; padding:12px; min-height:118px; }
+.spcard.wide { grid-column:1 / -1; }
+.spcard .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.spcard h3 { margin:0; font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; }
+.rate { font-size:1.8rem; font-weight:950; margin-top:12px; font-variant-numeric:tabular-nums; }
+.spmeta { color:#c9c1b0; font-size:.77rem; margin-top:4px; }
+.detailList { display:grid; gap:7px; margin-top:10px; }
+.detailItem { display:flex; justify-content:space-between; gap:10px; border-top:1px solid #343026; padding-top:7px; font-size:.8rem; font-weight:800; }
+.flagbar { display:grid; gap:8px; }
+.flag { font-size:.68rem; padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:950; color:#111; width:max-content; }
+.flag.good { background:#46d38a; } .flag.warn { background:#ffd45d; } .flag.bad { background:#ff7068; } .flag.neutral { background:#b9b4a7; }
+.flagBlock { border-radius:8px; padding:11px 13px; font-size:.82rem; font-weight:900; border:1px solid transparent; }
+.flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
+.flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+@media (prefers-color-scheme:dark) {
+  :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
+  body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
+  input[type="number"],select,.check { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  .panel,.metric { background:rgba(29,27,24,.9); }
+  .panel h2,.hero { background:#050505; }
+  label,.label { color:#e5ddcd; }
+  .mark { color:#111; border-color:#111; box-shadow:8px 8px 0 #f5f0e6; } .mark:after { background:#111; }
+  .badge { background:#11100e; }
+  .helper { background:#332a08; color:#f7df92; }
+  .flagBlock.warn { background:#332a08; border-color:#6e5a12; color:#f7df92; }
+  .flagBlock.bad { background:#351513; border-color:#6b2924; color:#ffc8c3; }
+}
+@media (max-width:860px) {
+  .shell { width:min(100% - 22px, 1180px); padding-top:16px; }
+  header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
+  .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .perunit { text-align:left; }
+  .marginHero,.spgrid,.twocol { grid-template-columns:1fr; }
+  .row { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media print { body { background:#fff; } .panel,.hero,.internal,.metric { box-shadow:none; } .shell { width:auto; padding:0; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="mark" aria-hidden="true">PA</div>
+    <div>
+      <h1>Promo Quote</h1>
+      <div class="kicker">Planet Apparel - internal promo pricing desk</div>
+    </div>
+    <div class="badge">Internal - margin visible</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>Quote Inputs</h2>
+      <form class="form" id="quoteForm">
+        <div class="twocol">
+          <div class="field"><label for="vendorCost">Vendor unit cost</label><input id="vendorCost" type="number" min="0" step="0.01" value="2.23"></div>
+          <div class="field"><label for="qty">Quantity</label><input id="qty" type="number" min="1" step="1" value="1500"></div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="setupFee">Setup/screen fee total</label><input id="setupFee" type="number" min="0" step="0.01" value="0"></div>
+          <div class="field"><label for="freightAmount">Inbound freight</label><input id="freightAmount" type="number" min="0" step="0.01" value="0"></div>
+        </div>
+        <div class="field">
+          <label for="freightMode">Freight mode</label>
+          <select id="freightMode">
+            <option value="perUnit">Per unit</option>
+            <option value="total">Total freight, spread over qty</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="productClass">Product class</label>
+          <select id="productClass">
+            <option value="freebie">Freebie / standard promo product - 35%</option>
+            <option value="semi" selected>Non-standard / semi-custom - 42%</option>
+            <option value="full">Exclusive / full-custom development - 50%</option>
+          </select>
+          <div class="helper">Objective one-question test: catalog as-is = freebie/standard; catalog modified to spec = semi-custom; developed from nothing = full-custom.</div>
+        </div>
+        <div class="field">
+          <div class="label">Complexity and service facts</div>
+          <div class="checkgrid" id="complexity"></div>
+        </div>
+        <div class="note">PM enters landed cost and quantity, then checks only boxes that are objectively true. No manual SP override. Lost quotes go to Holly with evidence so the model can be adjusted.</div>
+      </form>
+    </section>
+
+    <section class="results">
+      <div class="flagbar" id="flags"></div>
+      <section class="hero">
+        <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
+        <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
+      </section>
+      <section class="marginHero">
+        <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on promo desk</div></div>
+        <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Customer price less landed cost</div></div>
+        <div class="metric"><small>Margin % of invoice</small><b id="marginPct">0.0%</b><div class="sub">Margin dollars divided by invoice</div></div>
+      </section>
+      <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
+      <section class="internal"><h2>SP build - margin points</h2><div class="spgrid" id="spPanel"></div></section>
+      <section class="panel breakdown"><h2>Price Decision</h2><div class="rows" id="priceDecision"></div></section>
+      <div class="provenance">Provenance: Promo Pricing Model - Holly's design, Fable formalized spec v1, as-of 2026-07-15. Formula: Price = Landed Cost / (1 - SP%). Small-order class floor applies under 250 pieces. No cap; verify-market flag at SP% >= 65%.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+/*
+PROMO MODEL PROVENANCE
+Source: PROMO_MODEL_HOLLY.md, "FABLE FORMALIZED SPEC v1 - 2026-07-15".
+Inputs: vendor unit cost + setup/screen fee spread over qty + inbound freight per unit or total.
+Price: Landed / (1 - SP%).
+SP%: base class + objective complexity points + quantity points, never below 33%.
+Small order: qty < 250 must yield at least Freebie $100 / Semi-custom $150 / Full-custom $200 total margin dollars.
+No cap. SP% >= 65% receives informational verify-market flag only.
+*/
+const PRODUCT_CLASSES = {
+  freebie: {
+    label:'Freebie / standard',
+    base:35,
+    floor:100,
+    test:'Exists in a vendor catalog as-is. Basic giveaways, pens, catalog products.'
+  },
+  semi: {
+    label:'Non-standard / semi-custom',
+    base:42,
+    floor:150,
+    test:'Catalog item modified to spec: size, material, construction, or other defined changes.'
+  },
+  full: {
+    label:'Exclusive / full-custom',
+    base:50,
+    floor:200,
+    test:'No catalog item exists. PA or partner developed it from nothing.'
+  }
+};
+const COMPLEXITY = [
+  {id:'customBox', label:'Custom box / packaging', pts:3},
+  {id:'barcode', label:'Barcode + apply', pts:2},
+  {id:'foldBag', label:'Fold + bag', pts:2},
+  {id:'bellyBand', label:'Belly band / insert', pts:2},
+  {id:'kitting', label:'Multi-production KITTING', pts:8},
+  {id:'exclusive', label:'Exclusive partner sourcing (Ting/Winnie only)', pts:5}
+];
+const QTY_POINTS = [
+  {min:500, label:'500+ pcs', pts:0},
+  {min:250, label:'250-499 pcs', pts:2},
+  {min:100, label:'100-249 pcs', pts:5},
+  {min:1, label:'<100 pcs', pts:8}
+];
+const SURVIVAL_SP = 33;
+const VERIFY_MARKET_SP = 65;
+const $ = id => document.getElementById(id);
+const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
+const pct = n => Number(n || 0).toFixed(1) + '%';
+const readNumber = id => Math.max(0, Number($(id).value) || 0);
+const readQty = () => Math.max(1, Math.floor(Number($('qty').value) || 1));
+
+function setupComplexity() {
+  $('complexity').innerHTML = COMPLEXITY.map(item => (
+    `<label class="check"><input type="checkbox" id="cx_${item.id}"><span>${item.label}</span><span class="pts">+${item.pts}</span></label>`
+  )).join('');
+}
+function quantityBand(qty) {
+  return QTY_POINTS.find(row => qty >= row.min) || QTY_POINTS[QTY_POINTS.length - 1];
+}
+function selectedComplexity() {
+  return COMPLEXITY.filter(item => $(`cx_${item.id}`).checked);
+}
+function row(name, val, meta='', strong=false) {
+  return `<div class="row${strong?' strong':''}"><div><div class="name">${name}</div>${meta?`<div class="meta">${meta}</div>`:''}</div><div class="val">${val}</div></div>`;
+}
+function spDetailItem(name, pts) {
+  const sign = pts >= 0 ? '+' : '';
+  return `<div class="detailItem"><span>${name}</span><span>${sign}${pts} pts</span></div>`;
+}
+function flagBlock(kind, text) {
+  return `<div class="flagBlock ${kind}">${text}</div>`;
+}
+function calculate() {
+  const qty = readQty();
+  const vendorUnit = readNumber('vendorCost');
+  const setupTotal = readNumber('setupFee');
+  const freightAmount = readNumber('freightAmount');
+  const freightMode = $('freightMode').value;
+  const productClass = PRODUCT_CLASSES[$('productClass').value];
+  const setupUnit = setupTotal / qty;
+  const freightUnit = freightMode === 'total' ? freightAmount / qty : freightAmount;
+  const landedUnit = vendorUnit + setupUnit + freightUnit;
+  const landedTotal = landedUnit * qty;
+
+  const checked = selectedComplexity();
+  const complexityPts = checked.reduce((sum, item) => sum + item.pts, 0);
+  const qtyBand = quantityBand(qty);
+  const builtSp = productClass.base + complexityPts + qtyBand.pts;
+  const finalSp = Math.max(SURVIVAL_SP, builtSp);
+  const builtPriceUnit = finalSp >= 100 ? Infinity : landedUnit / (1 - finalSp / 100);
+  const builtTotal = builtPriceUnit * qty;
+  const builtMarginTotal = builtTotal - landedTotal;
+
+  const smallOrderApplies = qty < 250;
+  const floorPriceUnit = smallOrderApplies ? (landedTotal + productClass.floor) / qty : 0;
+  const floorBinds = smallOrderApplies && floorPriceUnit > builtPriceUnit;
+  const priceUnit = floorBinds ? floorPriceUnit : builtPriceUnit;
+  const orderTotal = priceUnit * qty;
+  const marginUnit = priceUnit - landedUnit;
+  const marginTotal = orderTotal - landedTotal;
+  const marginRate = orderTotal > 0 ? marginTotal / orderTotal * 100 : 0;
+  const effectiveSp = marginRate;
+
+  $('orderTotal').textContent = isFinite(orderTotal) ? money0(orderTotal) : 'Check SP';
+  $('perUnit').textContent = isFinite(priceUnit) ? money(priceUnit) : 'Check SP';
+  $('qtyLabel').textContent = `${qty.toLocaleString('en-US')} pcs`;
+  $('marginTotal').textContent = isFinite(marginTotal) ? money0(marginTotal) : 'Check SP';
+  $('marginUnit').textContent = isFinite(marginUnit) ? money(marginUnit) : 'Check SP';
+  $('marginPct').textContent = isFinite(marginRate) ? pct(marginRate) : 'Check SP';
+
+  $('costBreakdown').innerHTML = [
+    row('Vendor unit cost', money(vendorUnit), 'Entered vendor product cost per unit'),
+    row('Setup / screen fee', money(setupUnit), `${money(setupTotal)} total / ${qty.toLocaleString('en-US')} pcs`),
+    row('Inbound freight', money(freightUnit), freightMode === 'total' ? `${money(freightAmount)} total / ${qty.toLocaleString('en-US')} pcs` : 'Entered as per-unit freight'),
+    row('Summed landed cost / unit', money(landedUnit), `${money0(landedTotal)} total landed cost`, true)
+  ].join('');
+
+  const checkedDetails = checked.length ? checked.map(item => spDetailItem(item.label, item.pts)).join('') : '<div class="detailItem"><span>No complexity boxes checked</span><span>+0 pts</span></div>';
+  const survivalMeta = builtSp < SURVIVAL_SP ? `Built ${builtSp}% raised to hard survival floor ${SURVIVAL_SP}%.` : `Built SP clears hard survival floor ${SURVIVAL_SP}%.`;
+  $('spPanel').innerHTML = `
+    <div class="spcard">
+      <div class="top"><h3>Product class</h3><span class="flag neutral">${productClass.base} pts</span></div>
+      <div class="rate">${productClass.base}%</div>
+      <div class="spmeta">${productClass.label}<br>${productClass.test}</div>
+    </div>
+    <div class="spcard">
+      <div class="top"><h3>Quantity guard</h3><span class="flag neutral">+${qtyBand.pts}</span></div>
+      <div class="rate">+${qtyBand.pts}%</div>
+      <div class="spmeta">${qtyBand.label}. Small-order dollar floor ${smallOrderApplies ? 'is active' : 'is not active'}.</div>
+    </div>
+    <div class="spcard">
+      <div class="top"><h3>Complexity points</h3><span class="flag neutral">+${complexityPts}</span></div>
+      <div class="rate">+${complexityPts}%</div>
+      <div class="spmeta">Objective checkboxes only.</div>
+    </div>
+    <div class="spcard wide">
+      <div class="top"><h3>Built-up detail</h3><span class="flag ${finalSp >= VERIFY_MARKET_SP ? 'warn' : 'good'}">${finalSp}% SP</span></div>
+      <div class="detailList">
+        ${spDetailItem(`${productClass.label} base`, productClass.base)}
+        ${checkedDetails}
+        ${spDetailItem(`${qtyBand.label} quantity points`, qtyBand.pts)}
+        <div class="detailItem"><span>Built SP total</span><span>${builtSp}%</span></div>
+        <div class="detailItem"><span>Final SP after survival floor</span><span>${finalSp}%</span></div>
+        <div class="detailItem"><span>Effective margin % of invoice</span><span>${pct(effectiveSp)}</span></div>
+      </div>
+      <div class="spmeta">${survivalMeta}</div>
+    </div>
+  `;
+
+  $('priceDecision').innerHTML = [
+    row('Built-up % price', isFinite(builtPriceUnit) ? money(builtPriceUnit) : 'Invalid', `${finalSp}% SP creates ${isFinite(builtMarginTotal) ? money0(builtMarginTotal) : 'invalid'} total margin`),
+    row('Small-order class floor', smallOrderApplies ? money(floorPriceUnit) : 'Not active', smallOrderApplies ? `${productClass.label} requires at least ${money0(productClass.floor)} total margin under 250 pcs` : 'Only applies below 250 pcs'),
+    row('Selected customer price', isFinite(priceUnit) ? money(priceUnit) : 'Invalid', floorBinds ? 'Small-order dollar floor is higher than built-up SP price' : 'Built-up SP price is higher than the small-order floor', true),
+    row('Invoice margin shown to PM', isFinite(marginTotal) ? `${money0(marginTotal)} total / ${pct(marginRate)}` : 'Invalid', `${money(marginUnit)} per unit`, true)
+  ].join('');
+
+  const flags = [];
+  if (floorBinds) flags.push(flagBlock('warn', `SMALL ORDER - floored at ${money0(productClass.floor)} margin.`));
+  else if (smallOrderApplies) flags.push(flagBlock('warn', `SMALL ORDER - ${productClass.label} floor checked; built-up price already clears ${money0(productClass.floor)} margin.`));
+  if (finalSp >= VERIFY_MARKET_SP) flags.push(flagBlock('warn', `VERIFY MARKET - built-up SP is ${finalSp}% before any small-order floor. This is informational only; no cap applies.`));
+  if (!isFinite(priceUnit)) flags.push(flagBlock('bad', 'SP is at or above 100%, so the formula cannot produce a finite price. Review class and checked facts.'));
+  $('flags').innerHTML = flags.join('');
+}
+function bind() {
+  setupComplexity();
+  const form = $('quoteForm');
+  form.addEventListener('input', calculate);
+  form.addEventListener('change', calculate);
+  calculate();
+}
+bind();
+</script>
+</body>
+</html>

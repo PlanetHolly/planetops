@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Apparel DTF / Heat-Transfer Quote Calculator</title>
+<style>
+:root {
+  --yellow:#F7BE00; --ink:#111; --paper:#f6f4ef; --card:#fff; --muted:#666; --line:#ded9cc;
+  --soft:#f0eee8; --good:#138a55; --warn:#b98200; --bad:#c93d35; --shadow:0 18px 60px rgba(0,0,0,.09);
+  color-scheme:light dark;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { font-family:Montserrat, Avenir Next, Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(135deg,#fffaf0 0%,var(--paper) 42%,#e9e7e0 100%); color:var(--ink); line-height:1.45; }
+button,input,select { font:inherit; }
+.shell { width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
+header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px; padding:16px 0 24px; }
+.mark { width:54px; height:54px; border:3px solid var(--ink); border-radius:50%; position:relative; display:grid; place-items:center; font-weight:900; letter-spacing:0; background:var(--yellow); box-shadow:8px 8px 0 var(--ink); }
+.mark:after { content:""; position:absolute; width:78px; height:3px; background:var(--ink); transform:rotate(-34deg); }
+h1 { margin:0; font-size:clamp(1.55rem, 3vw, 3rem); line-height:1; letter-spacing:0; text-transform:uppercase; }
+.kicker { margin:5px 0 0; color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.badge { border:1px solid var(--ink); padding:8px 10px; font-size:.72rem; text-transform:uppercase; font-weight:900; background:var(--card); white-space:nowrap; }
+.layout { display:grid; grid-template-columns:minmax(300px, 410px) 1fr; gap:18px; align-items:start; }
+.panel { background:rgba(255,255,255,.86); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.panel h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--ink); color:#fff; }
+.form { padding:16px; display:grid; gap:14px; }
+.field { display:grid; gap:6px; }
+label,.label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:900; color:#393731; }
+input[type="number"],select { width:100%; border:1px solid #cfc8b8; background:#fff; color:#111; border-radius:6px; min-height:42px; padding:8px 10px; outline:none; }
+input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(247,190,0,.25); }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.checkgrid { display:grid; gap:8px; }
+.check { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; min-height:40px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:800; }
+.check input { width:17px; height:17px; accent-color:var(--yellow); }
+.check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
+.note { color:var(--muted); font-size:.78rem; }
+.helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
+.results { display:grid; gap:18px; }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
+.hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
+.total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
+.perunit { text-align:right; }
+.perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
+.marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
+.metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
+.metric small { display:block; color:var(--muted); text-transform:uppercase; font-weight:950; letter-spacing:.09em; font-size:.68rem; }
+.metric.dark small { color:#c9c1b0; }
+.metric b { display:block; margin-top:10px; font-size:clamp(1.45rem, 3vw, 2.7rem); line-height:1; font-weight:950; font-variant-numeric:tabular-nums; }
+.metric .sub { color:var(--muted); font-size:.78rem; font-weight:800; margin-top:6px; }
+.metric.dark .sub { color:#f7df92; }
+.breakdown { padding:0; }
+.rows { padding:10px 16px 16px; }
+.row { display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+.row:last-child { border-bottom:0; }
+.row .name { font-weight:850; }
+.row .meta { color:var(--muted); font-size:.78rem; margin-top:2px; }
+.row .val { font-variant-numeric:tabular-nums; font-weight:900; text-align:right; }
+.row.strong { border-top:3px solid var(--ink); margin-top:4px; padding-top:14px; }
+.internal { border:1px solid #26231d; background:#181715; color:#f8f3e6; box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.internal h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--yellow); color:#111; }
+.spgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:16px; }
+.spcard { background:#22201c; border:1px solid #3a352a; border-radius:8px; padding:12px; min-height:118px; }
+.spcard.wide { grid-column:1 / -1; }
+.spcard .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.spcard h3 { margin:0; font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; }
+.rate { font-size:1.8rem; font-weight:950; margin-top:12px; font-variant-numeric:tabular-nums; }
+.spmeta { color:#c9c1b0; font-size:.77rem; margin-top:4px; }
+.detailList { display:grid; gap:7px; margin-top:10px; }
+.detailItem { display:flex; justify-content:space-between; gap:10px; border-top:1px solid #343026; padding-top:7px; font-size:.8rem; font-weight:800; }
+.flagbar { display:grid; gap:8px; }
+.flag { font-size:.68rem; padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:950; color:#111; width:max-content; }
+.flag.good { background:#46d38a; } .flag.warn { background:#ffd45d; } .flag.bad { background:#ff7068; } .flag.neutral { background:#b9b4a7; }
+.flagBlock { border-radius:8px; padding:11px 13px; font-size:.82rem; font-weight:900; border:1px solid transparent; }
+.flagBlock.good { background:#edfff6; border-color:#98e6be; color:#075b36; }
+.flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
+.flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+@media (prefers-color-scheme:dark) {
+  :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
+  body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
+  input[type="number"],select,.check { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  .panel,.metric { background:rgba(29,27,24,.9); }
+  .panel h2,.hero { background:#050505; }
+  label,.label { color:#e5ddcd; }
+  .mark { color:#111; border-color:#111; box-shadow:8px 8px 0 #f5f0e6; } .mark:after { background:#111; }
+  .badge { background:#11100e; }
+  .helper { background:#332a08; color:#f7df92; }
+  .flagBlock.good { background:#0f2d1f; border-color:#236f48; color:#bff1d5; }
+  .flagBlock.warn { background:#332a08; border-color:#6e5a12; color:#f7df92; }
+  .flagBlock.bad { background:#351513; border-color:#6b2924; color:#ffc8c3; }
+}
+@media (max-width:860px) {
+  .shell { width:min(100% - 22px, 1180px); padding-top:16px; }
+  header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
+  .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .perunit { text-align:left; }
+  .marginHero,.spgrid,.twocol { grid-template-columns:1fr; }
+  .row { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media print { body { background:#fff; } .panel,.hero,.internal,.metric { box-shadow:none; } .shell { width:auto; padding:0; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="mark" aria-hidden="true">PA</div>
+    <div>
+      <h1>DTF Quote</h1>
+      <div class="kicker">Planet Apparel - internal heat-transfer pricing desk</div>
+    </div>
+    <div class="badge">Internal - margin visible</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>Quote Inputs</h2>
+      <form class="form" id="quoteForm">
+        <div class="field">
+          <label for="material">Garment material</label>
+          <select id="material"></select>
+          <div class="helper" id="transferNote">Recommended transfer will auto-set from material.</div>
+        </div>
+        <div class="field">
+          <label for="transferType">Transfer type</label>
+          <select id="transferType"></select>
+          <div class="note" id="transferHelper">PM can override the material recommendation.</div>
+        </div>
+        <div class="field">
+          <label for="size">Transfer size</label>
+          <select id="size"></select>
+          <div class="helper" id="sizeHelper">Size dimensions load from the selected transfer.</div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="qty">Quantity</label><input id="qty" type="number" min="1" step="1" value="100"></div>
+          <div class="field"><label for="locations">Transfers per garment</label><input id="locations" type="number" min="1" step="1" value="1"></div>
+        </div>
+        <div class="field">
+          <label for="shippingTotal">Inbound shipping (total $)</label>
+          <input id="shippingTotal" type="number" min="0" step="0.01" value="15.00">
+          <div class="note">Freight from Supacolor, spread over the order. Set the real amount. Dominant on a 1-piece sample.</div>
+        </div>
+        <div class="checkgrid">
+          <label class="check" for="difficultyLineup">
+            <input id="difficultyLineup" type="checkbox">
+            <span>Difficult line-up (pants, bags, jackets, curved or tight placement)</span>
+            <span class="pts">+25%</span>
+          </label>
+        </div>
+        <div class="note">Locations covers front plus back, sleeve, or any other additional transfer placements. Transfer cost, application labor, and inbound shipping all multiply by locations.</div>
+      </form>
+    </section>
+
+    <section class="results">
+      <div class="flagbar" id="flags"></div>
+      <section class="hero">
+        <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
+        <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
+      </section>
+      <section class="marginHero">
+        <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on DTF desk</div></div>
+        <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Sell price less landed cost</div></div>
+        <div class="metric"><small>Margin % of invoice</small><b id="marginPct">0.0%</b><div class="sub">Margin dollars divided by invoice</div></div>
+      </section>
+      <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
+      <section class="internal"><h2>SP detail - target vs survival</h2><div class="spgrid" id="spPanel"></div></section>
+      <section class="panel breakdown"><h2>Price Decision</h2><div class="rows" id="priceDecision"></div></section>
+      <div class="provenance" id="provenance"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+/*
+DTF / HEAT-TRANSFER MODEL PROVENANCE
+Source: supacolor_dtf_costs.json.
+Price: round up to nearest $0.25 from Landed / (1 - target SP%).
+Landed/unit = (transfer cost + labor + inbound shipping/unit) x locations.
+Target SP: 44.5%. Survival SP: 33%. Application labor comes from the embedded PA application rules.
+*/
+const DTF_DATA = {
+  "_meta": {
+    "title": "Supacolor DTF transfer base costs + PA application rules",
+    "as_of": "2026-07-16",
+    "source": "Supacolor dashboard Price List exports (screenshots 2026-07-15), team@planetapparel.com; account order history supacolor-account history-2026-07-16.csv",
+    "grade": "C (transcribed from dashboard screenshots by vision OCR). VERIFY against the 'Download to Excel' exports before go-live. Money feeding a live quoting tool.",
+    "gaps": [
+      "WE_SQ and W1_SQ (11.7x11.7 jumbo) columns were cut off in the screenshots -> ESTIMATED at ~1.27x the A4 column (the BL SQ/A4 ratio). Flagged est=true.",
+      "Codes LM (9 orders), DF (6), PR (6) appear in order history but no clean price-list screenshot was captured. Not modeled here."
+    ],
+    "size_note": "Supacolor prices by area tier. Within a tier the two A5 orientations share one price and the two A4 orientations share one price, so distinct tiers are: XS, SM, LC, A5, A4, SQ. Headwear + Industrial use their own size sets.",
+    "sizes_standard": {
+      "XS": "1.5\" x 1.5\"",
+      "SM": "2.5\" x 2.5\"",
+      "LC": "4\" x 4\" (left chest)",
+      "A5": "up to 5.8\"x8.3\" (or 11.7\"x4.25\")",
+      "A4": "up to 16.5\"x5.85\" (or 8.3\"x11.7\")",
+      "SQ": "11.7\" x 11.7\" (square / jumbo)"
+    },
+    "qty_bands": [
+      "1-9",
+      "10-19",
+      "20-49",
+      "50-99",
+      "100-199",
+      "200-299",
+      "300-499",
+      "500-999",
+      "1000-2499",
+      "2500-4999",
+      "5000+"
+    ],
+    "changelog": [
+      "2026-07-16 v2: added 1-9 band (price from a single garment); uniform labor + optional garment-difficulty toggle (dropped transfer-type 25%); added inbound shipping spread over qty."
+    ]
+  },
+  "application_labor": {
+    "basis": "J4 engine: 1.17 min/pc full handling cycle x $34/hr non-press labor = $0.66/pc. UNIFORM across all transfer types.",
+    "per_pc": 0.66,
+    "difficulty_toggle": {
+      "label": "Difficult line-up (pants, bags, jackets, curved or tight placement)",
+      "uplift": 0.25,
+      "note": "Holly 2026-07-16: the extra labor is driven by GARMENT SHAPE / placement, NOT transfer type. Optional, default OFF. 25% is an estimate; validate vs Jean's real times. Was previously (wrongly) auto-applied to all non-wearables."
+    },
+    "press_dwell_sec": 12,
+    "press_dwell_note": "12s dwell only; the $0.66 is the full position+press+peel+handle cycle."
+  },
+  "sp_formula": {
+    "sell = (transfer_cost + labor) / (1 - SP)": true,
+    "target_SP": 0.445,
+    "target_divisor": 0.555,
+    "survival_SP": 0.33,
+    "survival_divisor": 0.67,
+    "round_up_to": 0.25,
+    "color_adder": "none - DTF is full-color transfer pricing"
+  },
+  "garment_to_transfer": {
+    "_rule": "Garment material dictates the transfer. Default is Wearable (WE) - 83 of 122 real orders. Poly/performance needs a blocker to stop dye migration.",
+    "map": [
+      {
+        "material": "Cotton / cotton tee / tri-blend / light cotton-poly blend",
+        "transfer": "WE",
+        "note": "the default, 68% of orders"
+      },
+      {
+        "material": "Cotton, single-color art (cost saver)",
+        "transfer": "W1"
+      },
+      {
+        "material": "Polyester / poly blend (dark) / 100% poly / dye-migration risk",
+        "transfer": "BL",
+        "note": "blocker layer stops dye bleed"
+      },
+      {
+        "material": "Polyester, single-color art",
+        "transfer": "LB1"
+      },
+      {
+        "material": "Softshell / performance outerwear / jackets / spandex",
+        "transfer": "SB"
+      },
+      {
+        "material": "Hats / caps / foam trucker",
+        "transfer": "HW"
+      },
+      {
+        "material": "Industrial laundry / workwear / uniforms",
+        "transfer": "IW"
+      }
+    ],
+    "overridable": true
+  },
+  "transfers": {
+    "WE": {
+      "name": "Wearable Transfers",
+      "default": true,
+      "wearable": true,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          2.7,
+          3.04,
+          3.33,
+          4.41,
+          5.27,
+          6.69
+        ],
+        "10-19": [
+          2.7,
+          3.04,
+          3.33,
+          4.41,
+          5.27,
+          6.69
+        ],
+        "20-49": [
+          2.25,
+          2.52,
+          2.77,
+          3.68,
+          4.4,
+          5.59
+        ],
+        "50-99": [
+          1.34,
+          1.67,
+          2.02,
+          2.64,
+          3.4,
+          4.32
+        ],
+        "100-199": [
+          0.9,
+          1.14,
+          1.49,
+          1.82,
+          2.34,
+          2.97
+        ],
+        "200-299": [
+          0.72,
+          0.96,
+          1.3,
+          1.53,
+          1.92,
+          2.44
+        ],
+        "300-499": [
+          0.58,
+          0.8,
+          1.13,
+          1.37,
+          1.76,
+          2.24
+        ],
+        "500-999": [
+          0.52,
+          0.74,
+          1.08,
+          1.28,
+          1.65,
+          2.1
+        ],
+        "1000-2499": [
+          0.46,
+          0.69,
+          1.03,
+          1.16,
+          1.56,
+          1.98
+        ],
+        "2500-4999": [
+          0.44,
+          0.65,
+          0.98,
+          1.1,
+          1.49,
+          1.89
+        ],
+        "5000+": [
+          0.42,
+          0.63,
+          0.96,
+          1.06,
+          1.43,
+          1.82
+        ]
+      },
+      "sq_estimated": true,
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "W1": {
+      "name": "Wearable 1 Color",
+      "wearable": true,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          1.62,
+          1.82,
+          2,
+          2.65,
+          3.16,
+          4.01
+        ],
+        "10-19": [
+          1.62,
+          1.82,
+          2,
+          2.65,
+          3.16,
+          4.01
+        ],
+        "20-49": [
+          1.35,
+          1.52,
+          1.66,
+          2.2,
+          2.65,
+          3.37
+        ],
+        "50-99": [
+          0.8,
+          1.01,
+          1.22,
+          1.59,
+          2.04,
+          2.59
+        ],
+        "100-199": [
+          0.54,
+          0.69,
+          0.89,
+          1.09,
+          1.4,
+          1.78
+        ],
+        "200-299": [
+          0.43,
+          0.57,
+          0.78,
+          0.92,
+          1.14,
+          1.45
+        ],
+        "300-499": [
+          0.34,
+          0.48,
+          0.69,
+          0.82,
+          1.05,
+          1.33
+        ],
+        "500-999": [
+          0.31,
+          0.44,
+          0.65,
+          0.76,
+          0.99,
+          1.26
+        ],
+        "1000-2499": [
+          0.28,
+          0.41,
+          0.62,
+          0.7,
+          0.93,
+          1.18
+        ],
+        "2500-4999": [
+          0.27,
+          0.39,
+          0.59,
+          0.66,
+          0.89,
+          1.13
+        ],
+        "5000+": [
+          0.25,
+          0.37,
+          0.57,
+          0.63,
+          0.85,
+          1.08
+        ]
+      },
+      "sq_estimated": true,
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "BL": {
+      "name": "Blocker Transfers",
+      "wearable": false,
+      "aka": "LoMelt Blocker (LB) - identical cost",
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "10-19": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "20-49": [
+          2.66,
+          2.96,
+          3.23,
+          4.16,
+          5.16,
+          6.5
+        ],
+        "50-99": [
+          1.62,
+          2.02,
+          2.4,
+          3.17,
+          4.07,
+          5.25
+        ],
+        "100-199": [
+          1.22,
+          1.51,
+          1.88,
+          2.34,
+          2.92,
+          3.81
+        ],
+        "200-299": [
+          0.97,
+          1.24,
+          1.62,
+          1.98,
+          2.5,
+          3.26
+        ],
+        "300-499": [
+          0.8,
+          1.08,
+          1.44,
+          1.76,
+          2.28,
+          3
+        ],
+        "500-999": [
+          0.75,
+          1.01,
+          1.39,
+          1.69,
+          2.17,
+          2.87
+        ],
+        "1000-2499": [
+          0.7,
+          0.96,
+          1.32,
+          1.57,
+          2.05,
+          2.75
+        ],
+        "2500-4999": [
+          0.67,
+          0.92,
+          1.28,
+          1.52,
+          1.98,
+          2.7
+        ],
+        "5000+": [
+          0.65,
+          0.9,
+          1.24,
+          1.46,
+          1.94,
+          2.64
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "SB": {
+      "name": "Soft Shell Blocker",
+      "wearable": false,
+      "aka": "identical cost to Blocker (BL)",
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "10-19": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "20-49": [
+          2.66,
+          2.96,
+          3.23,
+          4.16,
+          5.16,
+          6.5
+        ],
+        "50-99": [
+          1.62,
+          2.02,
+          2.4,
+          3.17,
+          4.07,
+          5.25
+        ],
+        "100-199": [
+          1.22,
+          1.51,
+          1.88,
+          2.34,
+          2.92,
+          3.81
+        ],
+        "200-299": [
+          0.97,
+          1.24,
+          1.62,
+          1.98,
+          2.5,
+          3.26
+        ],
+        "300-499": [
+          0.8,
+          1.08,
+          1.44,
+          1.76,
+          2.28,
+          3
+        ],
+        "500-999": [
+          0.75,
+          1.01,
+          1.39,
+          1.69,
+          2.17,
+          2.87
+        ],
+        "1000-2499": [
+          0.7,
+          0.96,
+          1.32,
+          1.57,
+          2.05,
+          2.75
+        ],
+        "2500-4999": [
+          0.67,
+          0.92,
+          1.28,
+          1.52,
+          1.98,
+          2.7
+        ],
+        "5000+": [
+          0.65,
+          0.9,
+          1.24,
+          1.46,
+          1.94,
+          2.64
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "LB1": {
+      "name": "LoMelt Blocker 1 Color",
+      "wearable": false,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          1.91,
+          2.13,
+          2.33,
+          2.99,
+          3.71,
+          4.68
+        ],
+        "10-19": [
+          1.91,
+          2.13,
+          2.33,
+          2.99,
+          3.71,
+          4.68
+        ],
+        "20-49": [
+          1.6,
+          1.77,
+          1.94,
+          2.5,
+          3.09,
+          3.91
+        ],
+        "50-99": [
+          0.97,
+          1.21,
+          1.44,
+          1.9,
+          2.44,
+          3.15
+        ],
+        "100-199": [
+          0.74,
+          0.9,
+          1.13,
+          1.41,
+          1.75,
+          2.29
+        ],
+        "200-299": [
+          0.58,
+          0.75,
+          0.97,
+          1.19,
+          1.5,
+          1.95
+        ],
+        "300-499": [
+          0.47,
+          0.64,
+          0.86,
+          1.06,
+          1.36,
+          1.8
+        ],
+        "500-999": [
+          0.44,
+          0.61,
+          0.83,
+          1.01,
+          1.31,
+          1.73
+        ],
+        "1000-2499": [
+          0.42,
+          0.57,
+          0.79,
+          0.95,
+          1.22,
+          1.66
+        ],
+        "2500-4999": [
+          0.41,
+          0.55,
+          0.76,
+          0.91,
+          1.19,
+          1.62
+        ],
+        "5000+": [
+          0.4,
+          0.54,
+          0.75,
+          0.88,
+          1.17,
+          1.58
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "HW": {
+      "name": "Headwear Transfers",
+      "wearable": false,
+      "sizes": [
+        "CAP_SM",
+        "CAP_LG",
+        "A5_SG",
+        "A4_SG",
+        "A3_SG"
+      ],
+      "size_dims": {
+        "CAP_SM": "2.5\"x2.5\"",
+        "CAP_LG": "4.7\"x2.8\"",
+        "A5_SG": "5.8\"x8.3\"",
+        "A4_SG": "8.3\"x11.7\"",
+        "A3_SG": "11.7\"x16.5\""
+      },
+      "cost": {
+        "1-9": [
+          2.22,
+          2.39,
+          5.61,
+          6.94,
+          10.59
+        ],
+        "10-19": [
+          2.22,
+          2.39,
+          5.61,
+          6.94,
+          10.59
+        ],
+        "20-49": [
+          1.85,
+          2,
+          4.68,
+          5.79,
+          8.84
+        ],
+        "50-99": [
+          0.93,
+          1.08,
+          3.56,
+          4.57,
+          7.25
+        ],
+        "100-199": [
+          0.66,
+          0.8,
+          2.63,
+          3.28,
+          5.27
+        ],
+        "200-299": [
+          0.54,
+          0.69,
+          2.22,
+          2.8,
+          4.5
+        ],
+        "300-499": [
+          0.46,
+          0.61,
+          1.98,
+          2.55,
+          4.19
+        ],
+        "500-999": [
+          0.42,
+          0.58,
+          1.9,
+          2.43,
+          4
+        ],
+        "1000-2499": [
+          0.4,
+          0.55,
+          1.77,
+          2.3,
+          3.87
+        ],
+        "2500-4999": [
+          0.37,
+          0.52,
+          1.7,
+          2.22,
+          3.81
+        ],
+        "5000+": [
+          0.35,
+          0.49,
+          1.64,
+          2.17,
+          3.74
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "IW": {
+      "name": "Industrial Wash Transfers",
+      "wearable": false,
+      "sizes": [
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "A3"
+      ],
+      "size_dims": {
+        "SM": "2.5\"x2.5\"",
+        "LC": "4\"x4\"",
+        "A5": "5.8\"x8.3\"",
+        "A4": "16.5\"x5.85\"",
+        "A3": "11.7\"x16.5\""
+      },
+      "min_qty": 20,
+      "cost": {
+        "20-49": [
+          3.64,
+          3.95,
+          5.1,
+          6.31,
+          9.64
+        ],
+        "50-99": [
+          2.49,
+          2.93,
+          3.89,
+          4.97,
+          7.92
+        ],
+        "100-199": [
+          1.85,
+          2.3,
+          2.87,
+          3.59,
+          5.74
+        ],
+        "200-299": [
+          1.53,
+          1.98,
+          2.42,
+          3.07,
+          4.91
+        ],
+        "300-499": [
+          1.34,
+          1.77,
+          2.17,
+          2.81,
+          4.58
+        ],
+        "500-999": [
+          1.24,
+          1.69,
+          2.08,
+          2.65,
+          4.37
+        ],
+        "1000-2499": [
+          1.18,
+          1.63,
+          1.95,
+          2.51,
+          4.25
+        ],
+        "2500-4999": [
+          1.14,
+          1.58,
+          1.87,
+          2.44,
+          4.16
+        ],
+        "5000+": [
+          1.1,
+          1.53,
+          1.78,
+          2.37,
+          4.08
+        ]
+      }
+    },
+    "PUFF": {
+      "name": "Puff Transfers (613 Originals)",
+      "wearable": false,
+      "vendor": "613 Originals",
+      "flat_cost_estimate": 2.55,
+      "status": "PLACEHOLDER - Holly emailing 613 Originals for full size/qty pricing. Single est cost, non-wearable labor uplift applies.",
+      "sizes": [
+        "flat"
+      ],
+      "cost": {
+        "any": [
+          2.55
+        ]
+      }
+    }
+  },
+  "order_frequency": {
+    "_source": "supacolor-account history-2026-07-16.csv (122 assets 2023-2026)",
+    "WE": 83,
+    "LM": 9,
+    "HW": 8,
+    "DF": 6,
+    "PR": 6,
+    "BL": 5,
+    "LB": 2,
+    "SB": 2,
+    "IW": 1
+  },
+  "shipping": {
+    "model": "Inbound freight from Supacolor to PA, entered as a total $ and spread over the order qty. Negligible per-unit at volume; dominant on a 1-piece sample.",
+    "default_estimate_total": 15,
+    "default_note": "$15 is a placeholder estimate — set the real Supacolor shipping. Outbound (PA->customer) is separate; usually passed to the customer or a flat sample-ship fee."
+  }
+};
+
+const TARGET_SP = DTF_DATA.sp_formula.target_SP;
+const SURVIVAL_SP = DTF_DATA.sp_formula.survival_SP;
+const ROUND_UP_TO = DTF_DATA.sp_formula.round_up_to;
+const $ = id => document.getElementById(id);
+const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
+const pct = n => Number(n || 0).toFixed(1) + '%';
+const readQty = () => Math.max(1, Math.floor(Number($('qty').value) || 1));
+const readLocations = () => Math.max(1, Math.floor(Number($('locations').value) || 1));
+const readShippingTotal = () => Math.max(0, Number($('shippingTotal').value) || 0);
+const readDifficulty = () => Boolean($('difficultyLineup').checked);
+let recommendedTransfer = '';
+let transferWasOverridden = false;
+function roundUpTo(value, increment) { return Math.ceil((Number(value) || 0) / increment) * increment; }
+function row(name, val, meta, strong) { return '<div class="row' + (strong ? ' strong' : '') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div></div>'; }
+function spDetailItem(name, value) { return '<div class="detailItem"><span>' + name + '</span><span>' + value + '</span></div>'; }
+function flagBlock(kind, text) { return '<div class="flagBlock ' + kind + '">' + text + '</div>'; }
+function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
+function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function transferKeys() { return Object.keys(DTF_DATA.transfers); }
+function selectedTransfer() { return DTF_DATA.transfers[$('transferType').value]; }
+function materialRows() { return DTF_DATA.garment_to_transfer.map || []; }
+function populateMaterials() { $('material').innerHTML = materialRows().map((item, index) => '<option value="' + index + '">' + escapeHtml(item.material) + '</option>').join(''); }
+function populateTransfers() { $('transferType').innerHTML = transferKeys().map(key => { const item = DTF_DATA.transfers[key]; const aka = item.aka ? ' - ' + item.aka : ''; return '<option value="' + key + '">' + key + ' - ' + escapeHtml(item.name + aka) + '</option>'; }).join(''); }
+function dimensionFor(transfer, size) { if (transfer.size_dims && transfer.size_dims[size]) return transfer.size_dims[size]; if (DTF_DATA._meta.sizes_standard && DTF_DATA._meta.sizes_standard[size]) return DTF_DATA._meta.sizes_standard[size]; if (size === 'flat') return 'Flat placeholder cost, no size tier yet'; return 'No dimension note in source data'; }
+function populateSizes(preserve) { const transfer = selectedTransfer(); const previous = $('size').value; $('size').innerHTML = transfer.sizes.map(size => '<option value="' + size + '">' + escapeHtml(size) + '</option>').join(''); if (preserve && transfer.sizes.includes(previous)) $('size').value = previous; updateSizeHelper(); }
+function updateSizeHelper() { const transfer = selectedTransfer(); const size = $('size').value; $('sizeHelper').textContent = size + ': ' + dimensionFor(transfer, size); }
+function selectedMaterialRow() { return materialRows()[Number($('material').value) || 0] || materialRows()[0]; }
+function applyMaterialRecommendation() { const material = selectedMaterialRow(); recommendedTransfer = material.transfer; transferWasOverridden = false; $('transferType').value = recommendedTransfer; populateSizes(false); updateTransferNote(); calculate(); }
+function updateTransferNote() { const material = selectedMaterialRow(); const selected = $('transferType').value; const transfer = DTF_DATA.transfers[selected]; const autoOrOverride = selected === recommendedTransfer && !transferWasOverridden ? 'Auto-set from garment material' : 'Overridden from recommended ' + recommendedTransfer; const overrideText = DTF_DATA.garment_to_transfer.overridable ? 'PM override enabled.' : 'PM override disabled in source data.'; const note = material && material.note ? ' ' + material.note + '.' : ''; $('transferNote').textContent = autoOrOverride + '. ' + overrideText + note; $('transferHelper').textContent = selected + ' - ' + transfer.name + (transfer.aka ? ' (' + transfer.aka + ')' : ''); }
+function parseBandStart(band) { return band.endsWith('+') ? Number(band.replace('+','')) : Number(band.split('-')[0]); }
+function parseBandEnd(band) { return band.endsWith('+') ? Infinity : Number(band.split('-')[1]); }
+function availableBands(transfer) { return Object.keys(transfer.cost).filter(band => band !== 'any').sort((a,b) => parseBandStart(a) - parseBandStart(b)); }
+function lookupCost(transfer, size, qty) {
+  if (transfer.cost.any) return {band:'any', cost:Number(transfer.cost.any[0]) || 0, belowMin:false, note:'Flat placeholder cost'};
+  const bands = availableBands(transfer);
+  const lowest = bands[0];
+  let band = bands.find(item => qty >= parseBandStart(item) && qty <= parseBandEnd(item));
+  let belowMin = false;
+  const explicitMin = Number(transfer.min_qty || 0);
+  const lowestMin = parseBandStart(lowest);
+  if (!band || (explicitMin && qty < explicitMin)) {
+    if (qty < Math.max(explicitMin, lowestMin)) {
+      band = lowest;
+      belowMin = true;
+    } else if (!band) {
+      band = bands[bands.length - 1];
+    }
+  }
+  const index = Math.max(0, transfer.sizes.indexOf(size));
+  const cost = Number((transfer.cost[band] || [])[index]) || 0;
+  return {band, cost, belowMin, note: belowMin ? 'Below vendor min, using lowest available band' : ''};
+}
+function calculate() {
+  const qty = readQty(); const locations = readLocations(); const shippingTotal = readShippingTotal(); const difficultyApplied = readDifficulty(); const type = $('transferType').value; const transfer = selectedTransfer(); const size = $('size').value; const costLookup = lookupCost(transfer, size, qty);
+  const transferUnit = costLookup.cost;
+  const baseLaborUnit = Number(DTF_DATA.application_labor.per_pc || 0);
+  const difficultyUplift = Number((DTF_DATA.application_labor.difficulty_toggle || {}).uplift || 0);
+  const laborUnit = baseLaborUnit * (difficultyApplied ? 1 + difficultyUplift : 1);
+  const laborMode = difficultyApplied ? 'Difficulty uplift applied: garment-shape driven, not transfer-type' : 'Uniform standard labor: no garment-shape difficulty uplift';
+  const shippingUnit = shippingTotal / qty;
+  const landedUnit = (transferUnit + laborUnit + shippingUnit) * locations; const landedTotal = landedUnit * qty; const targetPriceRaw = landedUnit / (1 - TARGET_SP); const targetPrice = roundUpTo(targetPriceRaw, ROUND_UP_TO); const survivalPriceRaw = landedUnit / (1 - SURVIVAL_SP); const survivalPrice = roundUpTo(survivalPriceRaw, ROUND_UP_TO); const priceUnit = Math.max(targetPrice, survivalPrice); const orderTotal = priceUnit * qty; const marginUnit = priceUnit - landedUnit; const marginTotal = marginUnit * qty; const achievedSp = orderTotal > 0 ? marginTotal / orderTotal : 0; const achievedPct = achievedSp * 100;
+  $('orderTotal').textContent = money0(orderTotal); $('perUnit').textContent = money(priceUnit); $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + locations + ' location' + (locations === 1 ? '' : 's'); $('marginTotal').textContent = money0(marginTotal); $('marginUnit').textContent = money(marginUnit); $('marginPct').textContent = pct(achievedPct);
+  $('costBreakdown').innerHTML = [row('Transfer base cost / unit', money(transferUnit), type + ' ' + transfer.name + ', size ' + size + ', qty band ' + costLookup.band), row('Application labor / unit', money(laborUnit), laborMode + '. ' + DTF_DATA.application_labor.basis), row('Inbound shipping / unit', money(shippingUnit), money(shippingTotal) + ' total Supacolor freight spread over ' + qty.toLocaleString('en-US') + ' pcs'), row('Transfers per garment', String(locations), 'Transfer, labor, and inbound shipping are multiplied by locations'), row('Total landed cost / unit', money(landedUnit), money0(landedTotal) + ' total landed cost', true)].join('');
+  const targetGoverns = targetPrice >= survivalPrice;
+  $('spPanel').innerHTML = '<div class="spcard"><div class="top"><h3>Target SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(TARGET_SP * 100) + '</div><div class="spmeta">Divisor ' + DTF_DATA.sp_formula.target_divisor + '. Rounded up to nearest ' + money(ROUND_UP_TO) + '.</div></div>' + '<div class="spcard"><div class="top"><h3>Survival SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : 'neutral', 'floor') + '</div><div class="rate">' + pct(SURVIVAL_SP * 100) + '</div><div class="spmeta">Divisor ' + DTF_DATA.sp_formula.survival_divisor + '. Below this is a red flag.</div></div>' + '<div class="spcard"><div class="top"><h3>Achieved SP</h3>' + flagPill(achievedSp < SURVIVAL_SP ? 'bad' : achievedSp >= TARGET_SP ? 'good' : 'warn', achievedSp >= TARGET_SP ? 'good' : 'check') + '</div><div class="rate">' + pct(achievedPct) + '</div><div class="spmeta">Margin % of invoice after rounding.</div></div>' + '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill(targetGoverns ? 'good' : 'warn', targetGoverns ? 'target governs' : 'survival governs') + '</div><div class="detailList">' + spDetailItem('Transfer cost / unit', money(transferUnit)) + spDetailItem('Labor / unit', money(laborUnit)) + spDetailItem('Inbound shipping / unit', money(shippingUnit)) + spDetailItem('Landed cost / unit', money(landedUnit)) + spDetailItem('Target price raw', money(targetPriceRaw)) + spDetailItem('Target price rounded', money(targetPrice)) + spDetailItem('Survival price raw', money(survivalPriceRaw)) + spDetailItem('Survival price rounded', money(survivalPrice)) + spDetailItem('Selected sell price', money(priceUnit)) + spDetailItem('Achieved margin % of invoice', pct(achievedPct)) + '</div><div class="spmeta">Final sell is max(target price, survival price). Target normally governs because 44.5% is above the 33% survival floor.</div></div>';
+  $('priceDecision').innerHTML = [row('Target sell / unit', money(targetPrice), pct(TARGET_SP * 100) + ' target SP from landed / ' + DTF_DATA.sp_formula.target_divisor), row('Survival sell / unit', money(survivalPrice), pct(SURVIVAL_SP * 100) + ' survival SP from landed / ' + DTF_DATA.sp_formula.survival_divisor), row('Selected customer price', money(priceUnit), targetGoverns ? 'Target price is higher than survival price' : 'Survival floor is higher than target price', true), row('Invoice margin shown to PM', money0(marginTotal) + ' total / ' + pct(achievedPct), money(marginUnit) + ' per unit', true)].join('');
+  const flags = []; if (qty < 10) flags.push(flagBlock('warn', "SAMPLE / PROTOTYPE - DTF is the only 1-piece service; priced at Supacolor's floor cost.")); if (costLookup.belowMin) flags.push(flagBlock('warn', costLookup.note.toUpperCase() + ': ' + qty.toLocaleString('en-US') + ' pcs priced at ' + costLookup.band + '. BELOW VENDOR MIN.')); if ((type === 'WE' || type === 'W1') && size === 'SQ' && transfer.sq_estimated) flags.push(flagBlock('warn', 'SQ COST ESTIMATED - verify before quoting. Source notes say WE_SQ and W1_SQ were estimated from cropped screenshots.')); if (type === 'PUFF') flags.push(flagBlock('warn', 'PUFF PLACEHOLDER - Holly is still collecting full 613 Originals size/qty pricing. Single estimated transfer cost is used.')); if (difficultyApplied) flags.push(flagBlock('warn', 'DIFFICULT LINE-UP - labor is ' + money(laborUnit) + ' per pc from garment-shape difficulty, not transfer type.')); if (achievedSp < SURVIVAL_SP) flags.push(flagBlock('bad', 'BELOW SURVIVAL - achieved ' + pct(achievedPct) + ' is under ' + pct(SURVIVAL_SP * 100) + '.')); else if (achievedSp >= TARGET_SP) flags.push(flagBlock('good', 'AT/ABOVE TARGET - achieved ' + pct(achievedPct) + ' clears the ' + pct(TARGET_SP * 100) + ' target.')); $('flags').innerHTML = flags.join('');
+}
+function bind() { populateMaterials(); populateTransfers(); $('shippingTotal').value = Number((DTF_DATA.shipping || {}).default_estimate_total || 0).toFixed(2); const firstMaterial = selectedMaterialRow(); recommendedTransfer = firstMaterial.transfer; $('transferType').value = recommendedTransfer; populateSizes(false); updateTransferNote(); $('material').addEventListener('change', applyMaterialRecommendation); $('transferType').addEventListener('change', () => { transferWasOverridden = $('transferType').value !== recommendedTransfer; populateSizes(false); updateTransferNote(); calculate(); }); $('size').addEventListener('change', () => { updateSizeHelper(); calculate(); }); $('quoteForm').addEventListener('input', calculate); $('quoteForm').addEventListener('change', calculate); $('provenance').textContent = 'Provenance: ' + DTF_DATA._meta.title + '. As-of ' + DTF_DATA._meta.as_of + '. Source: ' + DTF_DATA._meta.source + '. Grade: ' + DTF_DATA._meta.grade; calculate(); }
+bind();
+</script>
+</body>
+</html>

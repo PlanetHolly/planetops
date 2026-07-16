@@ -492,6 +492,28 @@
           "icon": "🏴"
         },
         {
+          "id": "promo-quote-desk",
+          "kind": "surface",
+          "name": "Promo Quote (desk)",
+          "blurb": "Promo pricing — landed cost + product class + complexity checkboxes. Shows margin: the PM builds the margin, so the desk sees it. No matrix; this is the only way to price promo.",
+          "type": "tool",
+          "url": "../promo-quote/",
+          "status": "live",
+          "access": "open",
+          "icon": "🎁"
+        },
+        {
+          "id": "dtf-quote-desk",
+          "kind": "surface",
+          "name": "DTF Quote (desk)",
+          "blurb": "DTF / heat-transfer pricing — garment material picks the transfer, size drives cost (real Supacolor costs). Prices from 1 piece. Shows margin. DRAFT: costs OCR'd, verify vs Excel.",
+          "type": "tool",
+          "url": "../dtf-quote/",
+          "status": "wip",
+          "access": "open",
+          "icon": "🔥"
+        },
+        {
           "id": "bandana-quote-fin",
           "kind": "surface",
           "name": "Bandana Quote (SP)",
