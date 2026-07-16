@@ -514,6 +514,17 @@
           "icon": "🔥"
         },
         {
+          "id": "embroidery-quote-desk",
+          "kind": "surface",
+          "name": "Embroidery Quote (desk)",
+          "blurb": "Embroidery pricing — stitch count + qty + placements on the real Bear cost grid. 100% outsourced (no PA labor). Quote at target, floor at survival. Shows margin. DRAFT.",
+          "type": "tool",
+          "url": "../embroidery-quote/",
+          "status": "wip",
+          "access": "open",
+          "icon": "🧵"
+        },
+        {
           "id": "bandana-quote-fin",
           "kind": "surface",
           "name": "Bandana Quote (SP)",

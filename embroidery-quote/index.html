@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Apparel Embroidery Quote Calculator</title>
+<style>
+:root {
+  --yellow:#F7BE00; --ink:#111; --paper:#f6f4ef; --card:#fff; --muted:#666; --line:#ded9cc;
+  --soft:#f0eee8; --good:#138a55; --warn:#b98200; --bad:#c93d35; --shadow:0 18px 60px rgba(0,0,0,.09);
+  color-scheme:light dark;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { font-family:Montserrat, Avenir Next, Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(135deg,#fffaf0 0%,var(--paper) 42%,#e9e7e0 100%); color:var(--ink); line-height:1.45; }
+button,input,select { font:inherit; }
+.shell { width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
+header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px; padding:16px 0 24px; }
+.mark { width:54px; height:54px; border:3px solid var(--ink); border-radius:50%; position:relative; display:grid; place-items:center; font-weight:900; letter-spacing:0; background:var(--yellow); box-shadow:8px 8px 0 var(--ink); }
+.mark:after { content:""; position:absolute; width:78px; height:3px; background:var(--ink); transform:rotate(-34deg); }
+h1 { margin:0; font-size:clamp(1.55rem, 3vw, 3rem); line-height:1; letter-spacing:0; text-transform:uppercase; }
+.kicker { margin:5px 0 0; color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.badge { border:1px solid var(--ink); padding:8px 10px; font-size:.72rem; text-transform:uppercase; font-weight:900; background:var(--card); white-space:nowrap; }
+.layout { display:grid; grid-template-columns:minmax(300px, 410px) 1fr; gap:18px; align-items:start; }
+.panel { background:rgba(255,255,255,.86); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.panel h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--ink); color:#fff; }
+.form { padding:16px; display:grid; gap:14px; }
+.field { display:grid; gap:6px; }
+label,.label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:900; color:#393731; }
+input[type="number"],select { width:100%; border:1px solid #cfc8b8; background:#fff; color:#111; border-radius:6px; min-height:42px; padding:8px 10px; outline:none; }
+input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(247,190,0,.25); }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.checkgrid { display:grid; gap:8px; }
+.check { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; min-height:40px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:800; }
+.check input { width:17px; height:17px; accent-color:var(--yellow); }
+.check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
+.note { color:var(--muted); font-size:.78rem; }
+.helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
+.results { display:grid; gap:18px; }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
+.hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
+.total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
+.perunit { text-align:right; }
+.perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
+.marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
+.metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
+.metric small { display:block; color:var(--muted); text-transform:uppercase; font-weight:950; letter-spacing:.09em; font-size:.68rem; }
+.metric.dark small { color:#c9c1b0; }
+.metric b { display:block; margin-top:10px; font-size:clamp(1.45rem, 3vw, 2.7rem); line-height:1; font-weight:950; font-variant-numeric:tabular-nums; }
+.metric .sub { color:var(--muted); font-size:.78rem; font-weight:800; margin-top:6px; }
+.metric.dark .sub { color:#f7df92; }
+.breakdown { padding:0; }
+.rows { padding:10px 16px 16px; }
+.row { display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+.row:last-child { border-bottom:0; }
+.row .name { font-weight:850; }
+.row .meta { color:var(--muted); font-size:.78rem; margin-top:2px; }
+.row .val { font-variant-numeric:tabular-nums; font-weight:900; text-align:right; }
+.row.strong { border-top:3px solid var(--ink); margin-top:4px; padding-top:14px; }
+.internal { border:1px solid #26231d; background:#181715; color:#f8f3e6; box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.internal h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--yellow); color:#111; }
+.spgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:16px; }
+.spcard { background:#22201c; border:1px solid #3a352a; border-radius:8px; padding:12px; min-height:118px; }
+.spcard.wide { grid-column:1 / -1; }
+.spcard .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.spcard h3 { margin:0; font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; }
+.rate { font-size:1.8rem; font-weight:950; margin-top:12px; font-variant-numeric:tabular-nums; }
+.spmeta { color:#c9c1b0; font-size:.77rem; margin-top:4px; }
+.detailList { display:grid; gap:7px; margin-top:10px; }
+.detailItem { display:flex; justify-content:space-between; gap:10px; border-top:1px solid #343026; padding-top:7px; font-size:.8rem; font-weight:800; }
+.flagbar { display:grid; gap:8px; }
+.flag { font-size:.68rem; padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:950; color:#111; width:max-content; }
+.flag.good { background:#46d38a; } .flag.warn { background:#ffd45d; } .flag.bad { background:#ff7068; } .flag.neutral { background:#b9b4a7; }
+.flagBlock { border-radius:8px; padding:11px 13px; font-size:.82rem; font-weight:900; border:1px solid transparent; }
+.flagBlock.good { background:#edfff6; border-color:#98e6be; color:#075b36; }
+.flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
+.flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+@media (prefers-color-scheme:dark) {
+  :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
+  body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
+  input[type="number"],select,.check { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  .panel,.metric { background:rgba(29,27,24,.9); }
+  .panel h2,.hero { background:#050505; }
+  label,.label { color:#e5ddcd; }
+  .mark { color:#111; border-color:#111; box-shadow:8px 8px 0 #f5f0e6; } .mark:after { background:#111; }
+  .badge { background:#11100e; }
+  .helper { background:#332a08; color:#f7df92; }
+  .flagBlock.good { background:#0f2d1f; border-color:#236f48; color:#bff1d5; }
+  .flagBlock.warn { background:#332a08; border-color:#6e5a12; color:#f7df92; }
+  .flagBlock.bad { background:#351513; border-color:#6b2924; color:#ffc8c3; }
+}
+@media (max-width:860px) {
+  .shell { width:min(100% - 22px, 1180px); padding-top:16px; }
+  header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
+  .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .perunit { text-align:left; }
+  .marginHero,.spgrid,.twocol { grid-template-columns:1fr; }
+  .row { grid-template-columns:minmax(0,1fr) auto; }
+}
+@media print { body { background:#fff; } .panel,.hero,.internal,.metric { box-shadow:none; } .shell { width:auto; padding:0; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="mark" aria-hidden="true">PA</div>
+    <div>
+      <h1>EMBROIDERY QUOTE</h1>
+      <div class="kicker">Planet Apparel - internal outsourced embroidery pricing desk</div>
+    </div>
+    <div class="badge">Internal - margin visible</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>Quote Inputs</h2>
+      <form class="form" id="quoteForm">
+        <div class="field">
+          <label for="stitches">Stitch count</label>
+          <input id="stitches" type="number" min="1" step="1" value="8500">
+          <div class="helper" id="stitchBandNote">Stitch band will show here.</div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="qty">Quantity</label><input id="qty" type="number" min="1" step="1" value="48"></div>
+          <div class="field"><label for="placements">Placements</label><input id="placements" type="number" min="1" step="1" value="1"></div>
+        </div>
+        <div class="field">
+          <label for="vendorRouting">Vendor routing</label>
+          <select id="vendorRouting"></select>
+          <div class="note" id="routingNote">Bear is the default route.</div>
+        </div>
+        <div class="field">
+          <label for="digitizingTotal">Digitizing one-time $</label>
+          <input id="digitizingTotal" type="number" min="0" step="0.01" value="25.00">
+          <div class="note" id="digitizingHelper">Bear digitizing rate unconfirmed, Empowered is $15/$25/$40. One-time, spread over qty for per-unit.</div>
+        </div>
+        <div class="checkgrid">
+          <label class="check" for="reusedDesign">
+            <input id="reusedDesign" type="checkbox">
+            <span>Reused / existing design</span>
+            <span class="pts">$0</span>
+          </label>
+        </div>
+        <div class="note">Each placement is priced off the same Bear stitch band and quantity row. P1 is the anchor; P2+ are additional placements.</div>
+      </form>
+    </section>
+
+    <section class="results">
+      <div class="flagbar" id="flags"></div>
+      <section class="hero">
+        <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
+        <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
+      </section>
+      <section class="marginHero">
+        <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on embroidery desk</div></div>
+        <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Sell price less landed cost</div></div>
+        <div class="metric"><small>Margin % of invoice</small><b id="marginPct">0.0%</b><div class="sub">Margin dollars divided by invoice</div></div>
+      </section>
+      <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
+      <section class="internal"><h2>SP detail - target vs survival</h2><div class="spgrid" id="spPanel"></div></section>
+      <section class="panel breakdown"><h2>Embroidery Note</h2><div class="rows" id="embroideryNote"></div></section>
+      <section class="panel breakdown"><h2>Price Decision</h2><div class="rows" id="priceDecision"></div></section>
+      <div class="provenance" id="provenance"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+/*
+EMBROIDERY MODEL PROVENANCE
+Source: bear_embroidery_costs.json.
+Embroidery is 100% outsourced to Bear. Bear grid is the all-in decoration cost.
+Price: round up to nearest $0.05 from Landed / (1 - target SP%).
+Landed/unit = Bear decoration cost/unit + digitizing/unit.
+Target SP: 44.5%. Survival SP: 33%.
+*/
+const EMBROIDERY_DATA = {
+  "_meta": {
+    "title": "Bear Designz embroidery cost grid + PA pricing rules",
+    "as_of": "2026-07-16",
+    "source": "2026 Price Builder_All Pricing Tabs_02.23.2026.xlsx, tab CURVES_PRODUCTION rows 17-23 ('Bear Designz Master Curve Embroidery', updated 2/16/26). Grade B (real vendor curve). Ties to EVIDENCE/J3_embroidery_engine.md survival+target grids to the penny.",
+    "model": "Embroidery is 100% OUTSOURCED to Bear (PA does not stitch) -> the Bear grid IS the all-in decoration cost, no PA application labor. Cost drives sell via SP markup, same as DTF/promo.",
+    "stitch_bands": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
+    "stitch_band_ranges": {"0-7k":"1-6,999 stitches","7-14k":"7,000-13,999","14-21k":"14,000-20,999","21-28k":"21,000-27,999","28-35k":"28,000-35,000"},
+    "qty_rows": [1,6,12,24,48,96,192],
+    "qty_floor_note": "Printavo FLOORS between rows (never interpolates). A qty between rows uses the LOWER row's per-unit price (higher per-unit). e.g. qty 30 -> row 24; qty 200 -> row 192.",
+    "over_grid_note": "Stitch count > 35,000 is off-grid -> custom quote required."
+  },
+
+  "sp_formula": {
+    "sell = bear_cost / (1 - SP)": true,
+    "target_SP": 0.445, "target_divisor": 0.555,
+    "survival_SP": 0.33, "survival_divisor": 0.670,
+    "round_up_to": 0.05
+  },
+
+  "embroidery_note": "Embroidery is PA's one break-even / shrinking line (~30% actual SP, -65% YoY). The shrink is DEMAND, not price (Fable ruling). Quote at target 44.5%; you MAY move toward the 33% survival floor to win price-sensitive jobs, but NEVER quote below survival. Run it as a thin retention service that keeps one-stop customers whose screen-print work clears target.",
+
+  "digitizing": {
+    "model": "One-time per NEW design (art -> stitch file). Charged once regardless of qty; spread over qty for the per-unit view.",
+    "default": 25.00,
+    "options_note": "Empowered's real card is $15 / $25 / $40 by complexity. Bear's exact digitizing rate is UNCONFIRMED - default $25, adjustable. Reused/existing design = $0.",
+    "reused_design": 0
+  },
+
+  "vendor_routing": {
+    "default": "Bear",
+    "options": ["Bear","Empowered"],
+    "bear_note": "Default. 0/140 cells below Bear cost; multi-placement is fine on Bear.",
+    "empowered_warning": "Backup only. Multi-placement (2+ placements) at qty >= 48 sells BELOW COST on Empowered (45/140 cells). If Empowered + placements>=2 + qty>=48: HARD FLAG 're-quote or route to Bear' (~$381 SP per misroute). Empowered digitizing is really $15/$25/$40, not $10."
+  },
+
+  "placements_note": "First placement (P1) + each additional (P2+) is priced off the same Bear grid at its own stitch band. Job = sum of placements. A P2 may never appear without a P1.",
+
+  "bear_cost": {
+    "_cols": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
+    "1":   [9.82, 12.13, 15.02, 17.32, 19.64],
+    "6":   [8.09, 9.82, 12.70, 15.02, 17.32],
+    "12":  [6.35, 8.09, 9.24, 10.97, 12.70],
+    "24":  [4.62, 5.78, 6.35, 7.51, 8.66],
+    "48":  [4.04, 5.20, 5.78, 6.93, 8.09],
+    "96":  [3.18, 4.34, 5.20, 6.35, 7.51],
+    "192": [2.89, 3.76, 4.91, 6.07, 7.22]
+  }
+};
+
+const TARGET_SP = EMBROIDERY_DATA.sp_formula.target_SP;
+const SURVIVAL_SP = EMBROIDERY_DATA.sp_formula.survival_SP;
+const ROUND_UP_TO = EMBROIDERY_DATA.sp_formula.round_up_to;
+const $ = id => document.getElementById(id);
+const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
+const pct = n => Number(n || 0).toFixed(1) + '%';
+const readQty = () => Math.max(1, Math.floor(Number($('qty').value) || 1));
+const readPlacements = () => Math.max(1, Math.floor(Number($('placements').value) || 1));
+const readStitches = () => Math.max(0, Math.floor(Number($('stitches').value) || 0));
+const readDigitizingTotal = () => Math.max(0, Number($('digitizingTotal').value) || 0);
+function roundUpTo(value, increment) { return Math.ceil((Number(value) || 0) / increment) * increment; }
+function row(name, val, meta, strong) { return '<div class="row' + (strong ? ' strong' : '') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div></div>'; }
+function spDetailItem(name, value) { return '<div class="detailItem"><span>' + name + '</span><span>' + value + '</span></div>'; }
+function flagBlock(kind, text) { return '<div class="flagBlock ' + kind + '">' + text + '</div>'; }
+function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
+function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function stitchBand(stitches) {
+  if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false};
+  if (stitches <= 6999) return {band:'0-7k', index:0, label:'1-6,999 stitches', overGrid:false};
+  if (stitches <= 13999) return {band:'7-14k', index:1, label:'7,000-13,999 stitches', overGrid:false};
+  if (stitches <= 20999) return {band:'14-21k', index:2, label:'14,000-20,999 stitches', overGrid:false};
+  if (stitches <= 27999) return {band:'21-28k', index:3, label:'21,000-27,999 stitches', overGrid:false};
+  if (stitches <= 35000) return {band:'28-35k', index:4, label:'28,000-35,000 stitches', overGrid:false};
+  return {band:null, index:-1, label:'Over grid (>35k stitches) - custom quote', overGrid:true};
+}
+function qtyRow(qty) {
+  const rows = EMBROIDERY_DATA._meta.qty_rows;
+  let rowValue = rows[0];
+  rows.forEach(value => { if (qty >= value) rowValue = value; });
+  return rowValue;
+}
+function isBetweenQtyRows(qty, rowValue) {
+  return qty !== rowValue;
+}
+function setNoQuote(stitches, bandInfo, qty, placements) {
+  $('orderTotal').textContent = '$0';
+  $('perUnit').textContent = 'No quote';
+  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placements + ' placement' + (placements === 1 ? '' : 's');
+  $('marginTotal').textContent = '$0';
+  $('marginUnit').textContent = '$0.00';
+  $('marginPct').textContent = '0.0%';
+  $('costBreakdown').innerHTML = [row('Bear decoration cost / unit', 'No price', 'Stitch count ' + stitches.toLocaleString('en-US') + ' is outside the Bear grid'), row('Digitizing / unit', 'No price', 'Custom quote required before spreading digitizing'), row('Total landed cost / unit', 'No price', 'Over grid: do not produce a customer price', true)].join('');
+  $('spPanel').innerHTML = '<div class="spcard wide"><div class="top"><h3>Custom quote required</h3>' + flagPill('bad', 'over grid') + '</div><div class="rate">No price</div><div class="spmeta">' + escapeHtml(EMBROIDERY_DATA._meta.over_grid_note) + '</div></div>';
+  $('priceDecision').innerHTML = [row('Selected customer price', 'No quote', 'Over grid (>35k stitches) - custom quote', true)].join('');
+}
+function calculate() {
+  const stitches = readStitches();
+  const qty = readQty();
+  const placements = readPlacements();
+  const routing = $('vendorRouting').value;
+  const bandInfo = stitchBand(stitches);
+  const rowValue = qtyRow(qty);
+  const floorApplied = isBetweenQtyRows(qty, rowValue);
+  const reusedDesign = $('reusedDesign').checked;
+  if (reusedDesign) $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.reused_design || 0).toFixed(2);
+  const digitizingTotal = reusedDesign ? 0 : readDigitizingTotal();
+
+  $('stitchBandNote').textContent = bandInfo.overGrid ? bandInfo.label : 'Stitch count ' + stitches.toLocaleString('en-US') + ' -> band ' + (bandInfo.band || 'none') + ' (' + bandInfo.label + ')';
+  $('routingNote').textContent = routing === 'Empowered' ? 'Backup route selected. ' + EMBROIDERY_DATA.digitizing.options_note : EMBROIDERY_DATA.vendor_routing.bear_note;
+
+  const flags = [];
+  if (bandInfo.overGrid) flags.push(flagBlock('bad', 'OVER GRID (>35K STITCHES) - CUSTOM QUOTE. Do not produce a price.'));
+  if (floorApplied) flags.push(flagBlock('warn', 'QTY FLOORED - qty ' + qty.toLocaleString('en-US') + ' -> priced at row ' + rowValue + ' (Printavo floors between rows).'));
+  if (routing === 'Empowered' && placements >= 2 && qty >= 48) flags.push(flagBlock('bad', 'EMPOWERED MULTI-PLACEMENT WARNING - ' + EMBROIDERY_DATA.vendor_routing.empowered_warning));
+  $('flags').innerHTML = flags.join('');
+
+  if (bandInfo.overGrid || !bandInfo.band) {
+    setNoQuote(stitches, bandInfo, qty, placements);
+    $('embroideryNote').innerHTML = row('Retention service guidance', escapeHtml('Target, never below survival'), escapeHtml(EMBROIDERY_DATA.embroidery_note), true);
+    return;
+  }
+
+  const bearBaseUnit = Number((EMBROIDERY_DATA.bear_cost[String(rowValue)] || [])[bandInfo.index]) || 0;
+  const decorationUnit = bearBaseUnit * placements;
+  const digitizingUnit = digitizingTotal / qty;
+  const landedUnit = decorationUnit + digitizingUnit;
+  const landedTotal = landedUnit * qty;
+  const targetPriceRaw = landedUnit / EMBROIDERY_DATA.sp_formula.target_divisor;
+  const targetPrice = roundUpTo(targetPriceRaw, ROUND_UP_TO);
+  const survivalPriceRaw = landedUnit / EMBROIDERY_DATA.sp_formula.survival_divisor;
+  const survivalPrice = roundUpTo(survivalPriceRaw, ROUND_UP_TO);
+  const priceUnit = targetPrice;
+  const orderTotal = priceUnit * qty;
+  const marginUnit = priceUnit - landedUnit;
+  const marginTotal = marginUnit * qty;
+  const achievedSp = orderTotal > 0 ? marginTotal / orderTotal : 0;
+  const achievedPct = achievedSp * 100;
+  const belowSurvival = priceUnit < survivalPrice || achievedSp < SURVIVAL_SP;
+  const placementMeta = placements === 1 ? 'P1 anchor only' : 'P1 anchor plus ' + (placements - 1) + ' additional placement' + (placements === 2 ? '' : 's');
+
+  $('orderTotal').textContent = money0(orderTotal);
+  $('perUnit').textContent = money(priceUnit);
+  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placements + ' placement' + (placements === 1 ? '' : 's');
+  $('marginTotal').textContent = money0(marginTotal);
+  $('marginUnit').textContent = money(marginUnit);
+  $('marginPct').textContent = pct(achievedPct);
+
+  $('costBreakdown').innerHTML = [
+    row('Bear decoration cost / unit', money(decorationUnit), 'Bear row ' + rowValue + ', band ' + bandInfo.band + ', base ' + money(bearBaseUnit) + ' x ' + placements + ' placement' + (placements === 1 ? '' : 's') + '. ' + placementMeta),
+    row('Digitizing / unit', money(digitizingUnit), 'One-time ' + money(digitizingTotal) + ' over ' + qty.toLocaleString('en-US') + ' pcs' + (reusedDesign ? ' (reused/existing design)' : '')),
+    row('Total landed cost / unit', money(landedUnit), money0(landedTotal) + ' total landed cost. Bear grid is all-in outsourced decoration cost.', true)
+  ].join('');
+
+  $('spPanel').innerHTML = '<div class="spcard"><div class="top"><h3>Target SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(TARGET_SP * 100) + '</div><div class="spmeta">Divisor ' + EMBROIDERY_DATA.sp_formula.target_divisor + '. Rounded up to nearest ' + money(ROUND_UP_TO) + '.</div></div>' + '<div class="spcard"><div class="top"><h3>Survival SP</h3>' + flagPill(belowSurvival ? 'bad' : 'neutral', 'floor') + '</div><div class="rate">' + pct(SURVIVAL_SP * 100) + '</div><div class="spmeta">Divisor ' + EMBROIDERY_DATA.sp_formula.survival_divisor + '. Never quote below survival.</div></div>' + '<div class="spcard"><div class="top"><h3>Achieved SP</h3>' + flagPill(belowSurvival ? 'bad' : achievedSp >= TARGET_SP ? 'good' : 'warn', achievedSp >= TARGET_SP ? 'good' : 'check') + '</div><div class="rate">' + pct(achievedPct) + '</div><div class="spmeta">Margin % of invoice after rounding.</div></div>' + '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill('good', 'target selected') + '</div><div class="detailList">' + spDetailItem('Bear decoration / unit', money(decorationUnit)) + spDetailItem('Digitizing / unit', money(digitizingUnit)) + spDetailItem('Landed cost / unit', money(landedUnit)) + spDetailItem('Target price raw', money(targetPriceRaw)) + spDetailItem('Target price rounded', money(targetPrice)) + spDetailItem('Survival price raw', money(survivalPriceRaw)) + spDetailItem('Survival price rounded', money(survivalPrice)) + spDetailItem('Selected sell price', money(priceUnit)) + spDetailItem('Achieved margin % of invoice', pct(achievedPct)) + '</div><div class="spmeta">Final sell is the target price. Survival is shown as the floor for negotiated retention jobs.</div></div>';
+
+  $('embroideryNote').innerHTML = row('Retention service guidance', 'Target 44.5%', escapeHtml(EMBROIDERY_DATA.embroidery_note), true);
+  $('priceDecision').innerHTML = [
+    row('Target sell / unit', money(targetPrice), pct(TARGET_SP * 100) + ' target SP from landed / ' + EMBROIDERY_DATA.sp_formula.target_divisor),
+    row('Survival sell / unit', money(survivalPrice), pct(SURVIVAL_SP * 100) + ' survival SP from landed / ' + EMBROIDERY_DATA.sp_formula.survival_divisor),
+    row('Selected customer price', money(priceUnit), belowSurvival ? 'RED FLAG: below survival floor' : 'Final sell uses target price; survival is the floor', true),
+    row('Invoice margin shown to PM', money0(marginTotal) + ' total / ' + pct(achievedPct), money(marginUnit) + ' per unit', true)
+  ].join('');
+
+  if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - achieved ' + pct(achievedPct) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
+  else if (achievedSp >= TARGET_SP) $('flags').innerHTML += flagBlock('good', 'AT/ABOVE TARGET - achieved ' + pct(achievedPct) + ' clears the ' + pct(TARGET_SP * 100) + ' target.');
+}
+function bind() {
+  $('vendorRouting').innerHTML = EMBROIDERY_DATA.vendor_routing.options.map(option => '<option value="' + escapeHtml(option) + '">' + escapeHtml(option + (option === EMBROIDERY_DATA.vendor_routing.default ? ' default' : ' backup')) + '</option>').join('');
+  $('vendorRouting').value = EMBROIDERY_DATA.vendor_routing.default;
+  $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.default || 0).toFixed(2);
+  $('quoteForm').addEventListener('input', calculate);
+  $('quoteForm').addEventListener('change', calculate);
+  $('reusedDesign').addEventListener('change', () => { if (!$('reusedDesign').checked) $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.default || 0).toFixed(2); calculate(); });
+  $('provenance').textContent = 'Provenance: ' + EMBROIDERY_DATA._meta.title + '. As-of ' + EMBROIDERY_DATA._meta.as_of + '. Source: ' + EMBROIDERY_DATA._meta.source + ' Model: ' + EMBROIDERY_DATA._meta.model;
+  calculate();
+}
+bind();
+</script>
+</body>
+</html>
