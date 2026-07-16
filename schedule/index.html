@@ -1022,7 +1022,7 @@ function capFor(lane,date,isOT){
 }
 
 /* ───────── Model ───────── */
-let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=false,collapsedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
+let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,collapsedLanes=new Set(),pkEditing=new Set(),highlightImp=null;
 const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & ship','Packaging (Merch)':'count → pull extras → QC → pack & ship','Packaging (Apparel)':'count → pull extras → QC → pack & ship','Hang Tag':'count → QC → hang tag → pack'};
 /* G1: display alias — Holly renamed the finishing event "bandanas" → "merchandise".
    The raw CSV value from Printavo stays 'Packaging (Bandana)' until Printavo's field
@@ -1418,7 +1418,7 @@ function rangeControls(){
     :`<span class="hint">Mon–Fri of the scheduled week · click a day header to collapse it</span>`}
   </div>`;
 }
-let arrCollapsed=false;
+let arrCollapsed=true;   // Holly 2026-07-15: Arrivals starts collapsed for max board view; expands on click (and on search-jump)
 function arrSub(dkey,label,rows,extra){
   const closed=collapsedArrDates.has(dkey);
   return `<section class="dayrow arrsub ${closed?'closed':''}">
