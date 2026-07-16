@@ -628,6 +628,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .ff-billing-amt{font-family:var(--font-head);font-weight:800}
 
 /* ── NAV SHELL: hamburger + section directory (Board-overhaul #1) ── */
+/* Holly 2026-07-15: retire the Board app's internal nav shell — the icon strip
+   and its ☰. Those sections are reached from The Floor's Front Door menu, so the
+   in-app duplicate is redundant clutter. HIDDEN, not deleted: the Board is still
+   being held and migrated, so this reverts in one line. main-content is flex:1
+   and reclaims the freed width. */
+.side-nav, #side-nav, .side-scrim, .hamburger-btn { display: none !important; }
 .hamburger-btn{width:38px;height:38px;margin-right:12px;border:1.5px solid rgba(0,0,0,.14);border-radius:9px;background:var(--white);font-size:16px;line-height:1;color:var(--tonal-black);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
 .hamburger-btn:active{background:rgba(0,0,0,.05)}
 .body-row{flex:1;display:flex;min-height:0}
