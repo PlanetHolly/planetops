@@ -8,22 +8,14 @@
   SHIPMENT (G5 + WS-3, rows + box editor) — ship finished invoices.
   Queue = Board jobs at the SHIPPING station (invoice-level, read from
   the shared State API through the gate). ROWS layout (FB, Holly 7/11);
-  click a row to open its box editor + rates.
+  click a row to open its box editor + captured tracking.
 
   BOXES: each invoice starts with one predicted box; the team ADDS /
   edits boxes (L·W·H·oz) and records the CONTENTS of each box (audit
-  trail — "in case we get audited"). All boxes ship as one EasyPost
-  shipment (parcels[]).
+  trail — "in case we get audited").
 
-  Rates + labels run through n8n (EasyPost key lives in n8n, NEVER here):
-    POST /webhook/shipment-rates  {invoice, parcels:[{length,width,height,weight_oz,contents}]}
-      → {address:{name,company,street1,street2,city,state,zip},   ← FROM PRINTAVO ship-to
-         rates:[{shipment_id,rate_id,carrier,service,rate,delivery_days}]}
-    POST /webhook/shipment-buy    {shipment_id, rate_id, invoice, parcels:[...]}
-      → {label_url, tracking_code, carrier, service}
-      (n8n buys the rate, stamps tracking on the Printavo invoice, and
-       drafts the client tracking email — draft only, never auto-send.)
-  Until those workflows exist the buttons fail soft with a clear note.
+  Labels are bought/printed by hand in Printavo. EasyPost capture comes
+  back through the gate feed and is matched to invoices here.
 
   "Mark shipped" = Printavo statusUpdate via the existing proxy; the
   Board's forward-only inbound sync advances the job — this page never
@@ -59,9 +51,16 @@
   .boxtbl input.dim{width:58px}
   .boxtbl input.oz{width:64px}
   .boxtbl input.cont{width:100%;min-width:200px}
-  .addr{font-size:12px;color:var(--grey-text);white-space:pre-line;background:#fff;border:1px dashed var(--grey-line);border-radius:6px;padding:8px;margin:8px 0}
-  .rates label{display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 6px;border-radius:5px}
-  .rates label:hover{background:#faf6e8}
+  .shiplink{display:inline-block;background:var(--yellow);border:1px solid #d9a800;color:var(--tonal-black);font-weight:800;text-decoration:none;border-radius:6px;padding:8px 12px;margin:10px 0}
+  .trackbox{background:#fff;border:1px solid var(--grey-line);border-radius:8px;padding:10px;margin:10px 0;font-size:13px}
+  .trackbox b{font-size:15px}
+  .muted{color:var(--grey-text);font-size:12px}
+  .cap{margin-top:18px;background:var(--white);border:1px solid var(--grey-line);border-radius:10px;overflow:hidden}
+  .cap h2{font-size:15px;padding:10px 12px;background:#f0efed}
+  .captbl{width:100%;border-collapse:collapse}
+  .captbl th{text-align:left;color:var(--grey-text);font-size:12px;padding:8px 12px;border-top:1px solid #eee}
+  .captbl td{padding:9px 12px;border-top:1px solid #eee;font-size:13px;vertical-align:middle}
+  select{font:inherit;padding:5px 6px;border:1px solid var(--grey-line);border-radius:4px;max-width:260px}
   .ok{color:var(--green);font-weight:700}
   .err{color:var(--red);font-size:12px;margin-top:6px}
   .track{font-size:13px;margin-top:8px}
@@ -71,7 +70,7 @@
 </head>
 <body>
 <h1>📦 Shipment</h1>
-<div class="sub">Everything at the <b>Shipping</b> station, as whole invoices. Open a row to set its <b>boxes</b> — add as many as you're shipping, edit each box's size/weight, and note <b>what's in each box</b> (kept for audits). Then rate-shop, buy + print the label, and mark it shipped. Ship-to address comes from Printavo; labels &amp; rates run through EasyPost via n8n.</div>
+<div class="sub">Everything at the <b>Shipping</b> station, as whole invoices. Open a row to set its <b>boxes</b> — add as many as you're shipping, edit each box's size/weight, and note <b>what's in each box</b> (kept for audits). Buy and print labels in Printavo, then use captured EasyPost tracking here to match shipments and mark invoices shipped.</div>
 <div class="toolbar">
   <button onclick="loadQueue()">↻ Refresh queue</button>
   <span id="stamp" style="font-size:12px;color:var(--grey-text)"></span>
@@ -80,16 +79,17 @@
   <th>Invoice</th><th>Customer</th><th>Method</th><th>Pcs</th><th>Boxes</th><th>Due</th><th>Status</th>
 </tr></thead><tbody id="qbody"></tbody></table>
 <div class="empty" id="empty" style="display:none">Nothing at the Shipping station right now. Jobs land here when the floor finishes Post-Prod QC.</div>
+<div id="captured"></div>
 
 <script>
 const N8N='https://primary-production-079f9.up.railway.app';
-const state={jobs:[],ship:{},open:null};   // ship[inv]={boxes:[{l,w,h,oz,contents}], address, rates, chosen, bought}
+const state={jobs:[],ship:{},open:null,feed:[],feedLoaded:false,feedErr:'',matchErr:''};   // ship[inv]={boxes:[{l,w,h,oz,contents}]}
 
 async function loadQueue(){
   const stamp=document.getElementById('stamp');
   stamp.textContent='loading…';
   try{
-    const r=await fetch('/api/state');                 // gate session cookie = the auth
+    const r=await fetch('/api/state',{credentials:'same-origin'});                 // gate session cookie = the auth
     if(!r.ok)throw new Error('HTTP '+r.status);
     const doc=await r.json();
     state.jobs=((doc&&doc.jobs)||[]).filter(j=>j.station==='shipping'&&!j.archived);
@@ -98,6 +98,7 @@ async function loadQueue(){
     stamp.textContent='⚠ could not reach the shared state — reload or check the gate';
     state.jobs=[];
   }
+  await loadFeed();
   render();
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -107,16 +108,54 @@ function boxesFor(j){
   if(!state.ship[inv])state.ship[inv]={boxes:[{l:12,w:12,h:6,oz:Math.max(16,qtyOf(j)),contents:''}]};
   return state.ship[inv].boxes;
 }
+function money(v){const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return isFinite(n)?'$'+n.toFixed(2):'—';}
+function shipUrl(j){
+  if(j.printavoUrl)return j.printavoUrl;
+  if(j.printavoId)return 'https://www.printavo.com/invoices/'+encodeURIComponent(j.printavoId);
+  return '';
+}
+function shipmentsFor(j){
+  return state.feed.filter(r=>String(r.matched_order||'').trim()===String(j.number));
+}
+function bestShipment(j){
+  const rows=shipmentsFor(j);
+  return rows.find(r=>r.delivered_date)||rows[0]||null;
+}
+function recency(r){return r.label_created||r.est_delivery_date||'';}
+function shipTo(r){return [r.to_company,r.to_name].filter(Boolean).join(' / ')||'—';}
+function rowMatchesJob(r,j){
+  const hay=(String(r.to_company||'')+' '+String(r.to_name||'')).toLowerCase();
+  const needle=String(j.customer||'').toLowerCase().trim();
+  return needle&&hay&&hay.includes(needle);
+}
+function suggestedMatch(r){
+  const matches=state.jobs.filter(j=>rowMatchesJob(r,j));
+  return matches.length===1?String(matches[0].number):'';
+}
+
+async function loadFeed(){
+  try{
+    const r=await fetch('/api/shipboard/feed',{credentials:'same-origin'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    state.feed=Array.isArray(d)?d:((d&&d.rows)||[]);
+    state.feedErr='';
+  }catch(e){
+    state.feed=[];
+    state.feedErr='⚠ could not load captured tracking — queue still works, but tracking matching is unavailable';
+  }
+}
 
 function render(){
   const body=document.getElementById('qbody');
   document.getElementById('empty').style.display=state.jobs.length?'none':'block';
   document.getElementById('qtbl').style.display=state.jobs.length?'':'none';
   body.innerHTML=state.jobs.map(j=>{
-    const inv=j.number, s=state.ship[inv]||{}, boxes=boxesFor(j), open=state.open===inv;
-    const statusCell = s.bought ? `<span class="chip done">✓ ${esc(s.bought.tracking_code)}</span>`
-                      : s.rates ? `<span class="chip">rated — pick + buy</span>`
-                      : `<span class="chip">needs rates</span>`;
+    const inv=j.number, boxes=boxesFor(j), open=state.open===inv;
+    const found=bestShipment(j);
+    const statusCell = found&&found.delivered_date ? `<span class="chip done">✓ delivered</span>`
+                      : found ? `<span class="chip done">✓ ${esc(found.tracking_code)}</span>`
+                      : `<span class="chip">ready to ship</span>`;
     let exp='';
     if(open){
       const boxRows=boxes.map((b,i)=>`<tr>
@@ -127,19 +166,17 @@ function render(){
         <td><input class="oz" type="number" value="${b.oz}" oninput="setBox('${inv}',${i},'oz',this.value)"></td>
         <td><input class="cont" value="${esc(b.contents)}" placeholder="what's in this box (for audit)…" oninput="setBox('${inv}',${i},'contents',this.value)"></td>
         <td>${boxes.length>1?`<button class="mini" onclick="rmBox('${inv}',${i})">✕</button>`:''}</td></tr>`).join('');
-      let action='';
-      if(s.bought){
-        action=`<div class="track ok">✓ Label bought — ${esc(s.bought.carrier||'')} ${esc(s.bought.service||'')}</div>
-          <div class="track">Tracking <b>${esc(s.bought.tracking_code)}</b> · <a href="${esc(s.bought.label_url)}" target="_blank" rel="noopener">🖨 open label (4×6)</a> · <span style="color:var(--grey-text)">client tracking email drafted in n8n</span></div>
-          <button class="primary" style="margin-top:8px" onclick="markShipped('${inv}',this)">✓ Mark shipped in Printavo</button>`;
-      }else if(s.rates){
-        action=`<div class="addr">${esc([s.address&&s.address.name,s.address&&s.address.company,s.address&&s.address.street1,s.address&&s.address.street2,[s.address&&s.address.city,s.address&&s.address.state,s.address&&s.address.zip].filter(Boolean).join(', ')].filter(Boolean).join('\n'))||'(ship-to from Printavo)'}</div>
-          <div class="rates">${s.rates.map((r,i)=>`<label><input type="radio" name="r-${inv}" ${s.chosen===i?'checked':''} onchange="state.ship['${inv}'].chosen=${i}"><b>$${(+r.rate).toFixed(2)}</b> ${esc(r.carrier)} ${esc(r.service)} ${r.delivery_days?'· '+r.delivery_days+'d':''}</label>`).join('')}</div>
-          <button class="primary" onclick="buyLabel('${inv}',this)">Buy label for ${boxes.length} box${boxes.length>1?'es':''}</button>
-          <button class="mini" onclick="getRates('${inv}',this)">↻ re-rate</button>`;
-      }else{
-        action=`<button class="primary" onclick="getRates('${inv}',this)">Get rates for ${boxes.length} box${boxes.length>1?'es':''}</button>`;
-      }
+      const url=shipUrl(j);
+      const tracks=shipmentsFor(j);
+      const tracking=tracks.length?tracks.map(r=>`<div class="trackbox">
+        <b>${esc(r.tracking_code||'tracking pending')}</b>${r.public_url?` · <a href="${esc(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
+        <div>${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div>
+        <div class="muted">Landing ${esc(r.est_delivery_date||'—')} · Label date ${esc(r.label_created||'—')} · Transit days ${esc(r.transit_days||'—')} · Delivered ${esc(r.delivered_date||'—')}</div>
+        <div class="muted">Internal · Cost ${money(r.cost)}</div>
+      </div>`).join(''):`<div class="muted" style="margin-top:10px">No captured tracking matched yet.</div>`;
+      const action=`${url?`<a class="shiplink" href="${esc(url)}" target="_blank" rel="noopener">Ship in Printavo</a>`:''}
+        ${tracking}
+        <button class="primary" style="margin-top:8px" onclick="markShipped('${inv}',this)">✓ Mark shipped in Printavo</button>`;
       exp=`<tr class="exp"><td colspan="7">
         <b>Boxes</b> — add every box you're shipping; note the contents of each for audits.
         <table class="boxtbl"><tr><th>#</th><th>L (in)</th><th>W (in)</th><th>H (in)</th><th>Weight (oz)</th><th>Contents</th><th></th></tr>
@@ -155,41 +192,54 @@ function render(){
       <td>${qtyOf(j)}</td><td>${boxes.length}</td><td>${esc(j.dueDateLabel||'')}</td><td>${statusCell}</td>
     </tr>${exp}`;
   }).join('');
+  renderCaptured();
 }
 
 function toggle(inv){ state.open = state.open===inv ? null : inv; render(); }
-function setBox(inv,i,k,v){ state.ship[inv].boxes[i][k] = k==='contents'?v:(+v||0); if(k!=='contents')state.ship[inv].rates=null; }
-function addBox(inv){ state.ship[inv].boxes.push({l:12,w:12,h:6,oz:16,contents:''}); state.ship[inv].rates=null; render(); }
-function rmBox(inv,i){ state.ship[inv].boxes.splice(i,1); state.ship[inv].rates=null; render(); }
+function setBox(inv,i,k,v){ state.ship[inv].boxes[i][k] = k==='contents'?v:(+v||0); }
+function addBox(inv){ state.ship[inv].boxes.push({l:12,w:12,h:6,oz:16,contents:''}); render(); }
+function rmBox(inv,i){ state.ship[inv].boxes.splice(i,1); render(); }
 
-async function post(path,payload){
-  const r=await fetch(N8N+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  if(!r.ok)throw new Error(r.status===404?'webhook not live yet — the n8n shipment workflows still need building':'HTTP '+r.status);
-  const d=await r.json();
-  if(d&&d.error)throw new Error(d.error);
-  return d;
+function renderCaptured(){
+  const el=document.getElementById('captured');
+  if(state.feedErr){
+    el.innerHTML=`<div class="cap"><h2>Captured tracking</h2><div class="err" style="padding:10px 12px;margin:0">${esc(state.feedErr)}</div></div>`;
+    return;
+  }
+  const opts=['<option value="">Pick invoice…</option>'].concat(state.jobs.map(j=>`<option value="${esc(j.number)}">#${esc(j.number)} · ${esc(j.customer||'')}</option>`)).join('');
+  const rows=state.feed.map((r,i)=>{
+    const matched=String(r.matched_order||'').trim();
+    const sug=suggestedMatch(r);
+    return `<tr>
+      <td><b>${esc(r.tracking_code||'—')}</b><div class="muted">${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div></td>
+      <td>${esc(shipTo(r))}<div class="muted">${esc([r.to_city,r.to_state].filter(Boolean).join(', ')||'—')}</div></td>
+      <td>${esc(recency(r)||'—')}</td>
+      <td>${matched?`<span class="chip done">matched to #${esc(matched)}</span>`:`<select id="match-${i}">${opts.replace(`value="${esc(sug)}"`,`value="${esc(sug)}" selected`)}</select> <button class="mini" onclick="confirmMatch(${i},this)">Confirm</button>`}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<div class="cap">
+    <h2>Captured tracking</h2>
+    ${state.matchErr?`<div class="err" style="padding:8px 12px;margin:0">${esc(state.matchErr)}</div>`:''}
+    ${rows?`<table class="captbl"><tr><th>Tracking</th><th>Ship-to</th><th>Recency</th><th>Invoice match</th></tr>${rows}</table>`:`<div class="empty">No captured tracking rows yet.</div>`}
+  </div>`;
 }
-const parcelsOf=inv=>state.ship[inv].boxes.map(b=>({length:b.l,width:b.w,height:b.h,weight_oz:b.oz,contents:b.contents||''}));
 
-async function getRates(inv,btn){
-  const err=document.getElementById('err-'+inv);err.textContent='';btn.disabled=true;btn.textContent='rating…';
+async function confirmMatch(i,btn){
+  const row=state.feed[i], sel=document.getElementById('match-'+i), inv=sel&&sel.value;
+  state.matchErr='';
+  if(!row||!inv){state.matchErr='Pick an invoice before confirming the match.';render();return;}
+  btn.disabled=true;btn.textContent='matching…';
   try{
-    const d=await post('/webhook/shipment-rates',{invoice:inv,parcels:parcelsOf(inv)});
-    if(!d.rates||!d.rates.length)throw new Error('no rates returned — check the ship-to address in Printavo');
-    Object.assign(state.ship[inv],{address:d.address||{},rates:d.rates,chosen:0});
+    const r=await fetch('/api/shipboard/match',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({tracking_code:row.tracking_code,matched_order:String(inv)})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json().catch(()=>({}));
+    if(d&&d.error)throw new Error(d.error);
+    row.matched_order=String(inv);
     render();
-  }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Get rates';}
-}
-async function buyLabel(inv,btn){
-  const err=document.getElementById('err-'+inv);err.textContent='';
-  const s=state.ship[inv];const rate=s.rates[s.chosen||0];
-  btn.disabled=true;btn.textContent='buying…';
-  try{
-    const d=await post('/webhook/shipment-buy',{shipment_id:rate.shipment_id,rate_id:rate.rate_id,invoice:inv,parcels:parcelsOf(inv)});
-    if(!d.label_url)throw new Error('no label returned');
-    s.bought=d;render();
-    window.open(d.label_url,'_blank');
-  }catch(e){err.textContent='⚠ '+e.message;btn.disabled=false;btn.textContent='Buy label';}
+  }catch(e){
+    state.matchErr='⚠ could not save match — '+e.message;
+    render();
+  }
 }
 
 /* Mark shipped = Printavo statusUpdate through the existing proxy; the Board's
