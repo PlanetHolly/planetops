@@ -1,0 +1,93 @@
+[
+  {
+    "doc_type": "inbound_order",
+    "note": "new blank order",
+    "entities": { "job": "J-1001", "vendor": "Acme Apparel" },
+    "amounts": { "total": 1200 },
+    "dates": {}
+  },
+  {
+    "doc_type": "purchase_order",
+    "note": "vendor paperwork",
+    "entities": { "job": "J-1002", "vendor": "Thread Supply" },
+    "amounts": {},
+    "dates": {}
+  },
+  {
+    "doc_type": "analytics_report",
+    "note": "weekly report",
+    "entities": {},
+    "amounts": {},
+    "dates": { "period": "2026-W28" }
+  },
+  {
+    "doc_type": "period_expense",
+    "note": "ups statement",
+    "entities": { "vendor": "UPS" },
+    "amounts": { "total": 480.25 },
+    "dates": { "period": "2026-07" }
+  },
+  {
+    "doc_type": "expense",
+    "note": "single job charge",
+    "entities": { "job": "J-1003", "vendor": "UPS" },
+    "amounts": { "total": 86.5 },
+    "dates": {}
+  },
+  {
+    "doc_type": null,
+    "note": "rush order for hoodies",
+    "entities": { "job": "J-1004", "vendor": "North Mill" },
+    "amounts": { "total": 950 },
+    "dates": {}
+  },
+  {
+    "doc_type": null,
+    "note": "PO 4491 attached",
+    "entities": { "job": "J-1005", "vendor": "Button House" },
+    "amounts": {},
+    "dates": {}
+  },
+  {
+    "doc_type": null,
+    "note": "July KPI packet",
+    "entities": {},
+    "amounts": {},
+    "dates": { "period": "2026-07" }
+  },
+  {
+    "doc_type": null,
+    "note": "monthly bill for utilities",
+    "entities": { "vendor": "Power Co" },
+    "amounts": { "total": 310.1 },
+    "dates": { "period": "2026-07" }
+  },
+  {
+    "doc_type": null,
+    "note": "expense receipt for samples",
+    "entities": { "vendor": "Sample Shop" },
+    "amounts": { "total": 42 },
+    "dates": {}
+  },
+  {
+    "doc_type": null,
+    "note": "weekly bill shipping invoice from UPS",
+    "entities": { "vendor": "UPS" },
+    "amounts": { "total": 700 },
+    "dates": { "period": "2026-W28" }
+  },
+  {
+    "doc_type": "inbound_order",
+    "note": "missing vendor should review",
+    "entities": { "job": "J-1006" },
+    "amounts": { "total": 500 },
+    "dates": {}
+  },
+  {
+    "doc_type": "unclassified",
+    "note": "please look at this later",
+    "entities": {},
+    "amounts": {},
+    "dates": {}
+  }
+]

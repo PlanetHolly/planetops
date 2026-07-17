@@ -1,0 +1,49 @@
+{
+  "_comment": "Feed Fork C routing registry — the map from 'what a doc is' to 'where it goes'. Data, not code. Rows walked top-down; first match(es) win; 'ledger' is ALWAYS appended by the router. Adding a route = adding a rule here. Later phase promotes this file to a Google Sheet.",
+  "rules": [
+    {
+      "rule_id": "R-inbound-order",
+      "match": { "doc_type": ["inbound_order"], "note_keywords": ["order for", "activewear order", "sns order"] },
+      "destinations": ["app_incoming"],
+      "required_fields": ["entities.job", "entities.vendor", "amounts.total"],
+      "on_missing": "review"
+    },
+    {
+      "rule_id": "R-po",
+      "match": { "doc_type": ["purchase_order"], "note_keywords": ["po ", "purchase order"] },
+      "destinations": ["app_incoming"],
+      "required_fields": ["entities.job", "entities.vendor"],
+      "on_missing": "review"
+    },
+    {
+      "rule_id": "R-analytics",
+      "match": { "doc_type": ["analytics_report"], "note_keywords": ["analytics", "kpi", "spend", "ga "] },
+      "destinations": ["planetiq"],
+      "required_fields": ["dates.period"],
+      "on_missing": "review"
+    },
+    {
+      "_note": "Consolidated vendor bills (UPS weekly, utilities, ad spend) cover MANY jobs, so they have no single job by design — they belong to a PERIOD. Holly's ruling 2026-07-16, proven on a real UPS invoice. MUST stay ABOVE R-expense: rules match on doc_type OR note keyword, and R-expense's 'shipping invoice' keyword would otherwise steal these.",
+      "rule_id": "R-period-expense",
+      "match": { "doc_type": ["period_expense"], "note_keywords": ["weekly bill", "monthly bill", "consolidated bill"] },
+      "destinations": ["expense_hold"],
+      "required_fields": ["amounts.total", "dates.period"],
+      "on_missing": "review"
+    },
+    {
+      "_note": "Job-attributable one-off expense (a single freight charge billed to one job). Job stays optional; use R-period-expense for consolidated bills.",
+      "rule_id": "R-expense",
+      "match": { "doc_type": ["expense"], "note_keywords": ["invoice $", "expense", "shipping invoice"] },
+      "destinations": ["expense_hold"],
+      "required_fields": ["amounts.total"],
+      "on_missing": "review"
+    },
+    {
+      "rule_id": "R-fallback",
+      "match": { "doc_type": ["*"], "note_keywords": ["*"] },
+      "destinations": ["review"],
+      "required_fields": [],
+      "on_missing": "review"
+    }
+  ]
+}
