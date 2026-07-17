@@ -900,12 +900,12 @@
           "id": "feed-guide",
           "kind": "surface",
           "name": "Feed Guide",
-          "blurb": "How the PlanetIQ feed folders work",
+          "blurb": "Where to drop things, and how to know they landed",
           "type": "reference",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Feed/",
-          "icon": "📥"
+          "icon": "📥",
+          "url": "/feed-guide/"
         },
         {
           "id": "invoice-column-guide",
