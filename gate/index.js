@@ -491,6 +491,33 @@ async function shipdeckCommand(req, res, action) {
 app.post('/api/shipdeck/buy',  (req, res) => shipdeckCommand(req, res, 'buy'));
 app.post('/api/shipdeck/void', (req, res) => shipdeckCommand(req, res, 'void'));
 
+/* ── Ship Board (capture-only): read the captured-tracking sheet + write the invoice
+   match. Labels are hand-bought in Printavo; this touches no money. The n8n endpoints
+   are URL-guarded (unguessable path, server-side only); the session cookie is the app
+   auth. Not a money route, so no CSRF token — but the write validates same-origin. */
+const SHIPBOARD_FEED_URL  = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-feed-k9x2m7q4';
+const SHIPBOARD_MATCH_URL = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-match-p3v8t2n6';
+
+app.get('/api/shipboard/feed', async (req, res) => {
+  if(!await requireSession(req, res)) return;
+  res.set('Cache-Control', 'no-store, private').set('Vary', 'Cookie');
+  try {
+    const r = await fetch(SHIPBOARD_FEED_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
+    res.status(r.status).json(await r.json());
+  } catch (e) { res.status(502).json({ error: 'ship board feed unreachable: ' + e.message }); }
+});
+app.post('/api/shipboard/match', async (req, res) => {
+  if(!await requireSession(req, res)) return;
+  if(!sameOrigin(req)){ res.status(403).json({ error: 'bad origin' }); return; }
+  const tracking_code = String(req.body.tracking_code || '').trim();
+  if(!tracking_code) return res.status(400).json({ error: 'tracking_code required' });
+  try {
+    const r = await fetch(SHIPBOARD_MATCH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tracking_code, matched_order: String(req.body.matched_order || '') }), signal: AbortSignal.timeout(15000) });
+    res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
+  } catch (e) { res.status(502).json({ error: 'ship board match unreachable: ' + e.message }); }
+});
+
 /* ── Auth middleware BEFORE static — every non-public path needs a session ─ */
 app.use(async (req, res, next) => {
   const p = safePathname(req.originalUrl);
