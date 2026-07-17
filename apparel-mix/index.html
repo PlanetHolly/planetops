@@ -1,0 +1,1557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Apparel Apparel Quote</title>
+<style>
+:root {
+  --yellow:#F7BE00; --ink:#111; --paper:#f6f4ef; --card:#fff; --muted:#666; --line:#ded9cc;
+  --soft:#f0eee8; --good:#138a55; --warn:#b98200; --bad:#c93d35; --shadow:0 18px 60px rgba(0,0,0,.09);
+  color-scheme:light dark;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; }
+body { font-family:Montserrat, Avenir Next, Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(135deg,#fffaf0 0%,var(--paper) 42%,#e9e7e0 100%); color:var(--ink); line-height:1.45; }
+button,input,select { font:inherit; }
+.shell { width:min(1280px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
+header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px; padding:16px 0 24px; }
+.mark { width:54px; height:54px; border:3px solid var(--ink); border-radius:50%; position:relative; display:grid; place-items:center; font-weight:900; letter-spacing:0; background:var(--yellow); box-shadow:8px 8px 0 var(--ink); }
+.mark:after { content:""; position:absolute; width:78px; height:3px; background:var(--ink); transform:rotate(-34deg); }
+h1 { margin:0; font-size:clamp(1.55rem, 3vw, 3rem); line-height:1; letter-spacing:0; text-transform:uppercase; }
+.kicker { margin:5px 0 0; color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.badge { border:1px solid var(--ink); padding:8px 10px; font-size:.72rem; text-transform:uppercase; font-weight:900; background:var(--card); white-space:nowrap; }
+.layout { display:grid; grid-template-columns:minmax(320px, 440px) 1fr; gap:18px; align-items:start; }
+.panel { background:rgba(255,255,255,.86); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.panel h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--ink); color:#fff; }
+.form { padding:16px; display:grid; gap:14px; }
+.field { display:grid; gap:6px; }
+label,.label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:900; color:#393731; }
+input[type="number"],input[type="text"],select { width:100%; border:1px solid #cfc8b8; background:#fff; color:#111; border-radius:6px; min-height:42px; padding:8px 10px; outline:none; }
+input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(247,190,0,.25); }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.threecol { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.checkgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.check { display:flex; align-items:center; gap:8px; min-height:38px; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:700; }
+.check input { width:17px; height:17px; accent-color:var(--yellow); }
+.note { color:var(--muted); font-size:.78rem; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.btn { border:1px solid var(--ink); border-radius:6px; min-height:38px; padding:8px 12px; background:var(--yellow); color:#111; font-weight:950; text-transform:uppercase; letter-spacing:.06em; font-size:.72rem; cursor:pointer; }
+.btn.secondary { background:var(--card); color:var(--ink); }
+.results { display:grid; gap:18px; }
+.hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto auto; gap:18px; align-items:end; box-shadow:var(--shadow); }
+.hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
+.total { font-size:clamp(2.45rem, 6vw, 5.8rem); line-height:.9; font-weight:950; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.heroMetric { text-align:right; min-width:138px; }
+.heroMetric b { display:block; font-size:clamp(1.25rem, 2.5vw, 2.2rem); line-height:1; font-variant-numeric:tabular-nums; }
+.placement { border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.62); overflow:hidden; }
+.placementHead { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:12px; background:var(--soft); border-bottom:1px solid var(--line); }
+.placementHead b { font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; }
+.placementBody { padding:12px; display:grid; gap:12px; }
+.methodGrid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.methodGrid label { min-height:38px; border:1px solid var(--line); border-radius:6px; display:grid; place-items:center; cursor:pointer; background:#fbfaf7; color:var(--ink); }
+.methodGrid input { display:none; }
+.methodGrid input:checked + span { background:var(--yellow); color:#111; border-color:#111; }
+.methodGrid span { width:100%; height:100%; min-height:38px; display:grid; place-items:center; border-radius:5px; padding:8px; }
+.row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(128px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
+.row:last-child { border-bottom:0; }
+.row .name { font-weight:850; }
+.row .meta { color:var(--muted); font-size:.78rem; margin-top:2px; }
+.row .val { font-variant-numeric:tabular-nums; font-weight:900; text-align:right; white-space:nowrap; }
+.marginCell { display:grid; justify-items:end; gap:3px; font-variant-numeric:tabular-nums; font-size:.78rem; font-weight:850; text-align:right; }
+.marginMoney { color:var(--ink); }
+.marginPct { color:var(--muted); }
+.row.strong { border-top:3px solid var(--ink); margin-top:4px; padding-top:14px; }
+.internal { border:1px solid #26231d; background:#181715; color:#f8f3e6; box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
+.internal h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--yellow); color:#111; }
+.rows { padding:10px 16px 16px; }
+.spgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:16px; }
+.spcard { background:#22201c; border:1px solid #3a352a; border-radius:8px; padding:12px; min-height:118px; }
+.spcard .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.spcard h3 { margin:0; font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; }
+.flag { font-size:.68rem; padding:4px 7px; border-radius:999px; text-transform:uppercase; font-weight:950; color:#111; white-space:nowrap; }
+.flag.good { background:#46d38a; } .flag.warn { background:#ffd45d; } .flag.bad { background:#ff7068; } .flag.neutral { background:#b9b4a7; }
+.rate { font-size:1.8rem; font-weight:950; margin-top:12px; font-variant-numeric:tabular-nums; }
+.spcard.project { grid-column:1 / -1; border-color:var(--yellow); background:#111; }
+.spcard.project .rate { font-size:clamp(2rem, 4vw, 3.4rem); line-height:1; }
+.spcard.project .rate span { display:block; font-size:1rem; margin-top:6px; color:#f7df92; }
+.spmeta { color:#c9c1b0; font-size:.77rem; margin-top:4px; }
+.flagBlock { border-radius:8px; padding:10px 12px; font-size:.82rem; font-weight:850; border:1px solid; margin-bottom:8px; }
+.flagBlock.good { background:#edfff6; border-color:#98e6be; color:#075b36; }
+.flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
+.flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.methodInputs { display:grid; gap:12px; }
+.provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+@media (prefers-color-scheme:dark) {
+  :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
+  body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
+  input[type="number"],input[type="text"],select,.check,.methodGrid label { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  .panel,.placement { background:rgba(29,27,24,.9); }
+  .panel h2,.hero { background:#050505; }
+  label,.label { color:#e5ddcd; }
+  .mark { color:#111; border-color:#111; box-shadow:8px 8px 0 #f5f0e6; } .mark:after { background:#111; }
+  .badge,.btn.secondary { background:#11100e; }
+  .flagBlock.good { background:#0f2d1f; border-color:#236f48; color:#bff1d5; }
+  .flagBlock.warn { background:#332a08; border-color:#6e5a12; color:#f7df92; }
+  .flagBlock.bad { background:#351513; border-color:#6b2924; color:#ffc8c3; }
+}
+@media (max-width:900px) {
+  .shell { width:min(100% - 22px, 1280px); padding-top:16px; }
+  header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
+  .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .heroMetric { text-align:left; }
+  .spgrid,.twocol,.threecol,.checkgrid,.methodGrid { grid-template-columns:1fr; }
+  .row { grid-template-columns:minmax(0,1fr) auto; }
+  .marginCell { grid-column:1 / -1; justify-items:start; grid-auto-flow:column; justify-content:start; align-items:center; }
+}
+@media print { body { background:#fff; } .panel,.hero,.internal { box-shadow:none; } .shell { width:auto; padding:0; } .btn { display:none; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="mark" aria-hidden="true">PA</div>
+    <div>
+      <h1>APPAREL QUOTE</h1>
+      <div class="kicker">screen print + embroidery + DTF - one job</div>
+    </div>
+    <div class="badge">Internal - margin visible</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2>Garment + Order</h2>
+      <form class="form" id="quoteForm">
+        <div class="twocol">
+          <div class="field"><label for="blankCost">Garment blank cost</label><input id="blankCost" type="number" min="0" step="0.01" value="4.50"></div>
+          <div class="field"><label for="qty">Order quantity</label><input id="qty" type="number" min="1" step="1" value="100"></div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="source">Garment source</label><select id="source"><option>PA-supplied</option><option>customer-supplied</option></select></div>
+          <div class="field"><label for="tier">Screen-print tier</label><select id="tier"><option>Standard</option><option>Partner</option></select></div>
+        </div>
+        <div class="field"><label for="ink">Screen-print ink</label><select id="ink"><option>Plastisol</option><option>ECO water-based</option></select></div>
+        <div class="twocol optionalDtf">
+          <div class="field"><label for="shippingTotal">DTF inbound shipping total</label><input id="shippingTotal" type="number" min="0" step="0.01" value="15.00"></div>
+          <div class="field"><label for="digitizingTotal">Embroidery digitizing one-time $</label><input id="digitizingTotal" type="number" min="0" step="0.01" value="25.00"></div>
+        </div>
+        <label class="check"><input id="reusedDesign" type="checkbox"> Reused embroidery design: digitizing = $0</label>
+        <div class="field">
+          <div class="label">Screen-print imprint fees</div>
+          <div class="checkgrid" id="imprintFees"></div>
+        </div>
+        <div class="twocol">
+          <div class="field"><label for="colorChangeCount">Color change count</label><input id="colorChangeCount" type="number" min="0" step="1" value="0"></div>
+          <div class="field"><label for="tapeOutCount">Tape out count</label><input id="tapeOutCount" type="number" min="0" step="1" value="0"></div>
+        </div>
+        <div class="field">
+          <div class="label">Screen-print services</div>
+          <div class="checkgrid" id="services"></div>
+        </div>
+        <div class="note">Screen print uses the embedded P1/P2 matrices with the selected tier. Embroidery and DTF use the sliding SP curve and 33% survival floor. Garment recovery is applied once per garment.</div>
+      </form>
+    </section>
+
+    <section class="results">
+      <div id="flags"></div>
+      <section class="hero">
+        <div><small>Project margin</small><div class="total" id="projectMargin">$0</div></div>
+        <div class="heroMetric"><small>Margin %</small><b id="projectMarginPct">0.0%</b><span id="projectQty">0 pcs</span></div>
+        <div class="heroMetric"><small>Per-unit price</small><b id="perUnit">$0.00</b><span id="orderTotal">$0 total</span></div>
+      </section>
+
+      <section class="panel">
+        <h2>Placements</h2>
+        <div class="form">
+          <div id="placements"></div>
+          <div class="controls"><button class="btn" type="button" id="addPlacement">Add placement</button></div>
+        </div>
+      </section>
+
+      <section class="panel breakdown"><h2>Per-Placement Breakdown</h2><div class="rows" id="placementBreakdown"></div></section>
+      <section class="panel breakdown"><h2>Project Breakdown</h2><div class="rows" id="projectBreakdown"></div></section>
+      <section class="internal"><h2>internal - SP detail</h2><div class="spgrid" id="spPanel"></div></section>
+      <div class="provenance">Data embedded from apparel-quote-calculator.html, dtf-quote-calculator.html, embroidery-quote-calculator.html, supacolor_dtf_costs.json, and bear_embroidery_costs.json. Self-contained: no fetch.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const MATRIX={"Standard":{"Plastisol":{"P1":{"1":{"12":32.68,"25":16.25,"50":9.96,"100":7.79,"150":7.19,"200":6.38,"250":5.83,"300":5.42,"400":4.85,"500":4.45,"750":3.92,"1000":3.62,"2000":3.02,"5000":2.42},"2":{"12":35.81,"25":18.17,"50":11.31,"100":8.82,"150":8.12,"200":7.24,"250":6.65,"300":6.2,"400":5.59,"500":5.17,"750":4.58,"1000":4.25,"2000":3.6,"5000":2.95},"3":{"12":38.71,"25":19.89,"50":12.38,"100":9.64,"150":8.87,"200":7.92,"250":7.28,"300":6.8,"400":6.12,"500":5.65,"750":5.01,"1000":4.65,"2000":3.94,"5000":3.23},"4":{"12":38.46,"25":21.13,"50":13.5,"100":11.11,"150":9.85,"200":9.05,"250":8.5,"300":7.61,"400":6.99,"500":6.55,"750":5.58,"1000":5.26,"2000":4.29,"5000":3.08},"5":{"12":40.75,"25":22.78,"50":14.51,"100":11.99,"150":10.56,"200":9.74,"250":9.17,"300":8.2,"400":7.56,"500":7.11,"750":6.06,"1000":5.73,"2000":4.71,"5000":3.4},"6":{"12":43.04,"25":24.44,"50":15.52,"100":12.89,"150":11.27,"200":10.44,"250":9.85,"300":8.79,"400":8.13,"500":7.66,"750":6.52,"1000":6.19,"2000":5.13,"5000":3.76},"7":{"12":45.33,"25":26.09,"50":16.52,"100":13.77,"150":11.99,"200":11.13,"250":10.53,"300":9.38,"400":8.69,"500":8.21,"750":6.99,"1000":6.66,"2000":5.56,"5000":4.11},"8":{"12":47.62,"25":27.75,"50":17.53,"100":14.66,"150":12.71,"200":11.83,"250":11.21,"300":9.96,"400":9.26,"500":8.76,"750":7.46,"1000":7.13,"2000":5.99,"5000":4.47},"9":{"12":49.91,"25":29.4,"50":18.54,"100":15.56,"150":13.41,"200":12.51,"250":11.88,"300":10.55,"400":9.82,"500":9.31,"750":7.92,"1000":7.59,"2000":6.42,"5000":4.83},"10":{"12":52.2,"25":31.05,"50":19.55,"100":16.44,"150":14.13,"200":13.21,"250":12.56,"300":11.15,"400":10.4,"500":9.87,"750":8.39,"1000":8.06,"2000":6.83,"5000":5.19},"11":{"12":54.49,"25":32.7,"50":20.56,"100":17.33,"150":14.86,"200":13.91,"250":13.25,"300":11.73,"400":10.96,"500":10.42,"750":8.86,"1000":8.53,"2000":7.26,"5000":5.55},"12":{"12":56.78,"25":34.35,"50":21.57,"100":18.21,"150":15.58,"200":14.62,"250":13.94,"300":12.33,"400":11.54,"500":10.98,"750":9.33,"1000":9.0,"2000":7.68,"5000":5.89}},"P2":{"1":{"12":6.68,"25":4.15,"50":3.0,"100":2.47,"150":2.43,"200":2.23,"250":2.09,"300":1.98,"400":1.83,"500":1.73,"750":1.59,"1000":1.52,"2000":1.37,"5000":1.22},"2":{"12":9.81,"25":6.02,"50":4.36,"100":3.54,"150":3.47,"200":3.19,"250":3.0,"300":2.87,"400":2.68,"500":2.55,"750":2.36,"1000":2.25,"2000":2.04,"5000":1.84},"3":{"12":12.71,"25":7.65,"50":5.47,"100":4.4,"150":4.31,"200":3.94,"250":3.7,"300":3.52,"400":3.28,"500":3.12,"750":2.87,"1000":2.71,"2000":2.41,"5000":2.12},"4":{"12":12.46,"25":8.83,"50":6.55,"100":5.94,"150":5.44,"200":5.22,"250":5.06,"300":4.47,"400":4.27,"500":4.13,"750":3.52,"1000":3.38,"2000":2.78,"5000":1.96},"5":{"12":14.75,"25":10.43,"50":7.52,"100":6.88,"150":6.29,"200":6.06,"250":5.88,"300":5.21,"400":4.97,"500":4.8,"750":4.07,"1000":3.91,"2000":3.22,"5000":2.27},"6":{"12":17.04,"25":12.04,"50":8.48,"100":7.85,"150":7.16,"200":6.9,"250":6.71,"300":5.95,"400":5.66,"500":5.46,"750":4.61,"1000":4.42,"2000":3.67,"5000":2.62},"7":{"12":19.33,"25":13.64,"50":9.44,"100":8.79,"150":8.03,"200":7.75,"250":7.54,"300":6.68,"400":6.35,"500":6.12,"750":5.16,"1000":4.95,"2000":4.12,"5000":2.95},"8":{"12":21.62,"25":15.24,"50":10.4,"100":9.75,"150":8.9,"200":8.59,"250":8.37,"300":7.41,"400":7.04,"500":6.78,"750":5.71,"1000":5.48,"2000":4.56,"5000":3.29},"9":{"12":23.91,"25":16.84,"50":11.37,"100":10.71,"150":9.75,"200":9.43,"250":9.19,"300":8.15,"400":7.73,"500":7.44,"750":6.25,"1000":6.0,"2000":5.01,"5000":3.64},"10":{"12":26.2,"25":18.44,"50":12.33,"100":11.65,"150":10.62,"200":10.28,"250":10.02,"300":8.89,"400":8.43,"500":8.1,"750":6.8,"1000":6.53,"2000":5.45,"5000":3.97},"11":{"12":28.49,"25":20.04,"50":13.3,"100":12.61,"150":11.5,"200":11.13,"250":10.86,"300":9.62,"400":9.12,"500":8.76,"750":7.35,"1000":7.06,"2000":5.89,"5000":4.32},"12":{"12":30.78,"25":21.64,"50":14.26,"100":13.55,"150":12.37,"200":11.99,"250":11.7,"300":10.37,"400":9.82,"500":9.43,"750":7.9,"1000":7.59,"2000":6.34,"5000":4.64}}},"ECO water-based":{"P1":{"1":{"12":35.11,"25":17.46,"50":10.61,"100":8.17,"150":7.47,"200":6.62,"250":6.03,"300":5.61,"400":5.01,"500":4.6,"750":4.05,"1000":3.74,"2000":3.13,"5000":2.52},"2":{"12":38.29,"25":19.43,"50":12.01,"100":9.24,"150":8.45,"200":7.53,"250":6.9,"300":6.44,"400":5.8,"500":5.36,"750":4.76,"1000":4.42,"2000":3.75,"5000":3.09},"3":{"12":41.2,"25":21.17,"50":13.1,"100":10.08,"150":9.22,"200":8.23,"250":7.56,"300":7.06,"400":6.35,"500":5.87,"750":5.21,"1000":4.84,"2000":4.12,"5000":3.4},"4":{"12":150.63,"25":72.3,"50":36.15,"100":18.08,"150":12.05,"200":11.25,"250":10.7,"300":9.81,"400":9.19,"500":8.75,"750":7.78,"1000":7.46,"2000":6.49,"5000":5.28},"5":{"12":166.38,"25":79.86,"50":39.93,"100":19.97,"150":13.31,"200":12.49,"250":11.92,"300":10.95,"400":10.31,"500":9.86,"750":8.81,"1000":8.48,"2000":7.46,"5000":6.15},"6":{"12":182.13,"25":87.42,"50":43.71,"100":21.86,"150":14.57,"200":13.74,"250":13.15,"300":12.09,"400":11.43,"500":10.96,"750":9.82,"1000":9.49,"2000":8.43,"5000":7.06},"7":{"12":198.0,"25":95.04,"50":47.52,"100":23.76,"150":15.84,"200":14.98,"250":14.38,"300":13.23,"400":12.54,"500":12.06,"750":10.84,"1000":10.51,"2000":9.41,"5000":7.96},"8":{"12":213.88,"25":102.66,"50":51.33,"100":25.67,"150":17.11,"200":16.23,"250":15.61,"300":14.36,"400":13.66,"500":13.16,"750":11.86,"1000":11.53,"2000":10.39,"5000":8.87},"9":{"12":229.5,"25":110.16,"50":55.08,"100":27.54,"150":18.36,"200":17.46,"250":16.83,"300":15.5,"400":14.77,"500":14.26,"750":12.87,"1000":12.54,"2000":11.37,"5000":9.78},"10":{"12":245.38,"25":117.78,"50":58.89,"100":29.45,"150":19.63,"200":18.71,"250":18.06,"300":16.65,"400":15.9,"500":15.37,"750":13.89,"1000":13.56,"2000":12.33,"5000":10.69},"11":{"12":261.38,"25":125.46,"50":62.73,"100":31.37,"150":20.91,"200":19.96,"250":19.3,"300":17.78,"400":17.01,"500":16.47,"750":14.91,"1000":14.58,"2000":13.31,"5000":11.6},"12":{"12":277.25,"25":133.08,"50":66.54,"100":33.27,"150":22.18,"200":21.22,"250":20.54,"300":18.93,"400":18.14,"500":17.58,"750":15.93,"1000":15.6,"2000":14.28,"5000":12.49}},"P2":{"1":{"12":9.11,"25":5.36,"50":3.66,"100":2.85,"150":2.72,"200":2.46,"250":2.29,"300":2.17,"400":2.0,"500":1.88,"750":1.73,"1000":1.64,"2000":1.48,"5000":1.32},"2":{"12":12.29,"25":7.28,"50":5.06,"100":3.97,"150":3.79,"200":3.47,"250":3.26,"300":3.11,"400":2.89,"500":2.74,"750":2.54,"1000":2.42,"2000":2.2,"5000":1.99},"3":{"12":15.2,"25":8.94,"50":6.2,"100":4.84,"150":4.66,"200":4.24,"250":3.97,"300":3.78,"400":3.52,"500":3.34,"750":3.07,"1000":2.9,"2000":2.59,"5000":2.29},"4":{"12":95.5,"25":45.84,"50":22.92,"100":11.46,"150":7.64,"200":7.42,"250":7.26,"300":6.67,"400":6.47,"500":6.33,"750":5.72,"1000":5.58,"2000":4.98,"5000":4.16},"5":{"12":113.0,"25":54.24,"50":27.12,"100":13.56,"150":9.04,"200":8.81,"250":8.63,"300":7.96,"400":7.72,"500":7.55,"750":6.82,"1000":6.66,"2000":5.97,"5000":5.02},"6":{"12":130.75,"25":62.76,"50":31.38,"100":15.69,"150":10.46,"200":10.2,"250":10.01,"300":9.25,"400":8.96,"500":8.76,"750":7.91,"1000":7.72,"2000":6.97,"5000":5.92},"7":{"12":148.5,"25":71.28,"50":35.64,"100":17.82,"150":11.88,"200":11.6,"250":11.39,"300":10.53,"400":10.2,"500":9.97,"750":9.01,"1000":8.8,"2000":7.97,"5000":6.8},"8":{"12":166.25,"25":79.8,"50":39.9,"100":19.95,"150":13.3,"200":12.99,"250":12.77,"300":11.81,"400":11.44,"500":11.18,"750":10.11,"1000":9.88,"2000":8.96,"5000":7.69},"9":{"12":183.75,"25":88.2,"50":44.1,"100":22.05,"150":14.7,"200":14.38,"250":14.14,"300":13.1,"400":12.68,"500":12.39,"750":11.2,"1000":10.95,"2000":9.96,"5000":8.59},"10":{"12":201.5,"25":96.72,"50":48.36,"100":24.18,"150":16.12,"200":15.78,"250":15.52,"300":14.39,"400":13.93,"500":13.6,"750":12.3,"1000":12.03,"2000":10.95,"5000":9.47},"11":{"12":219.38,"25":105.3,"50":52.65,"100":26.33,"150":17.55,"200":17.18,"250":16.91,"300":15.67,"400":15.17,"500":14.81,"750":13.4,"1000":13.11,"2000":11.94,"5000":10.37},"12":{"12":237.13,"25":113.82,"50":56.91,"100":28.46,"150":18.97,"200":18.59,"250":18.3,"300":16.97,"400":16.42,"500":16.03,"750":14.5,"1000":14.19,"2000":12.94,"5000":11.24}}}},"Partner":{"Plastisol":{"P1":{"1":{"12":26.15,"25":13.0,"50":8.45,"100":6.6,"150":6.45,"200":5.75,"250":5.25,"300":4.9,"400":4.5,"500":4.15,"750":3.65,"1000":3.35,"2000":2.85,"5000":2.3},"2":{"12":28.65,"25":14.55,"50":9.6,"100":7.5,"150":7.3,"200":6.5,"250":6.0,"300":5.6,"400":5.2,"500":4.8,"750":4.25,"1000":3.95,"2000":3.4,"5000":2.8},"3":{"12":30.95,"25":15.9,"50":10.5,"100":8.2,"150":8.0,"200":7.15,"250":6.55,"300":6.1,"400":5.7,"500":5.25,"750":4.65,"1000":4.3,"2000":3.75,"5000":3.05},"4":{"12":30.75,"25":16.9,"50":11.5,"100":9.45,"150":8.85,"200":8.15,"250":7.65,"300":6.85,"400":6.5,"500":6.1,"750":5.2,"1000":4.9,"2000":4.1,"5000":2.95},"5":{"12":32.6,"25":18.2,"50":12.35,"100":10.2,"150":9.5,"200":8.75,"250":8.25,"300":7.4,"400":7.05,"500":6.6,"750":5.65,"1000":5.35,"2000":4.45,"5000":3.25},"6":{"12":34.43,"25":19.55,"50":13.19,"100":10.96,"150":10.15,"200":9.39,"250":8.86,"300":7.91,"400":7.56,"500":7.13,"750":6.06,"1000":5.76,"2000":4.88,"5000":3.57},"7":{"12":36.26,"25":20.87,"50":14.04,"100":11.7,"150":10.79,"200":10.02,"250":9.47,"300":8.44,"400":8.08,"500":7.64,"750":6.5,"1000":6.2,"2000":5.28,"5000":3.91},"8":{"12":38.1,"25":22.2,"50":14.9,"100":12.46,"150":11.44,"200":10.64,"250":10.09,"300":8.97,"400":8.61,"500":8.15,"750":6.94,"1000":6.63,"2000":5.69,"5000":4.25},"9":{"12":39.93,"25":23.52,"50":15.76,"100":13.23,"150":12.07,"200":11.26,"250":10.69,"300":9.5,"400":9.14,"500":8.66,"750":7.37,"1000":7.06,"2000":6.1,"5000":4.59},"10":{"12":41.76,"25":24.84,"50":16.62,"100":13.97,"150":12.72,"200":11.89,"250":11.3,"300":10.03,"400":9.67,"500":9.18,"750":7.8,"1000":7.5,"2000":6.49,"5000":4.93},"11":{"12":43.59,"25":26.16,"50":17.48,"100":14.73,"150":13.37,"200":12.52,"250":11.92,"300":10.56,"400":10.2,"500":9.69,"750":8.24,"1000":7.94,"2000":6.9,"5000":5.27},"12":{"12":45.42,"25":27.48,"50":18.33,"100":15.48,"150":14.03,"200":13.16,"250":12.54,"300":11.1,"400":10.73,"500":10.21,"750":8.68,"1000":8.37,"2000":7.3,"5000":5.6}},"P2":{"1":{"12":6.0,"25":3.75,"50":2.8,"100":2.35,"150":2.19,"200":2.1,"250":2.0,"300":1.8,"400":1.75,"500":1.65,"750":1.48,"1000":1.41,"2000":1.3,"5000":1.16},"2":{"12":8.85,"25":5.35,"50":3.85,"100":3.2,"150":3.12,"200":2.87,"250":2.7,"300":2.58,"400":2.49,"500":2.37,"750":2.19,"1000":2.09,"2000":1.94,"5000":1.75},"3":{"12":11.59,"25":6.8,"50":4.75,"100":3.9,"150":3.88,"200":3.55,"250":3.33,"300":3.17,"400":3.06,"500":2.91,"750":2.67,"1000":2.52,"2000":2.29,"5000":2.02},"4":{"12":11.6,"25":8.0,"50":5.65,"100":5.05,"150":4.89,"200":4.7,"250":4.56,"300":4.02,"400":3.98,"500":3.84,"750":3.27,"1000":3.14,"2000":2.64,"5000":1.86},"5":{"12":13.7,"25":9.45,"50":6.45,"100":5.85,"150":5.67,"200":5.45,"250":5.3,"300":4.69,"400":4.63,"500":4.47,"750":3.78,"1000":3.63,"2000":3.06,"5000":2.16},"6":{"12":15.75,"25":10.9,"50":7.3,"100":6.65,"150":6.45,"200":6.2,"250":6.05,"300":5.35,"400":5.25,"500":5.1,"750":4.3,"1000":4.1,"2000":3.5,"5000":2.5},"7":{"12":17.85,"25":12.35,"50":8.1,"100":7.45,"150":7.25,"200":7.0,"250":6.8,"300":6.0,"400":5.9,"500":5.7,"750":4.8,"1000":4.6,"2000":3.9,"5000":2.8},"8":{"12":19.95,"25":13.75,"50":8.9,"100":8.3,"150":8.0,"200":7.75,"250":7.55,"300":6.65,"400":6.55,"500":6.3,"750":5.3,"1000":5.1,"2000":4.35,"5000":3.15},"9":{"12":22.0,"25":15.2,"50":9.75,"100":9.1,"150":8.8,"200":8.5,"250":8.25,"300":7.35,"400":7.2,"500":6.9,"750":5.8,"1000":5.6,"2000":4.75,"5000":3.45},"10":{"12":24.1,"25":16.65,"50":10.55,"100":9.9,"150":9.55,"200":9.25,"250":9.0,"300":8.0,"400":7.85,"500":7.55,"750":6.3,"1000":6.05,"2000":5.2,"5000":3.75},"11":{"12":26.15,"25":18.1,"50":11.4,"100":10.7,"150":10.35,"200":10.0,"250":9.75,"300":8.65,"400":8.5,"500":8.15,"750":6.85,"1000":6.55,"2000":5.6,"5000":4.1},"12":{"12":28.25,"25":19.55,"50":12.2,"100":11.5,"150":11.15,"200":10.8,"250":10.55,"300":9.35,"400":9.15,"500":8.75,"750":7.35,"1000":7.05,"2000":6.0,"5000":4.4}}},"ECO water-based":{"P1":{"1":{"12":28.58,"25":14.22,"50":9.11,"100":7.0,"150":6.76,"200":5.97,"250":5.45,"300":5.07,"400":4.68,"500":4.29,"750":3.78,"1000":3.49,"2000":2.98,"5000":2.4},"2":{"12":31.13,"25":15.79,"50":10.32,"100":7.92,"150":7.64,"200":6.81,"250":6.23,"300":5.82,"400":5.41,"500":5.0,"750":4.44,"1000":4.14,"2000":3.57,"5000":2.95},"3":{"12":33.46,"25":17.19,"50":11.24,"100":8.63,"150":8.33,"200":7.43,"250":6.83,"300":6.37,"400":5.92,"500":5.48,"750":4.86,"1000":4.52,"2000":3.92,"5000":3.24},"4":{"12":138.25,"25":66.36,"50":33.18,"100":16.59,"150":11.06,"200":10.35,"250":9.85,"300":9.05,"400":8.7,"500":8.29,"750":7.39,"1000":7.09,"2000":6.28,"5000":5.12},"5":{"12":153.13,"25":73.5,"50":36.75,"100":18.38,"150":12.25,"200":11.52,"250":11.0,"300":10.13,"400":9.78,"500":9.37,"750":8.38,"1000":8.08,"2000":7.23,"5000":5.98},"6":{"12":168.13,"25":80.7,"50":40.35,"100":20.18,"150":13.45,"200":12.69,"250":12.16,"300":11.21,"400":10.86,"500":10.43,"750":9.36,"1000":9.06,"2000":8.18,"5000":6.87},"7":{"12":183.0,"25":87.84,"50":43.92,"100":21.96,"150":14.64,"200":13.87,"250":13.32,"300":12.29,"400":11.93,"500":11.49,"750":10.35,"1000":10.05,"2000":9.13,"5000":7.76},"8":{"12":198.0,"25":95.04,"50":47.52,"100":23.76,"150":15.84,"200":15.04,"250":14.49,"300":13.37,"400":13.01,"500":12.55,"750":11.34,"1000":11.03,"2000":10.09,"5000":8.65},"9":{"12":212.75,"25":102.12,"50":51.06,"100":25.53,"150":17.02,"200":16.21,"250":15.64,"300":14.45,"400":14.09,"500":13.61,"750":12.32,"1000":12.01,"2000":11.05,"5000":9.54},"10":{"12":227.75,"25":109.32,"50":54.66,"100":27.33,"150":18.22,"200":17.39,"250":16.8,"300":15.53,"400":15.17,"500":14.68,"750":13.3,"1000":13.0,"2000":11.99,"5000":10.43},"11":{"12":242.75,"25":116.52,"50":58.26,"100":29.13,"150":19.42,"200":18.57,"250":17.97,"300":16.61,"400":16.25,"500":15.74,"750":14.29,"1000":13.99,"2000":12.95,"5000":11.32},"12":{"12":257.88,"25":123.78,"50":61.89,"100":30.95,"150":20.63,"200":19.76,"250":19.14,"300":17.7,"400":17.33,"500":16.81,"750":15.28,"1000":14.97,"2000":13.9,"5000":12.2}},"P2":{"1":{"12":8.31,"25":4.77,"50":3.2,"100":2.55,"150":2.48,"200":2.23,"250":2.1,"300":1.97,"400":1.87,"500":1.76,"750":1.61,"1000":1.53,"2000":1.41,"5000":1.26},"2":{"12":11.33,"25":6.54,"50":4.41,"100":3.43,"150":3.45,"200":3.16,"250":2.95,"300":2.82,"400":2.7,"500":2.57,"750":2.37,"1000":2.27,"2000":2.09,"5000":1.9},"3":{"12":14.08,"25":8.06,"50":5.37,"100":4.18,"150":4.23,"200":3.85,"250":3.61,"300":3.42,"400":3.29,"500":3.13,"750":2.87,"1000":2.71,"2000":2.47,"5000":2.19},"4":{"12":88.63,"25":42.54,"50":21.27,"100":10.64,"150":7.09,"200":6.9,"250":6.76,"300":6.22,"400":6.18,"500":6.04,"750":5.47,"1000":5.34,"2000":4.84,"5000":4.06},"5":{"12":105.25,"25":50.52,"50":25.26,"100":12.63,"150":8.42,"200":8.2,"250":8.05,"300":7.44,"400":7.38,"500":7.22,"750":6.53,"1000":6.38,"2000":5.81,"5000":4.91},"6":{"12":121.88,"25":58.5,"50":29.25,"100":14.63,"150":9.75,"200":9.51,"250":9.34,"300":8.65,"400":8.57,"500":8.38,"750":7.59,"1000":7.42,"2000":6.79,"5000":5.79},"7":{"12":138.5,"25":66.48,"50":33.24,"100":16.62,"150":11.08,"200":10.82,"250":10.64,"300":9.86,"400":9.76,"500":9.54,"750":8.65,"1000":8.46,"2000":7.76,"5000":6.66},"8":{"12":155.13,"25":74.46,"50":37.23,"100":18.62,"150":12.41,"200":12.14,"250":11.94,"300":11.07,"400":10.95,"500":10.7,"750":9.71,"1000":9.5,"2000":8.73,"5000":7.53},"9":{"12":171.63,"25":82.38,"50":41.19,"100":20.6,"150":13.73,"200":13.44,"250":13.22,"300":12.28,"400":12.14,"500":11.87,"750":10.76,"1000":10.53,"2000":9.71,"5000":8.4},"10":{"12":188.25,"25":90.36,"50":45.18,"100":22.59,"150":15.06,"200":14.75,"250":14.52,"300":13.5,"400":13.34,"500":13.04,"750":11.82,"1000":11.58,"2000":10.68,"5000":9.27},"11":{"12":205.0,"25":98.4,"50":49.2,"100":24.6,"150":16.4,"200":16.07,"250":15.83,"300":14.71,"400":14.53,"500":14.2,"750":12.88,"1000":12.62,"2000":11.65,"5000":10.15},"12":{"12":221.75,"25":106.44,"50":53.22,"100":26.61,"150":17.74,"200":17.39,"250":17.13,"300":15.93,"400":15.73,"500":15.37,"750":13.95,"1000":13.66,"2000":12.62,"5000":11.01}}}}};
+const PRODUCTION_COST={"12":{"1":4.98,"2":6.74,"3":8.51,"4":10.27,"5":12.03,"6":13.8,"7":15.56,"8":17.33,"9":19.09,"10":20.85,"11":22.62,"12":24.38},"24":{"1":3.09,"2":4.29,"3":5.49,"4":6.69,"5":7.89,"6":9.09,"7":10.3,"8":11.5,"9":12.7,"10":13.9,"11":15.1,"12":16.3},"48":{"1":2.42,"2":3.02,"3":3.62,"4":4.23,"5":4.83,"6":5.43,"7":6.03,"8":6.63,"9":7.23,"10":7.84,"11":8.44,"12":9.04},"72":{"1":2.09,"2":2.61,"3":3.13,"4":3.65,"5":4.17,"6":4.69,"7":5.21,"8":5.73,"9":6.25,"10":6.77,"11":7.29,"12":7.8},"144":{"1":1.8,"2":2.15,"3":2.5,"4":2.84,"5":3.19,"6":3.54,"7":3.89,"8":4.24,"9":4.59,"10":4.93,"11":5.28,"12":5.63},"288":{"1":1.51,"2":1.79,"3":2.06,"4":2.34,"5":2.62,"6":2.89,"7":3.17,"8":3.44,"9":3.72,"10":4.0,"11":4.27,"12":4.55},"576":{"1":1.16,"2":1.38,"3":1.59,"4":1.81,"5":2.03,"6":2.25,"7":2.46,"8":2.68,"9":2.9,"10":3.12,"11":3.33,"12":3.55},"1152":{"1":0.98,"2":1.16,"3":1.34,"4":1.52,"5":1.7,"6":1.88,"7":2.05,"8":2.23,"9":2.41,"10":2.59,"11":2.77,"12":2.95},"2304":{"1":0.8,"2":0.94,"3":1.08,"4":1.22,"5":1.36,"6":1.5,"7":1.65,"8":1.79,"9":1.93,"10":2.07,"11":2.21,"12":2.35},"4608":{"1":0.62,"2":0.74,"3":0.86,"4":0.99,"5":1.11,"6":1.23,"7":1.35,"8":1.47,"9":1.59,"10":1.72,"11":1.84,"12":1.96},"9216":{"1":0.52,"2":0.63,"3":0.75,"4":0.86,"5":0.97,"6":1.09,"7":1.2,"8":1.32,"9":1.43,"10":1.54,"11":1.66,"12":1.77},"18432":{"1":0.45,"2":0.53,"3":0.61,"4":0.69,"5":0.77,"6":0.85,"7":0.92,"8":1.0,"9":1.08,"10":1.16,"11":1.24,"12":1.32}};
+const MATRIX_TO_PROD_QTY={"12":12,"25":24,"50":48,"100":72,"150":144,"200":144,"250":144,"300":288,"400":288,"500":288,"750":576,"1000":576,"2000":1152,"5000":4608};
+const DATA_SOURCE={"embeddedFiles":["ScreenPrint_P1_1c-5c_SILVER_id91980.csv","ScreenPrint_P1_1c-5c_GOLD.csv","ScreenPrint_P1_ECO_GOLD_1c-12c.csv","ScreenPrint_P1_ECO_SILVER_1c-12c.csv","ScreenPrint_P1_GOLD_1c-12c_Bear_id114637.csv","ScreenPrint_P1_SILVER_1c-12c_Bear_id114131.csv","ScreenPrint_P2_1c-5c_SILVER_id114132.csv","ScreenPrint_P2_1c-5c_GOLD_id114638.csv","ScreenPrint_P2_GOLD_1c-12c_Bear.csv","ScreenPrint_P2_ECO_GOLD_1c-12c.csv","ScreenPrint_P2_ECO_SILVER_1c-12c.csv","ScreenPrint_P2_SILVER_1c-12c_Bear_id114133.csv"],"sourceNotes":["ScreenPrint_P1_1c-5c_SILVER_id91980.csv -> Standard / Plastisol / P1 / colors 1-5","ScreenPrint_P1_SILVER_1c-12c_Bear_id114131.csv -> Standard / Plastisol / P1 / colors 6-12","ScreenPrint_P2_1c-5c_SILVER_id114132.csv -> Standard / Plastisol / P2 / colors 1-5","ScreenPrint_P2_SILVER_1c-12c_Bear_id114133.csv -> Standard / Plastisol / P2 / colors 6-12","ScreenPrint_P1_1c-5c_GOLD.csv -> Partner / Plastisol / P1 / colors 1-5","ScreenPrint_P1_GOLD_1c-12c_Bear_id114637.csv -> Partner / Plastisol / P1 / colors 6-12","ScreenPrint_P2_1c-5c_GOLD_id114638.csv -> Partner / Plastisol / P2 / colors 1-5 (floor-clamp corrected 2026-07-15)","ScreenPrint_P2_GOLD_1c-12c_Bear.csv -> Partner / Plastisol / P2 / colors 6-12","ScreenPrint_P1_ECO_SILVER_1c-12c.csv -> Standard / ECO water-based / P1 / colors 1-12","ScreenPrint_P1_ECO_GOLD_1c-12c.csv -> Partner / ECO water-based / P1 / colors 1-12","ScreenPrint_P2_ECO_SILVER_1c-12c.csv -> Standard / ECO water-based / P2 / colors 1-12","ScreenPrint_P2_ECO_GOLD_1c-12c.csv -> Partner / ECO water-based / P2 / colors 1-12"],"warnings":[]};
+const DTF_DATA = {
+  "_meta": {
+    "title": "Supacolor DTF transfer base costs + PA application rules",
+    "as_of": "2026-07-16",
+    "source": "Supacolor dashboard Price List exports (screenshots 2026-07-15), team@planetapparel.com; account order history supacolor-account history-2026-07-16.csv",
+    "grade": "C (transcribed from dashboard screenshots by vision OCR). VERIFY against the 'Download to Excel' exports before go-live. Money feeding a live quoting tool.",
+    "gaps": [
+      "WE_SQ and W1_SQ (11.7x11.7 jumbo) columns were cut off in the screenshots -> ESTIMATED at ~1.27x the A4 column (the BL SQ/A4 ratio). Flagged est=true.",
+      "Codes LM (9 orders), DF (6), PR (6) appear in order history but no clean price-list screenshot was captured. Not modeled here."
+    ],
+    "size_note": "Supacolor prices by area tier. Within a tier the two A5 orientations share one price and the two A4 orientations share one price, so distinct tiers are: XS, SM, LC, A5, A4, SQ. Headwear + Industrial use their own size sets.",
+    "sizes_standard": {
+      "XS": "1.5\" x 1.5\"",
+      "SM": "2.5\" x 2.5\"",
+      "LC": "4\" x 4\" (left chest)",
+      "A5": "up to 5.8\"x8.3\" (or 11.7\"x4.25\")",
+      "A4": "up to 16.5\"x5.85\" (or 8.3\"x11.7\")",
+      "SQ": "11.7\" x 11.7\" (square / jumbo)"
+    },
+    "qty_bands": [
+      "1-9",
+      "10-19",
+      "20-49",
+      "50-99",
+      "100-199",
+      "200-299",
+      "300-499",
+      "500-999",
+      "1000-2499",
+      "2500-4999",
+      "5000+"
+    ],
+    "changelog": [
+      "2026-07-16 v2: added 1-9 band (price from a single garment); uniform labor + optional garment-difficulty toggle (dropped transfer-type 25%); added inbound shipping spread over qty.",
+      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $."
+    ]
+  },
+  "application_labor": {
+    "basis": "J4 engine: 1.17 min/pc full handling cycle x $34/hr non-press labor = $0.66/pc. UNIFORM across all transfer types.",
+    "per_pc": 0.66,
+    "difficulty_toggle": {
+      "label": "Difficult line-up (pants, bags, jackets, curved or tight placement)",
+      "uplift": 0.25,
+      "note": "Holly 2026-07-16: the extra labor is driven by GARMENT SHAPE / placement, NOT transfer type. Optional, default OFF. 25% is an estimate; validate vs Jean's real times. Was previously (wrongly) auto-applied to all non-wearables."
+    },
+    "press_dwell_sec": 12,
+    "press_dwell_note": "12s dwell only; the $0.66 is the full position+press+peel+handle cycle."
+  },
+  "sp_formula": {
+    "sell = (transfer_cost + labor) / (1 - SP)": true,
+    "target_SP": 0.445,
+    "target_divisor": 0.555,
+    "survival_SP": 0.33,
+    "survival_divisor": 0.67,
+    "round_up_to": 0.25,
+    "color_adder": "none - DTF is full-color transfer pricing",
+    "_superseded": "Flat target replaced by sp_curve (sliding by qty). Survival divisor 0.670 still used for the floor."
+  },
+  "garment_to_transfer": {
+    "_rule": "Garment material dictates the transfer. Default is Wearable (WE) - 83 of 122 real orders. Poly/performance needs a blocker to stop dye migration.",
+    "map": [
+      {
+        "material": "Cotton / cotton tee / tri-blend / light cotton-poly blend",
+        "transfer": "WE",
+        "note": "the default, 68% of orders"
+      },
+      {
+        "material": "Cotton, single-color art (cost saver)",
+        "transfer": "W1"
+      },
+      {
+        "material": "Polyester / poly blend (dark) / 100% poly / dye-migration risk",
+        "transfer": "BL",
+        "note": "blocker layer stops dye bleed"
+      },
+      {
+        "material": "Polyester, single-color art",
+        "transfer": "LB1"
+      },
+      {
+        "material": "Softshell / performance outerwear / jackets / spandex",
+        "transfer": "SB"
+      },
+      {
+        "material": "Hats / caps / foam trucker",
+        "transfer": "HW"
+      },
+      {
+        "material": "Industrial laundry / workwear / uniforms",
+        "transfer": "IW"
+      }
+    ],
+    "overridable": true
+  },
+  "transfers": {
+    "WE": {
+      "name": "Wearable Transfers",
+      "default": true,
+      "wearable": true,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          2.7,
+          3.04,
+          3.33,
+          4.41,
+          5.27,
+          6.69
+        ],
+        "10-19": [
+          2.7,
+          3.04,
+          3.33,
+          4.41,
+          5.27,
+          6.69
+        ],
+        "20-49": [
+          2.25,
+          2.52,
+          2.77,
+          3.68,
+          4.4,
+          5.59
+        ],
+        "50-99": [
+          1.34,
+          1.67,
+          2.02,
+          2.64,
+          3.4,
+          4.32
+        ],
+        "100-199": [
+          0.9,
+          1.14,
+          1.49,
+          1.82,
+          2.34,
+          2.97
+        ],
+        "200-299": [
+          0.72,
+          0.96,
+          1.3,
+          1.53,
+          1.92,
+          2.44
+        ],
+        "300-499": [
+          0.58,
+          0.8,
+          1.13,
+          1.37,
+          1.76,
+          2.24
+        ],
+        "500-999": [
+          0.52,
+          0.74,
+          1.08,
+          1.28,
+          1.65,
+          2.1
+        ],
+        "1000-2499": [
+          0.46,
+          0.69,
+          1.03,
+          1.16,
+          1.56,
+          1.98
+        ],
+        "2500-4999": [
+          0.44,
+          0.65,
+          0.98,
+          1.1,
+          1.49,
+          1.89
+        ],
+        "5000+": [
+          0.42,
+          0.63,
+          0.96,
+          1.06,
+          1.43,
+          1.82
+        ]
+      },
+      "sq_estimated": true,
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "W1": {
+      "name": "Wearable 1 Color",
+      "wearable": true,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          1.62,
+          1.82,
+          2.0,
+          2.65,
+          3.16,
+          4.01
+        ],
+        "10-19": [
+          1.62,
+          1.82,
+          2.0,
+          2.65,
+          3.16,
+          4.01
+        ],
+        "20-49": [
+          1.35,
+          1.52,
+          1.66,
+          2.2,
+          2.65,
+          3.37
+        ],
+        "50-99": [
+          0.8,
+          1.01,
+          1.22,
+          1.59,
+          2.04,
+          2.59
+        ],
+        "100-199": [
+          0.54,
+          0.69,
+          0.89,
+          1.09,
+          1.4,
+          1.78
+        ],
+        "200-299": [
+          0.43,
+          0.57,
+          0.78,
+          0.92,
+          1.14,
+          1.45
+        ],
+        "300-499": [
+          0.34,
+          0.48,
+          0.69,
+          0.82,
+          1.05,
+          1.33
+        ],
+        "500-999": [
+          0.31,
+          0.44,
+          0.65,
+          0.76,
+          0.99,
+          1.26
+        ],
+        "1000-2499": [
+          0.28,
+          0.41,
+          0.62,
+          0.7,
+          0.93,
+          1.18
+        ],
+        "2500-4999": [
+          0.27,
+          0.39,
+          0.59,
+          0.66,
+          0.89,
+          1.13
+        ],
+        "5000+": [
+          0.25,
+          0.37,
+          0.57,
+          0.63,
+          0.85,
+          1.08
+        ]
+      },
+      "sq_estimated": true,
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "BL": {
+      "name": "Blocker Transfers",
+      "wearable": false,
+      "aka": "LoMelt Blocker (LB) - identical cost",
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "10-19": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "20-49": [
+          2.66,
+          2.96,
+          3.23,
+          4.16,
+          5.16,
+          6.5
+        ],
+        "50-99": [
+          1.62,
+          2.02,
+          2.4,
+          3.17,
+          4.07,
+          5.25
+        ],
+        "100-199": [
+          1.22,
+          1.51,
+          1.88,
+          2.34,
+          2.92,
+          3.81
+        ],
+        "200-299": [
+          0.97,
+          1.24,
+          1.62,
+          1.98,
+          2.5,
+          3.26
+        ],
+        "300-499": [
+          0.8,
+          1.08,
+          1.44,
+          1.76,
+          2.28,
+          3.0
+        ],
+        "500-999": [
+          0.75,
+          1.01,
+          1.39,
+          1.69,
+          2.17,
+          2.87
+        ],
+        "1000-2499": [
+          0.7,
+          0.96,
+          1.32,
+          1.57,
+          2.05,
+          2.75
+        ],
+        "2500-4999": [
+          0.67,
+          0.92,
+          1.28,
+          1.52,
+          1.98,
+          2.7
+        ],
+        "5000+": [
+          0.65,
+          0.9,
+          1.24,
+          1.46,
+          1.94,
+          2.64
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "SB": {
+      "name": "Soft Shell Blocker",
+      "wearable": false,
+      "aka": "identical cost to Blocker (BL)",
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "10-19": [
+          3.18,
+          3.55,
+          3.88,
+          4.99,
+          6.18,
+          7.8
+        ],
+        "20-49": [
+          2.66,
+          2.96,
+          3.23,
+          4.16,
+          5.16,
+          6.5
+        ],
+        "50-99": [
+          1.62,
+          2.02,
+          2.4,
+          3.17,
+          4.07,
+          5.25
+        ],
+        "100-199": [
+          1.22,
+          1.51,
+          1.88,
+          2.34,
+          2.92,
+          3.81
+        ],
+        "200-299": [
+          0.97,
+          1.24,
+          1.62,
+          1.98,
+          2.5,
+          3.26
+        ],
+        "300-499": [
+          0.8,
+          1.08,
+          1.44,
+          1.76,
+          2.28,
+          3.0
+        ],
+        "500-999": [
+          0.75,
+          1.01,
+          1.39,
+          1.69,
+          2.17,
+          2.87
+        ],
+        "1000-2499": [
+          0.7,
+          0.96,
+          1.32,
+          1.57,
+          2.05,
+          2.75
+        ],
+        "2500-4999": [
+          0.67,
+          0.92,
+          1.28,
+          1.52,
+          1.98,
+          2.7
+        ],
+        "5000+": [
+          0.65,
+          0.9,
+          1.24,
+          1.46,
+          1.94,
+          2.64
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "LB1": {
+      "name": "LoMelt Blocker 1 Color",
+      "wearable": false,
+      "sizes": [
+        "XS",
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "SQ"
+      ],
+      "cost": {
+        "1-9": [
+          1.91,
+          2.13,
+          2.33,
+          2.99,
+          3.71,
+          4.68
+        ],
+        "10-19": [
+          1.91,
+          2.13,
+          2.33,
+          2.99,
+          3.71,
+          4.68
+        ],
+        "20-49": [
+          1.6,
+          1.77,
+          1.94,
+          2.5,
+          3.09,
+          3.91
+        ],
+        "50-99": [
+          0.97,
+          1.21,
+          1.44,
+          1.9,
+          2.44,
+          3.15
+        ],
+        "100-199": [
+          0.74,
+          0.9,
+          1.13,
+          1.41,
+          1.75,
+          2.29
+        ],
+        "200-299": [
+          0.58,
+          0.75,
+          0.97,
+          1.19,
+          1.5,
+          1.95
+        ],
+        "300-499": [
+          0.47,
+          0.64,
+          0.86,
+          1.06,
+          1.36,
+          1.8
+        ],
+        "500-999": [
+          0.44,
+          0.61,
+          0.83,
+          1.01,
+          1.31,
+          1.73
+        ],
+        "1000-2499": [
+          0.42,
+          0.57,
+          0.79,
+          0.95,
+          1.22,
+          1.66
+        ],
+        "2500-4999": [
+          0.41,
+          0.55,
+          0.76,
+          0.91,
+          1.19,
+          1.62
+        ],
+        "5000+": [
+          0.4,
+          0.54,
+          0.75,
+          0.88,
+          1.17,
+          1.58
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "HW": {
+      "name": "Headwear Transfers",
+      "wearable": false,
+      "sizes": [
+        "CAP_SM",
+        "CAP_LG",
+        "A5_SG",
+        "A4_SG",
+        "A3_SG"
+      ],
+      "size_dims": {
+        "CAP_SM": "2.5\"x2.5\"",
+        "CAP_LG": "4.7\"x2.8\"",
+        "A5_SG": "5.8\"x8.3\"",
+        "A4_SG": "8.3\"x11.7\"",
+        "A3_SG": "11.7\"x16.5\""
+      },
+      "cost": {
+        "1-9": [
+          2.22,
+          2.39,
+          5.61,
+          6.94,
+          10.59
+        ],
+        "10-19": [
+          2.22,
+          2.39,
+          5.61,
+          6.94,
+          10.59
+        ],
+        "20-49": [
+          1.85,
+          2.0,
+          4.68,
+          5.79,
+          8.84
+        ],
+        "50-99": [
+          0.93,
+          1.08,
+          3.56,
+          4.57,
+          7.25
+        ],
+        "100-199": [
+          0.66,
+          0.8,
+          2.63,
+          3.28,
+          5.27
+        ],
+        "200-299": [
+          0.54,
+          0.69,
+          2.22,
+          2.8,
+          4.5
+        ],
+        "300-499": [
+          0.46,
+          0.61,
+          1.98,
+          2.55,
+          4.19
+        ],
+        "500-999": [
+          0.42,
+          0.58,
+          1.9,
+          2.43,
+          4.0
+        ],
+        "1000-2499": [
+          0.4,
+          0.55,
+          1.77,
+          2.3,
+          3.87
+        ],
+        "2500-4999": [
+          0.37,
+          0.52,
+          1.7,
+          2.22,
+          3.81
+        ],
+        "5000+": [
+          0.35,
+          0.49,
+          1.64,
+          2.17,
+          3.74
+        ]
+      },
+      "small_order_note": "1-9 band uses the 10-19 floor cost (Supacolor's smallest break); DTF is the only 1-piece/prototype service."
+    },
+    "IW": {
+      "name": "Industrial Wash Transfers",
+      "wearable": false,
+      "sizes": [
+        "SM",
+        "LC",
+        "A5",
+        "A4",
+        "A3"
+      ],
+      "size_dims": {
+        "SM": "2.5\"x2.5\"",
+        "LC": "4\"x4\"",
+        "A5": "5.8\"x8.3\"",
+        "A4": "16.5\"x5.85\"",
+        "A3": "11.7\"x16.5\""
+      },
+      "min_qty": 20,
+      "cost": {
+        "20-49": [
+          3.64,
+          3.95,
+          5.1,
+          6.31,
+          9.64
+        ],
+        "50-99": [
+          2.49,
+          2.93,
+          3.89,
+          4.97,
+          7.92
+        ],
+        "100-199": [
+          1.85,
+          2.3,
+          2.87,
+          3.59,
+          5.74
+        ],
+        "200-299": [
+          1.53,
+          1.98,
+          2.42,
+          3.07,
+          4.91
+        ],
+        "300-499": [
+          1.34,
+          1.77,
+          2.17,
+          2.81,
+          4.58
+        ],
+        "500-999": [
+          1.24,
+          1.69,
+          2.08,
+          2.65,
+          4.37
+        ],
+        "1000-2499": [
+          1.18,
+          1.63,
+          1.95,
+          2.51,
+          4.25
+        ],
+        "2500-4999": [
+          1.14,
+          1.58,
+          1.87,
+          2.44,
+          4.16
+        ],
+        "5000+": [
+          1.1,
+          1.53,
+          1.78,
+          2.37,
+          4.08
+        ]
+      }
+    },
+    "PUFF": {
+      "name": "Puff Transfers (613 Originals)",
+      "wearable": false,
+      "vendor": "613 Originals",
+      "flat_cost_estimate": 2.55,
+      "status": "PLACEHOLDER - Holly emailing 613 Originals for full size/qty pricing. Single est cost, non-wearable labor uplift applies.",
+      "sizes": [
+        "flat"
+      ],
+      "cost": {
+        "any": [
+          2.55
+        ]
+      }
+    }
+  },
+  "order_frequency": {
+    "_source": "supacolor-account history-2026-07-16.csv (122 assets 2023-2026)",
+    "WE": 83,
+    "LM": 9,
+    "HW": 8,
+    "DF": 6,
+    "PR": 6,
+    "BL": 5,
+    "LB": 2,
+    "SB": 2,
+    "IW": 1
+  },
+  "shipping": {
+    "model": "Inbound freight from Supacolor to PA, entered as a total $ and spread over the order qty. Negligible per-unit at volume; dominant on a 1-piece sample.",
+    "default_estimate_total": 15.0,
+    "default_note": "$15 is a placeholder estimate — set the real Supacolor shipping. Outbound (PA->customer) is separate; usually passed to the customer or a flat sample-ship fee."
+  },
+  "sp_curve": {
+    "note": "Margin % SLIDES with order quantity (mirrors the screen-print Master Curve: fat margins on small orders, thin on volume). Replaces the old flat 44.5%. Never below survival 33%. Holly-approved shape 2026-07-16; tune band values here.",
+    "bands": [
+      {
+        "max": 11,
+        "sp": 0.62
+      },
+      {
+        "max": 23,
+        "sp": 0.58
+      },
+      {
+        "max": 47,
+        "sp": 0.54
+      },
+      {
+        "max": 71,
+        "sp": 0.5
+      },
+      {
+        "max": 143,
+        "sp": 0.47
+      },
+      {
+        "max": 287,
+        "sp": 0.445
+      },
+      {
+        "max": 499,
+        "sp": 0.42
+      },
+      {
+        "max": 999,
+        "sp": 0.4
+      },
+      {
+        "max": 2499,
+        "sp": 0.37
+      },
+      {
+        "max": 4999,
+        "sp": 0.35
+      },
+      {
+        "max": null,
+        "sp": 0.34
+      }
+    ],
+    "survival_floor": 0.33,
+    "round_up_to_dtf": 0.25,
+    "round_up_to_embroidery": 0.05
+  }
+};
+const EMBROIDERY_DATA = {
+  "_meta": {
+    "title": "Bear Designz embroidery cost grid + PA pricing rules",
+    "as_of": "2026-07-16",
+    "source": "2026 Price Builder_All Pricing Tabs_02.23.2026.xlsx, tab CURVES_PRODUCTION rows 17-23 ('Bear Designz Master Curve Embroidery', updated 2/16/26). Grade B (real vendor curve). Ties to EVIDENCE/J3_embroidery_engine.md survival+target grids to the penny.",
+    "model": "Embroidery is 100% OUTSOURCED to Bear (PA does not stitch) -> the Bear grid IS the all-in decoration cost, no PA application labor. Cost drives sell via SP markup, same as DTF/promo.",
+    "stitch_bands": [
+      "0-7k",
+      "7-14k",
+      "14-21k",
+      "21-28k",
+      "28-35k"
+    ],
+    "stitch_band_ranges": {
+      "0-7k": "1-6,999 stitches",
+      "7-14k": "7,000-13,999",
+      "14-21k": "14,000-20,999",
+      "21-28k": "21,000-27,999",
+      "28-35k": "28,000-35,000"
+    },
+    "qty_rows": [
+      1,
+      6,
+      12,
+      24,
+      48,
+      96,
+      192
+    ],
+    "qty_floor_note": "Printavo FLOORS between rows (never interpolates). A qty between rows uses the LOWER row's per-unit price (higher per-unit). e.g. qty 30 -> row 24; qty 200 -> row 192.",
+    "over_grid_note": "Stitch count > 35,000 is off-grid -> custom quote required.",
+    "changelog": [
+      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $."
+    ]
+  },
+  "sp_formula": {
+    "sell = bear_cost / (1 - SP)": true,
+    "target_SP": 0.445,
+    "target_divisor": 0.555,
+    "survival_SP": 0.33,
+    "survival_divisor": 0.67,
+    "round_up_to": 0.05,
+    "_superseded": "Flat target replaced by sp_curve (sliding by qty). Survival divisor 0.670 still used for the floor."
+  },
+  "embroidery_note": "Embroidery is PA's one break-even / shrinking line (~30% actual SP, -65% YoY). The shrink is DEMAND, not price (Fable ruling). Quote at target 44.5%; you MAY move toward the 33% survival floor to win price-sensitive jobs, but NEVER quote below survival. Run it as a thin retention service that keeps one-stop customers whose screen-print work clears target.",
+  "digitizing": {
+    "model": "One-time per NEW design (art -> stitch file). Charged once regardless of qty; spread over qty for the per-unit view.",
+    "default": 25.0,
+    "options_note": "Empowered's real card is $15 / $25 / $40 by complexity. Bear's exact digitizing rate is UNCONFIRMED - default $25, adjustable. Reused/existing design = $0.",
+    "reused_design": 0
+  },
+  "vendor_routing": {
+    "default": "Bear",
+    "options": [
+      "Bear",
+      "Empowered"
+    ],
+    "bear_note": "Default. 0/140 cells below Bear cost; multi-placement is fine on Bear.",
+    "empowered_warning": "Backup only. Multi-placement (2+ placements) at qty >= 48 sells BELOW COST on Empowered (45/140 cells). If Empowered + placements>=2 + qty>=48: HARD FLAG 're-quote or route to Bear' (~$381 SP per misroute). Empowered digitizing is really $15/$25/$40, not $10."
+  },
+  "placements_note": "First placement (P1) + each additional (P2+) is priced off the same Bear grid at its own stitch band. Job = sum of placements. A P2 may never appear without a P1.",
+  "bear_cost": {
+    "_cols": [
+      "0-7k",
+      "7-14k",
+      "14-21k",
+      "21-28k",
+      "28-35k"
+    ],
+    "1": [
+      9.82,
+      12.13,
+      15.02,
+      17.32,
+      19.64
+    ],
+    "6": [
+      8.09,
+      9.82,
+      12.7,
+      15.02,
+      17.32
+    ],
+    "12": [
+      6.35,
+      8.09,
+      9.24,
+      10.97,
+      12.7
+    ],
+    "24": [
+      4.62,
+      5.78,
+      6.35,
+      7.51,
+      8.66
+    ],
+    "48": [
+      4.04,
+      5.2,
+      5.78,
+      6.93,
+      8.09
+    ],
+    "96": [
+      3.18,
+      4.34,
+      5.2,
+      6.35,
+      7.51
+    ],
+    "192": [
+      2.89,
+      3.76,
+      4.91,
+      6.07,
+      7.22
+    ]
+  },
+  "sp_curve": {
+    "note": "Margin % SLIDES with order quantity (mirrors the screen-print Master Curve: fat margins on small orders, thin on volume). Replaces the old flat 44.5%. Never below survival 33%. Holly-approved shape 2026-07-16; tune band values here.",
+    "bands": [
+      {
+        "max": 11,
+        "sp": 0.62
+      },
+      {
+        "max": 23,
+        "sp": 0.58
+      },
+      {
+        "max": 47,
+        "sp": 0.54
+      },
+      {
+        "max": 71,
+        "sp": 0.5
+      },
+      {
+        "max": 143,
+        "sp": 0.47
+      },
+      {
+        "max": 287,
+        "sp": 0.445
+      },
+      {
+        "max": 499,
+        "sp": 0.42
+      },
+      {
+        "max": 999,
+        "sp": 0.4
+      },
+      {
+        "max": 2499,
+        "sp": 0.37
+      },
+      {
+        "max": 4999,
+        "sp": 0.35
+      },
+      {
+        "max": null,
+        "sp": 0.34
+      }
+    ],
+    "survival_floor": 0.33,
+    "round_up_to_dtf": 0.25,
+    "round_up_to_embroidery": 0.05
+  }
+};
+const SERVICES = [
+  {id:'neck1', label:'Inside Neck 1c', unit:q => q < 72 ? 2.25 : 1.50, basis:'unit'},
+  {id:'neck2', label:'Inside Neck 2c', unit:q => 2.25, basis:'unit'},
+  {id:'stdFold', label:'Standard Fold', unit:q => 0.50, cost:q => 0.25, basis:'unit'},
+  {id:'customFold', label:'Custom Fold', unit:q => 1.25, basis:'unit'},
+  {id:'foldBag', label:'Fold+Bag', unit:q => 1.50, cost:q => 0.60, basis:'unit'},
+  {id:'hangTag', label:'Hang Tag', unit:q => 0.75, cost:q => 0.15, basis:'unit'},
+  {id:'polyBag', label:'Poly Bag', unit:q => 0.75, cost:q => 0.35, basis:'unit'},
+  {id:'box', label:'Box', unit:q => 3.00, basis:'box'}
+];
+const IMPRINT_FEES = [
+  {id:'fleece', label:'Fleece', price:0.50, cost:0.25, basis:'location', meta:'$0.50 x locations'},
+  {id:'specialtyInk', label:'Specialty Ink', price:0.70, cost:0.30, basis:'location', meta:'$0.70 x locations'},
+  {id:'waterbase', label:'Waterbase', price:1.00, cost:0.55, basis:'locColor', meta:'$1.00 x locations x colors; 72pc min'},
+  {id:'oversize', label:'Oversize', price:1.00, cost:0.55, basis:'location', meta:'$1.00 x locations; apparel only'}
+];
+const SETUP_FEES = {
+  colorChange: {label:'Color Change', price:25.00, cost:15.00, meta:'$25.00 x loc/color count'},
+  tapeOut: {label:'Tape Out', price:25.00, cost:15.00, meta:'$25.00 x count'}
+};
+const $ = id => document.getElementById(id);
+const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
+const pct = n => (n == null || !isFinite(n)) ? 'n/a' : (n * 100).toFixed(1) + '%';
+const pct100 = n => (n == null || !isFinite(n)) ? 'n/a' : Number(n || 0).toFixed(1) + '%';
+const roundUpNickel = n => Math.ceil((n - 1e-9) / 0.05) * 0.05;
+const roundUpTo = (value, increment) => Math.ceil((Number(value) || 0) / increment) * increment;
+const clampInt = (v, min, max) => Math.max(min, Math.min(max, Math.floor(Number(v) || 0)));
+const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+let nextPlacementId = 1;
+function defaultPlacement(method, location) { return {id: nextPlacementId++, method, location, colors:2, stitches:8500, materialIndex:0, transfer:'', transferOverridden:false, size:'', difficulty:false}; }
+let placements = [defaultPlacement('Screen Print', 'Front')];
+function setupStaticControls() {
+  $('services').innerHTML = SERVICES.map(s => '<label class="check"><input type="checkbox" id="svc_' + s.id + '">' + s.label + '</label>').join('');
+  $('imprintFees').innerHTML = IMPRINT_FEES.map(f => '<label class="check"><input type="checkbox" id="fee_' + f.id + '">' + f.label + '</label>').join('');
+  $('shippingTotal').value = Number((DTF_DATA.shipping || {}).default_estimate_total || 15).toFixed(2);
+  $('digitizingTotal').value = Number((EMBROIDERY_DATA.digitizing || {}).default || 25).toFixed(2);
+}
+function rowsFor(tier, ink, placement, colors) { return (((MATRIX[tier] || {})[ink] || {})[placement] || {})[String(colors)] || null; }
+function floorQty(rows, qty) { const qs = Object.keys(rows || {}).map(Number).sort((a,b)=>a-b); if (!qs.length) return null; let chosen = qs[0]; for (const q of qs) if (q <= qty) chosen = q; return chosen; }
+function screenPrintLookup(tier, ink, placement, colors, qty) {
+  if (colors <= 0) return {price:0, matrixQty:null, prodQty:null, cost:0, sp:0, rate:null, available:true};
+  const rows = rowsFor(tier, ink, placement, colors);
+  if (!rows) return {available:false, reason:'No embedded matrix for ' + tier + ' / ' + ink + ' / ' + placement + ' / ' + colors + ' colors.'};
+  const mq = floorQty(rows, qty);
+  const price = Number(rows[String(mq)]);
+  const prodQty = MATRIX_TO_PROD_QTY[String(mq)] || mq;
+  const cost = Number(((PRODUCTION_COST[String(prodQty)] || {})[String(colors)]) || 0);
+  const sp = price - cost;
+  const rate = price > 0 ? sp / price : null;
+  return {method:'Screen Print', price, cost, margin:sp, rate, matrixQty:mq, prodQty, available:true, meta:placement + ', ' + colors + ' colors, matrix row ' + mq};
+}
+function garmentRecovery(source, blank) { return source === 'PA-supplied' ? roundUpNickel(0.45 + 0.04 * blank) : 0.45; }
+function targetSpForQty(data, qty) {
+  const bands = ((data.sp_curve || {}).bands || []).map((band, index, all) => {
+    const previousMax = index === 0 ? 0 : Number(all[index - 1].max || 0);
+    return {min:previousMax + 1, max:band.max == null ? null : Number(band.max), sp:Number(band.sp)};
+  });
+  const match = bands.find(band => band.max == null || qty <= band.max) || bands[bands.length - 1] || {min:1, max:null, sp:Number((data.sp_formula || {}).target_SP || 0)};
+  const label = match.max == null ? match.min.toLocaleString('en-US') + '+' : match.min.toLocaleString('en-US') + '-' + match.max.toLocaleString('en-US');
+  return {sp:match.sp, label};
+}
+function parseBandStart(band) { return band.endsWith('+') ? Number(band.replace('+','')) : Number(band.split('-')[0]); }
+function parseBandEnd(band) { return band.endsWith('+') ? Infinity : Number(band.split('-')[1]); }
+function availableBands(transfer) { return Object.keys(transfer.cost).filter(band => band !== 'any').sort((a,b) => parseBandStart(a) - parseBandStart(b)); }
+function lookupDtfCost(transfer, size, qty) {
+  if (transfer.cost.any) return {band:'any', cost:Number(transfer.cost.any[0]) || 0, belowMin:false, note:'Flat placeholder cost'};
+  const bands = availableBands(transfer);
+  const lowest = bands[0];
+  let band = bands.find(item => qty >= parseBandStart(item) && qty <= parseBandEnd(item));
+  let belowMin = false;
+  const explicitMin = Number(transfer.min_qty || 0);
+  const lowestMin = parseBandStart(lowest);
+  if (!band || (explicitMin && qty < explicitMin)) {
+    if (qty < Math.max(explicitMin, lowestMin)) { band = lowest; belowMin = true; }
+    else if (!band) band = bands[bands.length - 1];
+  }
+  const index = Math.max(0, transfer.sizes.indexOf(size));
+  const cost = Number((transfer.cost[band] || [])[index]) || 0;
+  return {band, cost, belowMin, note: belowMin ? 'Below vendor min, using lowest available band' : ''};
+}
+function materialRows() { return DTF_DATA.garment_to_transfer.map || []; }
+function transferKeys() { return Object.keys(DTF_DATA.transfers || {}); }
+function recommendedTransferFor(row) { const material = materialRows()[Number(row.materialIndex) || 0] || materialRows()[0] || {}; return material.transfer || transferKeys()[0]; }
+function normalizedDtfRow(row) {
+  const transferKey = row.transfer || recommendedTransferFor(row);
+  const transfer = DTF_DATA.transfers[transferKey] || DTF_DATA.transfers[transferKeys()[0]];
+  const size = row.size && transfer.sizes.includes(row.size) ? row.size : transfer.sizes[0];
+  return {transferKey, transfer, size};
+}
+function calcDtf(row, qty, shippingShare) {
+  const norm = normalizedDtfRow(row);
+  const costLookup = lookupDtfCost(norm.transfer, norm.size, qty);
+  const baseLaborUnit = Number(DTF_DATA.application_labor.per_pc || 0);
+  const difficultyUplift = Number((DTF_DATA.application_labor.difficulty_toggle || {}).uplift || 0);
+  const laborUnit = baseLaborUnit * (row.difficulty ? 1 + difficultyUplift : 1);
+  const landedUnit = costLookup.cost + laborUnit + shippingShare;
+  const target = targetSpForQty(DTF_DATA, qty);
+  const survivalSP = Number((DTF_DATA.sp_curve || {}).survival_floor || DTF_DATA.sp_formula.survival_SP || 0.33);
+  const roundTo = Number(DTF_DATA.sp_formula.round_up_to || 0.25);
+  const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
+  const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
+  const price = Math.max(targetPrice, survivalPrice);
+  return {method:'DTF', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, costLookup, transferKey:norm.transferKey, transfer:norm.transfer, size:norm.size, laborUnit, shippingShare, meta:norm.transferKey + ' ' + norm.transfer.name + ', size ' + norm.size + ', qty band ' + costLookup.band};
+}
+function stitchBand(stitches) {
+  if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false};
+  if (stitches <= 6999) return {band:'0-7k', index:0, label:'1-6,999 stitches', overGrid:false};
+  if (stitches <= 13999) return {band:'7-14k', index:1, label:'7,000-13,999 stitches', overGrid:false};
+  if (stitches <= 20999) return {band:'14-21k', index:2, label:'14,000-20,999 stitches', overGrid:false};
+  if (stitches <= 27999) return {band:'21-28k', index:3, label:'21,000-27,999 stitches', overGrid:false};
+  if (stitches <= 35000) return {band:'28-35k', index:4, label:'28,000-35,000 stitches', overGrid:false};
+  return {band:null, index:-1, label:'Over grid (>35k stitches) - custom quote', overGrid:true};
+}
+function embroideryQtyRow(qty) { const rows = EMBROIDERY_DATA._meta.qty_rows; let rowValue = rows[0]; rows.forEach(value => { if (qty >= value) rowValue = value; }); return rowValue; }
+function calcEmbroidery(row, qty, digitizingShare) {
+  const bandInfo = stitchBand(Number(row.stitches) || 0);
+  if (bandInfo.overGrid || !bandInfo.band) return {method:'Embroidery', price:0, cost:0, margin:0, rate:null, available:false, reason:bandInfo.label, bandInfo};
+  const rowValue = embroideryQtyRow(qty);
+  const bearBaseUnit = Number((EMBROIDERY_DATA.bear_cost[String(rowValue)] || [])[bandInfo.index]) || 0;
+  const landedUnit = bearBaseUnit + digitizingShare;
+  const target = targetSpForQty(EMBROIDERY_DATA, qty);
+  const survivalSP = Number((EMBROIDERY_DATA.sp_curve || {}).survival_floor || EMBROIDERY_DATA.sp_formula.survival_SP || 0.33);
+  const roundTo = Number(EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
+  const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
+  const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
+  const price = Math.max(targetPrice, survivalPrice);
+  return {method:'Embroidery', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, bearBaseUnit, rowValue, bandInfo, digitizingShare, meta:'Bear row ' + rowValue + ', band ' + bandInfo.band + ', ' + Number(row.stitches || 0).toLocaleString('en-US') + ' stitches'};
+}
+function band(rate) { if (rate == null) return {class:'neutral', label:'n/a'}; if (rate > 0.70) return {class:'warn', label:'high'}; if (rate >= 0.445) return {class:'good', label:'target'}; if (rate >= 0.33) return {class:'warn', label:'survival'}; return {class:'bad', label:'below'}; }
+function marginInfo(price, cost) { if (price == null || cost == null || !isFinite(price) || !isFinite(cost) || price <= 0) return null; const margin = price - cost; return {margin, rate:margin / price}; }
+function rowHtml(name, val, meta='', strong=false, margin=null) {
+  const m = margin ? (() => { const b = band(margin.rate); return '<div class="marginCell"><span class="flag ' + b.class + '">' + b.label + '</span><span class="marginMoney">' + money(margin.margin) + '</span><span class="marginPct">' + pct(margin.rate) + '</span></div>'; })() : '<div class="marginCell"></div>';
+  return '<div class="row' + (strong?' strong':'') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div>' + m + '</div>';
+}
+function spCard(title, d) {
+  if (!d.available) return '<div class="spcard"><div class="top"><h3>' + title + '</h3><span class="flag bad">blocked</span></div><div class="spmeta">' + escapeHtml(d.reason || 'No quote') + '</div></div>';
+  const b = band(d.rate);
+  return '<div class="spcard"><div class="top"><h3>' + title + '</h3><span class="flag ' + b.class + '">' + b.label + '</span></div><div class="rate">' + pct(d.rate) + '</div><div class="spmeta">SP ' + money(d.margin) + ' / price ' + money(d.price) + '<br>landed ' + money(d.cost) + '<br>' + escapeHtml(d.meta || '') + '</div></div>';
+}
+function projectCard(price, cost) {
+  const margin = price - cost;
+  const rate = price > 0 ? margin / price : null;
+  const b = band(rate);
+  return '<div class="spcard project"><div class="top"><h3>Total project margin</h3><span class="flag ' + b.class + '">' + b.label + '</span></div><div class="rate">' + money(margin) + '<span>' + pct(rate) + ' of invoice</span></div><div class="spmeta">landed cost basis ' + money(cost) + ' / invoice ' + money(price) + '</div></div>';
+}
+function methodInputHtml(p) {
+  if (p.method === 'Screen Print') return '<div class="twocol"><div class="field"><label>Color count</label><input data-key="colors" type="number" min="1" max="12" step="1" value="' + p.colors + '"></div><div class="field"><label>SP role</label><input type="text" value="Auto: first SP row is P1, later SP rows are P2" disabled></div></div>';
+  if (p.method === 'Embroidery') return '<div class="twocol"><div class="field"><label>Stitch count</label><input data-key="stitches" type="number" min="1" step="500" value="' + p.stitches + '"></div><div class="field"><label>Vendor route</label><input type="text" value="Bear default" disabled></div></div>';
+  const materialOptions = materialRows().map((m, i) => '<option value="' + i + '"' + (Number(p.materialIndex) === i ? ' selected' : '') + '>' + escapeHtml(m.material) + '</option>').join('');
+  const norm = normalizedDtfRow(p);
+  const transferOptions = transferKeys().map(key => { const item = DTF_DATA.transfers[key]; return '<option value="' + key + '"' + (norm.transferKey === key ? ' selected' : '') + '>' + key + ' - ' + escapeHtml(item.name + (item.aka ? ' - ' + item.aka : '')) + '</option>'; }).join('');
+  const sizeOptions = norm.transfer.sizes.map(size => '<option value="' + size + '"' + (norm.size === size ? ' selected' : '') + '>' + escapeHtml(size) + '</option>').join('');
+  return '<div class="field"><label>Garment material</label><select data-key="materialIndex">' + materialOptions + '</select></div><div class="twocol"><div class="field"><label>Transfer</label><select data-key="transfer">' + transferOptions + '</select></div><div class="field"><label>Size</label><select data-key="size">' + sizeOptions + '</select></div></div><label class="check"><input data-key="difficulty" type="checkbox"' + (p.difficulty ? ' checked' : '') + '> Difficult line-up labor uplift</label>';
+}
+function renderPlacements() {
+  $('placements').innerHTML = placements.map((p, index) => '<div class="placement" data-id="' + p.id + '"><div class="placementHead"><b>Placement ' + (index + 1) + '</b><input data-key="location" type="text" value="' + escapeHtml(p.location) + '" placeholder="front / back / sleeve / neck"><button class="btn secondary removePlacement" type="button"' + (placements.length === 1 ? ' disabled' : '') + '>Remove</button></div><div class="placementBody"><div class="methodGrid">' + ['Screen Print','Embroidery','DTF'].map(method => '<label><input name="method_' + p.id + '" data-key="method" type="radio" value="' + method + '"' + (p.method === method ? ' checked' : '') + '><span>' + method + '</span></label>').join('') + '</div><div class="methodInputs">' + methodInputHtml(p) + '</div></div></div>').join('');
+}
+function readTopState() {
+  const qty = Math.max(1, Math.floor(Number($('qty').value) || 1));
+  const blank = Math.max(0, Number($('blankCost').value) || 0);
+  const colorChangeCount = clampInt($('colorChangeCount').value, 0, 999);
+  const tapeOutCount = clampInt($('tapeOutCount').value, 0, 999);
+  $('qty').value = qty; $('blankCost').value = blank.toFixed(2); $('colorChangeCount').value = colorChangeCount; $('tapeOutCount').value = tapeOutCount;
+  if ($('reusedDesign').checked) $('digitizingTotal').value = '0.00';
+  return {qty, blank, source:$('source').value, tier:$('tier').value, ink:$('ink').value, shippingTotal:Math.max(0, Number($('shippingTotal').value) || 0), digitizingTotal:$('reusedDesign').checked ? 0 : Math.max(0, Number($('digitizingTotal').value) || 0), colorChangeCount, tapeOutCount};
+}
+function calculate() {
+  const s = readTopState();
+  const warnings = [];
+  const screenRows = placements.filter(p => p.method === 'Screen Print');
+  const embroideryRows = placements.filter(p => p.method === 'Embroidery');
+  const dtfRows = placements.filter(p => p.method === 'DTF');
+  const dtfShippingShare = dtfRows.length ? s.shippingTotal / s.qty / dtfRows.length : 0;
+  const embroideryDigitizingShare = embroideryRows.length ? s.digitizingTotal / s.qty / embroideryRows.length : 0;
+  const calculated = [];
+  let seenSp = false;
+  placements.forEach((p, index) => {
+    let result;
+    if (p.method === 'Screen Print') {
+      const role = seenSp ? 'P2' : 'P1';
+      seenSp = true;
+      result = screenPrintLookup(s.tier, s.ink, role, clampInt(p.colors, 1, 12), s.qty);
+      result.role = role;
+      if (!result.available) warnings.push(result.reason);
+      if (s.qty < 12) warnings.push('Screen print quantity is below the first matrix row; calculator uses the 12-piece row.');
+    } else if (p.method === 'Embroidery') {
+      result = calcEmbroidery(p, s.qty, embroideryDigitizingShare);
+      if (!result.available) warnings.push('Embroidery ' + (p.location || 'placement') + ': ' + result.reason);
+    } else {
+      result = calcDtf(p, s.qty, dtfShippingShare);
+    }
+    result.id = p.id; result.location = p.location || 'Placement ' + (index + 1); result.index = index + 1;
+    calculated.push(result);
+  });
+  if (screenRows.length > 1 && calculated.filter(r => r.method === 'Screen Print' && r.role === 'P2').length !== screenRows.length - 1) warnings.push('Screen-print P2 guard failed: review placement order.');
+  if (embroideryRows.length >= 2 && s.qty >= 48) warnings.push('EMPOWERED MULTI-PLACEMENT WARNING - Backup route only. Multi-placement at qty >= 48 can sell below cost on Empowered; route to Bear or re-quote.');
+  dtfRows.forEach(p => {
+    const d = calculated.find(x => x.id === p.id);
+    if (!d || d.method !== 'DTF') return;
+    if (d.costLookup.belowMin) warnings.push('DTF ' + d.location + ': ' + d.costLookup.note.toUpperCase() + ' - qty ' + s.qty.toLocaleString('en-US') + ' priced at ' + d.costLookup.band + '.');
+    if ((d.transferKey === 'WE' || d.transferKey === 'W1') && d.size === 'SQ' && d.transfer.sq_estimated) warnings.push('DTF ' + d.location + ': SQ COST ESTIMATED - verify before quoting.');
+    if (d.transferKey === 'PUFF') warnings.push('DTF ' + d.location + ': PUFF PLACEHOLDER - full 613 Originals size/qty pricing still needs verification.');
+    if (p.difficulty) warnings.push('DTF ' + d.location + ': difficult line-up labor uplift applied.');
+  });
+  const rec = garmentRecovery(s.source, s.blank);
+  let perUnitRevenue = s.blank + rec;
+  let perUnitCost = s.blank;
+  let nonUnitRevenue = 0;
+  let nonUnitCost = 0;
+  calculated.forEach(r => { if (r.available) { perUnitRevenue += r.price; perUnitCost += r.cost; } });
+  const spLocations = screenRows.length;
+  const spLocColors = screenRows.reduce((sum, p) => sum + clampInt(p.colors, 1, 12), 0);
+  const adders = [];
+  if (screenRows.length) {
+    IMPRINT_FEES.forEach(fee => {
+      if (!$('fee_' + fee.id).checked) return;
+      if (fee.id === 'waterbase' && s.qty < 72) warnings.push('Waterbase / discharge has a 72pc minimum. Quote needs approval or quantity increase.');
+      const multiplier = fee.basis === 'locColor' ? spLocColors : spLocations;
+      const amount = fee.price * multiplier;
+      const cost = fee.cost * multiplier;
+      perUnitRevenue += amount; perUnitCost += cost;
+      adders.push({label:fee.label, amount, cost, meta:fee.meta + '; ' + multiplier + ' charge' + (multiplier === 1 ? '' : 's')});
+    });
+    [{count:s.colorChangeCount, ...SETUP_FEES.colorChange},{count:s.tapeOutCount, ...SETUP_FEES.tapeOut}].forEach(fee => {
+      if (!fee.count) return;
+      const amount = fee.price * fee.count;
+      const cost = fee.cost * fee.count;
+      perUnitRevenue += amount / s.qty; perUnitCost += cost / s.qty;
+      adders.push({label:fee.label, amount:amount / s.qty, cost:cost / s.qty, meta:money(amount) + ' project fee; ' + fee.meta + '; ' + money(amount / s.qty) + ' / unit'});
+    });
+    SERVICES.forEach(svc => {
+      if (!$('svc_' + svc.id).checked) return;
+      if (svc.basis === 'box') {
+        const boxes = Math.ceil(s.qty / 72);
+        const amount = boxes * svc.unit(s.qty);
+        const cost = boxes * (svc.cost ? svc.cost(s.qty) : 0);
+        nonUnitRevenue += amount; nonUnitCost += cost;
+        adders.push({label:svc.label, amount, cost, meta:boxes + ' box line' + (boxes === 1 ? '' : 's') + ' @ ' + money(svc.unit(s.qty)), nonUnit:true});
+      } else {
+        const amount = svc.unit(s.qty);
+        const cost = svc.cost ? svc.cost(s.qty) : 0;
+        perUnitRevenue += amount; perUnitCost += cost;
+        adders.push({label:svc.label, amount, cost, meta:money(amount) + ' / unit'});
+      }
+    });
+  }
+  const orderTotal = perUnitRevenue * s.qty + nonUnitRevenue;
+  const totalCost = perUnitCost * s.qty + nonUnitCost;
+  const marginTotal = orderTotal - totalCost;
+  const marginRate = orderTotal > 0 ? marginTotal / orderTotal : null;
+  $('projectMargin').textContent = money0(marginTotal);
+  $('projectMarginPct').textContent = pct(marginRate);
+  $('perUnit').textContent = money(perUnitRevenue);
+  $('orderTotal').textContent = money0(orderTotal) + ' total';
+  $('projectQty').textContent = s.qty.toLocaleString('en-US') + ' pcs';
+  const flagBlocks = [];
+  const targetBand = targetSpForQty(DTF_DATA, s.qty);
+  flagBlocks.push('<div class="flagBlock good">SLIDING MARGIN NOTE - DTF and embroidery use target SP ' + pct(targetBand.sp) + ' for qty band ' + targetBand.label + ' with the 33% survival floor. Screen print margins are already baked into the matrix.</div>');
+  warnings.forEach(w => flagBlocks.push('<div class="flagBlock ' + (/warning|below|estimated|placeholder|minimum|guard|blocked|custom|failed/i.test(w) ? 'warn' : 'good') + '">' + escapeHtml(w) + '</div>'));
+  $('flags').innerHTML = flagBlocks.join('');
+  $('placementBreakdown').innerHTML = calculated.map(r => {
+    const meta = r.available ? r.meta : r.reason;
+    return rowHtml('#' + r.index + ' ' + escapeHtml(r.location) + ' - ' + r.method + (r.role ? ' ' + r.role : ''), r.available ? money(r.price) : 'No quote', escapeHtml(meta || ''), false, r.available ? marginInfo(r.price, r.cost) : null);
+  }).join('');
+  const projectRows = [];
+  projectRows.push(rowHtml('Blank', money(s.blank), 'Entered garment blank cost / unit', false, marginInfo(s.blank, s.blank)));
+  projectRows.push(rowHtml('Garment recovery', money(rec), s.source === 'PA-supplied' ? 'round_up_to_0.05(0.45 + 0.04 x blank)' : 'customer-supplied flat recovery', false, marginInfo(rec, 0)));
+  if (dtfRows.length) projectRows.push(rowHtml('DTF inbound shipping', money(s.shippingTotal / s.qty), money(s.shippingTotal) + ' total spread over qty and DTF placements', false, marginInfo(s.shippingTotal / s.qty, s.shippingTotal / s.qty)));
+  if (embroideryRows.length) projectRows.push(rowHtml('Embroidery digitizing', money(s.digitizingTotal / s.qty), (s.digitizingTotal ? money(s.digitizingTotal) : '$0.00 reused design') + ' one-time spread over qty and embroidery placements', false, marginInfo(s.digitizingTotal / s.qty, s.digitizingTotal / s.qty)));
+  adders.forEach(a => projectRows.push(rowHtml(a.label, money(a.amount), escapeHtml(a.meta), false, marginInfo(a.amount, a.cost))));
+  projectRows.push(rowHtml('Per-unit price', money(perUnitRevenue), 'Garment + recovery + all placements + per-unit adders', true, marginInfo(perUnitRevenue, perUnitCost)));
+  if (nonUnitRevenue) projectRows.push(rowHtml('Non-unit project lines', money(nonUnitRevenue), 'Box or other project-level service lines', false, marginInfo(nonUnitRevenue, nonUnitCost)));
+  projectRows.push(rowHtml('Order total', money(orderTotal), 'Revenue across all garments and one-time lines', true, marginInfo(orderTotal, totalCost)));
+  $('projectBreakdown').innerHTML = projectRows.join('');
+  $('spPanel').innerHTML = calculated.map(r => spCard('#' + r.index + ' ' + r.method, r)).join('') + projectCard(orderTotal, totalCost);
+}
+function updatePlacementFromEvent(event) {
+  const wrap = event.target.closest('.placement');
+  if (!wrap) return;
+  const id = Number(wrap.dataset.id);
+  const p = placements.find(item => item.id === id);
+  if (!p) return;
+  const key = event.target.dataset.key;
+  if (!key) return;
+  if (key === 'method') {
+    p.method = event.target.value;
+    if (p.method === 'DTF') { p.transfer = recommendedTransferFor(p); p.size = ''; }
+    renderPlacements();
+  } else if (key === 'difficulty') p.difficulty = event.target.checked;
+  else if (key === 'colors') p.colors = clampInt(event.target.value, 1, 12);
+  else if (key === 'stitches') p.stitches = Math.max(1, Math.floor(Number(event.target.value) || 1));
+  else if (key === 'materialIndex') { p.materialIndex = Number(event.target.value) || 0; p.transfer = recommendedTransferFor(p); p.size = ''; renderPlacements(); }
+  else if (key === 'transfer') { p.transfer = event.target.value; p.size = ''; renderPlacements(); }
+  else if (key === 'size') p.size = event.target.value;
+  else if (key === 'location') p.location = event.target.value;
+  calculate();
+}
+function bind() {
+  setupStaticControls();
+  renderPlacements();
+  $('quoteForm').addEventListener('input', calculate);
+  $('quoteForm').addEventListener('change', calculate);
+  $('reusedDesign').addEventListener('change', () => { if (!$('reusedDesign').checked) $('digitizingTotal').value = Number((EMBROIDERY_DATA.digitizing || {}).default || 25).toFixed(2); calculate(); });
+  $('placements').addEventListener('input', updatePlacementFromEvent);
+  $('placements').addEventListener('change', updatePlacementFromEvent);
+  $('placements').addEventListener('click', event => {
+    if (!event.target.classList.contains('removePlacement')) return;
+    const id = Number(event.target.closest('.placement').dataset.id);
+    placements = placements.filter(p => p.id !== id);
+    renderPlacements(); calculate();
+  });
+  $('addPlacement').addEventListener('click', () => { placements.push(defaultPlacement('Embroidery', 'Sleeve')); renderPlacements(); calculate(); });
+  document.querySelectorAll('#quoteForm input,#quoteForm select').forEach(el => { el.addEventListener('input', calculate); el.addEventListener('change', calculate); });
+  calculate();
+}
+bind();
+</script>
+</body>
+</html>

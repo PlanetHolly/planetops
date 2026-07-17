@@ -546,6 +546,17 @@
               "icon": "👕"
             },
             {
+              "id": "apparel-mix-quote",
+              "kind": "surface",
+              "name": "Apparel Quote — all methods (the mix)",
+              "blurb": "One garment, many placements — toggle Screen Print / Embroidery / DTF per placement and get ONE project margin total. Shows margin. DRAFT.",
+              "type": "tool",
+              "url": "../apparel-mix/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🧬"
+            },
+            {
               "id": "bandana-quote-team",
               "kind": "surface",
               "name": "Bandana Quote (desk)",
