@@ -33,3 +33,22 @@ Codex wrote (foreground run hit the 2-min wall AFTER writing all files; no resum
 - Re-point the Dropbox Python CLI (~/Dropbox/.../Feed_Brain + _Skills/feed) at the repo copy so the repo is the single source of truth. Deliberately not done silently; flagged for Holly since it alters the live local /feed skill.
 
 VERDICT: Build #1 APPROVED by Claude. Parity guard green.
+
+## Build #2 — Steps 1-2 (migration runner + DDL + /readyz guard)
+
+### Act 3 — Codex build (thread 019f723d-ce17-78f1-b32e-8b72d83dbede, sandbox workspace-write)
+- gate/feed/migrations/001_feed_core.sql — 8 tables (feed_intake, feed_outbox, feed_ledger, feed_incoming, feed_review, feed_expense_hold, feed_vendors, feed_graduation) with required cols/constraints + sensible extras (state/status CHECK enums, non-negative counters, worker-claim index feed_intake(status,locked_until), outbox(state,created_at), eta index).
+- gate/feed/migrate.js — transactional versioned runner; feed_schema_migrations(version PK); pg_advisory_xact_lock re-taken per migration under which it re-checks applied-state (multi-instance safe); ROLLBACK on error, stops; feedSchemaStatus() = pending|ok|FAIL:.
+- gate/index.js — import runner; fire runFeedMigrations(pool) at boot (same style as gate_sessions); /readyz gains checks.feed_schema=feedSchemaStatus() (503 while pending/failed); /healthz + /health-public untouched.
+
+### Act 4 — Claude review
+- migrate.js: advisory lock is transaction-scoped and re-checked per migration → real double-apply protection; DDL runs inside txn (Postgres DDL is transactional → clean rollback mid-file); inFlight guard prevents in-process double-run; returns exactly 'ok' to satisfy /readyz every()-gate. FAITHFUL.
+- SQL: valid Postgres, all required columns/constraints/FKs/eta-index present. CHECK enums are a welcome hardening.
+- index.js wiring minimal, non-restructuring; liveness endpoints untouched.
+- Independent regression: node --check (both) OK; module loads + sees 001; parity guard STILL PASS.
+- Fix rounds: 0.
+
+### Verified vs NOT
+- Verified statically + module-load + regression. NOT verified: live-Postgres execution of the DDL (no local psql/docker/pg_ctl on this machine; will NOT run against prod). Live-DB run is deferred to the staging step (Build #7) and must be treated as unproven until then — NOT silently "done".
+
+VERDICT: Build #2 APPROVED by Claude (schema unverified against a live DB by design; deferred to staging).

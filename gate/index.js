@@ -25,6 +25,7 @@ const crypto  = require('crypto');
 const path    = require('path');
 const fs      = require('fs');
 const { Pool } = require('pg');
+const { runFeedMigrations, feedSchemaStatus } = require('./feed/migrate');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -84,6 +85,9 @@ pool.query(`
   )
 `).then(() => console.log('gate_sessions ready'))
   .catch(err => console.error('DB init failed:', err.message));
+runFeedMigrations(pool)
+  .then(() => console.log('feed_schema ready'))
+  .catch(err => console.error('feed_schema init failed:', err.message));
 // housekeeping: purge expired sessions hourly
 setInterval(() => pool.query('DELETE FROM gate_sessions WHERE expires_at < NOW()').catch(()=>{}), 3600e3);
 
@@ -248,6 +252,7 @@ app.get('/readyz', async (req, res) => {                                        
   try { await pool.query('SELECT 1'); checks.db = 'ok'; } catch (e) { checks.db = 'FAIL: ' + e.message; }
   try { const r = await fetch(process.env.STATE_API_URL + '/health', { signal: AbortSignal.timeout(5000) }); checks.stateApi = r.ok ? 'ok' : 'HTTP ' + r.status; } catch (e) { checks.stateApi = 'FAIL: ' + e.message; }
   checks.alertWebhook = process.env.ALERT_WEBHOOK_URL ? 'configured' : 'NOT CONFIGURED';
+  checks.feed_schema = feedSchemaStatus();
   const ok = Object.values(checks).every(v => v === 'ok' || v === 'configured');
   res.status(ok ? 200 : 503).json({ ok, checks, ts: new Date().toISOString() });
 });
