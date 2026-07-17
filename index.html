@@ -76,6 +76,32 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fon
 .col-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:2px}
 .col-empty{display:flex;align-items:center;justify-content:center;height:60px;color:rgba(0,0,0,.13);font-family:var(--font-head);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
 
+/* ── SHIP BOARD (Shipping station Phase A) ── */
+.shipboard-col{width:520px;min-width:520px}
+.shipboard-body{gap:10px}
+.shipboard-section{background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.07);border-radius:12px;padding:10px}
+.shipboard-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.shipboard-section-title{font-family:var(--font-head);font-weight:900;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:rgba(0,0,0,.62)}
+.shipboard-section-sub{font-size:10px;color:rgba(0,0,0,.35);font-weight:600;margin-top:1px}
+.shipboard-mini-btn{height:28px;padding:0 10px;border-radius:var(--radius-pill);border:1.5px solid rgba(0,0,0,.12);background:#fff;font-family:var(--font-head);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.45);cursor:pointer}
+.shipboard-mini-btn:disabled{opacity:.5;cursor:default}
+.shipboard-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-left:5px solid #00ACC1;border-radius:10px;padding:10px 11px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.shipboard-queue-card{border-left-color:#26A69A}
+.shipboard-tracking-card{border-left-color:#00ACC1}
+.shipboard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+.shipboard-num{font-family:var(--font-head);font-weight:900;font-size:17px;color:var(--tonal-black);line-height:1}
+.shipboard-name{font-size:12px;font-weight:700;color:rgba(0,0,0,.7);line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.shipboard-meta{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:10px;font-weight:600;color:rgba(0,0,0,.38);margin-top:6px}
+.shipboard-link{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 10px;border-radius:8px;background:rgba(30,136,229,.08);color:#1565C0;text-decoration:none;font-family:var(--font-head);font-weight:800;font-size:10px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.shipboard-track-link{background:rgba(0,172,193,.09);color:#00838F}
+.shipboard-internal{margin-top:7px;padding:6px 8px;border-radius:7px;background:rgba(247,190,0,.13);border:1px solid rgba(247,190,0,.35);font-size:10px;font-weight:800;color:#7a5000;text-transform:uppercase;letter-spacing:.04em}
+.shipboard-match-row{display:flex;gap:6px;margin-top:8px}
+.shipboard-select{flex:1;min-width:0;height:32px;border:1.5px solid rgba(0,0,0,.12);border-radius:8px;background:#fff;padding:0 8px;font-family:var(--font-body);font-size:12px;color:rgba(0,0,0,.68)}
+.shipboard-confirm{height:32px;padding:0 10px;border-radius:8px;border:none;background:var(--tonal-black);color:#fff;font-family:var(--font-head);font-weight:800;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.shipboard-confirm:disabled{background:rgba(0,0,0,.12);color:rgba(0,0,0,.35);cursor:default}
+.shipboard-empty{padding:16px 10px;text-align:center;color:rgba(0,0,0,.22);font-family:var(--font-head);font-weight:800;font-size:10px;letter-spacing:.09em;text-transform:uppercase}
+.shipboard-error{padding:10px;border-radius:8px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.18);font-size:11px;font-weight:700;color:#b3261e}
+
 /* ── KANBAN CARD (job-level) ── */
 .k-card{background:var(--white);border-radius:12px;padding:12px 13px 11px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;border:1px solid rgba(0,0,0,.07);transition:transform .1s ease,box-shadow .1s ease,border-color .1s;-webkit-tap-highlight-color:transparent;user-select:none}
 .k-card:active{transform:scale(.97);box-shadow:none}
@@ -1808,6 +1834,25 @@ function buildBoard(){
       return;
     }
 
+    /* ── SHIPPING: Ship Board Phase A — ready queue + captured tracking ── */
+    if(stn.id === 'shipping'){
+      const allQueue = getReadyShipQueue();
+      const queue = allQueue.filter(matchesSearch);
+      const captured = getShipboardRows().filter(r => shipboardRowMatchesSearch(r, allQueue));
+      const col = document.createElement('div');
+      col.className = 'kanban-col shipboard-col';
+      col.innerHTML = `
+        <div class="col-header" style="border-bottom-color:${stn.color}">
+          <div><div class="col-title">${stn.label}</div><div class="col-sub">Queue · Captured Tracking</div></div>
+          <div class="col-count${queue.length || captured.length ? ' has-jobs' : ''}">${queue.length}</div>
+        </div>
+        <div class="col-body shipboard-body" id="col-shipping"></div>`;
+      board.appendChild(col);
+      renderShipboard(col.querySelector('#col-shipping'), queue, captured, allQueue);
+      if(!_shipboardFeedLoaded && !_shipboardFeedLoading && !_shipboardFeedError) loadShipboardFeed();
+      return;
+    }
+
     /* ── DONE: compact archive table ── */
     if(stn.id === 'done'){
       const doneJobs = sortByDue(state.jobs.filter(j => j.station === 'done' && !j.archived && matchesSearch(j))).reverse();
@@ -1959,6 +2004,258 @@ function confirmReadyQc(jobId){
     doMoveJobStation(jobId, 'shipping');
   } else {
     doMoveJobStation(jobId, 'done');
+  }
+}
+
+/* ── Ship Board Phase A: Printavo ready queue + captured EasyPost feed ── */
+const SHIPBOARD_FEED_URL = '/api/shipboard/feed';
+const SHIPBOARD_MATCH_URL = '/api/shipboard/match';
+let _shipboardRows = [];
+let _shipboardFeedLoaded = false;
+let _shipboardFeedLoading = false;
+let _shipboardFeedError = null;
+
+function printavoInvoiceUrl(job){
+  if(job?.printavoUrl) return job.printavoUrl;
+  return job?.printavoId ? `https://www.printavo.com/invoices/${encodeURIComponent(job.printavoId)}` : '#';
+}
+
+function isShippedPrintavoStatus(job){
+  const statuses = [job?.printavoStatus, job?.lastSyncedPrintavoStatus]
+    .map(s => String(s || '').trim().toLowerCase())
+    .filter(Boolean);
+  if(!statuses.length) return false;
+  const doneStatusNames = [
+    PRINTAVO_STATION_STATUS_NAMES.done,
+    ...PRINTAVO_INBOUND_STATUS_MAP.filter(s => s.station === 'done').map(s => s.match),
+  ].map(s => String(s || '').trim().toLowerCase()).filter(Boolean);
+  return statuses.some(status => doneStatusNames.some(done => status === done || status.includes(done)));
+}
+
+function getJobPieces(job){
+  const blanksTotal = (job.blanksList || []).reduce((sum, li) => sum + (parseInt(li.qty) || 0), 0);
+  if(blanksTotal) return blanksTotal;
+  return (job.workUnits || []).reduce((sum, w) => sum + (parseInt(w.qty) || 0), 0);
+}
+
+function getReadyShipQueue(){
+  return sortByDue(state.jobs.filter(j => {
+    if(!j || j.archived || j.station === 'done') return false;
+    if(isShippedPrintavoStatus(j)) return false;
+    if((j.deliveryMethod || '').toLowerCase() && j.deliveryMethod !== 'ship') return false;
+    return j.station === 'readyqc' || j.station === 'shipping';
+  }));
+}
+
+function getShipboardRows(){
+  return Array.isArray(_shipboardRows) ? _shipboardRows : [];
+}
+
+async function loadShipboardFeed(force = false){
+  if(_shipboardFeedLoading) return;
+  if(_shipboardFeedLoaded && !force) return;
+  _shipboardFeedLoading = true;
+  _shipboardFeedError = null;
+  buildBoard();
+  try {
+    const res = await fetch(SHIPBOARD_FEED_URL, { credentials:'same-origin' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const rows = Array.isArray(data) ? data : Array.isArray(data?.rows) ? data.rows : [];
+    _shipboardRows = rows.filter(Boolean);
+    _shipboardFeedLoaded = true;
+  } catch(err){
+    console.warn('Ship Board feed failed:', err);
+    _shipboardFeedError = err.message || 'Feed unavailable';
+  } finally {
+    _shipboardFeedLoading = false;
+    buildBoard();
+  }
+}
+
+function normShipText(v){
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function rowMatchedOrder(row){
+  return String(row?.matched_order || '').trim();
+}
+
+function inferShipboardMatch(row, queue){
+  const existing = rowMatchedOrder(row);
+  if(existing){
+    return queue.find(j => String(j.number) === existing || String(j.printavoId) === existing || String(j.id) === existing) || null;
+  }
+  const hay = normShipText([row.to_company, row.to_name, row.to_city, row.to_state].filter(Boolean).join(' '));
+  if(!hay) return null;
+  const hits = queue.filter(j => {
+    const names = [j.clientTag, j.customer, j.number].map(normShipText).filter(Boolean);
+    return names.some(n => n && (hay.includes(n) || n.includes(hay)));
+  });
+  return hits.length === 1 ? hits[0] : null;
+}
+
+function shipboardRowMatchesSearch(row, queue){
+  if(!_boardSearch) return true;
+  const match = inferShipboardMatch(row, queue);
+  const text = [
+    row.tracking_code, row.carrier, row.service, row.to_name, row.to_company,
+    row.to_city, row.to_state, row.matched_order, match?.customer, match?.number
+  ].filter(Boolean).join(' ').toLowerCase();
+  return text.includes(_boardSearch);
+}
+
+function fmtShipDate(v){
+  if(!v) return '—';
+  const d = new Date(v);
+  if(Number.isNaN(d.getTime())) return String(v);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function fmtShipRecency(v){
+  if(!v) return 'No update time';
+  const d = new Date(v);
+  if(Number.isNaN(d.getTime())) return String(v);
+  const mins = Math.round((Date.now() - d.getTime()) / 60000);
+  if(mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if(hrs < 36) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  return `${days}d ago`;
+}
+
+function fmtShipMoney(v){
+  if(v === null || v === undefined || v === '') return '—';
+  const n = Number(v);
+  if(Number.isFinite(n)) return '$' + n.toFixed(2);
+  return String(v);
+}
+
+function safeHref(url){
+  const u = String(url || '').trim();
+  return /^https?:\/\//i.test(u) ? u : '#';
+}
+
+function renderShipboard(body, queue, captured, allQueue){
+  const queueHtml = queue.length
+    ? queue.map(buildShipboardQueueCard).join('')
+    : '<div class="shipboard-empty">No ready-to-ship Printavo invoices</div>';
+  const capturedHtml = _shipboardFeedError
+    ? `<div class="shipboard-error">Captured tracking feed failed: ${escH(_shipboardFeedError)}</div>`
+    : _shipboardFeedLoading
+      ? '<div class="shipboard-empty">Loading captured tracking…</div>'
+      : captured.length
+        ? captured.map(r => buildShipboardTrackingCard(r, allQueue || queue)).join('')
+        : '<div class="shipboard-empty">No captured shipments yet</div>';
+  body.innerHTML = `
+    <div class="shipboard-section">
+      <div class="shipboard-section-head">
+        <div>
+          <div class="shipboard-section-title">Ready to Ship</div>
+          <div class="shipboard-section-sub">Production-complete Printavo invoices not shipped or delivered</div>
+        </div>
+        <div class="col-count${queue.length?' has-jobs':''}">${queue.length}</div>
+      </div>
+      ${queueHtml}
+    </div>
+    <div class="shipboard-section">
+      <div class="shipboard-section-head">
+        <div>
+          <div class="shipboard-section-title">Captured Tracking</div>
+          <div class="shipboard-section-sub">EasyPost capture feed · cost is internal only</div>
+        </div>
+        <button class="shipboard-mini-btn" onclick="loadShipboardFeed(true)" ${_shipboardFeedLoading?'disabled':''}>Refresh</button>
+      </div>
+      ${capturedHtml}
+    </div>`;
+}
+
+function buildShipboardQueueCard(job){
+  const pcs = getJobPieces(job);
+  const url = printavoInvoiceUrl(job);
+  return `
+    <div class="shipboard-card shipboard-queue-card">
+      <div class="shipboard-top">
+        <div style="min-width:0">
+          <div class="shipboard-num">#${escH(job.number)}</div>
+          <div class="shipboard-name">${escH(job.clientTag || job.customer || 'Unknown customer')}</div>
+        </div>
+        <a class="shipboard-link" href="${escH(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Ship in Printavo</a>
+      </div>
+      <div class="shipboard-meta">
+        <span>Due ${escH(job.dueDateLabel || fmtDueLabel(job.dueDate))}</span>
+        <span>${pcs || '—'} pcs</span>
+        ${job.printavoStatus ? `<span>${escH(job.printavoStatus)}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function buildShipboardTrackingCard(row, queue){
+  const tracking = String(row.tracking_code || '').trim();
+  const matched = rowMatchedOrder(row);
+  const inferred = inferShipboardMatch(row, queue);
+  const selected = matched ? '' : inferred ? String(inferred.id) : '';
+  const trackUrl = safeHref(row.public_url);
+  const dest = [row.to_company, row.to_name].filter(Boolean).join(' / ') || 'No ship-to name';
+  const loc = [row.to_city, row.to_state].filter(Boolean).join(', ');
+  const selectId = 'shipmatch-' + tracking.replace(/[^a-z0-9_-]/gi, '-');
+  const options = [
+    '<option value="">Match to invoice…</option>',
+    ...queue.map(j => `<option value="${escH(j.id)}" ${String(j.id)===selected?'selected':''}>#${escH(j.number)} · ${escH(j.clientTag || j.customer || 'Unknown')}</option>`)
+  ].join('');
+  const matchHtml = matched
+    ? `<div class="shipboard-meta"><span>Matched to invoice ${escH(matched)}</span></div>`
+    : `<div class="shipboard-match-row">
+         <select class="shipboard-select" id="${escH(selectId)}">${options}</select>
+         <button class="shipboard-confirm" onclick="confirmShipboardMatch('${escH(tracking)}','${escH(selectId)}')">Confirm</button>
+       </div>`;
+  return `
+    <div class="shipboard-card shipboard-tracking-card">
+      <div class="shipboard-top">
+        <div style="min-width:0">
+          <div class="shipboard-num">${escH(tracking || 'No tracking')}</div>
+          <div class="shipboard-name">${escH([row.carrier, row.service].filter(Boolean).join(' · ') || 'Carrier/service pending')}</div>
+        </div>
+        ${trackUrl !== '#' ? `<a class="shipboard-link shipboard-track-link" href="${escH(trackUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Track</a>` : ''}
+      </div>
+      <div class="shipboard-meta">
+        <span>Landing ${escH(fmtShipDate(row.est_delivery_date))}</span>
+        <span>Label ${escH(fmtShipDate(row.label_created))}</span>
+        <span>${row.transit_days ? escH(row.transit_days) + ' transit days' : 'Transit —'}</span>
+        <span>Delivered ${escH(fmtShipDate(row.delivered_date))}</span>
+      </div>
+      <div class="shipboard-meta">
+        <span>${escH(dest)}</span>
+        ${loc ? `<span>${escH(loc)}</span>` : ''}
+        <span>${escH(fmtShipRecency(row.last_update || row.label_created))}</span>
+      </div>
+      <div class="shipboard-internal">Internal only · Cost ${escH(fmtShipMoney(row.cost))}</div>
+      ${matchHtml}
+    </div>`;
+}
+
+async function confirmShipboardMatch(trackingCode, selectId){
+  const sel = document.getElementById(selectId);
+  const job = sel ? getJob(sel.value) : null;
+  if(!trackingCode || !job){
+    showToast('Select an invoice to match');
+    return;
+  }
+  try {
+    const res = await fetch(SHIPBOARD_MATCH_URL, {
+      method:'POST',
+      credentials:'same-origin',
+      headers:{ 'Content-Type':'application/json' },
+      body:JSON.stringify({ tracking_code:trackingCode, matched_order:String(job.number) }),
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const row = _shipboardRows.find(r => String(r.tracking_code || '').trim() === trackingCode);
+    if(row) row.matched_order = String(job.number);
+    buildBoard();
+    showToast('✓ Matched to #' + job.number);
+  } catch(err){
+    console.warn('Ship Board match failed:', err);
+    showToast('⚠ Match failed');
   }
 }
 
