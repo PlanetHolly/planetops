@@ -43,12 +43,28 @@ const GLYPHS = {
   floor:         '<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="4" height="13" rx="1.4" fill="#F7BE00"/><rect x="10" y="5.5" width="4" height="8.5" rx="1.4" fill="#F7BE00"/><rect x="16" y="5.5" width="4" height="10.5" rx="1.4" fill="#F7BE00"/></svg>',
   qc:            '<svg viewBox="0 0 24 24"><path d="M12 3.8l6.8 2.6v5.1c0 4-2.9 6.9-6.8 8.2-3.9-1.3-6.8-4.2-6.8-8.2V6.4z" fill="#4ade80"/><path d="M8.8 12.1l2.2 2.2 4.2-4.5" fill="none" stroke="#232323" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   'qc-gate-form':'<svg viewBox="0 0 24 24"><rect x="5" y="3.6" width="14" height="16.8" rx="2.6" fill="#4ade80"/><path d="M8.4 8.6h7.2M8.4 12h7.2M8.4 15.4h4.2" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round"/></svg>',
-  // ── Quote desks (geometric family, brand yellow — the standard going forward) ──
+  // ── Revenue House + Desks (QB-style: distinct bright glyph per surface) ──
+  // Quote desks
   'apparel-quote-team':   '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="#F7BE00"/></svg>',
-  'apparel-mix-quote':    '<svg viewBox="0 0 24 24"><circle cx="9.5" cy="10" r="4.3" fill="#F7BE00" opacity=".85"/><circle cx="14.5" cy="10" r="4.3" fill="#F7BE00" opacity=".55"/><circle cx="12" cy="15" r="4.3" fill="#F7BE00"/></svg>',
-  'promo-quote-desk':     '<svg viewBox="0 0 24 24"><path d="M12 3.5l8.5 8.5-8.5 8.5L3.5 12z" fill="#F7BE00"/></svg>',
-  'dtf-quote-desk':       '<svg viewBox="0 0 24 24"><path d="M12 4.5l8 13.5H4z" fill="#F7BE00"/></svg>',
-  'embroidery-quote-desk':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#F7BE00" stroke-width="3.2"/></svg>',
+  'apparel-mix-quote':    '<svg viewBox="0 0 24 24"><circle cx="9.5" cy="10" r="4.4" fill="#F7BE00"/><circle cx="14.5" cy="10" r="4.4" fill="#38bdf8" opacity=".9"/><circle cx="12" cy="15" r="4.4" fill="#f472b6" opacity=".9"/></svg>',
+  'bandana-quote-team':   '<svg viewBox="0 0 24 24"><path d="M4 7.5h16l-8 10.5z" fill="#fb7185"/></svg>',
+  'promo-quote-desk':     '<svg viewBox="0 0 24 24"><path d="M12 3.5l8.5 8.5-8.5 8.5L3.5 12z" fill="#a78bfa"/></svg>',
+  'dtf-quote-desk':       '<svg viewBox="0 0 24 24"><path d="M12 4.5l8 13.5H4z" fill="#fb923c"/></svg>',
+  'embroidery-quote-desk':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#34d399" stroke-width="3.2"/></svg>',
+  desks:                  '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/></svg>',
+  // Revenue House surfaces
+  'watchtower-rev':   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="#2dd4bf"/></svg>',
+  retention:          '<svg viewBox="0 0 24 24"><path d="M12 18.6S4.8 14.3 4.8 9.6A3.6 3.6 0 0 1 12 8.1a3.6 3.6 0 0 1 7.2 1.5c0 4.7-7.2 9-7.2 9z" fill="#f472b6"/></svg>',
+  'command-center':   '<svg viewBox="0 0 24 24"><path d="M6 8h12M6 12h12M6 16h12" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round"/><circle cx="9" cy="8" r="2.1" fill="#c084fc"/><circle cx="15.5" cy="12" r="2.1" fill="#c084fc"/><circle cx="10" cy="16" r="2.1" fill="#c084fc"/></svg>',
+  'status-simulator': '<svg viewBox="0 0 24 24"><path d="M9 7l8 5-8 5z" fill="#38bdf8"/></svg>',
+  signals:            '<svg viewBox="0 0 24 24"><rect x="5" y="13" width="3.2" height="5.5" rx="1" fill="#3b82f6"/><rect x="10.4" y="9" width="3.2" height="9.5" rx="1" fill="#3b82f6"/><rect x="15.8" y="5" width="3.2" height="13.5" rx="1" fill="#3b82f6"/></svg>',
+  pricing:            '<svg viewBox="0 0 24 24"><path d="M4.5 4.5h7l8.5 8.5-7 7-8.5-8.5z" fill="#34d399"/><circle cx="8.3" cy="8.3" r="1.7" fill="#0b3d2e"/></svg>',
+  'bandana-pricing':  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.6" fill="#fbbf24"/><path d="M12 7.4v9.2M9.9 9.6c0-1.1 1-1.8 2.1-1.8s2.1.7 2.1 1.8-1 1.6-2.1 1.6-2.1.6-2.1 1.7 1 1.8 2.1 1.8 2.1-.7 2.1-1.8" fill="none" stroke="#7c4a03" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  'apparel-matrix-review':'<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" fill="none" stroke="#818cf8" stroke-width="2"/><path d="M5 10h14M5 14.3h14M10 5v14M14.3 5v14" stroke="#818cf8" stroke-width="1.4"/></svg>',
+  'bandana-quote-fin':'<svg viewBox="0 0 24 24"><path d="M4 7.5h16l-8 10.5z" fill="none" stroke="#fb7185" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  'apparel-quote-calc':'<svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2.2" fill="#F7BE00"/><rect x="8" y="6.4" width="8" height="3" rx="1" fill="#232323"/><circle cx="9" cy="13" r="1.2" fill="#232323"/><circle cx="12" cy="13" r="1.2" fill="#232323"/><circle cx="15" cy="13" r="1.2" fill="#232323"/><circle cx="9" cy="16.6" r="1.2" fill="#232323"/><circle cx="12" cy="16.6" r="1.2" fill="#232323"/><circle cx="15" cy="16.6" r="1.2" fill="#232323"/></svg>',
+  'bandana-pricing-desk':'<svg viewBox="0 0 24 24"><path d="M4 7.5h16l-8 10.5z" fill="#fda4af"/></svg>',
+  'revenue-discovery':'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.2" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M14.6 14.6l4 4" stroke="#94a3b8" stroke-width="2.4" stroke-linecap="round"/></svg>',
   // ── PlanetOps surfaces (batch 1) ──
   schedule:          '<svg viewBox="0 0 24 24"><rect x="4.5" y="6" width="15" height="13" rx="3" fill="#38bdf8"/><rect x="7.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="14.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#232323"/><rect x="7.5" y="14.5" width="6" height="1.8" rx=".9" fill="#232323"/></svg>',
   capacity:          '<svg viewBox="0 0 24 24"><path d="M4.5 17a7.5 7.5 0 0 1 15 0" fill="none" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><path d="M12 17l4.5-4" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.7" fill="#f59e0b"/></svg>',
