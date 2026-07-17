@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incoming Board — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --up:#3AAE5A; --down:#D64545; --flat:#8A93A0; --line:rgba(0,0,0,.09);
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:1040px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:860px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}body{padding:0;}}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:.9rem;margin-bottom:1rem;}
+.head .t{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+.brandlogo{height:26px;width:auto;display:block;}
+h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0 .05em;line-height:1.05;}
+.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
+.updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
+.summary{display:flex;align-items:stretch;gap:.8rem;flex-wrap:wrap;margin:1.1rem 0 1.2rem;}
+.count{border:1px solid #000;border-radius:11px;padding:.75rem 1rem;min-width:170px;background:#fff;}
+.count b{display:block;font-size:2rem;line-height:1;font-weight:900;}
+.count span{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);font-weight:800;margin-top:.25rem;}
+.notice{flex:1;min-width:260px;font-size:.78rem;color:var(--pa-tonal);background:#FBFBF4;border-left:3px solid var(--pa-yellow);padding:.75rem .9rem;border-radius:5px;display:flex;align-items:center;}
+.groups{display:grid;gap:1rem;}
+.job{border-top:1.5px solid #000;padding-top:.8rem;}
+.jobhead{display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;margin-bottom:.65rem;}
+.jobhead h2{font-size:1rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0;line-height:1.1;}
+.jobhead .meta{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--flat);font-weight:800;white-space:nowrap;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.75rem;}
+.card{border:1px solid #000;border-radius:11px;padding:.85rem .95rem;background:#fff;}
+.card.overdue{border-color:var(--down);box-shadow:inset 0 0 0 2px rgba(214,69,69,.12);}
+.card.today{border-color:#000;box-shadow:inset 0 0 0 2px rgba(247,190,0,.32);}
+.top{display:flex;align-items:center;justify-content:space-between;gap:.7rem;margin-bottom:.55rem;}
+.vendor{font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;font-weight:900;}
+.status{font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:.18rem .48rem;background:#EEF1F5;color:var(--pa-tonal);white-space:nowrap;}
+.status.needs_eta{background:#FFF3CC;color:#7a5c00;border:1px solid var(--pa-yellow);}
+.summarytxt{font-size:.95rem;font-weight:800;line-height:1.25;margin:.35rem 0 .8rem;}
+.eta{border:1px solid #000;border-radius:8px;padding:.65rem .75rem;margin:.65rem 0 .75rem;background:#FAFBFC;}
+.eta .label{font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;color:var(--pa-tonal);font-weight:900;}
+.eta .date{font-size:1.55rem;font-weight:900;line-height:1.05;margin-top:.08rem;}
+.eta .urgency{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-top:.25rem;color:var(--flat);}
+.eta.overdue{background:#FDECEC;border-color:var(--down);}
+.eta.overdue .date,.eta.overdue .urgency{color:#8c1d1d;}
+.eta.today,.eta.tomorrow{background:#FFF8DF;border-color:var(--pa-yellow);}
+.eta.today .urgency,.eta.tomorrow .urgency{color:#7a5c00;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;border-top:1px dotted var(--line);padding-top:.65rem;}
+.kv{min-width:0;}
+.kv span{display:block;font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--flat);font-weight:900;}
+.kv b{display:block;font-size:.9rem;font-weight:900;margin-top:.12rem;overflow-wrap:anywhere;}
+.empty{padding:2rem;text-align:center;color:var(--flat);font-size:.95rem;font-weight:800;border:1px solid var(--line);border-radius:8px;background:#FAFBFC;}
+footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.68rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;}
+@media(max-width:760px){
+  .wrap{padding:1rem 1rem 1.8rem;}
+  h1{font-size:1.45rem;}
+  .jobhead{display:block;}
+  .jobhead .meta{margin-top:.25rem;}
+  .cards{grid-template-columns:1fr;}
+  .grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <img class="brandlogo" src="../assets/pa-logo-black.png" alt="Planet Apparel">
+    <span class="t">Production Floor</span>
+  </div>
+  <div class="sub">Production Floor · Incoming Board</div>
+  <h1>Incoming Board</h1>
+  <div class="updated" id="updated">Loading...</div>
+
+  <div id="panel"></div>
+
+  <footer>
+    Read-only inbound view — what vendors are sending, and when it lands. Data source: Feed Fork C router snapshot. Receiving check-off is not built yet.
+  </footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt$ = n => (n==null)?'—':'$'+Math.round(n).toLocaleString();
+const fmtN = n => (n==null)?'—':Number(n).toLocaleString();
+let DATA=null;
+
+function escapeHtml(v){
+  return String(v==null?'':v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function todayLocal(){
+  const d=new Date();
+  return new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+
+function parseEta(eta){
+  if(!eta) return null;
+  const m=String(eta).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return null;
+  return new Date(+m[1],+m[2]-1,+m[3]);
+}
+
+function dayDiff(date){
+  return Math.round((date-todayLocal())/86400000);
+}
+
+function etaInfo(item){
+  const date=parseEta(item.eta);
+  if(!date) return {label:'ETA unknown', urgency:'Needs ETA', cls:'unknown'};
+  const diff=dayDiff(date);
+  const isReceived=String(item.status||'').toLowerCase()==='received';
+  const label=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  if(diff<0&&!isReceived) return {label, urgency:`Overdue by ${Math.abs(diff)} day${Math.abs(diff)===1?'':'s'}`, cls:'overdue'};
+  if(diff===0) return {label, urgency:'Arriving today', cls:'today'};
+  if(diff===1) return {label, urgency:'Arriving tomorrow', cls:'tomorrow'};
+  if(diff<=7) return {label, urgency:`Arriving this week (${diff} days)`, cls:'week'};
+  return {label, urgency:`Arriving in ${diff} days`, cls:'future'};
+}
+
+function plural(n, word){
+  return `${fmtN(n)} ${word}${Number(n)===1?'':'s'}`;
+}
+
+function groupByJob(items){
+  return items.reduce((acc,item)=>{
+    const job=item.job||'Unassigned';
+    (acc[job]||(acc[job]=[])).push(item);
+    return acc;
+  },{});
+}
+
+function itemCard(item){
+  const eta=etaInfo(item);
+  const status=String(item.status||'routed');
+  return `<div class="card ${eta.cls==='overdue'?'overdue':eta.cls==='today'||eta.cls==='tomorrow'?'today':''}">
+    <div class="top">
+      <div class="vendor">${escapeHtml(item.vendor||'Unknown vendor')}</div>
+      <div class="status ${escapeHtml(status)}">${escapeHtml(status.replace(/_/g,' '))}</div>
+    </div>
+    <div class="summarytxt">${escapeHtml(item.summary||'Inbound order')}</div>
+    <div class="eta ${eta.cls}">
+      <div class="label">ETA</div>
+      <div class="date">${escapeHtml(eta.label)}</div>
+      <div class="urgency">${escapeHtml(eta.urgency)}</div>
+    </div>
+    <div class="grid">
+      <div class="kv"><span>Job</span><b>#${escapeHtml(item.job||'—')}</b></div>
+      <div class="kv"><span>Total</span><b>${fmt$(item.total)}</b></div>
+      <div class="kv"><span>Invoices</span><b>${plural(item.line_count, 'invoice')}</b></div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const items=Array.isArray(DATA.items)?DATA.items:[];
+  if(!items.length){
+    $('#panel').innerHTML=`<div class="summary"><div class="count"><b>0</b><span>Inbound items</span></div></div>
+      <div class="empty">Nothing inbound right now.</div>`;
+    return;
+  }
+  const overdue=items.filter(x=>etaInfo(x).cls==='overdue').length;
+  const groups=groupByJob(items);
+  const sections=Object.keys(groups).sort().map(job=>{
+    const rows=groups[job];
+    const customer=rows.find(x=>x.customer)?.customer||'';
+    return `<section class="job">
+      <div class="jobhead">
+        <h2>Job #${escapeHtml(job)}${customer?' · '+escapeHtml(customer):''}</h2>
+        <div class="meta">${plural(rows.length,'inbound item')}</div>
+      </div>
+      <div class="cards">${rows.map(itemCard).join('')}</div>
+    </section>`;
+  }).join('');
+  $('#panel').innerHTML=`<div class="summary">
+      <div class="count"><b>${fmtN(items.length)}</b><span>Inbound items</span></div>
+      <div class="count"><b>${fmtN(Object.keys(groups).length)}</b><span>Jobs affected</span></div>
+      <div class="notice">${overdue?`${overdue} overdue inbound item${overdue===1?' needs':'s need'} floor attention.`:'ETA is the priority field: scan the board by landing date first.'}</div>
+    </div>
+    <div class="groups">${sections}</div>`;
+}
+
+async function boot(){
+  try{
+    const r=await fetch('./incoming-data.json?_='+Math.floor(Date.now()/60000));
+    DATA=await r.json();
+  }catch(e){ DATA={items:[]}; }
+  $('#updated').textContent = DATA.generated_at ? ('Snapshot: '+DATA.generated_at) : 'No snapshot yet';
+  render();
+}
+boot();
+</script>
+</body>
+</html>
