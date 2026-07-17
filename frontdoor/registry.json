@@ -331,6 +331,17 @@
           "icon": "🏠"
         },
         {
+          "id": "watchtower-rev",
+          "kind": "surface",
+          "name": "Watchtower",
+          "blurb": "One view over every engine — the agent/system overview. It rings when something breaks.",
+          "type": "live-app",
+          "url": "../revenue-house/command/#/activity",
+          "status": "live",
+          "access": "open",
+          "icon": "📡"
+        },
+        {
           "id": "retention",
           "kind": "hub",
           "name": "Retention",
@@ -775,6 +786,17 @@
       "name": "Systems",
       "blurb": "Automations · system maps · standards",
       "children": [
+        {
+          "id": "watchtower",
+          "kind": "surface",
+          "name": "Watchtower",
+          "blurb": "One view over every engine — the agent/system overview. It rings when something breaks.",
+          "type": "live-app",
+          "url": "../revenue-house/command/#/activity",
+          "status": "live",
+          "access": "open",
+          "icon": "📡"
+        },
         {
           "id": "agentic-os",
           "kind": "surface",
