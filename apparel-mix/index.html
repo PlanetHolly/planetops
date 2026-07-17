@@ -127,7 +127,7 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
         </div>
         <div class="twocol">
           <div class="field"><label for="source">Garment source</label><select id="source"><option>PA-supplied</option><option>customer-supplied</option></select></div>
-          <div class="field"><label for="tier">Screen-print tier</label><select id="tier"><option>Standard</option><option>Partner</option></select></div>
+          <div class="field"><label for="tier">Tier</label><select id="tier"><option>Standard</option><option>Partner</option><option>VIP</option></select></div>
         </div>
         <div class="field"><label for="ink">Screen-print ink</label><select id="ink"><option>Plastisol</option><option>ECO water-based</option></select></div>
         <div class="twocol optionalDtf">
@@ -1273,7 +1273,7 @@ function setupStaticControls() {
   $('shippingTotal').value = Number((DTF_DATA.shipping || {}).default_estimate_total || 15).toFixed(2);
   $('digitizingTotal').value = Number((EMBROIDERY_DATA.digitizing || {}).default || 25).toFixed(2);
 }
-function rowsFor(tier, ink, placement, colors) { return (((MATRIX[tier] || {})[ink] || {})[placement] || {})[String(colors)] || null; }
+function rowsFor(tier, ink, placement, colors) { const t = tier === 'VIP' ? 'Partner' : tier; return (((MATRIX[t] || {})[ink] || {})[placement] || {})[String(colors)] || null; }
 function floorQty(rows, qty) { const qs = Object.keys(rows || {}).map(Number).sort((a,b)=>a-b); if (!qs.length) return null; let chosen = qs[0]; for (const q of qs) if (q <= qty) chosen = q; return chosen; }
 function screenPrintLookup(tier, ink, placement, colors, qty) {
   if (colors <= 0) return {price:0, matrixQty:null, prodQty:null, cost:0, sp:0, rate:null, available:true};

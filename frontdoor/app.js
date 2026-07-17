@@ -43,6 +43,12 @@ const GLYPHS = {
   floor:         '<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="4" height="13" rx="1.4" fill="#F7BE00"/><rect x="10" y="5.5" width="4" height="8.5" rx="1.4" fill="#F7BE00"/><rect x="16" y="5.5" width="4" height="10.5" rx="1.4" fill="#F7BE00"/></svg>',
   qc:            '<svg viewBox="0 0 24 24"><path d="M12 3.8l6.8 2.6v5.1c0 4-2.9 6.9-6.8 8.2-3.9-1.3-6.8-4.2-6.8-8.2V6.4z" fill="#4ade80"/><path d="M8.8 12.1l2.2 2.2 4.2-4.5" fill="none" stroke="#232323" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   'qc-gate-form':'<svg viewBox="0 0 24 24"><rect x="5" y="3.6" width="14" height="16.8" rx="2.6" fill="#4ade80"/><path d="M8.4 8.6h7.2M8.4 12h7.2M8.4 15.4h4.2" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  // ── Quote desks (geometric family, brand yellow — the standard going forward) ──
+  'apparel-quote-team':   '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="#F7BE00"/></svg>',
+  'apparel-mix-quote':    '<svg viewBox="0 0 24 24"><circle cx="9.5" cy="10" r="4.3" fill="#F7BE00" opacity=".85"/><circle cx="14.5" cy="10" r="4.3" fill="#F7BE00" opacity=".55"/><circle cx="12" cy="15" r="4.3" fill="#F7BE00"/></svg>',
+  'promo-quote-desk':     '<svg viewBox="0 0 24 24"><path d="M12 3.5l8.5 8.5-8.5 8.5L3.5 12z" fill="#F7BE00"/></svg>',
+  'dtf-quote-desk':       '<svg viewBox="0 0 24 24"><path d="M12 4.5l8 13.5H4z" fill="#F7BE00"/></svg>',
+  'embroidery-quote-desk':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#F7BE00" stroke-width="3.2"/></svg>',
   // ── PlanetOps surfaces (batch 1) ──
   schedule:          '<svg viewBox="0 0 24 24"><rect x="4.5" y="6" width="15" height="13" rx="3" fill="#38bdf8"/><rect x="7.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="14.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#232323"/><rect x="7.5" y="14.5" width="6" height="1.8" rx=".9" fill="#232323"/></svg>',
   capacity:          '<svg viewBox="0 0 24 24"><path d="M4.5 17a7.5 7.5 0 0 1 15 0" fill="none" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><path d="M12 17l4.5-4" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.7" fill="#f59e0b"/></svg>',

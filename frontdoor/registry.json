@@ -537,7 +537,7 @@
             {
               "id": "apparel-quote-team",
               "kind": "surface",
-              "name": "Apparel Quote (desk)",
+              "name": "Screen Printed Apparel",
               "blurb": "Quick apparel screen-print quote — garment + decoration + services. Prices only. Team quoting tool.",
               "type": "tool",
               "url": "../apparel-quote/",
@@ -548,7 +548,7 @@
             {
               "id": "apparel-mix-quote",
               "kind": "surface",
-              "name": "Apparel Quote — all methods (the mix)",
+              "name": "Mixed Decorations Apparel",
               "blurb": "One garment, many placements — toggle Screen Print / Embroidery / DTF per placement and get ONE project margin total. Shows margin. DRAFT.",
               "type": "tool",
               "url": "../apparel-mix/",

@@ -14,6 +14,7 @@
 html,body { margin:0; min-height:100%; }
 body { font-family:Montserrat, Avenir Next, Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(135deg,#fffaf0 0%,var(--paper) 42%,#e9e7e0 100%); color:var(--ink); line-height:1.45; }
 button,input,select { font:inherit; }
+button { cursor:pointer; }
 .shell { width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
 header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:18px; padding:16px 0 24px; }
 .mark { width:54px; height:54px; border:3px solid var(--ink); border-radius:50%; position:relative; display:grid; place-items:center; font-weight:900; letter-spacing:0; background:var(--yellow); box-shadow:8px 8px 0 var(--ink); }
@@ -21,7 +22,7 @@ header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; 
 h1 { margin:0; font-size:clamp(1.55rem, 3vw, 3rem); line-height:1; letter-spacing:0; text-transform:uppercase; }
 .kicker { margin:5px 0 0; color:var(--muted); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .badge { border:1px solid var(--ink); padding:8px 10px; font-size:.72rem; text-transform:uppercase; font-weight:900; background:var(--card); white-space:nowrap; }
-.layout { display:grid; grid-template-columns:minmax(300px, 410px) 1fr; gap:18px; align-items:start; }
+.layout { display:grid; grid-template-columns:minmax(300px, 430px) 1fr; gap:18px; align-items:start; }
 .panel { background:rgba(255,255,255,.86); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:8px; overflow:hidden; }
 .panel h2 { margin:0; padding:14px 16px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; background:var(--ink); color:#fff; }
 .form { padding:16px; display:grid; gap:14px; }
@@ -30,10 +31,22 @@ label,.label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;
 input[type="number"],select { width:100%; border:1px solid #cfc8b8; background:#fff; color:#111; border-radius:6px; min-height:42px; padding:8px 10px; outline:none; }
 input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 0 0 3px rgba(247,190,0,.25); }
 .twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.threecol { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.subhead { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:4px; }
+.subhead h3 { margin:0; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; }
+.ghostBtn,.iconBtn { border:1px solid var(--ink); background:#fff; color:#111; border-radius:6px; min-height:34px; padding:6px 10px; font-weight:950; font-size:.74rem; text-transform:uppercase; }
+.ghostBtn:disabled,.iconBtn:disabled { opacity:.45; cursor:not-allowed; }
+.placementList { display:grid; gap:9px; }
+.placementRow { display:grid; grid-template-columns:62px 1fr auto; align-items:end; gap:9px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fbfaf7; }
+.placementTag { display:grid; place-items:center; min-height:42px; border:2px solid var(--ink); border-radius:6px; background:var(--yellow); color:#111; font-size:.75rem; font-weight:950; }
+.placementRow .field { gap:4px; }
+.placementRow .iconBtn { min-width:38px; padding:6px 8px; }
 .checkgrid { display:grid; gap:8px; }
 .check { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; min-height:40px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:800; }
-.check input { width:17px; height:17px; accent-color:var(--yellow); }
+.check input[type="checkbox"] { width:17px; height:17px; accent-color:var(--yellow); }
 .check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
+.check.withInput { grid-template-columns:auto minmax(0,1fr) 86px; }
+.check.withInput input[type="number"] { min-height:32px; padding:5px 8px; }
 .note { color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
@@ -46,14 +59,6 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
 .perunit .revenueBlock { margin-bottom:12px; }
 .perunit span { display:block; color:#c9c5bc; font-size:.78rem; font-weight:800; }
-.marginHero { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.metric { background:rgba(255,255,255,.9); border:1px solid var(--line); border-radius:8px; padding:14px; min-height:112px; display:grid; align-content:space-between; box-shadow:var(--shadow); }
-.metric.dark { background:#181715; border-color:#26231d; color:#f8f3e6; }
-.metric small { display:block; color:var(--muted); text-transform:uppercase; font-weight:950; letter-spacing:.09em; font-size:.68rem; }
-.metric.dark small { color:#c9c1b0; }
-.metric b { display:block; margin-top:10px; font-size:clamp(1.45rem, 3vw, 2.7rem); line-height:1; font-weight:950; font-variant-numeric:tabular-nums; }
-.metric .sub { color:var(--muted); font-size:.78rem; font-weight:800; margin-top:6px; }
-.metric.dark .sub { color:#f7df92; }
 .breakdown { padding:0; }
 .rows { padding:10px 16px 16px; }
 .row { display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
@@ -84,8 +89,9 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 @media (prefers-color-scheme:dark) {
   :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
   body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
-  input[type="number"],select,.check { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
-  .panel,.metric { background:rgba(29,27,24,.9); }
+  input[type="number"],select,.check,.placementRow { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  .ghostBtn,.iconBtn { background:#11100e; color:#f5f0e6; border-color:#f5f0e6; }
+  .panel { background:rgba(29,27,24,.9); }
   .panel h2,.hero { background:#050505; }
   label,.label { color:#e5ddcd; }
   .mark { color:#111; border-color:#111; box-shadow:8px 8px 0 #f5f0e6; } .mark:after { background:#111; }
@@ -99,10 +105,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
   .shell { width:min(100% - 22px, 1180px); padding-top:16px; }
   header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
   .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .perunit { text-align:left; }
-  .marginHero,.spgrid,.twocol { grid-template-columns:1fr; }
+  .spgrid,.twocol,.threecol { grid-template-columns:1fr; }
   .row { grid-template-columns:minmax(0,1fr) auto; }
 }
-@media print { body { background:#fff; } .panel,.hero,.internal,.metric { box-shadow:none; } .shell { width:auto; padding:0; } }
+@media (max-width:520px) {
+  .placementRow { grid-template-columns:48px 1fr auto; }
+  .check,.check.withInput { grid-template-columns:auto minmax(0,1fr); }
+  .check .pts,.check.withInput input[type="number"] { grid-column:2; }
+}
+@media print { body { background:#fff; } .panel,.hero,.internal { box-shadow:none; } .shell { width:auto; padding:0; } }
 </style>
 </head>
 <body>
@@ -120,33 +131,38 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="panel">
       <h2>Quote Inputs</h2>
       <form class="form" id="quoteForm">
-        <div class="field">
-          <label for="stitches">Stitch count</label>
-          <input id="stitches" type="number" min="1" step="1" value="8500">
-          <div class="helper" id="stitchBandNote">Stitch band will show here.</div>
-        </div>
         <div class="twocol">
-          <div class="field"><label for="qty">Quantity</label><input id="qty" type="number" min="1" step="1" value="48"></div>
-          <div class="field"><label for="placements">Placements</label><input id="placements" type="number" min="1" step="1" value="1"></div>
+          <div class="field"><label for="qty">Order quantity</label><input id="qty" type="number" min="1" step="1" value="48"></div>
+          <div class="field"><label for="tier">Tier</label><select id="tier"></select></div>
         </div>
         <div class="field">
           <label for="vendorRouting">Vendor routing</label>
           <select id="vendorRouting"></select>
           <div class="note" id="routingNote">Bear is the default route.</div>
         </div>
-        <div class="field">
-          <label for="digitizingTotal">Digitizing one-time $</label>
-          <input id="digitizingTotal" type="number" min="0" step="0.01" value="25.00">
-          <div class="note" id="digitizingHelper">Bear digitizing rate unconfirmed, Empowered is $15/$25/$40. One-time, spread over qty for per-unit.</div>
+
+        <div class="subhead">
+          <h3>Garment</h3>
         </div>
-        <div class="checkgrid">
-          <label class="check" for="reusedDesign">
-            <input id="reusedDesign" type="checkbox">
-            <span>Reused / existing design</span>
-            <span class="pts">$0</span>
-          </label>
+        <div class="threecol">
+          <div class="field"><label for="blankCost">Blank cost</label><input id="blankCost" type="number" min="0" step="0.01" value="0.00"></div>
+          <div class="field"><label for="garmentSource">Garment source</label><select id="garmentSource"><option value="PA-supplied">PA-supplied</option><option value="customer-supplied">Customer-supplied</option></select></div>
+          <div class="field"><label for="garmentQty">Garment quantity</label><input id="garmentQty" type="number" min="1" step="1" value="48"></div>
         </div>
-        <div class="note">Each placement is priced off the same Bear stitch band and quantity row. P1 is the anchor; P2+ are additional placements.</div>
+        <div class="helper" id="garmentNote">Blank cost 0 = garment not included.</div>
+
+        <div class="subhead">
+          <h3>Placements</h3>
+          <button class="ghostBtn" id="addPlacement" type="button">Add placement</button>
+        </div>
+        <div class="placementList" id="placementList"></div>
+        <div class="helper" id="placementNote">Each placement has its own stitch count and is priced from the Bear row for the order quantity.</div>
+
+        <div class="subhead">
+          <h3>Specialty Items</h3>
+        </div>
+        <div class="checkgrid" id="specialtyItems"></div>
+        <div class="note">Digitizing is a separate manual invoice fee ($65 up to 5.95&quot;, $120 6&quot;+), not included here.</div>
       </form>
     </section>
 
@@ -154,17 +170,18 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
       <div class="flagbar" id="flags"></div>
       <section class="hero">
         <div class="heroProfit">
-          <small>Order profit</small>
+          <small>Project margin</small>
           <div class="total" id="marginTotal">$0</div>
           <div class="profitMeta"><span id="marginUnit">$0.00 / unit</span><span id="marginPct">0.0% margin</span></div>
         </div>
         <div class="perunit">
-          <div class="revenueBlock"><small>Order total</small><b id="orderTotal">$0</b></div>
-          <small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
+          <div class="revenueBlock"><small>Project revenue</small><b id="orderTotal">$0</b></div>
+          <small>Per decorated unit</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
         </div>
       </section>
-      <section class="panel breakdown"><h2>Landed Cost Breakdown</h2><div class="rows" id="costBreakdown"></div></section>
-      <section class="internal"><h2>SP detail - target vs survival</h2><div class="spgrid" id="spPanel"></div></section>
+      <section class="panel breakdown"><h2>Project Cost + Revenue</h2><div class="rows" id="costBreakdown"></div></section>
+      <section class="panel breakdown"><h2>Per-Placement Breakdown</h2><div class="rows" id="placementBreakdown"></div></section>
+      <section class="internal"><h2>SP detail - target vs tier floor</h2><div class="spgrid" id="spPanel"></div></section>
       <section class="panel breakdown"><h2>Embroidery Note</h2><div class="rows" id="embroideryNote"></div></section>
       <section class="panel breakdown"><h2>Price Decision</h2><div class="rows" id="priceDecision"></div></section>
       <div class="provenance" id="provenance"></div>
@@ -175,11 +192,9 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 <script>
 /*
 EMBROIDERY MODEL PROVENANCE
-Source: bear_embroidery_costs.json.
+Source: bear_embroidery_costs.json, embedded 2026-07-16.
 Embroidery is 100% outsourced to Bear. Bear grid is the all-in decoration cost.
-Price: round up to nearest $0.05 from Landed / (1 - sliding target SP%).
-Landed/unit = Bear decoration cost/unit + digitizing/unit.
-Target SP slides by quantity via sp_curve. Survival SP: 33%.
+Digitizing is deliberately excluded from the calculator and invoiced manually.
 */
 const EMBROIDERY_DATA = {
   "_meta": {
@@ -187,13 +202,7 @@ const EMBROIDERY_DATA = {
     "as_of": "2026-07-16",
     "source": "2026 Price Builder_All Pricing Tabs_02.23.2026.xlsx, tab CURVES_PRODUCTION rows 17-23 ('Bear Designz Master Curve Embroidery', updated 2/16/26). Grade B (real vendor curve). Ties to EVIDENCE/J3_embroidery_engine.md survival+target grids to the penny.",
     "model": "Embroidery is 100% OUTSOURCED to Bear (PA does not stitch) -> the Bear grid IS the all-in decoration cost, no PA application labor. Cost drives sell via SP markup, same as DTF/promo.",
-    "stitch_bands": [
-      "0-7k",
-      "7-14k",
-      "14-21k",
-      "21-28k",
-      "28-35k"
-    ],
+    "stitch_bands": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
     "stitch_band_ranges": {
       "0-7k": "1-6,999 stitches",
       "7-14k": "7,000-13,999",
@@ -201,19 +210,12 @@ const EMBROIDERY_DATA = {
       "21-28k": "21,000-27,999",
       "28-35k": "28,000-35,000"
     },
-    "qty_rows": [
-      1,
-      6,
-      12,
-      24,
-      48,
-      96,
-      192
-    ],
+    "qty_rows": [1,6,12,24,48,96,192],
     "qty_floor_note": "Printavo FLOORS between rows (never interpolates). A qty between rows uses the LOWER row's per-unit price (higher per-unit). e.g. qty 30 -> row 24; qty 200 -> row 192.",
     "over_grid_note": "Stitch count > 35,000 is off-grid -> custom quote required.",
     "changelog": [
-      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $."
+      "2026-07-16 v3: target margin now SLIDES by quantity (sp_curve) instead of flat 44.5% — mirrors the Master Curve. Desk shows live order profit $.",
+      "2026-07-16 v4: added tiers (Std/Partner/VIP); added specialty_items (thread/puff/personalization/lines) as revenue adders (SP uptick); embroidery desk gets garment blank COG + source + up to 3 placements each own stitch count; digitizing REMOVED from calc (separate invoice fee)."
     ]
   },
   "sp_formula": {
@@ -230,149 +232,104 @@ const EMBROIDERY_DATA = {
     "model": "One-time per NEW design (art -> stitch file). Charged once regardless of qty; spread over qty for the per-unit view.",
     "default": 25,
     "options_note": "Empowered's real card is $15 / $25 / $40 by complexity. Bear's exact digitizing rate is UNCONFIRMED - default $25, adjustable. Reused/existing design = $0.",
-    "reused_design": 0
+    "reused_design": 0,
+    "_status": "REMOVED FROM CALCULATOR per Holly 2026-07-16 - digitizing ($65 up to 5.95in / $120 6in+) is a separate manual invoice fee, not tied into the quote."
   },
   "vendor_routing": {
     "default": "Bear",
-    "options": [
-      "Bear",
-      "Empowered"
-    ],
+    "options": ["Bear","Empowered"],
     "bear_note": "Default. 0/140 cells below Bear cost; multi-placement is fine on Bear.",
     "empowered_warning": "Backup only. Multi-placement (2+ placements) at qty >= 48 sells BELOW COST on Empowered (45/140 cells). If Empowered + placements>=2 + qty>=48: HARD FLAG 're-quote or route to Bear' (~$381 SP per misroute). Empowered digitizing is really $15/$25/$40, not $10."
   },
   "placements_note": "First placement (P1) + each additional (P2+) is priced off the same Bear grid at its own stitch band. Job = sum of placements. A P2 may never appear without a P1.",
   "bear_cost": {
-    "1": [
-      9.82,
-      12.13,
-      15.02,
-      17.32,
-      19.64
-    ],
-    "6": [
-      8.09,
-      9.82,
-      12.7,
-      15.02,
-      17.32
-    ],
-    "12": [
-      6.35,
-      8.09,
-      9.24,
-      10.97,
-      12.7
-    ],
-    "24": [
-      4.62,
-      5.78,
-      6.35,
-      7.51,
-      8.66
-    ],
-    "48": [
-      4.04,
-      5.2,
-      5.78,
-      6.93,
-      8.09
-    ],
-    "96": [
-      3.18,
-      4.34,
-      5.2,
-      6.35,
-      7.51
-    ],
-    "192": [
-      2.89,
-      3.76,
-      4.91,
-      6.07,
-      7.22
-    ],
-    "_cols": [
-      "0-7k",
-      "7-14k",
-      "14-21k",
-      "21-28k",
-      "28-35k"
-    ]
+    "_cols": ["0-7k","7-14k","14-21k","21-28k","28-35k"],
+    "1": [9.82,12.13,15.02,17.32,19.64],
+    "6": [8.09,9.82,12.7,15.02,17.32],
+    "12": [6.35,8.09,9.24,10.97,12.7],
+    "24": [4.62,5.78,6.35,7.51,8.66],
+    "48": [4.04,5.2,5.78,6.93,8.09],
+    "96": [3.18,4.34,5.2,6.35,7.51],
+    "192": [2.89,3.76,4.91,6.07,7.22]
   },
   "sp_curve": {
     "note": "Margin % SLIDES with order quantity (mirrors the screen-print Master Curve: fat margins on small orders, thin on volume). Replaces the old flat 44.5%. Never below survival 33%. Holly-approved shape 2026-07-16; tune band values here.",
     "bands": [
-      {
-        "max": 11,
-        "sp": 0.62
-      },
-      {
-        "max": 23,
-        "sp": 0.58
-      },
-      {
-        "max": 47,
-        "sp": 0.54
-      },
-      {
-        "max": 71,
-        "sp": 0.5
-      },
-      {
-        "max": 143,
-        "sp": 0.47
-      },
-      {
-        "max": 287,
-        "sp": 0.445
-      },
-      {
-        "max": 499,
-        "sp": 0.42
-      },
-      {
-        "max": 999,
-        "sp": 0.4
-      },
-      {
-        "max": 2499,
-        "sp": 0.37
-      },
-      {
-        "max": 4999,
-        "sp": 0.35
-      },
-      {
-        "max": null,
-        "sp": 0.34
-      }
+      {"max":11,"sp":0.62},
+      {"max":23,"sp":0.58},
+      {"max":47,"sp":0.54},
+      {"max":71,"sp":0.5},
+      {"max":143,"sp":0.47},
+      {"max":287,"sp":0.445},
+      {"max":499,"sp":0.42},
+      {"max":999,"sp":0.4},
+      {"max":2499,"sp":0.37},
+      {"max":4999,"sp":0.35},
+      {"max":null,"sp":0.34}
     ],
     "survival_floor": 0.33,
     "round_up_to_dtf": 0.25,
     "round_up_to_embroidery": 0.05
+  },
+  "tiers": {
+    "note": "Standard = full sliding margin. Partner AND VIP = Standard price discounted by the Gold d-curve (same logic as screen-print Gold), floored so tier margin >= 0.60 x Standard margin AND never below 33% survival. VIP is identical to Partner.",
+    "options": ["Standard","Partner","VIP"],
+    "discount_bands": [
+      {"min":2000,"discount":0.05},
+      {"min":400,"discount":0.07},
+      {"min":150,"discount":0.1},
+      {"min":50,"discount":0.15},
+      {"min":0,"discount":0.2}
+    ],
+    "floor_ratio": 0.6
+  },
+  "specialty_items": {
+    "note": "Customer-facing add-ons from the embroidery fee card. Each adds to REVENUE (what PA charges) when selected, nudging project SP up. Digitizing is NOT here - Holly keeps it as a separate manual invoice fee.",
+    "items": [
+      {"id":"specialty_thread","label":"Specialty thread (neon / glow / metallic)","price":1.5,"basis":"per_item","note":"+3 days production"},
+      {"id":"puff","label":"3-D puff","price":0.5,"basis":"per_item_per_placement"},
+      {"id":"personalization","label":"Personalization (names/text, first line)","price":8,"basis":"per_item"},
+      {"id":"additional_lines","label":"Additional lines (max 3)","price":3,"basis":"per_item_per_line","max":3}
+    ]
   }
 };
 
-const TARGET_SP = EMBROIDERY_DATA.sp_formula.target_SP;
-const SURVIVAL_SP = EMBROIDERY_DATA.sp_formula.survival_SP;
-const ROUND_UP_TO = EMBROIDERY_DATA.sp_formula.round_up_to;
+const SURVIVAL_SP = Number((EMBROIDERY_DATA.sp_curve || {}).survival_floor || EMBROIDERY_DATA.sp_formula.survival_SP);
+const ROUND_UP_TO = Number((EMBROIDERY_DATA.sp_curve || {}).round_up_to_embroidery || EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
+const MAX_PLACEMENTS = 3;
 const $ = id => document.getElementById(id);
 const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
 const pct = n => Number(n || 0).toFixed(1) + '%';
+const plural = (n, one, many) => n === 1 ? one : many;
 const readQty = () => Math.max(1, Math.floor(Number($('qty').value) || 1));
-const readPlacements = () => Math.max(1, Math.floor(Number($('placements').value) || 1));
-const readStitches = () => Math.max(0, Math.floor(Number($('stitches').value) || 0));
-const readDigitizingTotal = () => Math.max(0, Number($('digitizingTotal').value) || 0);
-function roundUpTo(value, increment) { return Math.ceil((Number(value) || 0) / increment) * increment; }
+const readGarmentQty = () => Math.max(1, Math.floor(Number($('garmentQty').value) || readQty()));
+const readBlankCost = () => Math.max(0, Number($('blankCost').value) || 0);
+function roundUpTo(value, increment) { return Math.ceil(((Number(value) || 0) - 1e-9) / increment) * increment; }
+function roundUpNickel(value) { return roundUpTo(value, 0.05); }
 function row(name, val, meta, strong) { return '<div class="row' + (strong ? ' strong' : '') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div></div>'; }
 function spDetailItem(name, value) { return '<div class="detailItem"><span>' + name + '</span><span>' + value + '</span></div>'; }
 function flagBlock(kind, text) { return '<div class="flagBlock ' + kind + '">' + text + '</div>'; }
 function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
 function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function embroideryGuidance() { return String(EMBROIDERY_DATA.embroidery_note || '').replace('Quote at target 44.5%;', 'Quote at the current sliding target;'); }
+function targetSpForQty(qty) {
+  const bands = ((EMBROIDERY_DATA.sp_curve || {}).bands || []).map((band, index, all) => {
+    const previousMax = index === 0 ? 0 : Number(all[index - 1].max || 0);
+    const min = previousMax + 1;
+    return {min, max: band.max == null ? null : Number(band.max), sp: Number(band.sp)};
+  });
+  const match = bands.find(band => band.max == null || qty <= band.max) || bands[bands.length - 1] || {min:1, max:null, sp:Number(EMBROIDERY_DATA.sp_formula.target_SP || 0)};
+  const label = match.max == null ? match.min.toLocaleString('en-US') + '+' : match.min.toLocaleString('en-US') + '-' + match.max.toLocaleString('en-US');
+  return {sp: match.sp, label};
+}
+function tierDiscountForQty(qty) {
+  const bands = ((EMBROIDERY_DATA.tiers || {}).discount_bands || []).slice().sort((a, b) => Number(b.min) - Number(a.min));
+  const match = bands.find(band => qty >= Number(band.min)) || {discount:0};
+  return Number(match.discount || 0);
+}
 function stitchBand(stitches) {
-  if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false};
+  if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false, missing:true};
   if (stitches <= 6999) return {band:'0-7k', index:0, label:'1-6,999 stitches', overGrid:false};
   if (stitches <= 13999) return {band:'7-14k', index:1, label:'7,000-13,999 stitches', overGrid:false};
   if (stitches <= 20999) return {band:'14-21k', index:2, label:'14,000-20,999 stitches', overGrid:false};
@@ -386,98 +343,237 @@ function qtyRow(qty) {
   rows.forEach(value => { if (qty >= value) rowValue = value; });
   return rowValue;
 }
-function isBetweenQtyRows(qty, rowValue) {
-  return qty !== rowValue;
+function activePlacementInputs() {
+  return Array.from(document.querySelectorAll('[data-placement-stitches]'));
 }
-function setNoQuote(stitches, bandInfo, qty, placements) {
+function activePlacements() {
+  return activePlacementInputs().map((input, index) => {
+    const stitches = Math.max(0, Math.floor(Number(input.value) || 0));
+    return {id:index + 1, stitches, bandInfo:stitchBand(stitches)};
+  });
+}
+function renderPlacementRows(count) {
+  const existing = activePlacementInputs().map(input => input.value);
+  const values = Array.from({length:count}, (_, index) => existing[index] || (index === 0 ? '8500' : '6500'));
+  $('placementList').innerHTML = values.map((value, index) => (
+    '<div class="placementRow">' +
+      '<div class="placementTag">P' + (index + 1) + '</div>' +
+      '<div class="field"><label for="placement' + (index + 1) + '">Stitch count</label><input id="placement' + (index + 1) + '" data-placement-stitches type="number" min="1" step="1" value="' + escapeHtml(value) + '"></div>' +
+      '<button class="iconBtn" data-remove-placement="' + index + '" type="button" aria-label="Remove placement ' + (index + 1) + '"' + (count === 1 ? ' disabled' : '') + '>X</button>' +
+    '</div>'
+  )).join('');
+  $('addPlacement').disabled = count >= MAX_PLACEMENTS;
+}
+function renderSpecialtyItems() {
+  $('specialtyItems').innerHTML = EMBROIDERY_DATA.specialty_items.items.map(item => {
+    const priceLabel = item.basis === 'per_item_per_placement' ? money(item.price) + '/item/place' : item.basis === 'per_item_per_line' ? money(item.price) + '/item/line' : money(item.price) + '/item';
+    if (item.id === 'additional_lines') {
+      return '<label class="check withInput" for="' + item.id + '">' +
+        '<input id="' + item.id + '" data-specialty="' + item.id + '" type="checkbox">' +
+        '<span>' + escapeHtml(item.label) + '</span>' +
+        '<input id="' + item.id + '_count" type="number" min="0" max="' + Number(item.max || 3) + '" step="1" value="0" aria-label="Additional line count">' +
+      '</label>';
+    }
+    return '<label class="check" for="' + item.id + '">' +
+      '<input id="' + item.id + '" data-specialty="' + item.id + '" type="checkbox">' +
+      '<span>' + escapeHtml(item.label) + (item.note ? '<br><span class="note">' + escapeHtml(item.note) + '</span>' : '') + '</span>' +
+      '<span class="pts">' + priceLabel + '</span>' +
+    '</label>';
+  }).join('');
+}
+function placementPrice(costUnit, targetSP, tier, qty) {
+  const standardRaw = costUnit / (1 - targetSP);
+  const standardSell = roundUpNickel(standardRaw);
+  const standardMargin = standardSell - costUnit;
+  const survivalSell = roundUpNickel(costUnit / (1 - SURVIVAL_SP));
+  if (tier === 'Standard') {
+    return {sell:Math.max(standardSell, survivalSell), standardSell, standardRaw, survivalSell, discountedSell:standardSell, discount:0, floorSell:standardSell, standardMargin};
+  }
+  const discount = tierDiscountForQty(qty);
+  const discountedSell = roundUpNickel(standardSell * (1 - discount));
+  const floorRatio = Number((EMBROIDERY_DATA.tiers || {}).floor_ratio || 0.6);
+  const marginFloorSell = roundUpNickel(costUnit + (standardMargin * floorRatio));
+  const sell = Math.max(discountedSell, marginFloorSell, survivalSell);
+  return {sell, standardSell, standardRaw, survivalSell, discountedSell, discount, floorSell:marginFloorSell, standardMargin};
+}
+function garmentMath() {
+  const blank = readBlankCost();
+  const qty = readGarmentQty();
+  const source = $('garmentSource').value;
+  if (blank <= 0) {
+    return {included:false, source, qty, blank, recovery:0, cost:0, revenue:0, margin:0, unitRevenue:0, unitCost:0};
+  }
+  const recovery = source === 'PA-supplied' ? roundUpNickel(0.45 + (0.04 * blank)) : 0.45;
+  const unitCost = source === 'PA-supplied' ? blank : 0;
+  const unitRevenue = unitCost + recovery;
+  const cost = unitCost * qty;
+  const revenue = unitRevenue * qty;
+  return {included:true, source, qty, blank, recovery, cost, revenue, margin:revenue - cost, unitRevenue, unitCost};
+}
+function specialtyMath(qty, placementCount) {
+  const items = EMBROIDERY_DATA.specialty_items.items;
+  return items.map(item => {
+    const checked = $(item.id) && $(item.id).checked;
+    let units = 0;
+    let label = item.label;
+    if (item.id === 'additional_lines') {
+      const countInput = $(item.id + '_count');
+      const lineCount = Math.min(Number(item.max || 3), Math.max(0, Math.floor(Number(countInput.value) || 0)));
+      if (countInput && String(countInput.value) !== String(lineCount)) countInput.value = String(lineCount);
+      units = checked && lineCount > 0 ? qty * lineCount : 0;
+      label += lineCount > 0 ? ' x ' + lineCount : '';
+    } else if (checked && item.basis === 'per_item_per_placement') {
+      units = qty * placementCount;
+    } else if (checked) {
+      units = qty;
+    }
+    return {id:item.id, label, price:Number(item.price || 0), revenue:units * Number(item.price || 0), units, note:item.note || '', basis:item.basis};
+  }).filter(item => item.revenue > 0);
+}
+function setNoQuote(message, qty, placementCount) {
   $('orderTotal').textContent = '$0';
   $('perUnit').textContent = 'No quote';
-  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placements + ' placement' + (placements === 1 ? '' : 's');
+  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placementCount + ' ' + plural(placementCount, 'placement', 'placements');
   $('marginTotal').textContent = '$0';
-  $('marginUnit').textContent = '$0.00';
-  $('marginPct').textContent = '0.0%';
-  $('costBreakdown').innerHTML = [row('Bear decoration cost / unit', 'No price', 'Stitch count ' + stitches.toLocaleString('en-US') + ' is outside the Bear grid'), row('Digitizing / unit', 'No price', 'Custom quote required before spreading digitizing'), row('Total landed cost / unit', 'No price', 'Over grid: do not produce a customer price', true)].join('');
-  $('spPanel').innerHTML = '<div class="spcard wide"><div class="top"><h3>Custom quote required</h3>' + flagPill('bad', 'over grid') + '</div><div class="rate">No price</div><div class="spmeta">' + escapeHtml(EMBROIDERY_DATA._meta.over_grid_note) + '</div></div>';
-  $('priceDecision').innerHTML = [row('Selected customer price', 'No quote', 'Over grid (>35k stitches) - custom quote', true)].join('');
+  $('marginUnit').textContent = '$0.00 / unit';
+  $('marginPct').textContent = '0.0% margin';
+  $('costBreakdown').innerHTML = row('Project status', 'No quote', message, true);
+  $('placementBreakdown').innerHTML = row('Placement pricing', 'No quote', 'Correct stitch counts before quoting.', true);
+  $('spPanel').innerHTML = '<div class="spcard wide"><div class="top"><h3>Custom quote required</h3>' + flagPill('bad', 'check') + '</div><div class="rate">No price</div><div class="spmeta">' + escapeHtml(message) + '</div></div>';
+  $('priceDecision').innerHTML = row('Selected customer price', 'No quote', message, true);
 }
 function calculate() {
-  const stitches = readStitches();
   const qty = readQty();
-  const placements = readPlacements();
-  const routing = $('vendorRouting').value;
-  const bandInfo = stitchBand(stitches);
   const rowValue = qtyRow(qty);
-  const floorApplied = isBetweenQtyRows(qty, rowValue);
-  const reusedDesign = $('reusedDesign').checked;
-  if (reusedDesign) $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.reused_design || 0).toFixed(2);
-  const digitizingTotal = reusedDesign ? 0 : readDigitizingTotal();
+  const floorApplied = qty !== rowValue;
+  const tier = $('tier').value || 'Standard';
+  const routing = $('vendorRouting').value;
+  const targetBand = targetSpForQty(qty);
+  const targetSP = targetBand.sp;
+  const placements = activePlacements();
+  const placementCount = placements.length;
+  const garment = garmentMath();
+  const specialty = specialtyMath(qty, placementCount);
 
-  $('stitchBandNote').textContent = bandInfo.overGrid ? bandInfo.label : 'Stitch count ' + stitches.toLocaleString('en-US') + ' -> band ' + (bandInfo.band || 'none') + ' (' + bandInfo.label + ')';
-  $('routingNote').textContent = routing === 'Empowered' ? 'Backup route selected. ' + EMBROIDERY_DATA.digitizing.options_note : EMBROIDERY_DATA.vendor_routing.bear_note;
+  $('garmentNote').textContent = garment.included
+    ? garment.source + ' garment recovery: ' + money(garment.recovery) + ' per garment. Blank ' + money(garment.blank) + ', qty ' + garment.qty.toLocaleString('en-US') + '.'
+    : 'Blank cost 0 = garment not included.';
+  $('placementNote').textContent = 'Qty ' + qty.toLocaleString('en-US') + ' uses Bear row ' + rowValue + '. Each placement keeps its own stitch band.';
+  $('routingNote').textContent = routing === 'Empowered' ? 'Backup route selected. ' + EMBROIDERY_DATA.vendor_routing.empowered_warning : EMBROIDERY_DATA.vendor_routing.bear_note;
 
   const flags = [];
-  if (bandInfo.overGrid) flags.push(flagBlock('bad', 'OVER GRID (>35K STITCHES) - CUSTOM QUOTE. Do not produce a price.'));
-  if (floorApplied) flags.push(flagBlock('warn', 'QTY FLOORED - qty ' + qty.toLocaleString('en-US') + ' -> priced at row ' + rowValue + ' (Printavo floors between rows).'));
-  if (routing === 'Empowered' && placements >= 2 && qty >= 48) flags.push(flagBlock('bad', 'EMPOWERED MULTI-PLACEMENT WARNING - ' + EMBROIDERY_DATA.vendor_routing.empowered_warning));
+  if (floorApplied) flags.push(flagBlock('warn', 'QTY FLOORED - qty ' + qty.toLocaleString('en-US') + ' -> priced at Bear row ' + rowValue + ' (Printavo floors between rows).'));
+  if (routing === 'Empowered' && placementCount >= 2 && qty >= 48) flags.push(flagBlock('bad', 'EMPOWERED MULTI-PLACEMENT WARNING - ' + EMBROIDERY_DATA.vendor_routing.empowered_warning));
+  const badPlacement = placements.find(p => p.bandInfo.overGrid || p.bandInfo.missing);
+  if (badPlacement && badPlacement.bandInfo.overGrid) flags.push(flagBlock('bad', 'P' + badPlacement.id + ' OVER GRID (>35K STITCHES) - CUSTOM QUOTE. Do not produce a price.'));
+  if (badPlacement && badPlacement.bandInfo.missing) flags.push(flagBlock('bad', 'P' + badPlacement.id + ' needs a stitch count before quoting.'));
   $('flags').innerHTML = flags.join('');
-
-  if (bandInfo.overGrid || !bandInfo.band) {
-    setNoQuote(stitches, bandInfo, qty, placements);
-    $('embroideryNote').innerHTML = row('Retention service guidance', escapeHtml('Target, never below survival'), escapeHtml(EMBROIDERY_DATA.embroidery_note), true);
+  if (badPlacement) {
+    setNoQuote('P' + badPlacement.id + ': ' + badPlacement.bandInfo.label, qty, placementCount);
+    $('embroideryNote').innerHTML = row('Retention service guidance', 'Target, never below survival', escapeHtml(embroideryGuidance()), true);
     return;
   }
 
-  const bearBaseUnit = Number((EMBROIDERY_DATA.bear_cost[String(rowValue)] || [])[bandInfo.index]) || 0;
-  const decorationUnit = bearBaseUnit * placements;
-  const digitizingUnit = digitizingTotal / qty;
-  const landedUnit = decorationUnit + digitizingUnit;
-  const landedTotal = landedUnit * qty;
-  const targetPriceRaw = landedUnit / EMBROIDERY_DATA.sp_formula.target_divisor;
-  const targetPrice = roundUpTo(targetPriceRaw, ROUND_UP_TO);
-  const survivalPriceRaw = landedUnit / EMBROIDERY_DATA.sp_formula.survival_divisor;
-  const survivalPrice = roundUpTo(survivalPriceRaw, ROUND_UP_TO);
-  const priceUnit = targetPrice;
-  const orderTotal = priceUnit * qty;
-  const marginUnit = priceUnit - landedUnit;
-  const marginTotal = marginUnit * qty;
-  const achievedSp = orderTotal > 0 ? marginTotal / orderTotal : 0;
-  const achievedPct = achievedSp * 100;
-  const belowSurvival = priceUnit < survivalPrice || achievedSp < SURVIVAL_SP;
-  const placementMeta = placements === 1 ? 'P1 anchor only' : 'P1 anchor plus ' + (placements - 1) + ' additional placement' + (placements === 2 ? '' : 's');
+  const placementLines = placements.map(placement => {
+    const bearCost = Number((EMBROIDERY_DATA.bear_cost[String(rowValue)] || [])[placement.bandInfo.index]) || 0;
+    const price = placementPrice(bearCost, targetSP, tier, qty);
+    const cost = bearCost * qty;
+    const revenue = price.sell * qty;
+    const margin = revenue - cost;
+    return {...placement, bearCost, sellUnit:price.sell, price, cost, revenue, margin, marginPct:revenue > 0 ? margin / revenue : 0};
+  });
 
-  $('orderTotal').textContent = money0(orderTotal);
-  $('perUnit').textContent = money(priceUnit);
-  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placements + ' placement' + (placements === 1 ? '' : 's');
-  $('marginTotal').textContent = money0(marginTotal);
-  $('marginUnit').textContent = money(marginUnit);
-  $('marginPct').textContent = pct(achievedPct);
+  const placementCost = placementLines.reduce((sum, line) => sum + line.cost, 0);
+  const placementRevenue = placementLines.reduce((sum, line) => sum + line.revenue, 0);
+  const specialtyRevenue = specialty.reduce((sum, item) => sum + item.revenue, 0);
+  const specialtyCost = 0;
+  const projectCost = garment.cost + placementCost + specialtyCost;
+  const projectRevenue = garment.revenue + placementRevenue + specialtyRevenue;
+  const projectMargin = projectRevenue - projectCost;
+  const projectMarginPct = projectRevenue > 0 ? projectMargin / projectRevenue : 0;
+  const perDecoratedUnitRevenue = projectRevenue / qty;
+  const perDecoratedUnitMargin = projectMargin / qty;
+  const tierDiscount = tier === 'Standard' ? 0 : tierDiscountForQty(qty);
+
+  $('orderTotal').textContent = money0(projectRevenue);
+  $('perUnit').textContent = money(perDecoratedUnitRevenue);
+  $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placementCount + ' ' + plural(placementCount, 'placement', 'placements');
+  $('marginTotal').textContent = money0(projectMargin);
+  $('marginUnit').textContent = money(perDecoratedUnitMargin) + ' / unit';
+  $('marginPct').textContent = pct(projectMarginPct * 100) + ' margin';
 
   $('costBreakdown').innerHTML = [
-    row('Bear decoration cost / unit', money(decorationUnit), 'Bear row ' + rowValue + ', band ' + bandInfo.band + ', base ' + money(bearBaseUnit) + ' x ' + placements + ' placement' + (placements === 1 ? '' : 's') + '. ' + placementMeta),
-    row('Digitizing / unit', money(digitizingUnit), 'One-time ' + money(digitizingTotal) + ' over ' + qty.toLocaleString('en-US') + ' pcs' + (reusedDesign ? ' (reused/existing design)' : '')),
-    row('Total landed cost / unit', money(landedUnit), money0(landedTotal) + ' total landed cost. Bear grid is all-in outsourced decoration cost.', true)
+    row('Garment revenue', money0(garment.revenue), garment.included ? garment.source + ': ' + money(garment.unitRevenue) + ' sell/unit, ' + money(garment.unitCost) + ' cost/unit, ' + garment.qty.toLocaleString('en-US') + ' garments' : 'Not included because blank cost is 0'),
+    row('Embroidery placement revenue', money0(placementRevenue), placementCount + ' ' + plural(placementCount, 'placement', 'placements') + ' x ' + qty.toLocaleString('en-US') + ' pcs'),
+    row('Specialty item revenue', money0(specialtyRevenue), specialty.length ? specialty.map(item => item.label + ': ' + money(item.revenue)).join('; ') : 'No specialty items selected'),
+    row('Total project cost', money0(projectCost), 'Garment COGS ' + money0(garment.cost) + ' + Bear decoration COGS ' + money0(placementCost), true),
+    row('Total project revenue', money0(projectRevenue), 'Garment + embroidery + specialty charges', true),
+    row('Project margin', money0(projectMargin), pct(projectMarginPct * 100) + ' of project revenue', true)
   ].join('');
 
-  $('spPanel').innerHTML = '<div class="spcard"><div class="top"><h3>Target SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(TARGET_SP * 100) + '</div><div class="spmeta">Divisor ' + EMBROIDERY_DATA.sp_formula.target_divisor + '. Rounded up to nearest ' + money(ROUND_UP_TO) + '.</div></div>' + '<div class="spcard"><div class="top"><h3>Survival SP</h3>' + flagPill(belowSurvival ? 'bad' : 'neutral', 'floor') + '</div><div class="rate">' + pct(SURVIVAL_SP * 100) + '</div><div class="spmeta">Divisor ' + EMBROIDERY_DATA.sp_formula.survival_divisor + '. Never quote below survival.</div></div>' + '<div class="spcard"><div class="top"><h3>Achieved SP</h3>' + flagPill(belowSurvival ? 'bad' : achievedSp >= TARGET_SP ? 'good' : 'warn', achievedSp >= TARGET_SP ? 'good' : 'check') + '</div><div class="rate">' + pct(achievedPct) + '</div><div class="spmeta">Margin % of invoice after rounding.</div></div>' + '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill('good', 'target selected') + '</div><div class="detailList">' + spDetailItem('Bear decoration / unit', money(decorationUnit)) + spDetailItem('Digitizing / unit', money(digitizingUnit)) + spDetailItem('Landed cost / unit', money(landedUnit)) + spDetailItem('Target price raw', money(targetPriceRaw)) + spDetailItem('Target price rounded', money(targetPrice)) + spDetailItem('Survival price raw', money(survivalPriceRaw)) + spDetailItem('Survival price rounded', money(survivalPrice)) + spDetailItem('Selected sell price', money(priceUnit)) + spDetailItem('Achieved margin % of invoice', pct(achievedPct)) + '</div><div class="spmeta">Final sell is the target price. Survival is shown as the floor for negotiated retention jobs.</div></div>';
+  $('placementBreakdown').innerHTML = placementLines.map(line => {
+    const meta = [
+      line.stitches.toLocaleString('en-US') + ' stitches -> ' + line.bandInfo.band + ' (' + line.bandInfo.label + ')',
+      'Bear row ' + rowValue + ': ' + money(line.bearCost) + ' cost/unit',
+      tier === 'Standard' ? 'Standard sell from sliding margin' : tier + ' sell: Standard ' + money(line.price.standardSell) + ' less ' + pct(line.price.discount * 100) + ', floored at ' + money(line.price.floorSell) + ' and survival ' + money(line.price.survivalSell)
+    ].join('. ');
+    return row('P' + line.id + ' sell / unit', money(line.sellUnit), meta);
+  }).concat([
+    row('Placement revenue total', money0(placementRevenue), money(placementRevenue / qty) + ' embroidery revenue per decorated unit', true),
+    row('Placement margin total', money0(placementRevenue - placementCost), pct(placementRevenue > 0 ? ((placementRevenue - placementCost) / placementRevenue) * 100 : 0) + ' placement margin', true)
+  ]).join('');
 
-  $('embroideryNote').innerHTML = row('Retention service guidance', 'Target 44.5%', escapeHtml(EMBROIDERY_DATA.embroidery_note), true);
+  const belowSurvival = projectMarginPct < SURVIVAL_SP;
+  if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - project margin ' + pct(projectMarginPct * 100) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
+  else $('flags').innerHTML += flagBlock('good', 'PROJECT CLEARS SURVIVAL - achieved ' + pct(projectMarginPct * 100) + ' with ' + tier + ' tier.');
+
+  $('spPanel').innerHTML =
+    '<div class="spcard"><div class="top"><h3>Standard SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(targetSP * 100) + '</div><div class="spmeta">Qty band ' + targetBand.label + '. Standard uses full sliding margin.</div></div>' +
+    '<div class="spcard"><div class="top"><h3>Tier</h3>' + flagPill(tier === 'Standard' ? 'neutral' : 'warn', tier) + '</div><div class="rate">' + (tier === 'Standard' ? '0.0%' : pct(tierDiscount * 100)) + '</div><div class="spmeta">' + (tier === 'Standard' ? 'No discount applied.' : 'Discounts Standard sell, then floors at 60% of Standard margin and 33% survival.') + '</div></div>' +
+    '<div class="spcard"><div class="top"><h3>Project margin</h3>' + flagPill(belowSurvival ? 'bad' : 'good', belowSurvival ? 'low' : 'clear') + '</div><div class="rate">' + pct(projectMarginPct * 100) + '</div><div class="spmeta">Revenue minus cost across garment, placements, and specialty items.</div></div>' +
+    '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill('neutral', 'self-contained') + '</div><div class="detailList">' +
+      spDetailItem('Garment revenue / cost', money0(garment.revenue) + ' / ' + money0(garment.cost)) +
+      spDetailItem('Placement revenue / cost', money0(placementRevenue) + ' / ' + money0(placementCost)) +
+      spDetailItem('Specialty revenue / cost', money0(specialtyRevenue) + ' / ' + money0(specialtyCost)) +
+      spDetailItem('Project revenue', money0(projectRevenue)) +
+      spDetailItem('Project cost', money0(projectCost)) +
+      spDetailItem('Project margin', money0(projectMargin) + ' / ' + pct(projectMarginPct * 100)) +
+    '</div><div class="spmeta">Digitizing is excluded and should be billed separately as a manual invoice fee.</div></div>';
+
+  $('embroideryNote').innerHTML = row('Retention service guidance', 'Target ' + pct(targetSP * 100), escapeHtml(embroideryGuidance()), true);
   $('priceDecision').innerHTML = [
-    row('Target sell / unit', money(targetPrice), pct(TARGET_SP * 100) + ' target SP from landed / ' + EMBROIDERY_DATA.sp_formula.target_divisor),
-    row('Survival sell / unit', money(survivalPrice), pct(SURVIVAL_SP * 100) + ' survival SP from landed / ' + EMBROIDERY_DATA.sp_formula.survival_divisor),
-    row('Selected customer price', money(priceUnit), belowSurvival ? 'RED FLAG: below survival floor' : 'Final sell uses target price; survival is the floor', true),
-    row('Invoice margin shown to PM', money0(marginTotal) + ' total / ' + pct(achievedPct), money(marginUnit) + ' per unit', true)
+    row('Selected tier', tier, tier === 'Standard' ? 'Full sliding margin.' : 'Discount band for qty ' + qty.toLocaleString('en-US') + ': ' + pct(tierDiscount * 100) + '. VIP uses the same logic as Partner.'),
+    row('Embroidery sell / decorated unit', money(placementRevenue / qty), 'Sum of all placement sell prices. Specialty and garments listed separately.'),
+    row('Specialty charges / decorated unit', money(specialtyRevenue / qty), specialty.length ? 'Revenue-only adders selected.' : 'No adders selected.'),
+    row('Garment line', garment.included ? money0(garment.revenue) + ' revenue' : 'Not included', garment.included ? money(garment.recovery) + ' recovery per garment, once per garment' : 'Blank cost is 0.'),
+    row('Project margin shown to PM', money0(projectMargin) + ' total / ' + pct(projectMarginPct * 100), money(perDecoratedUnitMargin) + ' margin per decorated unit', true)
   ].join('');
-
-  if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - achieved ' + pct(achievedPct) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
-  else if (achievedSp >= TARGET_SP) $('flags').innerHTML += flagBlock('good', 'AT/ABOVE TARGET - achieved ' + pct(achievedPct) + ' clears the ' + pct(TARGET_SP * 100) + ' target.');
 }
 function bind() {
   $('vendorRouting').innerHTML = EMBROIDERY_DATA.vendor_routing.options.map(option => '<option value="' + escapeHtml(option) + '">' + escapeHtml(option + (option === EMBROIDERY_DATA.vendor_routing.default ? ' default' : ' backup')) + '</option>').join('');
   $('vendorRouting').value = EMBROIDERY_DATA.vendor_routing.default;
-  $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.default || 0).toFixed(2);
+  $('tier').innerHTML = EMBROIDERY_DATA.tiers.options.map(option => '<option value="' + escapeHtml(option) + '">' + escapeHtml(option) + '</option>').join('');
+  renderPlacementRows(1);
+  renderSpecialtyItems();
   $('quoteForm').addEventListener('input', calculate);
   $('quoteForm').addEventListener('change', calculate);
-  $('reusedDesign').addEventListener('change', () => { if (!$('reusedDesign').checked) $('digitizingTotal').value = Number(EMBROIDERY_DATA.digitizing.default || 0).toFixed(2); calculate(); });
+  $('qty').addEventListener('input', () => {
+    if (readBlankCost() > 0) $('garmentQty').value = String(readQty());
+  });
+  $('addPlacement').addEventListener('click', () => {
+    const count = Math.min(MAX_PLACEMENTS, activePlacementInputs().length + 1);
+    renderPlacementRows(count);
+    calculate();
+  });
+  $('placementList').addEventListener('click', event => {
+    const button = event.target.closest('[data-remove-placement]');
+    if (!button || button.disabled) return;
+    const index = Number(button.getAttribute('data-remove-placement'));
+    const values = activePlacementInputs().map(input => input.value).filter((_, valueIndex) => valueIndex !== index);
+    renderPlacementRows(Math.max(1, values.length));
+    activePlacementInputs().forEach((input, valueIndex) => { input.value = values[valueIndex] || input.value; });
+    calculate();
+  });
   $('provenance').textContent = 'Provenance: ' + EMBROIDERY_DATA._meta.title + '. As-of ' + EMBROIDERY_DATA._meta.as_of + '. Source: ' + EMBROIDERY_DATA._meta.source + ' Model: ' + EMBROIDERY_DATA._meta.model;
   calculate();
 }
