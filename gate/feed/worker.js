@@ -1,12 +1,18 @@
-/* Feed Router — Build #4a worker + Build #4b validation stage.
+/* Feed Router — Build #4a worker + Build #4b validation stage + Build #5a
+   routing stage.
    Claims one 'received' feed_intake row at a time (FOR UPDATE SKIP LOCKED —
    safe across multiple Railway instances), decrypts it, sends it to Claude
    via extract.js, then runs the deterministic validation stage (validate.js
-   — the MONEY-SAFETY GATE) inline, landing the row in its FINAL pre-routing
-   state: 'validated' (safe to auto-route) / 'review' (human must see it) /
-   'failed'. A row is never left at 'extracted'. A validation-stage DB error
-   falls back to 'review' (fail closed — never auto-validate on error).
-   It does NOT route anything (Build #5).
+   — the MONEY-SAFETY GATE) inline. A validation-stage DB error falls back to
+   'review' (fail closed — never auto-validate on error).
+
+   Build #5a: a row that validates clean is ROUTED in the same cycle —
+   routeDoc (route.js) decides its destinations; the finalize UPDATE and the
+   feed_outbox enqueue commit in ONE transaction (FOLDED IN), so a row is
+   never left stranded at 'validated': it always lands 'routed' / 'review' /
+   'failed'. A routing error fails CLOSED to 'review' (review_reason=
+   'route_error'). Outbox rows are drained by dispatch.js (internal
+   destinations in #5a; external 'planetiq' waits for #5b).
 
    HARD concurrency = 1: the loop is self-scheduling — the next tick is only
    armed after the current cycle fully finishes, so at most one extraction is
@@ -24,6 +30,8 @@ const { decryptRaw } = require('./intake');
 const { extract } = require('./extract');
 const { evaluate, semanticKey, normalizeVendor, highDollarThreshold,
         isKnownVendor, addPendingVendor, findDuplicate } = require('./validate');
+const { routeDoc, loadRegistry } = require('./route');
+const { outboxTargets } = require('./route_stage');
 
 const EXTRACTOR_VERSION = 'feed-4b-v1';
 const POLL_MS   = 5_000;    // idle poll
@@ -266,26 +274,115 @@ async function runCycle(pool, alert) {
     }
     const validatorResults = { checks: verdict.results, inputs: valInputs, reasons: verdict.reasons };
 
-    await pool.query(
+    /* Same finalize UPDATE as #4b, now parameterized by the FINAL
+       post-routing status and reused by every branch below. */
+    const finalizeSql =
       `UPDATE feed_intake SET extracted=$2, doc_type=$3, confidence=$4, extractor_model=$5, extractor_version=$6,
               token_usage=$7, extracted_at=now(), semantic_key=$8, validator_results=$9,
               status=$10, review_reason=$11, locked_until=NULL, updated_at=now()
-       WHERE id=$1`,
-      [row.id, JSON.stringify(fact), fact.doc_type || null,
-       (typeof fact.confidence === 'number' ? fact.confidence : null),
-       out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null,
-       sk, JSON.stringify(validatorResults),
-       verdict.status, verdict.status === 'review' ? verdict.reasons.join(',') : null]
-    );
-    await ledger(pool, row, {
+       WHERE id=$1`;
+    const finalizeParams = (status, reviewReason) => [
+      row.id, JSON.stringify(fact), fact.doc_type || null,
+      (typeof fact.confidence === 'number' ? fact.confidence : null),
+      out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null,
+      sk, JSON.stringify(validatorResults), status, reviewReason,
+    ];
+    const ledgerBase = {
       detected_category: fact.doc_type || null, model: out.model, token_usage: out.usage,
       semantic_key: sk, validator_results: validatorResults,
-      decision: { stage: verdict.status, reasons: verdict.reasons },
-    });
-    log('feed_validated', {
-      intake_id: row.id, doc_type: fact.doc_type, confidence: fact.confidence,
-      status: verdict.status, reasons: verdict.reasons,
-    });
+    };
+
+    if (verdict.status === 'review') {
+      /* Validation said review — Build #4b path, unchanged. */
+      await pool.query(finalizeSql, finalizeParams('review', verdict.reasons.join(',')));
+      await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: verdict.reasons } });
+      log('feed_validated', {
+        intake_id: row.id, doc_type: fact.doc_type, confidence: fact.confidence,
+        status: 'review', reasons: verdict.reasons,
+      });
+    } else {
+      /* ── Build #5a: routing stage (validated rows only) ────────────────
+         FOLD-IN: finalize + routing writes commit atomically, so the row is
+         NEVER left at 'validated'. Any error here fails CLOSED to 'review'
+         (review_reason='route_error') — never auto-route on error, never
+         lose the validated Fact. */
+      log('feed_validated', {
+        intake_id: row.id, doc_type: fact.doc_type, confidence: fact.confidence,
+        status: 'validated', reasons: verdict.reasons,
+      });
+      let decision = null;
+      let routeErr = null;
+      try {
+        /* routeDoc MUTATES its input (adds .status/.routing) — pass a shallow
+           copy so the stored `extracted` JSON keeps its #4b shape. */
+        decision = routeDoc({ ...fact }, loadRegistry());
+      } catch (e) { routeErr = e; }
+
+      try {
+        if (!decision) throw new Error('routeDoc failed: ' + String(routeErr && routeErr.message || routeErr));
+
+        if (decision.status === 'review') {
+          /* route.js downgrade (required_fields missing / fallback rule) —
+             a doc can pass #4b's triggers and still land here; intended. */
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            await client.query(finalizeSql, finalizeParams('review', ('route:' + decision.matched_rule).slice(0, 500)));
+            await client.query(
+              `INSERT INTO feed_review (intake_id, reason, payload) VALUES ($1,$2,$3)`,
+              [row.id, String(decision.matched_rule).slice(0, 500), JSON.stringify(fact)]
+            );
+            await client.query('COMMIT');
+          } catch (e) {
+            try { await client.query('ROLLBACK'); } catch (_) {}
+            throw e;
+          } finally { client.release(); }
+          await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: [decision.matched_rule] } });
+          log('feed_route_review', { intake_id: row.id, doc_type: fact.doc_type, matched_rule: decision.matched_rule });
+        } else {
+          /* routed → enqueue outbox rows (idempotent) + finalize, one txn.
+             'planetiq' rows are enqueued here too but only #5b will send
+             them; the #5a dispatcher claims INTERNAL destinations only. */
+          const targets = outboxTargets(decision.destinations);
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            await client.query(finalizeSql, finalizeParams('routed', null));
+            for (const target of targets) {
+              await client.query(
+                `INSERT INTO feed_outbox (intake_id, destination, idempotency_key, state)
+                 VALUES ($1,$2,$3,'pending')
+                 ON CONFLICT (idempotency_key) DO NOTHING`,
+                [row.id, target, `${row.id}:${target}`]
+              );
+            }
+            await client.query('COMMIT');
+          } catch (e) {
+            try { await client.query('ROLLBACK'); } catch (_) {}
+            throw e;
+          } finally { client.release(); }
+          await ledger(pool, row, {
+            ...ledgerBase,
+            decision: { stage: 'routed', matched_rule: decision.matched_rule, destinations: decision.destinations },
+          });
+          log('feed_routed', {
+            intake_id: row.id, doc_type: fact.doc_type,
+            matched_rule: decision.matched_rule, destinations: decision.destinations, enqueued: targets,
+          });
+        }
+      } catch (e) {
+        /* FAIL CLOSED: keep the Fact, land the row in review. If even this
+           UPDATE fails (DB down), it throws to the cycle catch — the row
+           stays 'processing' and is re-claimed after its lock expires. */
+        log('feed_route_error', { intake_id: row.id, error: e.message });
+        await pool.query(finalizeSql, finalizeParams('review', 'route_error'));
+        await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: ['route_error'] } });
+        try {
+          await pool.query(`INSERT INTO feed_review (intake_id, reason, payload) VALUES ($1,$2,$3)`,
+            [row.id, 'route_error', JSON.stringify(fact)]);
+        } catch (e2) { log('feed_review_write_failed', { intake_id: row.id, error: e2.message }); }
+      }
+    }
     nextMs = 250;   // more work may be queued — come back fast
   } catch (e) {
     // Never let one bad row / DB hiccup kill the loop.

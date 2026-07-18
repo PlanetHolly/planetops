@@ -90,6 +90,7 @@ runFeedMigrations(pool)
   .then(() => {
     console.log('feed_schema ready');
     require('./feed/worker').startFeedWorker(pool, alert);   // Build #4a: extraction worker (safe without ANTHROPIC_API_KEY — rows just wait)
+    require('./feed/dispatch').startOutboxDispatcher(pool, alert);   // Build #5a: outbox dispatcher (internal destinations only; 'planetiq' waits for #5b)
   })
   .catch(err => console.error('feed_schema init failed:', err.message));
 // housekeeping: purge expired sessions hourly

@@ -123,3 +123,26 @@ VERDICT: Build #4a APPROVED by Claude (0 fix rounds). 2 flags for staging/Holly.
 - DB helpers (isKnownVendor/addPendingVendor/seedKnownVendors/findDuplicate), live validation-stage wiring end-to-end incl. the validation_error fallback under a real DB fault, 003 DDL. Plus carried-forward #4a STAGING-CRITICAL flag 1 (structured-output nullable-type-array acceptance).
 
 VERDICT: Build #4b APPROVED by Claude (0 fix rounds). The money-safety gate is fail-closed and each review-trigger is independently proven. DB paths unproven until staging.
+
+## Build #5a — Step 6 part 1 (routeDoc wiring + outbox enqueue + INTERNAL writers)  [EXECUTOR: Fable]
+
+### Act 3 — Fable build (model=fable)
+- NEW gate/feed/route_stage.js — PURE outboxTargets (drops ledger+review), incomingRow (exact feed_incoming shape, type-guarded), safeTimestamp (free-text eta → ISO-or-null, DATE_LIKE regex guard before Date.parse).
+- NEW gate/feed/dispatch.js — 2nd self-scheduling concurrency-1 loop; claims 'pending' INTERNAL-destination outbox rows FOR UPDATE SKIP LOCKED → 'sent' → writes feed_incoming (upsert on fact_id) / feed_expense_hold (append) → 'acked'; bounded retry → 'failed'+alert; planetiq never claimed; zero fetch.
+- NEW gate/feed/route_stage_selftest.js (51 tests).
+- MOD gate/feed/worker.js — validated path runs routeDoc({...fact}, loadRegistry()); FOLD-IN: finalize UPDATE + feed_outbox enqueue (idempotency_key `${id}:${dest}`, ON CONFLICT DO NOTHING) commit in ONE txn → row never stranded at 'validated'; route.js review-downgrade lands review+feed_review atomically; any route error fails CLOSED to review (route_error). #4b review path byte-identical.
+- MOD gate/index.js — one line: startOutboxDispatcher(pool, alert).
+
+### Act 4 — Claude review (real diff) + 1 fix round
+- routeDoc fold-in verified atomic + fail-closed; safeTimestamp guard correct; dispatcher claim/ack/retry correct.
+- FIX (round 1, Fable): dispatcher had NO reaper for a delivery that crashes between claim('sent') and ack → orphaned internal write (violates "nothing gets lost"). Fixed: claimBatch also reclaims stale 'sent' rows (updated_at < now() - FEED_OUTBOX_STALE_MS default 5min), parameterized interval math. Re-verified all green.
+- Independently re-ran: route_stage 51/51, validate 58/58, extract 20/20, parity PASS; node --check all clean.
+
+### Notes / accepted edges
+- Routing is now doc_type-driven (extract.js emits no `note`, so registry note_keywords are inert at this seam). Every validated row has a doc_type; injecting the note could let a keyword steal a rule from a correct doc_type match — deliberately not done. Flag for registry review.
+- feed_expense_hold is at-least-once (no natural unique key): a dup row only if insert succeeds but ack fails, or a genuinely-alive delivery exceeds FEED_OUTBOX_STALE_MS. Accepted for an internal hold table; feed_incoming is upsert so harmless there.
+
+### NOT verified (pending staging w/ real Postgres)
+- routeDoc live wiring end-to-end; outbox claim→sent→deliver→acked incl. the stale-'sent' reclaim and SKIP-LOCKED across instances; feed_incoming upsert + feed_expense_hold insert. Plus carried-forward flags (#4a structured-output schema; all DB paths).
+
+VERDICT: Build #5a APPROVED by Claude (1 fix round). Internal pipeline complete in code: drop→store→extract→validate→route→outbox→internal write. External sink = #5b.
