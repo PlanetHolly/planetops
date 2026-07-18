@@ -30,6 +30,13 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
 .pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
 .pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.pcBtn { border:1px solid var(--ink); border-radius:6px; min-height:38px; padding:8px 12px; background:var(--yellow); color:#111; font-weight:900; text-transform:uppercase; letter-spacing:.05em; font-size:.72rem; cursor:pointer; }
+.pcBtn.sec { background:var(--card); color:var(--ink); }
+.basketRow { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:.86rem; }
+.basketRow:last-child { border-bottom:0; }
+.basketRow .bx { border:0; background:none; cursor:pointer; color:var(--bad); font-weight:900; font-size:1rem; line-height:1; }
+.basketEmpty { color:var(--muted); font-size:.82rem; padding:6px 0; }
 .results { display:grid; gap:18px; }
 .hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
 .hero small { display:block; color:#c9c5bc; text-transform:uppercase; font-weight:900; letter-spacing:.1em; font-size:.72rem; }
@@ -113,6 +120,18 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
           </div>
           <div class="pcQuoted" id="priceCheckQuoted"></div>
           <div class="note">Type the price a customer is pushing for. Shows product margin (price minus landed cost) at that price, per unit and whole order. Post-production add-ons are priced separately. Does not change the quote above.</div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Customer comparison - copy multiple prices</h2>
+        <div class="form">
+          <div class="controls">
+            <button class="pcBtn" id="addToBasket" type="button">Add current option</button>
+            <button class="pcBtn sec" id="copyBasket" type="button">Copy for email</button>
+            <button class="pcBtn sec" id="clearBasket" type="button">Clear</button>
+          </div>
+          <div id="basketList"></div>
+          <div class="note">Add each option (change the product, decoration, or quantity, then Add again), then Copy for a clean plain-text price comparison to paste into a customer email. No internal cost or margin is included.</div>
         </div>
       </section>
       <section class="panel breakdown"><h2>Quote Breakdown</h2><div class="rows" id="breakdown"></div></section>
@@ -316,8 +335,46 @@ function render(){
   $('sourceBox').innerHTML = '<b>Reliability:</b> dashboard price and product SP are B-sourced from <code>pricing-dashboard.html</code>; post-production rates are B-sourced from <code>Bandana_Pricing_MASTER_SPEC_2026-07-07.md</code>; ink change is B-sourced from QB/Printavo evidence; whole-project SP with add-ons is C-modeled because service cost rows were not supplied. Unconfirmed standard fold + poly bag ($1.00) and barcode ($0.05) from the spec note are excluded, not quietly priced.';
   PC_LAST = (costLoaded && rec) ? {unitPrice:unitBase, unitCost:unitCost, qty:s.qty} : null;
   renderPriceCheck();
+  CURRENT_QUOTE = rec ? {label:custProductLabel(s), qty:s.qty, unitPrice:perUnit, total:total} : null;
 }
 let PC_LAST = null;
+let CURRENT_QUOTE = null;
+let BASKET = [];
+function basketCopyText(){
+  return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces\n' + money(l.unitPrice) + ' each  (' + money0(l.total) + ' total)').join('\n\n');
+}
+function renderBasket(){
+  const el = $('basketList'); if (!el) return;
+  if (!BASKET.length) { el.innerHTML = '<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; }
+  el.innerHTML = BASKET.map((l,i) => '<div class="basketRow"><div><b>'+esc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  ·  '+money(l.unitPrice)+' ea  ·  '+money0(l.total)+' total</span></div><button class="bx" data-i="'+i+'" title="Remove">✕</button></div>').join('');
+}
+function custProductLabel(s){
+  if (!s.product) return '';
+  const line = s.product.line;
+  const shapeWord = {'22':'Square','27':'Oversized Square','triangle':'Triangle','gaiter':'Gaiter'}[s.size] || '';
+  let material, note = '';
+  if (/Sublimation/.test(line)) {
+    material = 'Sublimated Polyester';
+    if (/1-Sided/.test(line)) note = ' (1-sided)';
+    else if (/2-Sided/.test(line)) note = ' (2-sided)';
+    else if (/Triangle Sm/.test(line)) note = ' (small)';
+    else if (/Triangle Med/.test(line)) note = ' (medium)';
+    else if (/Triangle Lg/.test(line)) note = ' (large)';
+  } else if (line === 'Full-Color' || line === 'Triangle') { material = 'Cotton'; note = ' (full-color digital)'; }
+  else if (/USA/.test(line)) material = 'USA-Made Cotton';
+  else if (/Organic/.test(line)) material = 'Organic Cotton';
+  else material = 'Cotton';
+  const rush = /Rush/.test(line) ? ' - RUSH' : '';
+  const print = s.fullColor ? '' : (', ' + s.colors + '-color ' + (s.ink === 'Water-Based' ? 'water-based print' : 'screen print'));
+  return material + (shapeWord ? ' ' + shapeWord : '') + note + print + rush;
+}
+function addToBasket(){ if (!CURRENT_QUOTE) return; BASKET.push(Object.assign({}, CURRENT_QUOTE)); renderBasket(); }
+function copyBasket(){
+  if (!BASKET.length) return;
+  const btn = $('copyBasket');
+  navigator.clipboard.writeText(basketCopyText()).then(() => { const o = btn.textContent; btn.textContent = 'Copied!'; setTimeout(()=>{ btn.textContent = o; }, 1400); }, () => { btn.textContent = 'Copy failed'; });
+}
+function clearBasket(){ BASKET = []; renderBasket(); }
 function pcMoney(v){return '$'+(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function pcMoney0(v){return '$'+(v<0?'-':'')+Math.round(Math.abs(v)).toLocaleString('en-US');}
 function pcPct(r){return (r==null||!isFinite(r))?'n/a':(r*100).toFixed(1)+'%';}
@@ -338,6 +395,11 @@ setupFinishing();
 updateProducts();
 document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', render));
 document.querySelectorAll('select').forEach(el => el.addEventListener('change', render));
+$('addToBasket').addEventListener('click', addToBasket);
+$('copyBasket').addEventListener('click', copyBasket);
+$('clearBasket').addEventListener('click', clearBasket);
+$('basketList').addEventListener('click', e => { const b = e.target.closest('.bx'); if (!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
+renderBasket();
 render();
 </script>
 </body>
