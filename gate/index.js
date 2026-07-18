@@ -495,8 +495,9 @@ app.post('/api/shipdeck/void', (req, res) => shipdeckCommand(req, res, 'void'));
    match. Labels are hand-bought in Printavo; this touches no money. The n8n endpoints
    are URL-guarded (unguessable path, server-side only); the session cookie is the app
    auth. Not a money route, so no CSRF token — but the write validates same-origin. */
-const SHIPBOARD_FEED_URL  = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-feed-k9x2m7q4';
-const SHIPBOARD_MATCH_URL = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-match-p3v8t2n6';
+const SHIPBOARD_FEED_URL     = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-feed-k9x2m7q4';
+const SHIPBOARD_MATCH_URL    = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-match-p3v8t2n6';
+const SHIPBOARD_EXTERNAL_URL = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-external-x7k2m9';
 
 app.get('/api/shipboard/feed', async (req, res) => {
   if(!await requireSession(req, res)) return;
@@ -516,6 +517,42 @@ app.post('/api/shipboard/match', async (req, res) => {
       body: JSON.stringify({ tracking_code, matched_order: String(req.body.matched_order || '') }), signal: AbortSignal.timeout(15000) });
     res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
   } catch (e) { res.status(502).json({ error: 'ship board match unreachable: ' + e.message }); }
+});
+/* Update app-owned fields on a captured row (contents / archived / matched_order),
+   keyed by tracking_code. Only forwards keys that were actually sent, so an unset
+   field is preserved (the n8n side upserts by tracking_code, no clobber). */
+app.post('/api/shipboard/update', async (req, res) => {
+  if(!await requireSession(req, res)) return;
+  if(!sameOrigin(req)){ res.status(403).json({ error: 'bad origin' }); return; }
+  const tracking_code = String(req.body.tracking_code || '').trim();
+  if(!tracking_code) return res.status(400).json({ error: 'tracking_code required' });
+  const payload = { tracking_code };
+  for (const k of ['matched_order', 'contents', 'archived']) {
+    if (k in req.body) payload[k] = String(req.body[k] == null ? '' : req.body[k]);
+  }
+  try {
+    const r = await fetch(SHIPBOARD_MATCH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload), signal: AbortSignal.timeout(15000) });
+    res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
+  } catch (e) { res.status(502).json({ error: 'ship board update unreachable: ' + e.message }); }
+});
+/* Log a shipment that went out externally (XPS / Ship Deck), NOT through Printavo.
+   Appends a captured-tracking row tagged with source so it's clearly external. */
+app.post('/api/shipboard/external', async (req, res) => {
+  if(!await requireSession(req, res)) return;
+  if(!sameOrigin(req)){ res.status(403).json({ error: 'bad origin' }); return; }
+  const tracking_code = String(req.body.tracking_code || '').trim();
+  const source = String(req.body.source || '').trim().toLowerCase();
+  if(!tracking_code) return res.status(400).json({ error: 'tracking_code required' });
+  if(source !== 'xps' && source !== 'shipdeck') return res.status(400).json({ error: 'source must be xps or shipdeck' });
+  try {
+    const r = await fetch(SHIPBOARD_EXTERNAL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tracking_code, source,
+        carrier: String(req.body.carrier || ''), matched_order: String(req.body.matched_order || ''),
+        to_company: String(req.body.to_company || ''), date: String(req.body.date || '') }),
+      signal: AbortSignal.timeout(15000) });
+    res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
+  } catch (e) { res.status(502).json({ error: 'ship board external unreachable: ' + e.message }); }
 });
 
 /* ── Auth middleware BEFORE static — every non-public path needs a session ─ */
