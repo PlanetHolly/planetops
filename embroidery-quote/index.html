@@ -47,7 +47,17 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
 .check.withInput { grid-template-columns:auto minmax(0,1fr) 86px; }
 .check.withInput input[type="number"] { min-height:32px; padding:5px 8px; }
-.note { color:var(--muted); font-size:.78rem; }
+.pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
+.pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
+.pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.pcBtn { border:1px solid var(--ink); border-radius:6px; min-height:38px; padding:8px 12px; background:var(--yellow); color:#111; font-weight:900; text-transform:uppercase; letter-spacing:.05em; font-size:.72rem; cursor:pointer; }
+.pcBtn.sec { background:var(--card); color:var(--ink); }
+.basketRow { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:.86rem; }
+.basketRow:last-child { border-bottom:0; }
+.basketRow .bx { border:0; background:none; cursor:pointer; color:var(--bad); font-weight:900; font-size:1rem; line-height:1; }
+.basketEmpty { color:var(--muted); font-size:.82rem; padding:6px 0; }
+.note {color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
 .hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:end; box-shadow:var(--shadow); }
@@ -131,6 +141,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="panel">
       <h2>Quote Inputs</h2>
       <form class="form" id="quoteForm">
+        <div class="field"><label for="garmentName">Garment / style (optional - shows on the customer quote)</label><input id="garmentName" type="text" placeholder="e.g. Gildan 2000"></div>
         <div class="twocol">
           <div class="field"><label for="qty">Order quantity</label><input id="qty" type="number" min="1" step="1" value="48"></div>
           <div class="field"><label for="tier">Tier</label><select id="tier"></select></div>
@@ -177,6 +188,29 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         <div class="perunit">
           <div class="revenueBlock"><small>Project revenue</small><b id="orderTotal">$0</b></div>
           <small>Per decorated unit</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Reverse price check - what margin at a target price?</h2>
+        <div class="form">
+          <div class="twocol">
+            <div class="field"><label for="targetPrice">Customer target price / unit</label><input id="targetPrice" type="number" min="0" step="0.01" placeholder="e.g. 4.00"></div>
+            <div class="field"><label>Margin at that price</label><div id="priceCheckOut" class="pcOut">Enter a price to see the margin</div></div>
+          </div>
+          <div class="pcQuoted" id="priceCheckQuoted"></div>
+          <div class="note">Type the price a customer is pushing for. Shows the resulting per-unit and whole-order margin against this quote's cost basis. Does not change the quote above.</div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Customer comparison - copy multiple prices</h2>
+        <div class="form">
+          <div class="controls">
+            <button class="pcBtn" id="addToBasket" type="button">Add current option</button>
+            <button class="pcBtn sec" id="copyBasket" type="button">Copy for email</button>
+            <button class="pcBtn sec" id="clearBasket" type="button">Clear</button>
+          </div>
+          <div id="basketList"></div>
+          <div class="note">Add each option (change the product or quantity, then Add again), then Copy a clean plain-text price comparison to paste into a customer email. No internal cost or margin is included.</div>
         </div>
       </section>
       <section class="panel breakdown"><h2>Project Cost + Revenue</h2><div class="rows" id="costBreakdown"></div></section>
@@ -548,7 +582,37 @@ function calculate() {
     row('Garment line', garment.included ? money0(garment.revenue) + ' revenue' : 'Not included', garment.included ? money(garment.recovery) + ' recovery per garment, once per garment' : 'Blank cost is 0.'),
     row('Project margin shown to PM', money0(projectMargin) + ' total / ' + pct(projectMarginPct * 100), money(perDecoratedUnitMargin) + ' margin per decorated unit', true)
   ].join('');
+  PC_LAST = {unitPrice:perDecoratedUnitRevenue, unitCost:qty ? projectCost / qty : 0, qty};
+  renderPriceCheck();
+  CURRENT_QUOTE = (isFinite(perDecoratedUnitRevenue) && isFinite(projectRevenue) && projectRevenue > 0) ? {label:(($('garmentName').value||'').trim() || 'Custom apparel') + ', embroidery', qty:qty, unitPrice:perDecoratedUnitRevenue, total:projectRevenue} : null;
 }
+let PC_LAST = null;
+function pcMoney(v){return '$'+(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function pcMoney0(v){return '$'+(v<0?'-':'')+Math.round(Math.abs(v)).toLocaleString('en-US');}
+function pcPct(r){return (r==null||!isFinite(r))?'n/a':(r*100).toFixed(1)+'%';}
+function pcBand(r){if(r==null||!isFinite(r))return{cls:'neutral',label:'n/a'};if(r>0.70)return{cls:'warn',label:'high'};if(r>=0.445)return{cls:'good',label:'target'};if(r>=0.33)return{cls:'warn',label:'survival'};return{cls:'bad',label:'below'};}
+function renderPriceCheck(){
+  const out=$('priceCheckOut'),quoted=$('priceCheckQuoted');if(!out)return;
+  if(!PC_LAST||!isFinite(PC_LAST.unitCost)){out.className='pcOut';out.textContent='Enter a price to see the margin';return;}
+  if(quoted)quoted.textContent='This quote: '+pcMoney(PC_LAST.unitPrice)+'/unit  ·  cost basis '+pcMoney(PC_LAST.unitCost)+'/unit';
+  const raw=$('targetPrice').value;
+  if(raw===''||raw==null){out.className='pcOut';out.textContent='Enter a price to see the margin';return;}
+  const target=Math.max(0,Number(raw)||0);
+  const um=target-PC_LAST.unitCost,ur=target>0?um/target:null;
+  const oRev=target*PC_LAST.qty,oCost=PC_LAST.unitCost*PC_LAST.qty,om=oRev-oCost,orr=oRev>0?om/oRev:null;
+  const b=pcBand(ur);out.className='pcOut '+b.cls;
+  out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
+}
+let CURRENT_QUOTE = null;
+let BASKET = [];
+const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
+const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span></div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
+function addToBasket(){ if(!CURRENT_QUOTE) return; BASKET.push(Object.assign({}, CURRENT_QUOTE)); renderBasket(); }
+function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
+function clearBasket(){ BASKET=[]; renderBasket(); }
 function bind() {
   $('vendorRouting').innerHTML = EMBROIDERY_DATA.vendor_routing.options.map(option => '<option value="' + escapeHtml(option) + '">' + escapeHtml(option + (option === EMBROIDERY_DATA.vendor_routing.default ? ' default' : ' backup')) + '</option>').join('');
   $('vendorRouting').value = EMBROIDERY_DATA.vendor_routing.default;
@@ -557,6 +621,12 @@ function bind() {
   renderSpecialtyItems();
   $('quoteForm').addEventListener('input', calculate);
   $('quoteForm').addEventListener('change', calculate);
+  $('targetPrice').addEventListener('input', renderPriceCheck);
+  $('addToBasket').addEventListener('click', addToBasket);
+  $('copyBasket').addEventListener('click', copyBasket);
+  $('clearBasket').addEventListener('click', clearBasket);
+  $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
+  renderBasket();
   $('qty').addEventListener('input', () => {
     if (readBlankCost() > 0) $('garmentQty').value = String(readQty());
   });
