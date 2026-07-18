@@ -169,3 +169,14 @@ VERDICT: Build #5a APPROVED by Claude (1 fix round). Internal pipeline complete 
 - 004 DDL; graduation gate + releaseHeld + claim→sent→POST→acked incl. stale reclaim & SKIP-LOCKED across instances; shadow-'held' path; setGraduation upsert; live n8n POST (2xx ack, retry→failed, n8n secret-reject + UPSERT-by-idempotency-key). Plus all carried-forward flags.
 
 VERDICT: Build #5b APPROVED by Claude (0 fix rounds). FULL PIPELINE now exists in code (internal + external, shadow-gated). External writes are SHADOW until Holly runs setGraduation per doc_type. Remaining: #6 (board live + upload UI + feed-guide fix), #7 (packaging + staging deploy — where everything unproven gets proven).
+
+## Build #6a — Step 8-9 (gated read endpoints + Incoming board live)  [EXECUTOR: Fable]
+- NEW gate/feed/views.js — GET /api/feed/incoming (feed_incoming → {generated_at, items}; total→Number, eta→YYYY-MM-DD) + GET /api/feed/ledger (feed_ledger recent → {items}); both requireSession-gated, no-store, try/catch→500.
+- MOD gate/index.js — one line: mount feed views router.
+- MOD incoming/index.html — boot() fetches /api/feed/incoming first (cookie rides same-origin), FALLS BACK to ./incoming-data.json on throw/non-OK; render logic byte-identical; sample kept.
+### Act 4 — Claude review + 1 fix round
+- views.js gated + safe; index mount minimal; board fetch fallback intact.
+- FIX (round 1): eta returned as full ISO but board's parseEta only reads YYYY-MM-DD → live cards would show "ETA unknown" (ETA is the board's priority field). Fixed endpoint-side: eta coerced to bare YYYY-MM-DD; board unchanged. Re-verified all green (parity + 4 selftests).
+- Note for staging: UTC-date coercion could roll an ETA to next day if dispatcher ever stores non-midnight times; glance at real rows.
+### NOT verified (staging): both endpoints vs real Postgres (feed_incoming/feed_ledger reads, NUMERIC/JSONB/eta on a real pg Date), board rendering live behind the gate.
+VERDICT: Build #6a APPROVED (1 fix round). Board reads live feed data; ledger audit endpoint live.

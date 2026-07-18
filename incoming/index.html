@@ -182,9 +182,15 @@ function render(){
 
 async function boot(){
   try{
-    const r=await fetch('./incoming-data.json?_='+Math.floor(Date.now()/60000));
-    DATA=await r.json();
-  }catch(e){ DATA={items:[]}; }
+    const live=await fetch('/api/feed/incoming');   // same-origin: gate session cookie rides along
+    if(!live.ok) throw new Error('live feed '+live.status);
+    DATA=await live.json();
+  }catch(liveErr){
+    try{
+      const r=await fetch('./incoming-data.json?_='+Math.floor(Date.now()/60000));
+      DATA=await r.json();
+    }catch(e){ DATA={items:[]}; }
+  }
   $('#updated').textContent = DATA.generated_at ? ('Snapshot: '+DATA.generated_at) : 'No snapshot yet';
   render();
 }

@@ -346,6 +346,7 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
 });
 app.use(require('./graphics')(pool, requireSession));
 app.use(require('./feed/intake')(pool, requireSession, { hmac, timingEq, sameOrigin, alert, loadSession }));
+app.use(require('./feed/views')(pool, requireSession));   // Build #6a: gated reads — /api/feed/incoming + /api/feed/ledger
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance
