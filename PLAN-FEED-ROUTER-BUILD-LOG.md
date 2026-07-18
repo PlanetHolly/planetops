@@ -72,3 +72,29 @@ Architecture override of plan §D4: base64-in-JSON upload (reuse app pattern), Z
 - Verified: static + pure-fn selftest (crypto/sniff/pdf-guard) + regression. NOT verified: live-DB INSERT/dedupe + end-to-end HTTP behind a real session — no local Postgres; deferred to staging (Build #7). Also FEED_RAW_KEY env must be set at rollout.
 
 VERDICT: Build #3 APPROVED by Claude (1 fix round). Live-DB + HTTP path unproven until staging.
+
+## Build #4a — Step 4 part 1 (worker + LLM extraction)  [EXECUTOR: Fable]
+Split of plan Step 4-5: #4a = worker + extraction (this); #4b = validators + feed_vendors + semanticKey (next).
+
+### Act 3 — Fable build (model=fable)
+- NEW gate/feed/migrations/002_feed_extraction.sql — 9 nullable extraction cols on feed_intake (extracted JSONB, doc_type, confidence, extractor_model/version, token_usage, extracted_at, review_reason, last_error) + feed_token_budget(day PK, tokens_used).
+- NEW gate/feed/extract.js — raw fetch → /v1/messages; output_config.format json_schema (EXTRACTION_SCHEMA mirrors the Fact); no thinking/sampling (Opus 4.8); buildContent (pdf=document-before-text, png/jpeg=image, csv/text=inline capped 200k); typed ExtractError (retryable/permanent/not_configured); refusal|max_tokens → fact:null.
+- NEW gate/feed/worker.js — startFeedWorker(pool, alert); concurrency-1 self-scheduling loop (unref timers); claim = txn SELECT status='received' OR stale 'processing' FOR UPDATE SKIP LOCKED → processing+worker_id+locked_until+attempt++; budget checked BEFORE claim; config halts release without burning attempt; success→extracted; refusal/max_tokens→review; retryable<max→release+backoff, else dead-letter fail+alert; ledger per outcome; cycle try/caught so one row can't kill loop.
+- NEW gate/feed/extract_selftest.js.
+- MOD gate/index.js — one edit: startFeedWorker(pool, alert) inside the existing runFeedMigrations().then, after 'feed_schema ready'.
+
+### Act 4 — Claude review (real diff)
+- worker.js: SKIP-LOCKED claim + stale-row reclaim = correct, multi-instance safe; concurrency-1 verified; budget-before-claim (dev #1) sound; config halts undo the attempt increment (never dead-letter on missing key) = correct; attempt math gives exactly FEED_MAX_ATTEMPTS real tries; ledger writer can't throw into cycle; releaseRow's interpolated attempt expr uses an internal boolean literal (no injection). feedRawKey reimpl matches intake.js byte-for-byte.
+- extract.js: endpoint/headers/body correct vs claude-api ref; stop_reason guarded before content; error classification right. Selftest 20/20 re-run by me; parity still PASS; node --check clean.
+- Deviations #1-6 in Fable's report all reviewed and accepted.
+- Fix rounds: 0.
+
+### FLAGS (not fix-now; carried to Holly + staging)
+1. **STAGING-CRITICAL:** EXTRACTION_SCHEMA uses nullable `type:["string","null"]`. If Anthropic's structured-output compiler rejects type-arrays (prefers anyOf), the first live call returns 400 → classified permanent → dead-letters that doc. VERIFY on the very first staging call; if it 400s on schema, swap nullable fields to anyOf:[{type:X},{type:null}]. (2-line change.)
+2. **Sharp edge:** a wrong-but-valid-format FEED_RAW_KEY marks every doc permanently 'failed' + fires an alert per doc (decrypt failure = permanent), rather than halting — noisy/destructive for a recoverable misconfig. Consider halt-on-systemic-decrypt-failure in a later hardening. Current behavior fails safe (nothing routed, alerts fire).
+
+### NOT verified (pending staging: real ANTHROPIC_API_KEY + Postgres)
+- Live Anthropic call + structured-output acceptance (see FLAG 1), refusal/max_tokens paths, real usage numbers.
+- 002 DDL on live Postgres; claim/SKIP-LOCKED/reclaim; all status transitions; ledger inserts; daily-budget read+upsert; worker boot wiring.
+
+VERDICT: Build #4a APPROVED by Claude (0 fix rounds). 2 flags for staging/Holly. Live API + DB unproven until staging.

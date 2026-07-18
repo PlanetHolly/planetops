@@ -87,7 +87,10 @@ pool.query(`
 `).then(() => console.log('gate_sessions ready'))
   .catch(err => console.error('DB init failed:', err.message));
 runFeedMigrations(pool)
-  .then(() => console.log('feed_schema ready'))
+  .then(() => {
+    console.log('feed_schema ready');
+    require('./feed/worker').startFeedWorker(pool, alert);   // Build #4a: extraction worker (safe without ANTHROPIC_API_KEY — rows just wait)
+  })
   .catch(err => console.error('feed_schema init failed:', err.message));
 // housekeeping: purge expired sessions hourly
 setInterval(() => pool.query('DELETE FROM gate_sessions WHERE expires_at < NOW()').catch(()=>{}), 3600e3);
