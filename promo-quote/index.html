@@ -37,6 +37,13 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
 .pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
 .pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.pcBtn { border:1px solid var(--ink); border-radius:6px; min-height:38px; padding:8px 12px; background:var(--yellow); color:#111; font-weight:900; text-transform:uppercase; letter-spacing:.05em; font-size:.72rem; cursor:pointer; }
+.pcBtn.sec { background:var(--card); color:var(--ink); }
+.basketRow { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:.86rem; }
+.basketRow:last-child { border-bottom:0; }
+.basketRow .bx { border:0; background:none; cursor:pointer; color:var(--bad); font-weight:900; font-size:1rem; line-height:1; }
+.basketEmpty { color:var(--muted); font-size:.82rem; padding:6px 0; }
 .note {color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
@@ -117,6 +124,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="panel">
       <h2>Quote Inputs</h2>
       <form class="form" id="quoteForm">
+        <div class="field"><label for="itemName">Item / product name (optional - shows on the customer quote)</label><input id="itemName" type="text" placeholder="e.g. 11oz Ceramic Mug"></div>
         <div class="twocol">
           <div class="field"><label for="vendorCost">Vendor unit cost</label><input id="vendorCost" type="number" min="0" step="0.01" value="2.23"></div>
           <div class="field"><label for="qty">Quantity</label><input id="qty" type="number" min="1" step="1" value="1500"></div>
@@ -167,6 +175,18 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         </div>
       </section>
 
+      <section class="panel">
+        <h2>Customer comparison - copy multiple prices</h2>
+        <div class="form">
+          <div class="controls">
+            <button class="pcBtn" id="addToBasket" type="button">Add current option</button>
+            <button class="pcBtn sec" id="copyBasket" type="button">Copy for email</button>
+            <button class="pcBtn sec" id="clearBasket" type="button">Clear</button>
+          </div>
+          <div id="basketList"></div>
+          <div class="note">Add each option (change the product or quantity, then Add again), then Copy a clean plain-text price comparison to paste into a customer email. No internal cost or margin is included.</div>
+        </div>
+      </section>
       <section class="marginHero">
         <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on promo desk</div></div>
         <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Customer price less landed cost</div></div>
@@ -346,6 +366,7 @@ function calculate() {
   $('flags').innerHTML = flags.join('');
   PC_LAST = {unitPrice:priceUnit, unitCost:landedUnit, qty};
   renderPriceCheck();
+  CURRENT_QUOTE = (isFinite(priceUnit) && isFinite(orderTotal) && orderTotal > 0) ? {label:(($('itemName').value||'').trim() || 'Promo item'), qty:qty, unitPrice:priceUnit, total:orderTotal} : null;
 }
 let PC_LAST = null;
 function pcMoney(v){return '$'+(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -364,12 +385,27 @@ function renderPriceCheck(){
   const b=pcBand(ur);out.className='pcOut '+b.cls;
   out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
 }
+let CURRENT_QUOTE = null;
+let BASKET = [];
+const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
+const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span></div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
+function addToBasket(){ if(!CURRENT_QUOTE) return; BASKET.push(Object.assign({}, CURRENT_QUOTE)); renderBasket(); }
+function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
+function clearBasket(){ BASKET=[]; renderBasket(); }
 function bind() {
   setupComplexity();
   const form = $('quoteForm');
   form.addEventListener('input', calculate);
   form.addEventListener('change', calculate);
   $('targetPrice').addEventListener('input', renderPriceCheck);
+  $('addToBasket').addEventListener('click', addToBasket);
+  $('copyBasket').addEventListener('click', copyBasket);
+  $('clearBasket').addEventListener('click', clearBasket);
+  $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
+  renderBasket();
   calculate();
 }
 bind();

@@ -54,6 +54,13 @@ input[type="number"]:focus, select:focus { border-color:#111; box-shadow:0 0 0 3
 .help, .pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
 .pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
 .pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.pcBtn { border:1px solid var(--ink); border-radius:6px; min-height:38px; padding:8px 12px; background:var(--yellow); color:#111; font-weight:900; text-transform:uppercase; letter-spacing:.05em; font-size:.72rem; cursor:pointer; }
+.pcBtn.sec { background:var(--card); color:var(--ink); }
+.basketRow { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); font-size:.86rem; }
+.basketRow:last-child { border-bottom:0; }
+.basketRow .bx { border:0; background:none; cursor:pointer; color:var(--bad); font-weight:900; font-size:1rem; line-height:1; }
+.basketEmpty { color:var(--muted); font-size:.82rem; padding:6px 0; }
 .note {color:var(--muted); font-size:.76rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff6d6; color:#453700; padding:9px 10px; border-radius:0 6px 6px 0; font-size:.78rem; font-weight:850; }
 .lineList { display:grid; gap:12px; }
@@ -151,6 +158,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     <section class="panel">
       <h2>Quote Inputs</h2>
       <form class="form" id="quoteForm">
+        <div class="field"><label for="garmentName">Garment / style (optional - shows on the customer quote)</label><input id="garmentName" type="text" placeholder="e.g. Gildan 2000"></div>
         <div class="sectionBlock">
           <div class="sectionHead"><h3>Garment</h3></div>
           <div class="twocol">
@@ -224,6 +232,18 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
         </div>
       </section>
 
+      <section class="panel">
+        <h2>Customer comparison - copy multiple prices</h2>
+        <div class="form">
+          <div class="controls">
+            <button class="pcBtn" id="addToBasket" type="button">Add current option</button>
+            <button class="pcBtn sec" id="copyBasket" type="button">Copy for email</button>
+            <button class="pcBtn sec" id="clearBasket" type="button">Clear</button>
+          </div>
+          <div id="basketList"></div>
+          <div class="note">Add each option (change the product or quantity, then Add again), then Copy a clean plain-text price comparison to paste into a customer email. No internal cost or margin is included.</div>
+        </div>
+      </section>
       <section class="metrics">
         <div class="metric dark"><small>Transfer revenue</small><b id="transferRevenue">$0</b><div class="sub" id="lineCount">1 line</div></div>
         <div class="metric"><small>Garment revenue</small><b id="garmentRevenue">$0</b><div class="sub" id="recoveryLabel">$0 recovery</div></div>
@@ -460,6 +480,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     $('avgPerGarment').textContent = money(avgQty ? totalRevenue / avgQty : 0);
     PC_LAST = {unitPrice:avgQty ? totalRevenue / avgQty : 0, unitCost:avgQty ? totalCost / avgQty : 0, qty:avgQty};
     renderPriceCheck();
+    CURRENT_QUOTE = (avgQty && isFinite(totalRevenue) && totalRevenue > 0) ? {label:(($('garmentName').value||'').trim() || 'Custom apparel') + ', DTF (' + lines.length + ' location' + (lines.length>1?'s':'') + ')', qty:avgQty, unitPrice:totalRevenue/avgQty, total:totalRevenue} : null;
     $('transferRevenue').textContent = money(transferRevenue, 0);
     $('lineCount').textContent = lines.length + (lines.length === 1 ? ' line' : ' lines');
     $('garmentRevenue').textContent = money(garmentRevenue, 0);
@@ -523,8 +544,24 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     const b=pcBand(ur);out.className='pcOut '+b.cls;
     out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
   }
+  let CURRENT_QUOTE = null;
+  let BASKET = [];
+  const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
+  const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+  function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span></div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
+  function addToBasket(){ if(!CURRENT_QUOTE) return; BASKET.push(Object.assign({}, CURRENT_QUOTE)); renderBasket(); }
+  function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
+  function clearBasket(){ BASKET=[]; renderBasket(); }
   function bindEvents() {
     $('targetPrice').addEventListener('input', renderPriceCheck);
+    $('garmentName').addEventListener('input', calculate);
+    $('addToBasket').addEventListener('click', addToBasket);
+    $('copyBasket').addEventListener('click', copyBasket);
+    $('clearBasket').addEventListener('click', clearBasket);
+    $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
+    renderBasket();
     ['tier','shippingTotal','blankCost','garmentQty','garmentSource'].forEach((id) => { $(id).addEventListener('input', calculate); $(id).addEventListener('change', calculate); });
     $('addLine').addEventListener('click', () => { lines.push(newLine({ qty: lines[lines.length - 1]?.qty || 100 })); renderLines(); calculate(); });
     $('lineList').addEventListener('click', (event) => {
