@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Feed a Document — Planet Apparel</title>
+<style>
+  :root{
+    --ink:#171717; --muted:#737373; --line:#dedede; --wash:#f6f5f2; --panel:#fff;
+    --yellow:#F7BE00;
+    --bad:#b3261e; --badbg:#fdeceb; --good:#1b6b3a; --goodbg:#edf7f1;
+    --warn:#8a6100; --warnbg:#fdf6e3;
+    --font:'Montserrat','Avenir Next','Helvetica Neue',Arial,system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);color:var(--ink);background:var(--wash);line-height:1.55;font-size:15px}
+  .page{max-width:640px;margin:0 auto;padding:clamp(1rem,4vw,2.2rem)}
+  header{display:flex;align-items:center;gap:.7rem;padding-bottom:1rem;margin-bottom:1.4rem;border-bottom:3px solid #000}
+  header svg{width:30px;height:30px;flex:none}
+  header .brand{font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:.95rem}
+  h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-transform:uppercase;line-height:1.15;margin-bottom:.35rem}
+  .sub{color:var(--muted);margin-bottom:1.6rem}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:clamp(1rem,3.5vw,1.5rem)}
+  label{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;margin-bottom:1rem}
+  input[type=text],select,textarea{
+    width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;
+    padding:12px;color:var(--ink);font:inherit;font-size:16px
+  }
+  textarea{min-height:84px;resize:vertical}
+  button{
+    border:1px solid var(--ink);background:var(--ink);color:#fff;padding:13px 16px;
+    border-radius:6px;font:inherit;font-weight:800;cursor:pointer;width:100%;font-size:16px
+  }
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.secondary{background:#fff;color:var(--ink);border-color:var(--line)}
+  .dropzone{
+    border:2px dashed var(--line);border-radius:8px;background:#fff;
+    padding:2.2rem 1.2rem;text-align:center;cursor:pointer;margin-bottom:1rem;
+    transition:border-color .12s,background .12s;outline:none
+  }
+  .dropzone:focus-visible{border-color:var(--ink)}
+  .dropzone.dragover{border-color:var(--yellow);background:#fffdf2}
+  .dropzone .dz-icon{font-size:2rem;line-height:1;margin-bottom:.5rem}
+  .dropzone .dz-main{font-weight:800}
+  .dropzone .dz-hint{color:var(--muted);font-size:.85rem;margin-top:.3rem}
+  .filecard{
+    display:flex;align-items:center;gap:.8rem;border:1px solid var(--line);
+    border-left:4px solid var(--yellow);border-radius:6px;background:#fff;
+    padding:.8rem 1rem;margin-bottom:1rem
+  }
+  .filecard .f-name{font-weight:800;word-break:break-all}
+  .filecard .f-size{color:var(--muted);font-size:.85rem}
+  .filecard button{width:auto;padding:8px 12px;font-size:13px;flex:none;margin-left:auto}
+  .notice{border-left:4px solid;border-radius:0 6px 6px 0;padding:.9rem 1.1rem;margin-bottom:1rem;font-size:.92rem}
+  .notice .t{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.78rem;margin-bottom:.25rem}
+  .notice.warn{border-color:var(--warn);background:var(--warnbg);color:#5c4400}
+  .notice.bad{border-color:var(--bad);background:var(--badbg);color:#7a1a14}
+  .notice.ok{border-color:var(--good);background:var(--goodbg);color:#12502b}
+  .notice a{color:inherit;font-weight:800}
+  .hidden{display:none!important}
+  .success{text-align:center;padding:1.4rem .5rem}
+  .success .big{font-size:2.4rem;line-height:1;color:var(--good);margin-bottom:.6rem}
+  .success h2{font-size:1.15rem;font-weight:800;margin-bottom:.4rem}
+  .success p{color:var(--muted);margin-bottom:1.2rem}
+  footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem}
+  @media(max-width:480px){.dropzone{padding:1.6rem .9rem}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="#000" stroke-width="3"/><line x1="7" y1="33" x2="33" y2="7" stroke="#000" stroke-width="3"/></svg>
+    <span class="brand">Planet Apparel</span>
+  </header>
+
+  <h1>Feed a Document</h1>
+  <p class="sub">Drop a PO, invoice, order, or report — the system reads it and files it where it belongs.</p>
+
+  <!-- loading -->
+  <div id="viewLoading" class="panel">Connecting…</div>
+
+  <!-- 401: no session -->
+  <div id="viewSignin" class="panel hidden">
+    <div class="notice warn" style="margin-bottom:0">
+      <div class="t">Sign in first</div>
+      Please sign in at the front door, then come back here.
+      <a href="/gate?r=%2Ffeed-upload%2F">Go to sign-in →</a>
+    </div>
+  </div>
+
+  <!-- session fetch failed (not 401) -->
+  <div id="viewLoadError" class="panel hidden">
+    <div class="notice bad">
+      <div class="t">Couldn't connect</div>
+      <span id="loadErrorMsg">Something went wrong reaching the server.</span>
+    </div>
+    <button type="button" id="retryLoad" class="secondary">Try again</button>
+  </div>
+
+  <!-- the form -->
+  <form id="viewForm" class="panel hidden" novalidate>
+
+    <div class="dropzone" id="dropzone" role="button" tabindex="0"
+         aria-label="Drop a file here, or press Enter to choose a file">
+      <div class="dz-icon" aria-hidden="true">📤</div>
+      <div class="dz-main">Drop a file here, or click to choose</div>
+      <div class="dz-hint">PDF, PNG, JPEG, CSV, or plain text · <span id="maxSizeHint">max 25 MB</span></div>
+    </div>
+    <input type="file" id="fileInput" class="hidden"
+           accept=".pdf,.png,.jpg,.jpeg,.csv,.txt,application/pdf,image/png,image/jpeg,text/csv,text/plain">
+
+    <div class="filecard hidden" id="fileCard">
+      <div>
+        <div class="f-name" id="fileName"></div>
+        <div class="f-size" id="fileSize"></div>
+      </div>
+      <button type="button" class="secondary" id="clearFile">Remove</button>
+    </div>
+
+    <div class="notice bad hidden" id="sizeNotice">
+      <div class="t">Too large</div>
+      <span id="sizeNoticeMsg"></span>
+    </div>
+
+    <label>What is it?
+      <select id="category" required>
+        <option value="" selected>Choose a category…</option>
+      </select>
+    </label>
+
+    <div class="notice warn hidden" id="financeNotice">
+      <div class="t">Finance PIN needed</div>
+      Payroll and financial documents need the finance PIN — <a href="/gate/finance?r=%2Ffeed-upload%2F">unlock at the front door (finance)</a> before uploading.
+    </div>
+
+    <label>Your name
+      <input type="text" id="submitterName" maxlength="200" autocomplete="name" required>
+    </label>
+
+    <label>Note (optional)
+      <textarea id="note" maxlength="2000" placeholder="Anything the system should know? e.g. 'PO for job 1234'"></textarea>
+    </label>
+
+    <div class="notice bad hidden" id="submitError">
+      <div class="t">Not sent</div>
+      <span id="submitErrorMsg"></span>
+    </div>
+    <div class="notice warn hidden" id="submitWarn">
+      <div class="t">Heads up</div>
+      <span id="submitWarnMsg"></span>
+    </div>
+
+    <button type="submit" id="submitBtn" disabled>Feed it to the system</button>
+  </form>
+
+  <!-- success -->
+  <div id="viewSuccess" class="panel hidden">
+    <div class="success">
+      <div class="big" aria-hidden="true">✓</div>
+      <h2 id="successTitle">Received — the system is reading it now.</h2>
+      <p id="successDetail"></p>
+      <button type="button" id="feedAnother" class="secondary">Feed another</button>
+    </div>
+  </div>
+
+  <div aria-live="polite" class="hidden" id="liveRegion"></div>
+
+  <footer>
+    Files are stored securely and read automatically. Anything the system isn't sure about is held for review, never guessed.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var VIEWS = ['viewLoading', 'viewSignin', 'viewLoadError', 'viewForm', 'viewSuccess'];
+  function show(view) {
+    VIEWS.forEach(function (v) { $(v).classList.toggle('hidden', v !== view); });
+  }
+  function announce(msg) { $('liveRegion').textContent = msg; }
+
+  /* ── State ── */
+  var csrf = null;
+  var maxBytes = 25 * 1024 * 1024;
+  var financeCategories = ['payroll', 'financials'];
+  var file = null;
+
+  /* ── Helpers ── */
+  var CATEGORY_LABELS = {
+    inbound_order:    'Inbound order (a customer order coming in)',
+    purchase_order:   'Purchase order (a PO we sent a vendor)',
+    analytics_report: 'Analytics report',
+    period_expense:   'Recurring / period expense',
+    expense:          'One-off expense',
+    payroll:          'Payroll',
+    financials:       'Financials (P&L, statements)',
+    other:            'Something else'
+  };
+  function labelFor(cat) {
+    if (CATEGORY_LABELS[cat]) return CATEGORY_LABELS[cat];
+    var s = String(cat).replace(/_/g, ' ');
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function humanSize(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  function mimeFor(f) {
+    if (f.type) return f.type;
+    var ext = (f.name.lastIndexOf('.') > -1 ? f.name.slice(f.name.lastIndexOf('.') + 1) : '').toLowerCase();
+    return { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', csv: 'text/csv', txt: 'text/plain' }[ext] || '';
+  }
+  function hideMessages() {
+    $('submitError').classList.add('hidden');
+    $('submitWarn').classList.add('hidden');
+  }
+
+  /* ── Boot: fetch session (the ONLY source of the CSRF token) ── */
+  function boot() {
+    show('viewLoading');
+    fetch('/api/feed/session', { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) {
+        if (r.status === 401) { show('viewSignin'); return null; }
+        if (!r.ok) throw new Error('The server answered ' + r.status + '. Try again in a moment.');
+        return r.json();
+      })
+      .then(function (j) {
+        if (!j) return;
+        if (!j.csrf || !j.limits) throw new Error('Unexpected reply from the server. Try again in a moment.');
+        csrf = j.csrf;
+        maxBytes = j.limits.maxBytes || maxBytes;
+        financeCategories = j.limits.financeCategories || financeCategories;
+        var sel = $('category');
+        while (sel.options.length > 1) sel.remove(1);
+        (j.limits.allowedCategories || []).forEach(function (cat) {
+          var o = document.createElement('option');
+          o.value = cat;
+          o.textContent = labelFor(cat);
+          sel.appendChild(o);
+        });
+        $('maxSizeHint').textContent = 'max ' + Math.round(maxBytes / (1024 * 1024)) + ' MB';
+        show('viewForm');
+      })
+      .catch(function (e) {
+        $('loadErrorMsg').textContent = (e && e.message) ? e.message : 'Something went wrong reaching the server.';
+        show('viewLoadError');
+      });
+  }
+  $('retryLoad').addEventListener('click', boot);
+
+  /* ── File selection: drag-drop OR click-to-choose ── */
+  var dz = $('dropzone');
+  dz.addEventListener('click', function () { $('fileInput').click(); });
+  dz.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('fileInput').click(); }
+  });
+  ['dragover', 'dragenter'].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('dragover'); });
+  });
+  ['dragleave', 'dragend'].forEach(function (ev) {
+    dz.addEventListener(ev, function () { dz.classList.remove('dragover'); });
+  });
+  dz.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  });
+  $('fileInput').addEventListener('change', function (e) {
+    if (e.target.files && e.target.files.length) setFile(e.target.files[0]);
+  });
+  $('clearFile').addEventListener('click', function () { setFile(null); });
+
+  function setFile(f) {
+    file = f || null;
+    hideMessages();
+    if (!file) {
+      $('fileInput').value = '';
+      $('fileCard').classList.add('hidden');
+      $('sizeNotice').classList.add('hidden');
+      update();
+      return;
+    }
+    $('fileName').textContent = file.name;
+    $('fileSize').textContent = humanSize(file.size);
+    $('fileCard').classList.remove('hidden');
+    if (file.size > maxBytes) {
+      $('sizeNoticeMsg').textContent = '"' + file.name + '" is ' + humanSize(file.size) +
+        ' — too large (max ' + Math.round(maxBytes / (1024 * 1024)) + ' MB). Pick a smaller file.';
+      $('sizeNotice').classList.remove('hidden');
+    } else {
+      $('sizeNotice').classList.add('hidden');
+    }
+    announce('File chosen: ' + file.name + ', ' + humanSize(file.size));
+    update();
+  }
+
+  /* ── Enable/disable submit + finance notice ── */
+  function sizeOk() { return !!file && file.size <= maxBytes; }
+  function update() {
+    var cat = $('category').value;
+    $('financeNotice').classList.toggle('hidden', financeCategories.indexOf(cat) === -1);
+    $('submitBtn').disabled = !(sizeOk() && cat && $('submitterName').value.trim());
+  }
+  $('category').addEventListener('change', update);
+  $('submitterName').addEventListener('input', update);
+
+  /* ── Submit ── */
+  $('viewForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if ($('submitBtn').disabled || !file) return;
+    hideMessages();
+    $('submitBtn').disabled = true;
+    $('submitBtn').textContent = 'Sending…';
+
+    var reader = new FileReader();
+    reader.onerror = function () { showError('Could not read that file — try choosing it again.'); };
+    reader.onload = function () {
+      var result = String(reader.result || '');
+      var comma = result.indexOf(',');
+      if (comma === -1) { showError('Could not read that file — try choosing it again.'); return; }
+      var mime = mimeFor(file);
+      if (!mime) { showError('Could not tell what type of file that is. Use PDF, PNG, JPEG, CSV, or plain text.'); return; }
+      /* rebuild the data URL with the mime we will declare, so both always agree */
+      var dataUrl = 'data:' + mime + ';base64,' + result.slice(comma + 1);
+      send({
+        filename: file.name,
+        mime: mime,
+        category: $('category').value,
+        note: $('note').value,
+        submitter_name: $('submitterName').value.trim(),
+        data: dataUrl
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function send(body) {
+    fetch('/api/feed/intake', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) { handle(r.status, j); });
+      })
+      .catch(function () {
+        showError('Could not reach the server — check your connection and try again.');
+      });
+  }
+
+  function handle(status, j) {
+    if (status === 201) {
+      $('successDetail').textContent = 'id #' + j.intake_id + ' · Anything it can’t read confidently is held for review.';
+      show('viewSuccess');
+      announce('Received. The system is reading it now.');
+      resetButton();
+      return;
+    }
+    if (status === 200 && j.duplicate) {
+      showWarn('You’ve already uploaded this file (id #' + j.intake_id + '). No need to send it again.');
+      return;
+    }
+    if (status === 401) { show('viewSignin'); resetButton(); return; }
+    if (status === 403 && j.need === 'finance') {
+      $('financeNotice').classList.remove('hidden');
+      showError('Payroll and financial documents need the finance PIN. Unlock at the front door (finance), then come back and try again.');
+      return;
+    }
+    if (status === 403 && j.error === 'bad csrf token') {
+      /* token went stale — quietly grab a fresh one, then ask for one more click */
+      fetch('/api/feed/session', { cache: 'no-store', credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (s) {
+          if (s && s.csrf) {
+            csrf = s.csrf;
+            showWarn('Your session token was refreshed — press the button once more.');
+          } else {
+            show('viewSignin');
+            resetButton();
+          }
+        })
+        .catch(function () { showError('Could not refresh your session — reload the page and try again.'); });
+      return;
+    }
+    /* 400 / 403 bad origin / 413 / 429 / 500 — show the server's message plainly */
+    var msg = (j && typeof j.error === 'string' && j.error) ? j.error : 'Upload failed (' + status + '). Try again.';
+    if (status === 429) msg = msg + ' Wait a minute, then try again.';
+    showError(msg);
+  }
+
+  function showError(msg) {
+    $('submitErrorMsg').textContent = msg;
+    $('submitError').classList.remove('hidden');
+    announce(msg);
+    resetButton();
+  }
+  function showWarn(msg) {
+    $('submitWarnMsg').textContent = msg;
+    $('submitWarn').classList.remove('hidden');
+    announce(msg);
+    resetButton();
+  }
+  function resetButton() {
+    $('submitBtn').textContent = 'Feed it to the system';
+    update();
+  }
+
+  /* ── Feed another: back to a clean form (name + category kept) ── */
+  $('feedAnother').addEventListener('click', function () {
+    setFile(null);
+    $('note').value = '';
+    hideMessages();
+    show('viewForm');
+    update();
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>

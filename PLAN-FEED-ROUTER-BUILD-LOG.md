@@ -180,3 +180,14 @@ VERDICT: Build #5b APPROVED by Claude (0 fix rounds). FULL PIPELINE now exists i
 - Note for staging: UTC-date coercion could roll an ETA to next day if dispatcher ever stores non-midnight times; glance at real rows.
 ### NOT verified (staging): both endpoints vs real Postgres (feed_incoming/feed_ledger reads, NUMERIC/JSONB/eta on a real pg Date), board rendering live behind the gate.
 VERDICT: Build #6a APPROVED (1 fix round). Board reads live feed data; ledger audit endpoint live.
+
+## Build #6b — Step 10 (drop-surface upload page + frontdoor node)  [EXECUTOR: Fable, FRONTEND ONLY]
+- NEW feed-upload/index.html — self-contained (inline CSS/JS, zero external deps) drop-surface: drag-drop/click dropzone + category select + required name + optional note; GET /api/feed/session for csrf+limits; FileReader.readAsDataURL; POST /api/feed/intake with x-csrf-token; handles every response (201/200-dup/400/403×3[origin/csrf/finance]/413/429/500); inline finance-PIN notice for payroll/financials; 401→sign-in view; bad-csrf→auto-refresh token. Matches app look.
+- MOD frontdoor/registry.json — added feed-upload node (kind:surface, url:/feed-upload/). app.js:455 fallback now resolves the "Feed the system" tile to this page (app.js untouched) — closes Holly's original "Open should show an upload box" complaint.
+- feed-guide "localhost" fix: already committed on this branch; ships at deploy (untouched).
+### Act 4 — Claude review (frontend)
+- registry.json valid JSON + node present; page fully self-contained (external-resource grep empty); two-</body> trap avoided (1 body/1 script); API contract matches intake.js exactly (session/intake, csrf header, readAsDataURL, submitter_name, finance handling, session re-fetch on bad csrf); git status = only the 2 intended files.
+- Notable: data-URL mime rebuilt so declared-mime == data-url-mime always agree (browsers emit octet-stream/empty for csv/txt → intake sniffer would reject). Sharp defensive catch.
+- Fix rounds: 0.
+### NOT verified (staging): the whole live browser flow — session fetch behind the gate cookie, drag-drop/readAsDataURL across browsers, POST + every response state, finance gating end-to-end, the frontdoor tile opening /feed-upload/ after deploy.
+VERDICT: Build #6b APPROVED (0 fix rounds). Build #6 COMPLETE. FEATURE-COMPLETE — only #7 (packaging + staging rollout) remains.

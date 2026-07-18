@@ -897,6 +897,17 @@
           "icon": "🔤"
         },
         {
+          "id": "feed-upload",
+          "kind": "surface",
+          "name": "Feed a Document",
+          "blurb": "Drop a PO, invoice, order, or report — the system reads and files it",
+          "type": "tool",
+          "status": "live",
+          "access": "open",
+          "icon": "📤",
+          "url": "/feed-upload/"
+        },
+        {
           "id": "feed-guide",
           "kind": "surface",
           "name": "Feed Guide",
