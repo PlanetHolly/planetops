@@ -230,6 +230,22 @@ function renderCaptured(){
     el.innerHTML=`<div class="cap"><h2>Captured tracking</h2><div class="err" style="padding:10px 12px;margin:0">${esc(state.feedErr)}</div></div>`;
     return;
   }
+  // Shell rendered once; the search input is NOT rebuilt on keystroke (renderLanes only
+  // repaints #caplanes) so typing in search keeps focus/caret.
+  el.innerHTML=`<div class="cap">
+    <h2>Captured tracking</h2>
+    <div class="capbar">
+      <input class="search" value="${esc(state.capSearch)}" placeholder="Search tracking, carrier, customer, invoice, city, date…" oninput="state.capSearch=this.value;renderLanes()">
+      <button class="mini" id="histbtn" onclick="state.historyOpen=!state.historyOpen;renderLanes()"></button>
+    </div>
+    ${state.matchErr?`<div class="err" style="padding:8px 12px;margin:0">${esc(state.matchErr)}</div>`:''}
+    <div id="caplanes"></div>
+  </div>`;
+  renderLanes();
+}
+function renderLanes(){
+  const host=document.getElementById('caplanes'); if(!host)return;
+  const hb=document.getElementById('histbtn'); if(hb)hb.textContent=(state.historyOpen?'Hide':'Show')+' history ('+state.feed.filter(archived).length+')';
   const opts=['<option value="">Pick invoice…</option>'].concat(state.jobs.map(j=>`<option value="${esc(j.number)}">#${esc(j.number)} · ${esc(j.customer||'')}</option>`)).join('');
   const q=state.capSearch.trim().toLowerCase();
   const rowsWithIndex=state.feed.map((r,i)=>({r,i})).filter(x=>{
@@ -266,17 +282,9 @@ function renderCaptured(){
     </div>`;
   }
   const showHistory=q||state.historyOpen;
-  el.innerHTML=`<div class="cap">
-    <h2>Captured tracking</h2>
-    <div class="capbar">
-      <input class="search" value="${esc(state.capSearch)}" placeholder="Search tracking, carrier, customer, invoice, city, date…" oninput="state.capSearch=this.value;renderCaptured()">
-      <button class="mini" onclick="state.historyOpen=!state.historyOpen;renderCaptured()">${state.historyOpen?'Hide':'Show'} history (${state.feed.filter(archived).length})</button>
-    </div>
-    ${state.matchErr?`<div class="err" style="padding:8px 12px;margin:0">${esc(state.matchErr)}</div>`:''}
-    ${state.feed.length?`${lane('In Transit',inTransit,'No in-transit shipments.')}
+  host.innerHTML=state.feed.length?`${lane('In Transit',inTransit,'No in-transit shipments.')}
       ${lane('Delivered',deliveredRows,'No delivered shipments waiting for archive.')}
-      ${showHistory?lane('History (archived)',historyRows,'No archived shipments.'):''}`:`<div class="empty">No captured tracking rows yet.</div>`}
-  </div>`;
+      ${showHistory?lane('History (archived)',historyRows,'No archived shipments.'):''}`:`<div class="empty">No captured tracking rows yet.</div>`;
 }
 
 async function confirmMatch(i,btn){
@@ -317,8 +325,8 @@ async function saveContents(i,val,input){
     renderCaptured();
     return;
   }
-  await loadFeed();
-  render();
+  // success: optimistic local row.contents already reflects the value — no re-render
+  // (a full render here would steal focus while tabbing between contents fields).
 }
 async function setArchive(i,val,btn){
   const row=state.feed[i];
