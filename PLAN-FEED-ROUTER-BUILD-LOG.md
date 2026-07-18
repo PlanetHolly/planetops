@@ -52,3 +52,23 @@ VERDICT: Build #1 APPROVED by Claude. Parity guard green.
 - Verified statically + module-load + regression. NOT verified: live-Postgres execution of the DDL (no local psql/docker/pg_ctl on this machine; will NOT run against prod). Live-DB run is deferred to the staging step (Build #7) and must be treated as unproven until then — NOT silently "done".
 
 VERDICT: Build #2 APPROVED by Claude (schema unverified against a live DB by design; deferred to staging).
+
+## Build #3 — Step 3 (intake endpoint)  [EXECUTOR: Fable, open-window]
+Model pivot: Codex → Fable (open Fable window through Sun 2026-07-19; Opus still architect+reviewer). No-delegation block pasted into Fable's goal-prompt.
+
+### Act 3 — Fable build (general-purpose subagent, model=fable)
+Architecture override of plan §D4: base64-in-JSON upload (reuse app pattern), ZERO new deps.
+- NEW gate/feed/intake.js — Express router: GET /api/feed/session (CSRF issue) + POST /api/feed/intake. Ship-Deck-style guard (sameOrigin + per-session csrfForFeed(sid)=hmac(sid+':feed') + alerts); FINANCE_PIN gate for payroll/financials (fails closed); inline magic-byte sniff (declared mime must agree) + PDF guard (/Encrypt,/JS,/JavaScript,/OpenAction, >40pp); AES-256-GCM at rest (iv‖tag‖ct, FEED_RAW_KEY); sha256 content_hash; idempotent INSERT ON CONFLICT(content_hash); isolated rate limiter (never trips login lockout); scoped error handler. decryptRaw is a pure export only — no route returns raw bytes.
+- NEW gate/feed/intake_selftest.js — pure-fn tests.
+- MOD gate/index.js — mount feed router after graphics (helper bag); + fix round.
+
+### Act 4 — Claude review (real diff, not summary)
+- Read intake.js line-by-line: crypto correct (random-IV GCM, decrypt never routed); guard faithfully mirrors requireShipdeckPost; mismatch check strict (declared AND data-url mime must both agree with sniffed); rate limiter isolated from checkLimits/noteFailure. CLEAN.
+- Independently re-ran selftest → 21/21; parity → PASS; index.js diff = as specified.
+- 1 REAL defect found + fixed (round 1, Fable): global express.json(10mb) at index.js:33 preceded the route, silently capping uploads at ~7.5MB not 25MB. Fixed: global parser now bypasses exactly /api/feed/intake so the route-local 35mb parser + 25MB decoded cap govern; all other routes stay 10mb. Re-verified: node --check OK, parity PASS, selftest 21/21.
+- Minor accepted: /JS substring guard can false-positive (fails closed — acceptable v1); empty→400; submitter_name capped 200.
+
+### Verified vs NOT
+- Verified: static + pure-fn selftest (crypto/sniff/pdf-guard) + regression. NOT verified: live-DB INSERT/dedupe + end-to-end HTTP behind a real session — no local Postgres; deferred to staging (Build #7). Also FEED_RAW_KEY env must be set at rollout.
+
+VERDICT: Build #3 APPROVED by Claude (1 fix round). Live-DB + HTTP path unproven until staging.

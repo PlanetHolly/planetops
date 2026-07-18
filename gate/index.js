@@ -30,7 +30,8 @@ const { runFeedMigrations, feedSchemaStatus } = require('./feed/migrate');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);                       // Railway sits behind a proxy
-app.use(express.json({ limit: '10mb' }));
+const globalJson = express.json({ limit: '10mb' });
+app.use((req, res, next) => (req.path === '/api/feed/intake' ? next() : globalJson(req, res, next)));
 app.use(express.urlencoded({ extended: false }));
 // Anti-clickjacking: our own front door may frame these pages; nobody else can.
 app.use((req, res, next) => { res.set('X-Frame-Options', 'SAMEORIGIN'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
@@ -339,6 +340,7 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
   } catch (e) { res.status(502).json({ error: 'state-api unreachable: ' + e.message }); }
 });
 app.use(require('./graphics')(pool, requireSession));
+app.use(require('./feed/intake')(pool, requireSession, { hmac, timingEq, sameOrigin, alert, loadSession }));
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance
