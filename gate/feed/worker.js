@@ -1,8 +1,12 @@
-/* Feed Router — Build #4a: background extraction worker.
+/* Feed Router — Build #4a worker + Build #4b validation stage.
    Claims one 'received' feed_intake row at a time (FOR UPDATE SKIP LOCKED —
    safe across multiple Railway instances), decrypts it, sends it to Claude
-   via extract.js, records the Fact + token usage, and sets status to
-   'extracted' / 'review' / 'failed'. It does NOT route anything (Build #5).
+   via extract.js, then runs the deterministic validation stage (validate.js
+   — the MONEY-SAFETY GATE) inline, landing the row in its FINAL pre-routing
+   state: 'validated' (safe to auto-route) / 'review' (human must see it) /
+   'failed'. A row is never left at 'extracted'. A validation-stage DB error
+   falls back to 'review' (fail closed — never auto-validate on error).
+   It does NOT route anything (Build #5).
 
    HARD concurrency = 1: the loop is self-scheduling — the next tick is only
    armed after the current cycle fully finishes, so at most one extraction is
@@ -18,8 +22,10 @@ const crypto = require('crypto');
 const os = require('os');
 const { decryptRaw } = require('./intake');
 const { extract } = require('./extract');
+const { evaluate, semanticKey, normalizeVendor, highDollarThreshold,
+        isKnownVendor, addPendingVendor, findDuplicate } = require('./validate');
 
-const EXTRACTOR_VERSION = 'feed-4a-v1';
+const EXTRACTOR_VERSION = 'feed-4b-v1';
 const POLL_MS   = 5_000;    // idle poll
 const BACKOFF_MS = 30_000;  // after a retryable failure
 const HALT_MS   = 60_000;   // budget exhausted / not configured
@@ -58,11 +64,12 @@ function schedule(pool, alert, ms) {
 async function ledger(pool, row, fields) {
   try {
     await pool.query(
-      `INSERT INTO feed_ledger (intake_id, content_hash, declared_category, detected_category, extractor_version, model, token_usage, decision)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-      [row.id, row.content_hash, row.declared_category, fields.detected_category || null,
+      `INSERT INTO feed_ledger (intake_id, content_hash, semantic_key, declared_category, detected_category, extractor_version, model, token_usage, validator_results, decision)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [row.id, row.content_hash, fields.semantic_key || null, row.declared_category, fields.detected_category || null,
        EXTRACTOR_VERSION, fields.model || null,
        fields.token_usage ? JSON.stringify(fields.token_usage) : null,
+       fields.validator_results ? JSON.stringify(fields.validator_results) : null,
        JSON.stringify(fields.decision)]
     );
   } catch (e) { log('feed_ledger_write_failed', { intake_id: row.id, error: e.message }); }
@@ -226,19 +233,59 @@ async function runCycle(pool, alert) {
       return;
     }
 
+    /* ── Build #4b: validation stage — the MONEY-SAFETY GATE ─────────────
+       Runs inline after a successful extract; the row lands in its FINAL
+       pre-routing state: 'validated' (safe to auto-route in #5) or 'review'
+       (human must see it) — never left at 'extracted'. A DB error inside
+       this stage fails CLOSED: the Fact is kept, status becomes 'review'
+       with review_reason='validation_error'. Never auto-validate on error. */
+    const fact = out.fact;
+    let sk = null;
+    let verdict, valInputs;
+    try {
+      sk = semanticKey(fact.doc_type, fact, row.content_hash);
+      const nvendor = normalizeVendor(fact.entities && fact.entities.vendor);
+      // No vendor named ⇒ don't trip unknown_vendor.
+      const known = nvendor ? await isKnownVendor(pool, nvendor) : true;
+      if (nvendor && !known) {
+        // First-seen vendor: self-register as 'pending' (human promotes to
+        // 'known' when clearing review); it still trips unknown_vendor below.
+        await addPendingVendor(pool, nvendor, fact.entities.vendor);
+      }
+      const dup = await findDuplicate(pool, sk, row.id);
+      const threshold = highDollarThreshold();
+      verdict = evaluate(fact, {
+        declared_category: row.declared_category,
+        knownVendor: known, duplicate: dup, threshold,
+      });
+      valInputs = { semantic_key: sk, normalized_vendor: nvendor || null, known_vendor: known, duplicate: dup, threshold };
+    } catch (e) {
+      log('feed_validation_error', { intake_id: row.id, error: e.message });
+      verdict = { status: 'review', reasons: ['validation_error'], results: { validation_error: true } };
+      valInputs = { semantic_key: sk, error: String(e.message || e).slice(0, 500) };
+    }
+    const validatorResults = { checks: verdict.results, inputs: valInputs, reasons: verdict.reasons };
+
     await pool.query(
       `UPDATE feed_intake SET extracted=$2, doc_type=$3, confidence=$4, extractor_model=$5, extractor_version=$6,
-              token_usage=$7, extracted_at=now(), status='extracted', locked_until=NULL, updated_at=now()
+              token_usage=$7, extracted_at=now(), semantic_key=$8, validator_results=$9,
+              status=$10, review_reason=$11, locked_until=NULL, updated_at=now()
        WHERE id=$1`,
-      [row.id, JSON.stringify(out.fact), out.fact.doc_type || null,
-       (typeof out.fact.confidence === 'number' ? out.fact.confidence : null),
-       out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null]
+      [row.id, JSON.stringify(fact), fact.doc_type || null,
+       (typeof fact.confidence === 'number' ? fact.confidence : null),
+       out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null,
+       sk, JSON.stringify(validatorResults),
+       verdict.status, verdict.status === 'review' ? verdict.reasons.join(',') : null]
     );
     await ledger(pool, row, {
-      detected_category: out.fact.doc_type || null, model: out.model, token_usage: out.usage,
-      decision: { stage: 'extracted' },
+      detected_category: fact.doc_type || null, model: out.model, token_usage: out.usage,
+      semantic_key: sk, validator_results: validatorResults,
+      decision: { stage: verdict.status, reasons: verdict.reasons },
     });
-    log('feed_extracted', { intake_id: row.id, doc_type: out.fact.doc_type, confidence: out.fact.confidence });
+    log('feed_validated', {
+      intake_id: row.id, doc_type: fact.doc_type, confidence: fact.confidence,
+      status: verdict.status, reasons: verdict.reasons,
+    });
     nextMs = 250;   // more work may be queued — come back fast
   } catch (e) {
     // Never let one bad row / DB hiccup kill the loop.

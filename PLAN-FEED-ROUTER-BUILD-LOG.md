@@ -98,3 +98,28 @@ Split of plan Step 4-5: #4a = worker + extraction (this); #4b = validators + fee
 - 002 DDL on live Postgres; claim/SKIP-LOCKED/reclaim; all status transitions; ledger inserts; daily-budget read+upsert; worker boot wiring.
 
 VERDICT: Build #4a APPROVED by Claude (0 fix rounds). 2 flags for staging/Holly. Live API + DB unproven until staging.
+
+## Build #4b — Step 4 part 2 (validation = the MONEY-SAFETY GATE)  [EXECUTOR: Fable]
+
+### Act 3 — Fable build (model=fable)
+- NEW gate/feed/migrations/003_feed_validation.sql — feed_intake.semantic_key TEXT + validator_results JSONB + semantic_key index.
+- NEW gate/feed/validate.js — PURE normalizeVendor / semanticKey(per doc_type, null when components missing) / evaluate(fact,ctx) [fail-closed core] + env readers + thin DB helpers isKnownVendor / addPendingVendor(ON CONFLICT DO NOTHING) / seedKnownVendors(rollout upsert→known) / findDuplicate.
+- NEW gate/feed/validate_selftest.js — 58 pure tests.
+- MOD gate/feed/worker.js — success branch now runs the validation stage inline: semanticKey → normalizeVendor → isKnownVendor (no vendor ⇒ known) → first-seen self-registers pending + trips review → findDuplicate → evaluate → ONE collapsed UPDATE landing 'validated'|'review' (never 'extracted'); ledger gains semantic_key+validator_results; validation stage try/caught ⇒ DB error falls to 'review' (fail closed). All #4a paths intact.
+
+### Act 4 — Claude review (real diff, hardest review of the build)
+- evaluate() reviewed trigger-by-trigger: unvalidatable guard catches null/array/no-doc_type; high_dollar inclusive >=; low_confidence strict <; finance via doc_type OR declared; category_mismatch both-present-and-differ; duplicate strict ===true; reasons in stable TRIGGERS order; ANY trigger ⇒ review. FAITHFUL + fail-closed.
+- semanticKey: composed only from real Fact fields, null when missing (never invented), 'other'/unknown→null. Correct.
+- vendor helpers: isKnownVendor status='known' only; addPendingVendor won't downgrade a known row; seed promotes→known. findDuplicate excludes failed/review as dup-source.
+- worker diff: validation stage inserted after recordTokens + refusal branch (token accounting + all #4a paths preserved); vendor/dup DB calls try/caught → review on error (fail closed); persist collapsed to one UPDATE; ledger audit columns added. No regression.
+- Independently re-ran: validate_selftest 58/58, extract_selftest 20/20, parity PASS, node --check clean.
+- Fix rounds: 0.
+
+### Minor defensive notes (non-blocking; logged for a later hardening)
+- unknown_vendor uses `ctx.knownVendor === false` (fail-OPEN if knownVendor were ever undefined). Worker always passes a boolean or falls to review, so safe today; `!== true` would be strictly fail-closed.
+- findDuplicate excludes 'review' rows as a dup-source; a 2nd copy of an under-review doc could validate — but identical content trips identical deterministic triggers anyway, so practical impact ~nil. Consider including 'review' in the dup-source set later.
+
+### NOT verified (pending staging w/ real Postgres)
+- DB helpers (isKnownVendor/addPendingVendor/seedKnownVendors/findDuplicate), live validation-stage wiring end-to-end incl. the validation_error fallback under a real DB fault, 003 DDL. Plus carried-forward #4a STAGING-CRITICAL flag 1 (structured-output nullable-type-array acceptance).
+
+VERDICT: Build #4b APPROVED by Claude (0 fix rounds). The money-safety gate is fail-closed and each review-trigger is independently proven. DB paths unproven until staging.
