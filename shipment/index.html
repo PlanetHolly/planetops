@@ -29,12 +29,17 @@
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f4;color:var(--tonal-black);padding:18px}
   h1{font-size:20px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
   .sub{color:var(--grey-text);font-size:13px;margin-bottom:16px;max-width:900px}
-  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
   button{font:inherit;cursor:pointer;border:1px solid var(--grey-line);background:var(--white);border-radius:6px;padding:6px 12px}
   button.primary{background:var(--yellow);border-color:#d9a800;font-weight:700}
   button.mini{padding:3px 8px;font-size:12px}
   button:disabled{opacity:.5;cursor:default}
   input{font:inherit;padding:4px 6px;border:1px solid var(--grey-line);border-radius:4px}
+  input.search{width:min(520px,100%);padding:7px 9px}
+  .extform{display:none;background:#fff;border:1px solid var(--grey-line);border-radius:8px;padding:10px;margin:-6px 0 14px;font-size:13px}
+  .extform.open{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+  .extform label{display:flex;flex-direction:column;gap:3px;color:var(--grey-text);font-size:11px}
+  .extform input,.extform select{min-width:140px}
   table.q{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--grey-line);border-radius:10px;overflow:hidden}
   table.q th{background:#f0efed;text-align:left;padding:8px 12px;font-size:12px;color:var(--grey-text)}
   .qrow{border-top:1px solid #eee;cursor:pointer}
@@ -43,6 +48,7 @@
   .jobn{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px}
   .chip{display:inline-block;font-size:11px;background:#eee;border-radius:4px;padding:2px 8px}
   .chip.done{background:#ddf2e2;color:#1a7a3d}
+  .chip.external{background:#fff3d1;color:#735300;border:1px solid #f0d27a}
   .exp{background:#fafaf8;border-top:1px solid #eee}
   .exp td{padding:14px 18px}
   .boxtbl{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:13px}
@@ -57,6 +63,8 @@
   .muted{color:var(--grey-text);font-size:12px}
   .cap{margin-top:18px;background:var(--white);border:1px solid var(--grey-line);border-radius:10px;overflow:hidden}
   .cap h2{font-size:15px;padding:10px 12px;background:#f0efed}
+  .capbar{padding:10px 12px;border-top:1px solid #eee;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .lane h3{font-size:13px;padding:9px 12px;background:#fafaf8;border-top:1px solid #eee;display:flex;align-items:center;gap:8px}
   .captbl{width:100%;border-collapse:collapse}
   .captbl th{text-align:left;color:var(--grey-text);font-size:12px;padding:8px 12px;border-top:1px solid #eee}
   .captbl td{padding:9px 12px;border-top:1px solid #eee;font-size:13px;vertical-align:middle}
@@ -73,8 +81,10 @@
 <div class="sub">Everything at the <b>Shipping</b> station, as whole invoices. Open a row to set its <b>boxes</b> — add as many as you're shipping, edit each box's size/weight, and note <b>what's in each box</b> (kept for audits). Buy and print labels in Printavo, then use captured EasyPost tracking here to match shipments and mark invoices shipped.</div>
 <div class="toolbar">
   <button onclick="loadQueue()">↻ Refresh queue</button>
+  <button onclick="toggleExternal()">＋ Log external shipment</button>
   <span id="stamp" style="font-size:12px;color:var(--grey-text)"></span>
 </div>
+<div class="extform" id="extform"></div>
 <table class="q" id="qtbl"><thead><tr>
   <th>Invoice</th><th>Customer</th><th>Method</th><th>Pcs</th><th>Boxes</th><th>Due</th><th>Status</th>
 </tr></thead><tbody id="qbody"></tbody></table>
@@ -83,7 +93,7 @@
 
 <script>
 const N8N='https://primary-production-079f9.up.railway.app';
-const state={jobs:[],ship:{},open:null,feed:[],feedLoaded:false,feedErr:'',matchErr:''};   // ship[inv]={boxes:[{l,w,h,oz,contents}]}
+const state={jobs:[],ship:{},open:null,feed:[],feedLoaded:false,feedErr:'',matchErr:'',capSearch:'',historyOpen:false,extOpen:false,extErr:''};   // ship[inv]={boxes:[{l,w,h,oz,contents}]}
 
 async function loadQueue(){
   const stamp=document.getElementById('stamp');
@@ -109,6 +119,7 @@ function boxesFor(j){
   return state.ship[inv].boxes;
 }
 function money(v){const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return isFinite(n)?'$'+n.toFixed(2):'—';}
+function printavoStatusChip(j){return j.printavoStatus?`<span class="chip">${esc(j.printavoStatus)}</span>`:'';}
 function shipUrl(j){
   if(j.printavoUrl)return j.printavoUrl;
   if(j.printavoId)return 'https://www.printavo.com/invoices/'+encodeURIComponent(j.printavoId);
@@ -123,6 +134,15 @@ function bestShipment(j){
 }
 function recency(r){return r.label_created||r.est_delivery_date||'';}
 function shipTo(r){return [r.to_company,r.to_name].filter(Boolean).join(' / ')||'—';}
+function archived(r){return !!String(r.archived||'').trim();}
+function delivered(r){return !!String(r.delivered_date||'').trim()||r.status==='delivered';}
+function externalLabel(r){return r.source==='xps'?'XPS':(r.source==='shipdeck'?'Ship Deck':'');}
+function shipmentStatus(r){return r.status||(externalLabel(r)?'shipped_external':'');}
+function cityState(r){return [r.to_city,r.to_state].filter(Boolean).join(', ');}
+function capturedBoxesHtml(rows){
+  if(!rows.length)return '<div class="muted" style="margin-top:10px">Captured boxes (0): none matched yet.</div>';
+  return `<div class="track" style="margin-top:10px"><b>Captured boxes (${rows.length}):</b> ${rows.map(r=>`${esc(r.parcel_dims||'box size unknown')} · ${esc(r.tracking_code||'tracking pending')} · ${esc(shipmentStatus(r)||'—')}`).join('<br>')}</div>`;
+}
 function rowMatchesJob(r,j){
   const hay=(String(r.to_company||'')+' '+String(r.to_name||'')).toLowerCase();
   const needle=String(j.customer||'').toLowerCase().trim();
@@ -170,18 +190,21 @@ function render(){
       const tracks=shipmentsFor(j);
       const tracking=tracks.length?tracks.map(r=>`<div class="trackbox">
         <b>${esc(r.tracking_code||'tracking pending')}</b>${r.public_url?` · <a href="${esc(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
+        ${externalLabel(r)?` <span class="chip external">Shipped externally · ${esc(externalLabel(r))}</span>`:''}
         <div>${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div>
-        <div class="muted">Landing ${esc(r.est_delivery_date||'—')} · Label date ${esc(r.label_created||'—')} · Transit days ${esc(r.transit_days||'—')} · Delivered ${esc(r.delivered_date||'—')}</div>
+        <div class="muted">Box ${esc(r.parcel_dims||'—')} · Landing ${esc(r.est_delivery_date||'—')} · Label date ${esc(r.label_created||'—')} · Transit days ${esc(r.transit_days||'—')} · Delivered ${esc(r.delivered_date||'—')}</div>
         <div class="muted">Internal · Cost ${money(r.cost)}</div>
       </div>`).join(''):`<div class="muted" style="margin-top:10px">No captured tracking matched yet.</div>`;
       const action=`${url?`<a class="shiplink" href="${esc(url)}" target="_blank" rel="noopener">Ship in Printavo</a>`:''}
         ${tracking}
         <button class="primary" style="margin-top:8px" onclick="markShipped('${inv}',this)">✓ Mark shipped in Printavo</button>`;
       exp=`<tr class="exp"><td colspan="7">
+        ${printavoStatusChip(j)?`<div style="margin-bottom:8px"><b>Printavo status</b> ${printavoStatusChip(j)}</div>`:''}
         <b>Boxes</b> — add every box you're shipping; note the contents of each for audits.
         <table class="boxtbl"><tr><th>#</th><th>L (in)</th><th>W (in)</th><th>H (in)</th><th>Weight (oz)</th><th>Contents</th><th></th></tr>
         ${boxRows}</table>
         <button class="mini" onclick="addBox('${inv}')">+ Add box</button>
+        ${capturedBoxesHtml(tracks)}
         <div style="margin-top:12px">${action}</div>
         <div class="err" id="err-${inv}"></div>
       </td></tr>`;
@@ -189,9 +212,10 @@ function render(){
     return `<tr class="qrow" onclick="toggle('${inv}')">
       <td class="jobn">#${esc(inv)}</td><td>${esc(j.customer||'')}</td>
       <td>${j.deliveryMethod?`<span class="chip">${esc(j.deliveryMethod)}</span>`:'—'}</td>
-      <td>${qtyOf(j)}</td><td>${boxes.length}</td><td>${esc(j.dueDateLabel||'')}</td><td>${statusCell}</td>
+      <td>${qtyOf(j)}</td><td>${boxes.length}</td><td>${esc(j.dueDateLabel||'')}</td><td>${printavoStatusChip(j)} ${statusCell}</td>
     </tr>${exp}`;
   }).join('');
+  renderExternalForm();
   renderCaptured();
 }
 
@@ -207,20 +231,51 @@ function renderCaptured(){
     return;
   }
   const opts=['<option value="">Pick invoice…</option>'].concat(state.jobs.map(j=>`<option value="${esc(j.number)}">#${esc(j.number)} · ${esc(j.customer||'')}</option>`)).join('');
-  const rows=state.feed.map((r,i)=>{
+  const q=state.capSearch.trim().toLowerCase();
+  const rowsWithIndex=state.feed.map((r,i)=>({r,i})).filter(x=>{
+    if(!q)return true;
+    const r=x.r;
+    const hay=[r.tracking_code,r.carrier,r.to_company,r.to_name,r.matched_order,cityState(r),recency(r),r.delivered_date,r.last_update,r.label_created,r.est_delivery_date].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  const inTransit=rowsWithIndex.filter(x=>!archived(x.r)&&!delivered(x.r));
+  const deliveredRows=rowsWithIndex.filter(x=>!archived(x.r)&&delivered(x.r));
+  const historyRows=rowsWithIndex.filter(x=>archived(x.r));
+  function rowHtml(r,i){
     const matched=String(r.matched_order||'').trim();
     const sug=suggestedMatch(r);
+    const ext=externalLabel(r);
     return `<tr>
-      <td><b>${esc(r.tracking_code||'—')}</b><div class="muted">${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div></td>
-      <td>${esc(shipTo(r))}<div class="muted">${esc([r.to_city,r.to_state].filter(Boolean).join(', ')||'—')}</div></td>
-      <td>${esc(recency(r)||'—')}</td>
+      <td><b>${esc(r.tracking_code||'—')}</b>${r.public_url?` · <a href="${esc(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
+        ${ext?`<div><span class="chip external">Shipped externally · ${esc(ext)}</span></div>`:''}
+        <div class="muted">${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div>
+        <div class="muted">Box ${esc(r.parcel_dims||'—')} · ${esc(shipmentStatus(r)||'—')}</div>
+        <div class="muted">Internal · Cost ${money(r.cost)}</div>
+      </td>
+      <td>${esc(shipTo(r))}<div class="muted">${esc(cityState(r)||'—')}</div></td>
+      <td>${esc(recency(r)||'—')}<div class="muted">Delivered ${esc(r.delivered_date||'—')}</div></td>
+      <td><input value="${esc(r.contents||'')}" placeholder="contents in this box…" onblur="saveContents(${i},this.value,this)" onchange="saveContents(${i},this.value,this)"></td>
       <td>${matched?`<span class="chip done">matched to #${esc(matched)}</span>`:`<select id="match-${i}">${opts.replace(`value="${esc(sug)}"`,`value="${esc(sug)}" selected`)}</select> <button class="mini" onclick="confirmMatch(${i},this)">Confirm</button>`}</td>
+      <td>${archived(r)?`<button class="mini" onclick="setArchive(${i},'',this)">Unarchive</button>`:(delivered(r)?`<button class="mini" onclick="setArchive(${i},'TRUE',this)">Archive</button>`:'')}</td>
     </tr>`;
-  }).join('');
+  }
+  function lane(title,items,empty){
+    const rows=items.map(x=>rowHtml(x.r,x.i)).join('');
+    return `<div class="lane"><h3>${esc(title)} <span class="chip">${items.length}</span></h3>
+      ${rows?`<table class="captbl"><tr><th>Tracking</th><th>Ship-to</th><th>Recency</th><th>Contents</th><th>Invoice match</th><th></th></tr>${rows}</table>`:`<div class="empty" style="padding:18px">${esc(empty)}</div>`}
+    </div>`;
+  }
+  const showHistory=q||state.historyOpen;
   el.innerHTML=`<div class="cap">
     <h2>Captured tracking</h2>
+    <div class="capbar">
+      <input class="search" value="${esc(state.capSearch)}" placeholder="Search tracking, carrier, customer, invoice, city, date…" oninput="state.capSearch=this.value;renderCaptured()">
+      <button class="mini" onclick="state.historyOpen=!state.historyOpen;renderCaptured()">${state.historyOpen?'Hide':'Show'} history (${state.feed.filter(archived).length})</button>
+    </div>
     ${state.matchErr?`<div class="err" style="padding:8px 12px;margin:0">${esc(state.matchErr)}</div>`:''}
-    ${rows?`<table class="captbl"><tr><th>Tracking</th><th>Ship-to</th><th>Recency</th><th>Invoice match</th></tr>${rows}</table>`:`<div class="empty">No captured tracking rows yet.</div>`}
+    ${state.feed.length?`${lane('In Transit',inTransit,'No in-transit shipments.')}
+      ${lane('Delivered',deliveredRows,'No delivered shipments waiting for archive.')}
+      ${showHistory?lane('History (archived)',historyRows,'No archived shipments.'):''}`:`<div class="empty">No captured tracking rows yet.</div>`}
   </div>`;
 }
 
@@ -234,11 +289,94 @@ async function confirmMatch(i,btn){
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json().catch(()=>({}));
     if(d&&d.error)throw new Error(d.error);
-    row.matched_order=String(inv);
+    await loadFeed();
     render();
   }catch(e){
     state.matchErr='⚠ could not save match — '+e.message;
     render();
+  }
+}
+
+async function updateShipRow(payload){
+  const r=await fetch('/api/shipboard/update',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const d=await r.json().catch(()=>({}));
+  if(d&&d.error)throw new Error(d.error);
+}
+async function saveContents(i,val,input){
+  const row=state.feed[i];
+  if(!row||String(row.contents||'')===String(val||''))return;
+  const old=row.contents||'';
+  row.contents=val;
+  try{
+    await updateShipRow({tracking_code:row.tracking_code,contents:val});
+  }catch(e){
+    row.contents=old;
+    state.matchErr='⚠ could not save contents — '+e.message;
+    if(input)input.value=old;
+    renderCaptured();
+    return;
+  }
+  await loadFeed();
+  render();
+}
+async function setArchive(i,val,btn){
+  const row=state.feed[i];
+  if(!row)return;
+  btn.disabled=true;btn.textContent=val?'archiving…':'restoring…';
+  try{
+    await updateShipRow({tracking_code:row.tracking_code,archived:val});
+    await loadFeed();
+    render();
+  }catch(e){
+    state.matchErr='⚠ could not update archive status — '+e.message;
+    render();
+  }
+}
+
+function toggleExternal(){state.extOpen=!state.extOpen;state.extErr='';renderExternalForm();}
+function renderExternalForm(){
+  const el=document.getElementById('extform');
+  if(!el)return;
+  const opts=['<option value="">No invoice match yet</option>'].concat(state.jobs.map(j=>`<option value="${esc(j.number)}">#${esc(j.number)} · ${esc(j.customer||'')}</option>`)).join('');
+  el.className='extform'+(state.extOpen?' open':'');
+  el.innerHTML=state.extOpen?`
+    <label>Tracking<input id="ext-track" autocomplete="off"></label>
+    <label>Carrier<input id="ext-carrier" autocomplete="off"></label>
+    <label>Source<select id="ext-source"><option value="xps">XPS Shipper</option><option value="shipdeck">Ship Deck</option></select></label>
+    <label>Invoice<select id="ext-inv">${opts}</select></label>
+    <label>Customer/company<input id="ext-co" autocomplete="off"></label>
+    <label>Date<input id="ext-date" type="date"></label>
+    <button class="primary" onclick="logExternal(this)">Log shipment</button>
+    <button onclick="toggleExternal()">Cancel</button>
+    ${state.extErr?`<div class="err" style="width:100%;margin:0">${esc(state.extErr)}</div>`:''}
+  `:'';
+}
+async function logExternal(btn){
+  const tracking_code=(document.getElementById('ext-track')||{}).value||'';
+  const carrier=(document.getElementById('ext-carrier')||{}).value||'';
+  const source=(document.getElementById('ext-source')||{}).value||'xps';
+  const matched_order=(document.getElementById('ext-inv')||{}).value||'';
+  const to_company=(document.getElementById('ext-co')||{}).value||'';
+  const date=(document.getElementById('ext-date')||{}).value||'';
+  state.extErr='';
+  if(!tracking_code.trim()||!carrier.trim()){state.extErr='Tracking and carrier are required.';renderExternalForm();return;}
+  btn.disabled=true;btn.textContent='logging…';
+  try{
+    const payload={tracking_code:tracking_code.trim(),carrier:carrier.trim(),source};
+    if(matched_order)payload.matched_order=matched_order;
+    if(to_company.trim())payload.to_company=to_company.trim();
+    if(date)payload.date=date;
+    const r=await fetch('/api/shipboard/external',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json().catch(()=>({}));
+    if(d&&d.error)throw new Error(d.error);
+    state.extOpen=false;
+    await loadFeed();
+    render();
+  }catch(e){
+    state.extErr='⚠ could not log external shipment — '+e.message;
+    renderExternalForm();
   }
 }
 
