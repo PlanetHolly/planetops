@@ -34,7 +34,10 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .check { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:9px; min-height:40px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fbfaf7; font-size:.84rem; font-weight:800; }
 .check input { width:17px; height:17px; accent-color:var(--yellow); }
 .check .pts { color:var(--muted); font-size:.72rem; font-weight:950; white-space:nowrap; }
-.note { color:var(--muted); font-size:.78rem; }
+.pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
+.pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
+.pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
+.note {color:var(--muted); font-size:.78rem; }
 .helper { border-left:4px solid var(--yellow); background:#fff8dc; color:#453700; padding:10px 12px; border-radius:0 6px 6px 0; font-size:.8rem; font-weight:800; }
 .results { display:grid; gap:18px; }
 .hero { background:var(--ink); color:#fff; border-radius:8px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:end; box-shadow:var(--shadow); }
@@ -152,6 +155,18 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         <div><small>Order total</small><div class="total" id="orderTotal">$0</div></div>
         <div class="perunit"><small>Per-unit customer price</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span></div>
       </section>
+      <section class="panel">
+        <h2>Reverse price check - what margin at a target price?</h2>
+        <div class="form">
+          <div class="twocol">
+            <div class="field"><label for="targetPrice">Customer target price / unit</label><input id="targetPrice" type="number" min="0" step="0.01" placeholder="e.g. 4.00"></div>
+            <div class="field"><label>Margin at that price</label><div id="priceCheckOut" class="pcOut">Enter a price to see the margin</div></div>
+          </div>
+          <div class="pcQuoted" id="priceCheckQuoted"></div>
+          <div class="note">Type the price a customer is pushing for. Shows the resulting per-unit and whole-order margin against this quote's cost basis. Does not change the quote above.</div>
+        </div>
+      </section>
+
       <section class="marginHero">
         <div class="metric dark"><small>Margin total</small><b id="marginTotal">$0</b><div class="sub">Required on promo desk</div></div>
         <div class="metric"><small>Margin per unit</small><b id="marginUnit">$0.00</b><div class="sub">Customer price less landed cost</div></div>
@@ -329,12 +344,32 @@ function calculate() {
   if (finalSp >= VERIFY_MARKET_SP) flags.push(flagBlock('warn', `VERIFY MARKET - built-up SP is ${finalSp}% before any small-order floor. This is informational only; no cap applies.`));
   if (!isFinite(priceUnit)) flags.push(flagBlock('bad', 'SP is at or above 100%, so the formula cannot produce a finite price. Review class and checked facts.'));
   $('flags').innerHTML = flags.join('');
+  PC_LAST = {unitPrice:priceUnit, unitCost:landedUnit, qty};
+  renderPriceCheck();
+}
+let PC_LAST = null;
+function pcMoney(v){return '$'+(v<0?'-':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function pcMoney0(v){return '$'+(v<0?'-':'')+Math.round(Math.abs(v)).toLocaleString('en-US');}
+function pcPct(r){return (r==null||!isFinite(r))?'n/a':(r*100).toFixed(1)+'%';}
+function pcBand(r){if(r==null||!isFinite(r))return{cls:'neutral',label:'n/a'};if(r>0.70)return{cls:'warn',label:'high'};if(r>=0.445)return{cls:'good',label:'target'};if(r>=0.33)return{cls:'warn',label:'survival'};return{cls:'bad',label:'below'};}
+function renderPriceCheck(){
+  const out=$('priceCheckOut'),quoted=$('priceCheckQuoted');if(!out)return;
+  if(!PC_LAST||!isFinite(PC_LAST.unitCost)){out.className='pcOut';out.textContent='Enter a price to see the margin';return;}
+  if(quoted)quoted.textContent='This quote: '+pcMoney(PC_LAST.unitPrice)+'/unit  ·  cost basis '+pcMoney(PC_LAST.unitCost)+'/unit';
+  const raw=$('targetPrice').value;
+  if(raw===''||raw==null){out.className='pcOut';out.textContent='Enter a price to see the margin';return;}
+  const target=Math.max(0,Number(raw)||0);
+  const um=target-PC_LAST.unitCost,ur=target>0?um/target:null;
+  const oRev=target*PC_LAST.qty,oCost=PC_LAST.unitCost*PC_LAST.qty,om=oRev-oCost,orr=oRev>0?om/oRev:null;
+  const b=pcBand(ur);out.className='pcOut '+b.cls;
+  out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
 }
 function bind() {
   setupComplexity();
   const form = $('quoteForm');
   form.addEventListener('input', calculate);
   form.addEventListener('change', calculate);
+  $('targetPrice').addEventListener('input', renderPriceCheck);
   calculate();
 }
 bind();

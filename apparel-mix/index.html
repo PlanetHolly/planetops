@@ -82,6 +82,9 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
 .flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
 .methodInputs { display:grid; gap:12px; }
 .provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+.pcOut { font-weight:850; font-variant-numeric:tabular-nums; min-height:42px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--muted); }
+.pcOut.good { color:var(--good); } .pcOut.warn { color:var(--warn); } .pcOut.bad { color:var(--bad); }
+.pcQuoted { color:var(--muted); font-weight:800; font-size:.82rem; }
 @media (prefers-color-scheme:dark) {
   :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
   body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
@@ -157,6 +160,18 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
         <div><small>Project margin</small><div class="total" id="projectMargin">$0</div></div>
         <div class="heroMetric"><small>Margin %</small><b id="projectMarginPct">0.0%</b><span id="projectQty">0 pcs</span></div>
         <div class="heroMetric"><small>Per-unit price</small><b id="perUnit">$0.00</b><span id="orderTotal">$0 total</span></div>
+      </section>
+
+      <section class="panel">
+        <h2>Reverse price check - what margin at a target price?</h2>
+        <div class="form">
+          <div class="twocol">
+            <div class="field"><label for="targetPrice">Customer target price / unit</label><input id="targetPrice" type="number" min="0" step="0.01" placeholder="e.g. 4.00"></div>
+            <div class="field"><label>Margin at that price</label><div id="priceCheckOut" class="pcOut">Enter a price to see the margin</div></div>
+          </div>
+          <div class="pcQuoted" id="priceCheckQuoted"></div>
+          <div class="note">Type the price a customer is pushing for. Shows the resulting per-unit and whole-order margin against this quote's cost basis. Does not change the quote above.</div>
+        </div>
       </section>
 
       <section class="panel">
@@ -1325,7 +1340,23 @@ function normalizedDtfRow(row) {
   const size = row.size && transfer.sizes.includes(row.size) ? row.size : transfer.sizes[0];
   return {transferKey, transfer, size};
 }
-function calcDtf(row, qty, shippingShare) {
+// Tier discount - identical curve to the standalone DTF + embroidery desks (v4).
+// Standard = full sliding margin. Partner AND VIP = Standard price discounted by
+// the Gold d-curve, floored so tier margin >= 60% of Standard margin AND never
+// below the 33% survival floor. VIP is identical to Partner.
+const TIER_DISCOUNT_BANDS = [{min:2000,discount:0.05},{min:400,discount:0.07},{min:150,discount:0.10},{min:50,discount:0.15},{min:0,discount:0.20}];
+const TIER_FLOOR_RATIO = 0.6;
+function tierDiscountForQty(qty) { const b = TIER_DISCOUNT_BANDS.find(e => qty >= e.min); return b ? b.discount : 0; }
+function applyTier(standardPrice, cost, qty, tier, roundTo, stdTargetSP, survivalSP) {
+  if (tier === 'Standard') return {price:standardPrice, discount:0};
+  const discount = tierDiscountForQty(qty);
+  const discounted = standardPrice * (1 - discount);
+  const stdMargin = Math.max(survivalSP, stdTargetSP);
+  const requiredMargin = Math.max(survivalSP, stdMargin * TIER_FLOOR_RATIO);
+  const floorPrice = cost / (1 - requiredMargin);
+  return {price:roundUpTo(Math.max(discounted, floorPrice), roundTo), discount};
+}
+function calcDtf(row, qty, shippingShare, tier) {
   const norm = normalizedDtfRow(row);
   const costLookup = lookupDtfCost(norm.transfer, norm.size, qty);
   const baseLaborUnit = Number(DTF_DATA.application_labor.per_pc || 0);
@@ -1337,8 +1368,10 @@ function calcDtf(row, qty, shippingShare) {
   const roundTo = Number(DTF_DATA.sp_formula.round_up_to || 0.25);
   const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
   const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
-  const price = Math.max(targetPrice, survivalPrice);
-  return {method:'DTF', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, costLookup, transferKey:norm.transferKey, transfer:norm.transfer, size:norm.size, laborUnit, shippingShare, meta:norm.transferKey + ' ' + norm.transfer.name + ', size ' + norm.size + ', qty band ' + costLookup.band};
+  const standardPrice = Math.max(targetPrice, survivalPrice);
+  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, target.sp, survivalSP);
+  const price = tiered.price;
+  return {method:'DTF', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, costLookup, transferKey:norm.transferKey, transfer:norm.transfer, size:norm.size, laborUnit, shippingShare, meta:norm.transferKey + ' ' + norm.transfer.name + ', size ' + norm.size + ', qty band ' + costLookup.band + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
 }
 function stitchBand(stitches) {
   if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false};
@@ -1350,7 +1383,7 @@ function stitchBand(stitches) {
   return {band:null, index:-1, label:'Over grid (>35k stitches) - custom quote', overGrid:true};
 }
 function embroideryQtyRow(qty) { const rows = EMBROIDERY_DATA._meta.qty_rows; let rowValue = rows[0]; rows.forEach(value => { if (qty >= value) rowValue = value; }); return rowValue; }
-function calcEmbroidery(row, qty, digitizingShare) {
+function calcEmbroidery(row, qty, digitizingShare, tier) {
   const bandInfo = stitchBand(Number(row.stitches) || 0);
   if (bandInfo.overGrid || !bandInfo.band) return {method:'Embroidery', price:0, cost:0, margin:0, rate:null, available:false, reason:bandInfo.label, bandInfo};
   const rowValue = embroideryQtyRow(qty);
@@ -1361,8 +1394,10 @@ function calcEmbroidery(row, qty, digitizingShare) {
   const roundTo = Number(EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
   const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
   const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
-  const price = Math.max(targetPrice, survivalPrice);
-  return {method:'Embroidery', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, bearBaseUnit, rowValue, bandInfo, digitizingShare, meta:'Bear row ' + rowValue + ', band ' + bandInfo.band + ', ' + Number(row.stitches || 0).toLocaleString('en-US') + ' stitches'};
+  const standardPrice = Math.max(targetPrice, survivalPrice);
+  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, target.sp, survivalSP);
+  const price = tiered.price;
+  return {method:'Embroidery', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, bearBaseUnit, rowValue, bandInfo, digitizingShare, meta:'Bear row ' + rowValue + ', band ' + bandInfo.band + ', ' + Number(row.stitches || 0).toLocaleString('en-US') + ' stitches' + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
 }
 function band(rate) { if (rate == null) return {class:'neutral', label:'n/a'}; if (rate > 0.70) return {class:'warn', label:'high'}; if (rate >= 0.445) return {class:'good', label:'target'}; if (rate >= 0.33) return {class:'warn', label:'survival'}; return {class:'bad', label:'below'}; }
 function marginInfo(price, cost) { if (price == null || cost == null || !isFinite(price) || !isFinite(cost) || price <= 0) return null; const margin = price - cost; return {margin, rate:margin / price}; }
@@ -1422,10 +1457,10 @@ function calculate() {
       if (!result.available) warnings.push(result.reason);
       if (s.qty < 12) warnings.push('Screen print quantity is below the first matrix row; calculator uses the 12-piece row.');
     } else if (p.method === 'Embroidery') {
-      result = calcEmbroidery(p, s.qty, embroideryDigitizingShare);
+      result = calcEmbroidery(p, s.qty, embroideryDigitizingShare, s.tier);
       if (!result.available) warnings.push('Embroidery ' + (p.location || 'placement') + ': ' + result.reason);
     } else {
-      result = calcDtf(p, s.qty, dtfShippingShare);
+      result = calcDtf(p, s.qty, dtfShippingShare, s.tier);
     }
     result.id = p.id; result.location = p.location || 'Placement ' + (index + 1); result.index = index + 1;
     calculated.push(result);
@@ -1511,6 +1546,27 @@ function calculate() {
   projectRows.push(rowHtml('Order total', money(orderTotal), 'Revenue across all garments and one-time lines', true, marginInfo(orderTotal, totalCost)));
   $('projectBreakdown').innerHTML = projectRows.join('');
   $('spPanel').innerHTML = calculated.map(r => spCard('#' + r.index + ' ' + r.method, r)).join('') + projectCard(orderTotal, totalCost);
+  LAST = {perUnitRevenue, perUnitCost, nonUnitRevenue, nonUnitCost, qty:s.qty};
+  renderPriceCheck();
+}
+let LAST = null;
+function renderPriceCheck() {
+  const out = $('priceCheckOut'), quoted = $('priceCheckQuoted');
+  if (!out) return;
+  if (!LAST) { out.className = 'pcOut'; out.textContent = 'Enter a price to see the margin'; return; }
+  quoted.textContent = 'This quote: ' + money(LAST.perUnitRevenue) + '/unit  ·  cost basis ' + money(LAST.perUnitCost) + '/unit';
+  const raw = $('targetPrice').value;
+  if (raw === '' || raw == null) { out.className = 'pcOut'; out.textContent = 'Enter a price to see the margin'; return; }
+  const target = Math.max(0, Number(raw) || 0);
+  const unitMargin = target - LAST.perUnitCost;
+  const unitRate = target > 0 ? unitMargin / target : null;
+  const orderRev = target * LAST.qty + LAST.nonUnitRevenue;
+  const orderCost = LAST.perUnitCost * LAST.qty + LAST.nonUnitCost;
+  const orderMargin = orderRev - orderCost;
+  const orderRate = orderRev > 0 ? orderMargin / orderRev : null;
+  const b = band(unitRate);
+  out.className = 'pcOut ' + b.class;
+  out.innerHTML = '<span class="flag ' + b.class + '">' + b.label + '</span>' + money(unitMargin) + '/unit (' + pct(unitRate) + ')  ·  order ' + money0(orderMargin) + ' (' + pct(orderRate) + ')';
 }
 function updatePlacementFromEvent(event) {
   const wrap = event.target.closest('.placement');
@@ -1549,6 +1605,7 @@ function bind() {
   });
   $('addPlacement').addEventListener('click', () => { placements.push(defaultPlacement('Embroidery', 'Sleeve')); renderPlacements(); calculate(); });
   document.querySelectorAll('#quoteForm input,#quoteForm select').forEach(el => { el.addEventListener('input', calculate); el.addEventListener('change', calculate); });
+  $('targetPrice').addEventListener('input', renderPriceCheck);
   calculate();
 }
 bind();
