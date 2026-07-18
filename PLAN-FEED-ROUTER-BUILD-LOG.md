@@ -146,3 +146,26 @@ VERDICT: Build #4b APPROVED by Claude (0 fix rounds). The money-safety gate is f
 - routeDoc live wiring end-to-end; outbox claim→sent→deliver→acked incl. the stale-'sent' reclaim and SKIP-LOCKED across instances; feed_incoming upsert + feed_expense_hold insert. Plus carried-forward flags (#4a structured-output schema; all DB paths).
 
 VERDICT: Build #5a APPROVED by Claude (1 fix round). Internal pipeline complete in code: drop→store→extract→validate→route→outbox→internal write. External sink = #5b.
+
+## Build #5b — Step 6/7 (external n8n SINK — the real-money write path)  [EXECUTOR: Fable]
+
+### Act 3 — Fable build (model=fable)
+- NEW gate/feed/migrations/004_feed_outbox_held.sql — add 'held' to feed_outbox state CHECK (DROP+ADD constraint).
+- NEW gate/feed/sink.js — 3rd concurrency-1 self-scheduling loop for EXTERNAL destinations ('planetiq'). Config-halt (no FEED_SINK_URL/SECRET → claim nothing, dedupe log, no dead-letter). releaseHeld step (held→pending once doc_type graduated). Claim pending+stale-'sent' external rows (SKIP LOCKED, same reclaim). Graduation gate (feed_graduation.external_writes_enabled; fail-closed: missing/false/null-doc_type → held+shadow log). Graduated → POST FEED_SINK_URL (x-feed-secret header, buildSinkBody, AbortSignal.timeout); 2xx→acked, else retry→failed+alert. setGraduation ops helper. Pure buildSinkBody/buildSinkHeaders/sinkUrl for the selftest.
+- NEW gate/feed/sink_selftest.js (21 tests).
+- MOD gate/index.js — one line: startExternalDispatcher(pool, alert).
+
+### Act 4 — Claude review (hardest — real-money path)
+- URL DISCIPLINE verified 3 ways (selftest + my read): POST target = sinkUrl()=env FEED_SINK_URL only; buildSinkBody has NO url field; fact/intake never read for a URL; secret in x-feed-secret header, never URL. This is the load-bearing security property.
+- Graduation gate fail-closed incl. null doc_type (WHERE doc_type=NULL matches nothing → held). Shadow-first: feed_graduation empty by default → every external row held.
+- Config-halt never dead-letters; releaseHeld delivers backlog on graduation; claim + stale-'sent' reclaim correct; idempotency_key contract makes retried POST replay-safe; state-write-fail → row stays 'sent' → reclaimed.
+- Independently re-ran: sink 21/21, route_stage 51/51, validate 58/58, extract 20/20, parity PASS; node --check clean.
+- Fix rounds: 0.
+
+### Accepted edge
+- deliver() re-checks url/secret before POST; a config removed AFTER claim within one cycle → retry path (attempt++). Config-halt is the primary guard (claims nothing unconfigured), so this only bites on mid-cycle unset — extremely rare, defensive-only.
+
+### NOT verified (pending staging: real Postgres + FEED_SINK_URL/SECRET + a graduated doc_type + live n8n)
+- 004 DDL; graduation gate + releaseHeld + claim→sent→POST→acked incl. stale reclaim & SKIP-LOCKED across instances; shadow-'held' path; setGraduation upsert; live n8n POST (2xx ack, retry→failed, n8n secret-reject + UPSERT-by-idempotency-key). Plus all carried-forward flags.
+
+VERDICT: Build #5b APPROVED by Claude (0 fix rounds). FULL PIPELINE now exists in code (internal + external, shadow-gated). External writes are SHADOW until Holly runs setGraduation per doc_type. Remaining: #6 (board live + upload UI + feed-guide fix), #7 (packaging + staging deploy — where everything unproven gets proven).
