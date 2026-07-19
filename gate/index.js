@@ -29,7 +29,10 @@ const { Pool } = require('pg');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);                       // Railway sits behind a proxy
-app.use(express.json({ limit: '10mb' }));
+// Global 10mb limit; /api/media/intake carries its own route-scoped 35mb parser
+// (media.js) — mirrors origin/brain-incoming-board gate/index.js:33-34.
+const globalJson = express.json({ limit: '10mb' });
+app.use((req, res, next) => (req.path === '/api/media/intake' ? next() : globalJson(req, res, next)));
 app.use(express.urlencoded({ extended: false }));
 // Anti-clickjacking: our own front door may frame these pages; nobody else can.
 app.use((req, res, next) => { res.set('X-Frame-Options', 'SAMEORIGIN'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
@@ -334,6 +337,7 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
   } catch (e) { res.status(502).json({ error: 'state-api unreachable: ' + e.message }); }
 });
 app.use(require('./graphics')(pool, requireSession));
+app.use(require('./media')(pool, requireSession));
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance

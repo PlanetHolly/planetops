@@ -209,14 +209,25 @@
               "icon": "🖼️"
             },
             {
+              "id": "media-center",
+              "kind": "surface",
+              "name": "Media Center",
+              "blurb": "Drop completed project photos, tag them, and queue the Media Center index sink",
+              "type": "tool",
+              "url": "../media/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🏷️"
+            },
+            {
               "id": "art-namer",
               "kind": "surface",
               "name": "Art Namer",
               "blurb": "Produced-job mockups → Google/LLM-optimized web assets + SKU",
               "type": "tool",
-              "status": "live",
+              "status": "wip",
               "access": "open",
-              "note": "CLI today (art-namer/cli.py); Feed lane per art-namer/SPEC.md. Output → Website Shared Drive Website_Ready/Bandanas/",
+              "note": "Superseded by Media Center intake while the naming workflow is verified.",
               "icon": "🏷️"
             }
           ]
