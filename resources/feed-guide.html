@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!-- PlanetIQ Feed Guide — how PlanetIQ stays current. Planet Apparel brand. 2026-05-19.
+     Type substitution: Mr Eaves Mod OT -> Montserrat (web fallback per Brand/CLAUDE.md). -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlanetIQ — Feed Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--yellow:#F7BE00;--black:#000;--ink:#1d1d1d;--muted:#666;--line:#e4e4e4;
+    --font:'Montserrat','Helvetica Neue',Arial,sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font);color:var(--ink);background:#ececed;line-height:1.6;}
+  .page{max-width:880px;margin:0 auto;background:#fff;
+    padding:clamp(1.8rem,5vw,3.4rem);min-height:100vh;}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+    border-bottom:3px solid var(--black);padding-bottom:1.1rem;margin-bottom:1.6rem;}
+  .title{font-weight:900;text-transform:uppercase;line-height:1.05;
+    font-size:clamp(1.5rem,4.2vw,2.45rem);}
+  .title .y{color:var(--yellow);}
+  .subtitle{color:var(--muted);font-weight:600;margin-top:.4rem;font-size:.95rem;}
+  .ic{height:clamp(34px,6vw,46px);width:auto;color:var(--black);flex:none;}
+  .intro{font-size:1.06rem;color:#333;}
+  h2{font-weight:800;text-transform:uppercase;font-size:1.12rem;letter-spacing:.05em;
+    margin:2.1rem 0 .9rem;padding-bottom:.4rem;border-bottom:1px solid var(--line);}
+  .rule{background:var(--black);color:#fff;border-radius:6px;
+    padding:1.15rem 1.4rem;margin:1.3rem 0;}
+  .rule b{color:var(--yellow);text-transform:uppercase;letter-spacing:.09em;
+    font-size:.78rem;display:block;margin-bottom:.45rem;}
+  .rule p{font-size:1.05rem;font-weight:600;}
+  .panel{border:1px solid var(--line);border-left:5px solid var(--yellow);
+    border-radius:5px;padding:1.05rem 1.3rem;margin-bottom:1rem;}
+  .panel h3{font-weight:800;text-transform:uppercase;font-size:1.06rem;letter-spacing:.03em;}
+  .path{font-family:'Courier New',monospace;background:#f3f3f3;color:#000;
+    font-weight:700;padding:.18em .55em;border-radius:3px;font-size:.86rem;
+    display:inline-block;margin:.35rem 0 .55rem;}
+  .meta{color:var(--muted);font-weight:700;font-size:.78rem;text-transform:uppercase;
+    letter-spacing:.07em;margin-bottom:.55rem;}
+  .panel ul{margin:.2rem 0 0 1.15rem;}
+  .panel li{margin-bottom:.28rem;}
+  .panel .note{margin-top:.6rem;font-size:.92rem;color:#444;font-style:italic;}
+  .ex{background:#fafafa;border:1px solid var(--line);border-radius:5px;
+    padding:1.05rem 1.3rem;margin-bottom:1rem;}
+  .ex h3{font-weight:800;font-size:1.04rem;margin-bottom:.55rem;}
+  .who{color:var(--yellow);background:var(--black);padding:.16em .6em;
+    border-radius:3px;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;
+    margin-right:.55em;vertical-align:middle;}
+  .ex ol{margin:.3rem 0 0 1.25rem;}
+  .ex li{margin-bottom:.38rem;}
+  .ex .done{margin-top:.55rem;font-weight:700;color:#000;}
+  strong{color:#000;}
+  footer{margin-top:2.3rem;border-top:1px solid var(--line);padding-top:.95rem;
+    display:flex;justify-content:space-between;align-items:center;color:var(--muted);
+    font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;}
+  footer .ic{height:20px;color:var(--muted);}
+  @media print{body{background:#fff;}.page{min-height:0;}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="o" viewBox="-270 -185 3237 2226">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </symbol>
+</svg>
+
+<div class="page">
+  <header>
+    <div>
+      <div class="title">PLANET<span class="y">IQ</span> — FEED GUIDE</div>
+      <div class="subtitle">How we keep PlanetIQ current — what to drop, where, and when.</div>
+    </div>
+    <svg class="ic"><use href="#o"/></svg>
+  </header>
+
+  <p class="intro">PlanetIQ is only as accurate as the data behind it. Keeping it current is simple — <strong>four folders, one rule.</strong></p>
+
+  <div class="rule">
+    <b>The one rule</b>
+    <p>Drop the file in the right folder. Don't rename it. Don't sort it. Then tell Terminal it's there. That is the entire job — PlanetIQ handles the rest.</p>
+  </div>
+
+  <h2>The folders</h2>
+
+  <div class="panel">
+    <h3>Payroll</h3>
+    <span class="path">PlanetApparel / PlanetIQ / Feed / Payroll</span>
+    <div class="meta">Owner: Kelly &nbsp;·&nbsp; Every pay period</div>
+    <ul>
+      <li>The payroll summary report</li>
+      <li>A screenshot of any <strong>OT</strong> paid outside the normal run</li>
+      <li>A screenshot of any <strong>outside payment</strong> for someone's time — for example, production-support payments sent through Rosa</li>
+    </ul>
+    <p class="note">This folder holds the full labor picture for the period. If it paid for someone's time, it belongs here.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Monthly Financials</h3>
+    <span class="path">PlanetApparel / PlanetIQ / Feed / Monthly_Financials</span>
+    <div class="meta">Owner: Kelly &nbsp;·&nbsp; Every month-end close</div>
+    <ul>
+      <li>Profit &amp; Loss by Month</li>
+      <li>The KPI Tracker</li>
+      <li>The Invoice Tracker</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h3>Production Times</h3>
+    <span class="path">PlanetApparel / PlanetIQ / Feed / Production_Times</span>
+    <div class="meta">Owner: Jean's team &nbsp;·&nbsp; As jobs run + month-end</div>
+    <ul>
+      <li><strong>As each job finishes</strong> — a photo of the time sheet (the setup + print times the team already writes by hand)</li>
+      <li><strong>At month-end</strong> — the "Month-End Actual Print Times" report: the month's logged actual times, pulled into one file</li>
+    </ul>
+    <p class="note">Logging jobs as they run keeps PlanetIQ live; the month-end report is the clean record that closes the month.</p>
+  </div>
+
+  <div class="panel">
+    <h3>General &mdash; the catch-all</h3>
+    <span class="path">PlanetApparel / PlanetIQ / Feed / General</span>
+    <div class="meta">Owner: Anyone &nbsp;·&nbsp; As needed — no schedule</div>
+    <ul>
+      <li>Anything PlanetIQ should know that doesn't fit the other three — a major shop repair, an equipment change, a one-off cost, a process change, anything notable.</li>
+    </ul>
+    <p class="note">Drop a note, a photo, or a document — or just tell Terminal what happened. When in doubt, it goes here.</p>
+  </div>
+
+  <h2>Two examples</h2>
+
+  <div class="ex">
+    <h3><span class="who">Kelly</span> Month-end close — May</h3>
+    <ol>
+      <li>Export from QuickBooks: the May <strong>Profit &amp; Loss by Month</strong>, the updated <strong>KPI Tracker</strong>, and the <strong>Invoice Tracker</strong>.</li>
+      <li>Drop all three into <strong>Feed / Monthly_Financials</strong>. No renaming.</li>
+      <li>Send a quick message: <em>"May financials are in PlanetIQ."</em></li>
+    </ol>
+    <p class="done">Done — that's the whole task.</p>
+  </div>
+
+  <div class="ex">
+    <h3><span class="who">Jean</span> Production times — every job + month-end</h3>
+    <ol>
+      <li>A job runs. The press operator writes setup + print time on the job sheet — exactly as today.</li>
+      <li>As sheets are completed, photograph them and drop the photos into <strong>Feed / Production_Times</strong>.</li>
+      <li>At month-end, run the <strong>"Month-End Actual Print Times"</strong> report and drop it in the same folder.</li>
+      <li>Send a quick message: <em>"May production times are in PlanetIQ."</em></li>
+    </ol>
+    <p class="done">Done — the paper never leaves the floor, and PlanetIQ still gets the numbers.</p>
+  </div>
+
+  <footer>
+    <span><svg class="ic"><use href="#o"/></svg></span>
+    <span>Planet Apparel &nbsp;·&nbsp; PlanetIQ Feed Guide &nbsp;·&nbsp; 2026-05-19</span>
+  </footer>
+</div>
+</body>
+</html>

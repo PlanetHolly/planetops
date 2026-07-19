@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Planet Apparel",
-    "updated": "2026-07-08",
+    "updated": "2026-07-18",
     "authNote": "Auth is SERVER-SIDE (gate/index.js on Railway). No PIN ever belongs in this file — it is client-readable."
   },
   "tree": [
@@ -10,8 +10,8 @@
       "kind": "hub",
       "group": "hubs",
       "icon": "⚙️",
-      "name": "PlanetOps",
-      "blurb": "Production — back of house",
+      "name": "Production",
+      "blurb": "Production tools and floor operations",
       "children": [
         {
           "id": "floor",
@@ -149,10 +149,10 @@
               "name": "Production Flow Map v3",
               "blurb": "Status taxonomy + trigger layers",
               "type": "system-map",
-              "status": "wip",
+              "status": "live",
               "access": "open",
-              "note": "stranded on file:// — Dropbox PlanetApparel/PlanetOps/Production_Flow_Map_v3.html",
-              "icon": "🗺️"
+              "icon": "🗺️",
+              "url": "../guides/production-flow-map-v3.html"
             },
             {
               "id": "priority-guide",
@@ -176,6 +176,320 @@
               "access": "open",
               "note": "untracked — not pushed yet",
               "icon": "⏱️"
+            }
+          ]
+        },
+        {
+          "id": "qc",
+          "kind": "hub",
+          "icon": "✅",
+          "name": "QC",
+          "blurb": "The quality gate before a job goes to production",
+          "children": [
+            {
+              "id": "qc-gate-form",
+              "kind": "surface",
+              "name": "QC Gate",
+              "blurb": "Run the gate on an invoice — bandana, sublimation, apparel",
+              "type": "tool",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Nothing — you read the Printavo invoice and answer. Findings copy to your clipboard.",
+              "url": "../qc/",
+              "icon": "🛡️"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "revenue-house",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "🔁",
+      "name": "Revenue House",
+      "blurb": "Sales + Retention — front of house",
+      "children": [
+        {
+          "id": "command-center",
+          "kind": "surface",
+          "name": "Revenue House Command Center",
+          "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
+          "type": "live-app",
+          "url": "../revenue-house/command/",
+          "status": "live",
+          "access": "open",
+          "icon": "🎛️"
+        },
+        {
+          "id": "status-simulator",
+          "kind": "surface",
+          "name": "Status Simulator",
+          "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
+          "type": "live-app",
+          "url": "../revenue-house/command/#/simulator",
+          "status": "live",
+          "access": "open",
+          "icon": "🎬"
+        },
+        {
+          "id": "retention",
+          "kind": "hub",
+          "name": "Retention",
+          "blurb": "Keeping customers — the live retention system, playbook, scripts, and the Save Touch.",
+          "icon": "🤝",
+          "children": [
+            {
+              "id": "retention-map",
+              "kind": "surface",
+              "name": "Retention — Live System Map",
+              "blurb": "Three cadence engines, every automation, the alarms",
+              "type": "system-map",
+              "url": "../revenue-house/retention/",
+              "status": "live",
+              "access": "open",
+              "dataSource": "status.json (hand-maintained)",
+              "icon": "🧲"
+            },
+            {
+              "id": "save-touch",
+              "kind": "surface",
+              "name": "The Save Touch",
+              "blurb": "Win-back / at-risk retention team playbook",
+              "type": "reference",
+              "url": "../save-touch/",
+              "status": "live",
+              "access": "open",
+              "icon": "🆘"
+            },
+            {
+              "id": "retention-playbook",
+              "kind": "surface",
+              "name": "Retention Playbook",
+              "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
+              "type": "reference",
+              "url": "../revenue-house/playbook/",
+              "status": "live",
+              "access": "open",
+              "icon": "📓"
+            },
+            {
+              "id": "retention-rollout-part-1",
+              "kind": "surface",
+              "name": "Retention Rollout — Part 1",
+              "blurb": "Team rollout deck for the first retention system launch.",
+              "type": "training",
+              "url": "../revenue-house/retention/rollout-part1/",
+              "status": "live",
+              "access": "open",
+              "icon": "📣"
+            },
+            {
+              "id": "retention-registry",
+              "kind": "surface",
+              "name": "Retention — Master Script Registry",
+              "blurb": "36-row control sheet governing the retention n8n fleet",
+              "type": "report",
+              "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
+              "status": "live",
+              "access": "open",
+              "dataSource": "Drive sheet · governs Systems A/B/C",
+              "icon": "📇"
+            }
+          ]
+        },
+        {
+          "id": "signals",
+          "kind": "surface",
+          "name": "Planet Sales Signals",
+          "blurb": "Quotes, conversions, new-vs-return, tiers, ad ROI — by rep, by week",
+          "type": "dashboard",
+          "url": "../signals/",
+          "status": "live",
+          "access": "open",
+          "dataSource": "scoreboard-data.json ← Drive SoT 1PkA3UbiA0fmpwaAj6nRbuEzq2nrK9NhueELhBA4OhQM",
+          "icon": "📡"
+        },
+        {
+          "id": "ship-estimate",
+          "kind": "surface",
+          "name": "Bandana Shipping Estimator",
+          "blurb": "Shipping cost calculator for bandana quotes",
+          "type": "tool",
+          "url": "../ship-estimate/",
+          "status": "live",
+          "access": "open",
+          "icon": "🚚"
+        },
+        {
+          "id": "pricing",
+          "kind": "hub",
+          "name": "Pricing",
+          "blurb": "Internal pricing tools — matrices, price lookups, and SP/margin views behind the desks.",
+          "icon": "🏷️",
+          "children": [
+            {
+              "id": "bandana-pricing",
+              "kind": "surface",
+              "name": "Bandana Pricing (internal)",
+              "blurb": "Every price break by product × ink × qty × colors. Shows SP + margin.",
+              "type": "dashboard",
+              "url": "../pricing/bandana-pricing.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "💰"
+            },
+            {
+              "id": "apparel-matrix-review",
+              "kind": "surface",
+              "name": "Apparel Matrix Review",
+              "blurb": "The 10 apparel matrices + the 25% garment markup — review before go-live.",
+              "type": "report",
+              "url": "../pricing/apparel-matrix-review.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🧮"
+            },
+            {
+              "id": "bandana-quote-fin",
+              "kind": "surface",
+              "name": "Bandana Quote (SP)",
+              "blurb": "Bandana quote with Sales Profit + whole-project margin.",
+              "type": "tool",
+              "url": "../pricing/bandana-quote-calculator.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🏴"
+            },
+            {
+              "id": "apparel-quote-calc",
+              "kind": "surface",
+              "name": "Apparel Quick Quote",
+              "blurb": "Generate a consistent apparel screen-print quote — garment + decoration + services. Shows SP. Replaces freestyle desk quoting.",
+              "type": "tool",
+              "url": "../pricing/apparel-quote-calculator.html",
+              "status": "live",
+              "access": "pin",
+              "icon": "🖩"
+            },
+            {
+              "id": "bandana-pricing-desk",
+              "kind": "surface",
+              "name": "Bandana Price Lookup",
+              "blurb": "Bandana price lookup by product, qty, colors. Prices only. Team quoting tool.",
+              "type": "dashboard",
+              "url": "../bandana-pricing/",
+              "status": "live",
+              "access": "open",
+              "icon": "🧣"
+            }
+          ]
+        },
+        {
+          "id": "revenue-discovery",
+          "kind": "surface",
+          "name": "Discovery — What We Actually Know",
+          "blurb": "Every number graded A-F for reliability. What we know, what we don't, and what I got wrong.",
+          "type": "report",
+          "url": "../pricing/discovery.html",
+          "status": "live",
+          "access": "pin",
+          "icon": "🔎"
+        },
+        {
+          "id": "desks",
+          "kind": "hub",
+          "name": "Desks",
+          "blurb": "Team quoting desks — build a quote for any product line. Pricing feeds them; a quote comes out.",
+          "icon": "🧾",
+          "children": [
+            {
+              "id": "apparel-quote-team",
+              "kind": "surface",
+              "name": "Screen Printed Apparel",
+              "blurb": "Quick apparel screen-print quote — garment + decoration + services. Prices only. Team quoting tool.",
+              "type": "tool",
+              "url": "../apparel-quote/",
+              "status": "live",
+              "access": "open",
+              "icon": "👕"
+            },
+            {
+              "id": "apparel-mix-quote",
+              "kind": "surface",
+              "name": "Mixed Decorations Apparel",
+              "blurb": "One garment, many placements — toggle Screen Print / Embroidery / DTF per placement and get ONE project margin total. Shows margin. DRAFT.",
+              "type": "tool",
+              "url": "../apparel-mix/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🧬"
+            },
+            {
+              "id": "bandana-quote-team",
+              "kind": "surface",
+              "name": "Bandana Quote (desk)",
+              "blurb": "Quick bandana quote — product, ink, colors, qty, folds, belly bands, ink change. Prices only.",
+              "type": "tool",
+              "url": "../bandana-quote/",
+              "status": "live",
+              "access": "open",
+              "icon": "🏴"
+            },
+            {
+              "id": "bandana-quoting-glance-card",
+              "kind": "surface",
+              "name": "Bandana Quoting Glance Card",
+              "blurb": "Quick reference card for Shara’s bandana quoting workflow.",
+              "type": "reference",
+              "url": "../revenue-house/desks/bandana-quoting-glance-card.html",
+              "status": "live",
+              "access": "open",
+              "icon": "🧾"
+            },
+            {
+              "id": "bandana-matrix-cheat-card",
+              "kind": "surface",
+              "name": "Bandana Matrix Cheat Card",
+              "blurb": "Matrix shortcut card for bandana quote checks.",
+              "type": "reference",
+              "url": "../revenue-house/desks/bandana-matrix-cheat-card.html",
+              "status": "live",
+              "access": "open",
+              "icon": "🧮"
+            },
+            {
+              "id": "promo-quote-desk",
+              "kind": "surface",
+              "name": "Promo Quote (desk)",
+              "blurb": "Promo pricing — landed cost + product class + complexity checkboxes. Shows margin: the PM builds the margin, so the desk sees it. No matrix; this is the only way to price promo.",
+              "type": "tool",
+              "url": "../promo-quote/",
+              "status": "live",
+              "access": "open",
+              "icon": "🎁"
+            },
+            {
+              "id": "embroidery-quote-desk",
+              "kind": "surface",
+              "name": "Embroidery Quote (desk)",
+              "blurb": "Embroidery pricing — stitch count + qty + placements on the real Bear cost grid. 100% outsourced (no PA labor). Quote at target, floor at survival. Shows margin. DRAFT.",
+              "type": "tool",
+              "url": "../embroidery-quote/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🧵"
+            },
+            {
+              "id": "dtf-quote-desk",
+              "kind": "surface",
+              "name": "DTF Quote (desk)",
+              "blurb": "DTF / heat-transfer pricing — garment material picks the transfer, size drives cost (real Supacolor costs). Prices from 1 piece. Shows margin. DRAFT: costs OCR'd, verify vs Excel.",
+              "type": "tool",
+              "url": "../dtf-quote/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🔥"
             }
           ]
         },
@@ -220,36 +534,177 @@
               "icon": "🏷️"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "planetiq",
+      "kind": "hub",
+      "group": "hubs",
+      "icon": "📊",
+      "name": "PlanetIQ",
+      "blurb": "Data · analysis · intelligence · knowledge · reporting",
+      "children": [
+        {
+          "id": "planetiq-panel",
+          "kind": "surface",
+          "name": "PlanetIQ Panel",
+          "blurb": "The business-intelligence foundation",
+          "type": "dashboard",
+          "url": "../planetiq/",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "datalayer.json / chartseries.json",
+          "icon": "📈"
         },
         {
-          "id": "qc",
+          "id": "pricing-dashboard",
+          "kind": "surface",
+          "name": "Bandana Pricing Dashboard",
+          "blurb": "Internal pricing engine — awaits real DATA feed",
+          "type": "dashboard",
+          "status": "live",
+          "access": "pin",
+          "icon": "🏷️",
+          "url": "../planetiq/pricing-dashboard.html"
+        },
+        {
+          "id": "kpi-tracker",
+          "kind": "surface",
+          "name": "KPI Tracker",
+          "blurb": "Standing company KPI scoreboard",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1XQNS-93GLZxPYxK15xYIqKeF-Yv6P9jCuvC2rbnANjQ/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · weekly",
+          "icon": "🎯"
+        },
+        {
+          "id": "iq-data-layer",
+          "kind": "surface",
+          "name": "PlanetIQ Data Layer",
+          "blurb": "The auditable Sheet → snapshot → page layer",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1lvJ28bcid3e8FYNrT44bSbtxi_5U53QxdISiW95JuF0/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · automations read it",
+          "icon": "🗄️"
+        },
+        {
+          "id": "invoice-tracker",
+          "kind": "surface",
+          "name": "Planet Pulse Invoice Tracker",
+          "blurb": "Kelly's live AR / collections tracker",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1FT9vqCUD5MOyxjt30q8wQ5PumgdeXj7FtgP5ObdYX8U/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet · month-end close automation",
+          "icon": "🏦"
+        },
+        {
+          "id": "employee-orders",
+          "kind": "surface",
+          "name": "Employee Order-Payment Tracker",
+          "blurb": "Kelly's employee personal-order registry",
+          "type": "report",
+          "url": "https://docs.google.com/spreadsheets/d/1ElBiBXlBkwl5V5rFpIZOMtJsHPey3sc_7eJRs4xqOZU/edit",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Drive sheet",
+          "icon": "💳"
+        },
+        {
+          "id": "growth",
           "kind": "hub",
-          "icon": "✅",
-          "name": "QC",
-          "blurb": "The quality gate before a job goes to production",
+          "icon": "🌱",
+          "name": "Growth",
+          "blurb": "Bandana site, catalog & web marketing (was PlanetGrowth)",
           "children": [
             {
-              "id": "qc-gate-form",
+              "id": "bandana-templates",
               "kind": "surface",
-              "name": "QC Gate",
-              "blurb": "Run the gate on an invoice — bandana, sublimation, apparel",
+              "name": "Bandana Design Templates",
+              "blurb": "21 ready-to-print layouts, customer-facing",
               "type": "tool",
+              "url": "../bandana-templates/",
               "status": "live",
               "access": "open",
-              "dataSource": "Nothing — you read the Printavo invoice and answer. Findings copy to your clipboard.",
-              "url": "../qc/",
-              "icon": "🛡️"
+              "icon": "🧣"
             },
             {
-              "id": "qc-invoice",
+              "id": "bandana-web-pricing",
               "kind": "surface",
-              "name": "QC Interactive Invoice (trainer)",
-              "blurb": "The old training version — mock invoice, worked examples",
+              "name": "Bandana Website Pricing",
+              "blurb": "Current bandana site pricing update",
+              "type": "reference",
+              "url": "../bandana-revamp/website-pricing.html",
+              "status": "live",
+              "access": "open",
+              "icon": "💰"
+            },
+            {
+              "id": "photo-tagger",
+              "kind": "surface",
+              "name": "Bandana Photo Tagger",
+              "blurb": "Catalog image tagging tool",
               "type": "tool",
               "status": "wip",
               "access": "open",
-              "note": "Superseded by the QC Gate above for real runs. Still stranded on file:// — Dropbox PlanetApparel/QC/QC_Interactive_Invoice.html",
-              "icon": "🔍"
+              "icon": "📸",
+              "note": "stranded on file:// — Dropbox Website/_Internal/ (localStorage: needs export before deploy)"
+            },
+            {
+              "id": "photo-namer",
+              "kind": "surface",
+              "name": "Bandana Photo Namer",
+              "blurb": "Rename bandana photos for catalog and search-ready web assets.",
+              "type": "tool",
+              "url": "../growth/photo-namer.html",
+              "status": "live",
+              "access": "open",
+              "icon": "🏷️"
+            },
+            {
+              "id": "mockup-vs-real",
+              "kind": "surface",
+              "name": "Mockup vs Real Gallery",
+              "blurb": "Catalog QA comparison grid",
+              "type": "tool",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox Website/_Internal/",
+              "icon": "🖼️"
+            }
+          ]
+        },
+        {
+          "id": "brain",
+          "kind": "hub",
+          "icon": "🧠",
+          "name": "The Brain",
+          "blurb": "Institutional knowledge & the meta layer",
+          "children": [
+            {
+              "id": "graphify",
+              "kind": "surface",
+              "name": "Graphify Knowledge Graph",
+              "blurb": "Interactive knowledge-graph viewer",
+              "type": "system-map",
+              "status": "wip",
+              "access": "open",
+              "note": "stranded on file:// — Dropbox Claude_Holly/Knowledge_Graph/graphify-out/graph.html",
+              "icon": "🕸️"
+            },
+            {
+              "id": "decisions",
+              "kind": "hub",
+              "icon": "⚖️",
+              "name": "Decisions",
+              "blurb": "Leadership decisions — owner-only · coming later",
+              "children": []
             }
           ]
         },
@@ -312,484 +767,6 @@
       ]
     },
     {
-      "id": "revenue-house",
-      "kind": "hub",
-      "group": "hubs",
-      "icon": "🔁",
-      "name": "Revenue House",
-      "blurb": "Sales + Retention — front of house",
-      "children": [
-        {
-          "id": "rh-hub-page",
-          "kind": "surface",
-          "name": "Revenue House hub page",
-          "blurb": "The customer-side sub-hub (Retention · Signals · Pipeline)",
-          "type": "dashboard",
-          "url": "../revenue-house/",
-          "status": "live",
-          "access": "open",
-          "icon": "🏠"
-        },
-        {
-          "id": "watchtower-rev",
-          "kind": "surface",
-          "name": "Watchtower",
-          "blurb": "One view over every engine — the agent/system overview. It rings when something breaks.",
-          "type": "live-app",
-          "url": "../revenue-house/command/#/activity",
-          "status": "live",
-          "access": "open",
-          "icon": "📡"
-        },
-        {
-          "id": "retention",
-          "kind": "hub",
-          "name": "Retention",
-          "blurb": "Keeping customers — the live retention system, playbook, scripts, and the Save Touch.",
-          "icon": "🤝",
-          "children": [
-            {
-              "id": "command-center",
-              "kind": "surface",
-              "name": "Revenue House Command Center",
-              "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
-              "type": "live-app",
-              "url": "../revenue-house/command/",
-              "status": "live",
-              "access": "open",
-              "icon": "🎛️"
-            },
-            {
-              "id": "status-simulator",
-              "kind": "surface",
-              "name": "Status Simulator",
-              "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
-              "type": "live-app",
-              "url": "../revenue-house/command/#/simulator",
-              "status": "live",
-              "access": "open",
-              "icon": "🎬"
-            },
-            {
-              "id": "retention-map",
-              "kind": "surface",
-              "name": "Retention — Live System Map",
-              "blurb": "Three cadence engines, every automation, the alarms",
-              "type": "system-map",
-              "url": "../revenue-house/retention/",
-              "status": "live",
-              "access": "open",
-              "dataSource": "status.json (hand-maintained)",
-              "icon": "🧲"
-            },
-            {
-              "id": "save-touch",
-              "kind": "surface",
-              "name": "The Save Touch",
-              "blurb": "Win-back / at-risk retention team playbook",
-              "type": "reference",
-              "url": "../save-touch/",
-              "status": "live",
-              "access": "open",
-              "icon": "🆘"
-            },
-            {
-              "id": "retention-playbook",
-              "kind": "surface",
-              "name": "Retention Playbook",
-              "blurb": "Retention outreach playbook — who sends what, scripts, Kelly's morning routine",
-              "type": "reference",
-              "url": "../revenue-house/playbook/",
-              "status": "live",
-              "access": "open",
-              "icon": "📓"
-            },
-            {
-              "id": "retention-registry",
-              "kind": "surface",
-              "name": "Retention — Master Script Registry",
-              "blurb": "36-row control sheet governing the retention n8n fleet",
-              "type": "report",
-              "url": "https://docs.google.com/spreadsheets/d/1Psd0SAm9OhpRVT-YYVf3h8r_xVxWVwoEhHxyAio_1xc/edit",
-              "status": "live",
-              "access": "open",
-              "dataSource": "Drive sheet · governs Systems A/B/C",
-              "icon": "📇"
-            }
-          ]
-        },
-        {
-          "id": "signals",
-          "kind": "surface",
-          "name": "Planet Sales Signals",
-          "blurb": "Quotes, conversions, new-vs-return, tiers, ad ROI — by rep, by week",
-          "type": "dashboard",
-          "url": "../signals/",
-          "status": "live",
-          "access": "open",
-          "dataSource": "scoreboard-data.json ← Drive SoT 1PkA3UbiA0fmpwaAj6nRbuEzq2nrK9NhueELhBA4OhQM",
-          "icon": "📡"
-        },
-        {
-          "id": "ship-estimate",
-          "kind": "surface",
-          "name": "Bandana Shipping Estimator",
-          "blurb": "Shipping cost calculator for bandana quotes",
-          "type": "tool",
-          "url": "../ship-estimate/",
-          "status": "live",
-          "access": "open",
-          "icon": "🚚"
-        },
-        {
-          "id": "pipeline-dashboard",
-          "kind": "surface",
-          "name": "Sales Pipeline Dashboard",
-          "blurb": "Older standalone pipeline dashboard",
-          "type": "dashboard",
-          "status": "stale",
-          "access": "open",
-          "note": "3/17 — superseded by Signals · Dropbox Sales/Dashboard/",
-          "icon": "🚰"
-        },
-        {
-          "id": "pricing",
-          "kind": "hub",
-          "name": "Pricing",
-          "blurb": "Internal pricing tools — matrices, price lookups, and SP/margin views behind the desks.",
-          "icon": "🏷️",
-          "children": [
-            {
-              "id": "bandana-pricing",
-              "kind": "surface",
-              "name": "Bandana Pricing (internal)",
-              "blurb": "Every price break by product × ink × qty × colors. Shows SP + margin.",
-              "type": "dashboard",
-              "url": "../pricing/bandana-pricing.html",
-              "status": "live",
-              "access": "pin",
-              "icon": "💰"
-            },
-            {
-              "id": "apparel-matrix-review",
-              "kind": "surface",
-              "name": "Apparel Matrix Review",
-              "blurb": "The 10 apparel matrices + the 25% garment markup — review before go-live.",
-              "type": "report",
-              "url": "../pricing/apparel-matrix-review.html",
-              "status": "live",
-              "access": "pin",
-              "icon": "🧮"
-            },
-            {
-              "id": "bandana-quote-fin",
-              "kind": "surface",
-              "name": "Bandana Quote (SP)",
-              "blurb": "Bandana quote with Sales Profit + whole-project margin.",
-              "type": "tool",
-              "url": "../pricing/bandana-quote-calculator.html",
-              "status": "live",
-              "access": "pin",
-              "icon": "🏴"
-            },
-            {
-              "id": "apparel-quote-calc",
-              "kind": "surface",
-              "name": "Apparel Quick Quote",
-              "blurb": "Generate a consistent apparel screen-print quote — garment + decoration + services. Shows SP. Replaces freestyle desk quoting.",
-              "type": "tool",
-              "url": "../pricing/apparel-quote-calculator.html",
-              "status": "live",
-              "access": "pin",
-              "icon": "🖩"
-            },
-            {
-              "id": "bandana-pricing-desk",
-              "kind": "surface",
-              "name": "Bandana Quote (desk)",
-              "blurb": "Bandana price lookup by product, qty, colors. Prices only. Team quoting tool.",
-              "type": "dashboard",
-              "url": "../bandana-pricing/",
-              "status": "live",
-              "access": "open",
-              "icon": "🧣"
-            }
-          ]
-        },
-        {
-          "id": "revenue-discovery",
-          "kind": "surface",
-          "name": "Discovery — What We Actually Know",
-          "blurb": "Every number graded A-F for reliability. What we know, what we don't, and what I got wrong.",
-          "type": "report",
-          "url": "../pricing/discovery.html",
-          "status": "live",
-          "access": "pin",
-          "icon": "🔎"
-        },
-        {
-          "id": "desks",
-          "kind": "hub",
-          "name": "Desks",
-          "blurb": "Team quoting desks — build a quote for any product line. Pricing feeds them; a quote comes out.",
-          "icon": "🧾",
-          "children": [
-            {
-              "id": "apparel-quote-team",
-              "kind": "surface",
-              "name": "Screen Printed Apparel",
-              "blurb": "Quick apparel screen-print quote — garment + decoration + services. Prices only. Team quoting tool.",
-              "type": "tool",
-              "url": "../apparel-quote/",
-              "status": "live",
-              "access": "open",
-              "icon": "👕"
-            },
-            {
-              "id": "apparel-mix-quote",
-              "kind": "surface",
-              "name": "Mixed Decorations Apparel",
-              "blurb": "One garment, many placements — toggle Screen Print / Embroidery / DTF per placement and get ONE project margin total. Shows margin. DRAFT.",
-              "type": "tool",
-              "url": "../apparel-mix/",
-              "status": "wip",
-              "access": "open",
-              "icon": "🧬"
-            },
-            {
-              "id": "bandana-quote-team",
-              "kind": "surface",
-              "name": "Bandana Quote (desk)",
-              "blurb": "Quick bandana quote — product, ink, colors, qty, folds, belly bands, ink change. Prices only.",
-              "type": "tool",
-              "url": "../bandana-quote/",
-              "status": "live",
-              "access": "open",
-              "icon": "🏴"
-            },
-            {
-              "id": "promo-quote-desk",
-              "kind": "surface",
-              "name": "Promo Quote (desk)",
-              "blurb": "Promo pricing — landed cost + product class + complexity checkboxes. Shows margin: the PM builds the margin, so the desk sees it. No matrix; this is the only way to price promo.",
-              "type": "tool",
-              "url": "../promo-quote/",
-              "status": "live",
-              "access": "open",
-              "icon": "🎁"
-            },
-            {
-              "id": "embroidery-quote-desk",
-              "kind": "surface",
-              "name": "Embroidery Quote (desk)",
-              "blurb": "Embroidery pricing — stitch count + qty + placements on the real Bear cost grid. 100% outsourced (no PA labor). Quote at target, floor at survival. Shows margin. DRAFT.",
-              "type": "tool",
-              "url": "../embroidery-quote/",
-              "status": "wip",
-              "access": "open",
-              "icon": "🧵"
-            },
-            {
-              "id": "dtf-quote-desk",
-              "kind": "surface",
-              "name": "DTF Quote (desk)",
-              "blurb": "DTF / heat-transfer pricing — garment material picks the transfer, size drives cost (real Supacolor costs). Prices from 1 piece. Shows margin. DRAFT: costs OCR'd, verify vs Excel.",
-              "type": "tool",
-              "url": "../dtf-quote/",
-              "status": "wip",
-              "access": "open",
-              "icon": "🔥"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "planetiq",
-      "kind": "hub",
-      "group": "hubs",
-      "icon": "📊",
-      "name": "PlanetIQ",
-      "blurb": "Data · analysis · intelligence · knowledge · reporting",
-      "children": [
-        {
-          "id": "planetiq-panel",
-          "kind": "surface",
-          "name": "PlanetIQ Panel",
-          "blurb": "The business-intelligence foundation",
-          "type": "dashboard",
-          "url": "../planetiq/",
-          "status": "live",
-          "access": "pin",
-          "dataSource": "datalayer.json / chartseries.json",
-          "icon": "📈"
-        },
-        {
-          "id": "pricing-dashboard",
-          "kind": "surface",
-          "name": "Bandana Pricing Dashboard",
-          "blurb": "Internal pricing engine — awaits real DATA feed",
-          "type": "dashboard",
-          "status": "wip",
-          "access": "pin",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Pricing/pricing-dashboard.html",
-          "icon": "🏷️"
-        },
-        {
-          "id": "kpi-tracker",
-          "kind": "surface",
-          "name": "KPI Tracker",
-          "blurb": "Standing company KPI scoreboard",
-          "type": "report",
-          "url": "https://docs.google.com/spreadsheets/d/1XQNS-93GLZxPYxK15xYIqKeF-Yv6P9jCuvC2rbnANjQ/edit",
-          "status": "live",
-          "access": "pin",
-          "dataSource": "Drive sheet · weekly",
-          "icon": "🎯"
-        },
-        {
-          "id": "iq-data-layer",
-          "kind": "surface",
-          "name": "PlanetIQ Data Layer",
-          "blurb": "The auditable Sheet → snapshot → page layer",
-          "type": "report",
-          "url": "https://docs.google.com/spreadsheets/d/1lvJ28bcid3e8FYNrT44bSbtxi_5U53QxdISiW95JuF0/edit",
-          "status": "live",
-          "access": "pin",
-          "dataSource": "Drive sheet · automations read it",
-          "icon": "🗄️"
-        },
-        {
-          "id": "invoice-tracker",
-          "kind": "surface",
-          "name": "Planet Pulse Invoice Tracker",
-          "blurb": "Kelly's live AR / collections tracker",
-          "type": "report",
-          "url": "https://docs.google.com/spreadsheets/d/1FT9vqCUD5MOyxjt30q8wQ5PumgdeXj7FtgP5ObdYX8U/edit",
-          "status": "live",
-          "access": "pin",
-          "dataSource": "Drive sheet · month-end close automation",
-          "icon": "🏦"
-        },
-        {
-          "id": "employee-orders",
-          "kind": "surface",
-          "name": "Employee Order-Payment Tracker",
-          "blurb": "Kelly's employee personal-order registry",
-          "type": "report",
-          "url": "https://docs.google.com/spreadsheets/d/1ElBiBXlBkwl5V5rFpIZOMtJsHPey3sc_7eJRs4xqOZU/edit",
-          "status": "live",
-          "access": "pin",
-          "dataSource": "Drive sheet",
-          "icon": "💳"
-        },
-        {
-          "id": "financial-dashboard",
-          "kind": "surface",
-          "name": "Financial Dashboard",
-          "blurb": "Older standalone financial dashboard",
-          "type": "dashboard",
-          "status": "stale",
-          "access": "pin",
-          "note": "4/29 — superseded by PlanetIQ · Dropbox Financial/",
-          "icon": "💹"
-        },
-        {
-          "id": "growth",
-          "kind": "hub",
-          "icon": "🌱",
-          "name": "Growth",
-          "blurb": "Bandana site, catalog & web marketing (was PlanetGrowth)",
-          "children": [
-            {
-              "id": "bandana-templates",
-              "kind": "surface",
-              "name": "Bandana Design Templates",
-              "blurb": "21 ready-to-print layouts, customer-facing",
-              "type": "tool",
-              "url": "../bandana-templates/",
-              "status": "live",
-              "access": "open",
-              "icon": "🧣"
-            },
-            {
-              "id": "bandana-revamp",
-              "kind": "surface",
-              "name": "2026 Bandana Revamp Plan",
-              "blurb": "Project plan + meeting snapshots",
-              "type": "reference",
-              "url": "../bandana-revamp/",
-              "status": "stale",
-              "access": "open",
-              "note": "historical project docs (6/17–18)",
-              "icon": "🪄"
-            },
-            {
-              "id": "bandana-web-pricing",
-              "kind": "surface",
-              "name": "Bandana Website Pricing",
-              "blurb": "Current bandana site pricing update",
-              "type": "reference",
-              "url": "../bandana-revamp/website-pricing.html",
-              "status": "live",
-              "access": "open",
-              "icon": "💰"
-            },
-            {
-              "id": "photo-tagger",
-              "kind": "surface",
-              "name": "Bandana Photo Tagger",
-              "blurb": "Catalog image tagging tool",
-              "type": "tool",
-              "status": "wip",
-              "access": "open",
-              "note": "stranded on file:// — Dropbox Website/_Internal/ (localStorage: needs export before deploy)",
-              "icon": "📸"
-            },
-            {
-              "id": "mockup-vs-real",
-              "kind": "surface",
-              "name": "Mockup vs Real Gallery",
-              "blurb": "Catalog QA comparison grid",
-              "type": "tool",
-              "status": "wip",
-              "access": "open",
-              "note": "stranded on file:// — Dropbox Website/_Internal/",
-              "icon": "🖼️"
-            }
-          ]
-        },
-        {
-          "id": "brain",
-          "kind": "hub",
-          "icon": "🧠",
-          "name": "The Brain",
-          "blurb": "Institutional knowledge & the meta layer",
-          "children": [
-            {
-              "id": "graphify",
-              "kind": "surface",
-              "name": "Graphify Knowledge Graph",
-              "blurb": "Interactive knowledge-graph viewer",
-              "type": "system-map",
-              "status": "wip",
-              "access": "open",
-              "note": "stranded on file:// — Dropbox Claude_Holly/Knowledge_Graph/graphify-out/graph.html",
-              "icon": "🕸️"
-            },
-            {
-              "id": "decisions",
-              "kind": "hub",
-              "icon": "⚖️",
-              "name": "Decisions",
-              "blurb": "Leadership decisions — owner-only · coming later",
-              "children": []
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "systems",
       "kind": "hub",
       "group": "hubs",
@@ -826,10 +803,10 @@
           "name": "Order Flow & Automations Map",
           "blurb": "Status-by-status Printavo lifecycle + which automations fire",
           "type": "system-map",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetApparel/Printavo_Automations/Order_Flow_Automation_Map.html",
-          "icon": "🔀"
+          "icon": "🔀",
+          "url": "../systems/order-flow-automation-map.html"
         },
         {
           "id": "bandana-bot-map",
@@ -837,10 +814,10 @@
           "name": "Bandana Quote Bot — System Map",
           "blurb": "The quote-bot automation, mapped",
           "type": "system-map",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox Sales/Bandana_Quote_Automation/System_Map/",
-          "icon": "💬"
+          "icon": "💬",
+          "url": "../systems/bandana-quote-bot-system-map.html"
         },
         {
           "id": "planetpulse",
@@ -902,66 +879,12 @@
       ]
     },
     {
-      "id": "training",
-      "kind": "hub",
-      "group": "library",
-      "icon": "🎓",
-      "name": "Training",
-      "blurb": "How-tos & onboarding, team-wide",
-      "children": [
-        {
-          "id": "qc-gate",
-          "kind": "surface",
-          "name": "QC Gate Checklist",
-          "blurb": "The QC gate, step by step",
-          "type": "training",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/QC_Gate/",
-          "icon": "☑️"
-        },
-        {
-          "id": "bandana-blanks",
-          "kind": "surface",
-          "name": "Bandana Blanks — Ordering Workflow",
-          "blurb": "Malia's blanks-ordering how-to",
-          "type": "training",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/",
-          "icon": "🛒"
-        },
-        {
-          "id": "how-organized",
-          "kind": "surface",
-          "name": "How We're Organized",
-          "blurb": "The Claude/system organization explainer",
-          "type": "training",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox Training/Internal/Claude_Setup_Status/",
-          "icon": "🧭"
-        },
-        {
-          "id": "followup-gameplan",
-          "kind": "surface",
-          "name": "Customer Follow-Up Game Plan",
-          "blurb": "Shara/Cortney's follow-up playbook",
-          "type": "training",
-          "status": "wip",
-          "access": "open",
-          "note": "stranded on file:// — Dropbox Sales/Customer_Retention/Team_Materials/",
-          "icon": "📞"
-        }
-      ]
-    },
-    {
       "id": "references",
       "kind": "hub",
       "group": "library",
       "icon": "📚",
-      "name": "References",
-      "blurb": "Standards & guides",
+      "name": "Resources",
+      "blurb": "Team-wide resources, training, standards, and guides",
       "children": [
         {
           "id": "file-naming",
@@ -980,10 +903,10 @@
           "name": "Feed Guide",
           "blurb": "How the PlanetIQ feed folders work",
           "type": "reference",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Feed/",
-          "icon": "📥"
+          "icon": "📥",
+          "url": "../resources/feed-guide.html"
         },
         {
           "id": "invoice-column-guide",
@@ -991,10 +914,10 @@
           "name": "Invoice Tracker — Column Guide",
           "blurb": "Column-by-column tracker reference",
           "type": "reference",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Month_End_Close/",
-          "icon": "📋"
+          "icon": "📋",
+          "url": "../resources/invoice-tracker-column-guide.html"
         },
         {
           "id": "data-summary-2025",
@@ -1002,10 +925,65 @@
           "name": "2025 Annual Data Summary & SoT Map",
           "blurb": "Where every 2025 number lives",
           "type": "reference",
-          "status": "wip",
+          "status": "live",
           "access": "open",
-          "note": "stranded on file:// — Dropbox PlanetIQ/Annual_Data_Summary/",
-          "icon": "🗒️"
+          "icon": "🗒️",
+          "url": "../resources/2025-data-summary-and-sot-map.html"
+        },
+        {
+          "id": "status-taxonomy-mock",
+          "kind": "surface",
+          "name": "Status Taxonomy Mock",
+          "blurb": "Printavo status cleanup mockup and taxonomy reference",
+          "type": "reference",
+          "url": "../resources/status-taxonomy-mock.html",
+          "status": "live",
+          "access": "open",
+          "icon": "🧭"
+        },
+        {
+          "id": "qc-gate",
+          "kind": "surface",
+          "name": "QC Gate Checklist",
+          "blurb": "The QC gate, step by step",
+          "type": "training",
+          "status": "live",
+          "access": "open",
+          "icon": "☑️",
+          "url": "../resources/qc-gate-checklist.html"
+        },
+        {
+          "id": "bandana-blanks",
+          "kind": "surface",
+          "name": "Bandana Blanks — Ordering Workflow",
+          "blurb": "Malia's blanks-ordering how-to",
+          "type": "training",
+          "status": "live",
+          "access": "open",
+          "icon": "🛒",
+          "url": "../resources/bandana-blanks-ordering.html"
+        },
+        {
+          "id": "how-organized",
+          "kind": "surface",
+          "name": "How We're Organized",
+          "blurb": "The Claude/system organization explainer",
+          "type": "training",
+          "status": "live",
+          "access": "open",
+          "icon": "🧭",
+          "url": "../resources/claude-system-organization.html"
+        },
+        {
+          "id": "followup-gameplan",
+          "kind": "surface",
+          "name": "Customer Follow-Up Game Plan",
+          "blurb": "Shara/Cortney's follow-up playbook",
+          "type": "training",
+          "status": "live",
+          "access": "open",
+          "icon": "📞",
+          "url": "../resources/customer-followup-gameplan.html"
         }
       ]
     }

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Apparel — Production Flow Map (v3 · status + trigger layers)</title>
+<style>
+  :root{
+    --gold:#F7BE00; --ink:#111; --line:#d9d9d9;
+    --intake:#6b7280; --paid:#F7BE00; --blanks:#3b82f6; --goods:#8b5cf6;
+    --prod:#a855f7; --fulfill:#10b981; --done:#111; --bad:#dc2626;
+    --sched:#0a7a52; --qc:#ea580c; --auto:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f4f5;color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wrap{max-width:1240px;margin:0 auto;padding:28px 22px 60px;}
+  header{background:var(--ink);color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:8px;position:relative}
+  header h1{margin:0;font-size:26px}header h1 .y{color:var(--gold)}
+  header p{margin:8px 0 0;color:#cfcfcf;font-size:14px;max-width:900px;line-height:1.55}
+  .o{position:absolute;top:18px;right:22px;font-size:26px;font-weight:800;color:var(--gold)}
+  .tag{display:inline-block;background:var(--gold);color:#000;font-weight:700;font-size:11px;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:1px;color:#444;margin:32px 0 12px;border-bottom:2px solid var(--line);padding-bottom:6px}
+  h2 .sub{text-transform:none;letter-spacing:0;font-weight:500;color:#888;font-size:12.5px;margin-left:8px}
+
+  /* ===== how to read — the key to the whole map ===== */
+  .howto{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0 4px}
+  .howto .col{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.5}
+  .howto .demoStatus{flex:0 0 auto;display:inline-flex;flex-direction:column;border-radius:8px;overflow:hidden;color:#fff;min-width:104px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+  .howto .demoStatus .owner{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:rgba(0,0,0,.28);padding:2px 8px 1px}
+  .howto .demoStatus .nm{padding:7px 10px;font-size:12.5px;font-weight:700;background:var(--blanks)}
+  .howto .demoAuto{flex:0 0 auto}
+  .howto b{color:#000}
+
+  /* ===== status + trigger units ===== */
+  .lane{display:flex;align-items:stretch;gap:10px;margin:14px 0;}
+  .laneLabel{flex:0 0 142px;display:flex;flex-direction:column;justify-content:center;border-radius:10px;padding:10px 12px;color:#fff;font-weight:700;font-size:13px;line-height:1.3}
+  .laneLabel small{display:block;font-weight:500;opacity:.85;font-size:11px;margin-top:3px}
+  .flow{flex:1;display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 12px;}
+
+  .unit{display:inline-flex;flex-direction:column;align-items:stretch;gap:0;min-width:112px;max-width:148px}
+  .status{display:inline-flex;flex-direction:column;border-radius:8px;overflow:hidden;font-size:12px;font-weight:600;color:#fff;line-height:1.25;box-shadow:0 1px 2px rgba(0,0,0,.08);min-height:50px}
+  .status .owner{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:rgba(0,0,0,.28);padding:2px 8px 1px}
+  .status .nm{padding:6px 9px 7px;display:flex;flex-direction:column;justify-content:center;flex:1}
+  .status .nm small{display:block;font-weight:500;opacity:.9;font-size:10px;margin-top:2px}
+  .arw{color:#bbb;font-weight:700;font-size:15px;padding:0 1px;margin-top:18px}
+
+  /* automation chip hanging beneath a status */
+  .conn{width:2px;height:9px;background:var(--auto);margin:0 auto}
+  .auto{background:#fffbeb;border:1.5px solid #f5c451;border-radius:7px;padding:5px 7px;font-size:10.5px;line-height:1.32;color:#7c4a03;font-weight:600}
+  .auto .lab{display:block;font-size:8.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--auto);margin-bottom:1px}
+  .auto.manual{background:#f3f4f6;border-color:#cbd5e1;color:#475569}
+  .auto.manual .lab{color:#64748b}
+  .auto .chg{display:inline-block;background:var(--bad);color:#fff;font-size:8px;font-weight:800;border-radius:4px;padding:0 4px;margin-left:3px;vertical-align:middle}
+  .auto .new{display:inline-block;background:#047857;color:#fff;font-size:8px;font-weight:800;border-radius:4px;padding:0 4px;margin-left:3px;vertical-align:middle}
+  .nofire{height:9px}
+
+  .c-intake .nm{background:var(--intake)} .c-paid .nm{background:var(--paid);color:#000} .c-paid .owner{background:rgba(0,0,0,.18)}
+  .c-blanks .nm{background:var(--blanks)} .c-goods .nm{background:var(--goods)} .c-prod .nm{background:var(--prod)}
+  .c-fulfill .nm{background:var(--fulfill)} .c-done .nm{background:var(--done)}
+  .c-qc .nm{background:var(--qc)} .c-sched .nm{background:var(--sched)} .c-floor .nm{background:#111}
+
+  .ll-in{background:#2563eb} .ll-out{background:#7c3aed} .ll-mix{background:#0f766e} .ll-shared{background:#374151}
+
+  /* trigger lookup table */
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #eee;vertical-align:top;line-height:1.45}
+  th{background:#f3f4f6;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#555}
+  td.st{font-weight:700}
+  .pill-chg{display:inline-block;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px}
+  .pill-new{display:inline-block;background:#d1fae5;color:#047857;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px}
+  .pill-same{display:inline-block;background:#f3f4f6;color:#6b7280;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;font-size:13px;line-height:1.55}
+  .card h3{margin:0 0 8px;font-size:14px}
+  .card ul{margin:6px 0 0;padding-left:18px}.card li{margin:4px 0}
+  .cut{color:var(--bad);font-weight:700}.keep{color:#047857;font-weight:700}.seq{font-weight:700;color:#7e22ce}
+  .note{font-size:11.5px;color:#b45309;background:#fff8eb;border:1px solid #fde3a7;border-radius:6px;padding:4px 9px;display:inline-block;margin:6px 0 0}
+
+  .decide{background:#fffbeb;border:1px solid #fde68a;border-left:5px solid var(--gold);border-radius:11px;padding:16px 18px;margin-top:10px}
+  .decide h3{margin:0 0 4px;font-size:15px}
+  .decide ol{margin:10px 0 0;padding-left:22px}.decide li{margin:9px 0;line-height:1.55;font-size:13.5px}
+  .decide .lean{display:inline-block;background:#1f2937;color:#fff;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 7px;margin-left:4px}
+
+  footer{margin-top:26px;font-size:11.5px;color:#888;text-align:center}
+  @media print{body{background:#fff}.lane,.card,.decide,.howto,table{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="o">Ø</div>
+    <h1>Planet Apparel — <span class="y">Production Flow</span><span class="tag">v3 · status + trigger layers</span></h1>
+    <p>Every box below is a <b style="color:#fff">Printavo status a person sets</b>. The <b style="color:var(--gold)">yellow chip under a status</b> is the automation that fires the <i>instant</i> that status is set.
+       Read it as: <b style="color:#fff">“when this status is set → this fires.”</b> Rebuilt from Jean's 2026-06-26 interview.</p>
+  </header>
+
+  <!-- HOW TO READ -->
+  <div class="howto">
+    <div class="col">
+      <span class="demoStatus"><span class="owner">Purchasing</span><span class="nm">Blanks Ordered</span></span>
+      <div><b>The box = a STATUS.</b> A person moves the job into it. The dark strip on top names <b>who owns / sets it</b> (PM, Purchasing, Malia, Luis, Press, Post-Pro, Shipping).</div>
+    </div>
+    <div class="col">
+      <div class="auto" style="flex:0 0 auto"><span class="lab">⚡ Auto-fires on this status</span>Email Malia → do digital QC</div>
+      <div><b>The yellow chip = an AUTOMATION.</b> It fires automatically the moment the status above it is set. <span class="pill-chg">CHANGED</span> / <span class="pill-new">NEW</span> tags mark what Jean's redesign moves. A grey chip = a manual check, not an automation.</div>
+    </div>
+  </div>
+
+  <h2>1 · Shared intake <span class="sub">quote → paid (every job)</span></h2>
+  <div class="lane">
+    <div class="laneLabel ll-shared">All products<small>quote → paid</small></div>
+    <div class="flow">
+      <div class="unit"><span class="status c-intake"><span class="owner">PM</span><span class="nm">Quote<small>tag #mode #initials</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-intake"><span class="owner">PM + SEPS.io</span><span class="nm">Art / Order<small>ready for approval</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-intake"><span class="owner">PM</span><span class="nm">Approved<small>awaiting payment</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-paid"><span class="owner">PM</span><span class="nm">💰 Paid / Terms</span></span><div class="conn"></div><div class="auto"><span class="lab">⚡ on this status — TODAY</span>Scheduler + film email fire here <span class="chg">REMOVED</span></div></div>
+    </div>
+  </div>
+
+  <h2>2 · The fork — #in (in-house) <span class="sub">your example — note where each automation now fires</span></h2>
+  <div class="lane">
+    <div class="laneLabel ll-in">#in — In-house<small>bandana &amp; apparel (incl. DTF)</small></div>
+    <div class="flow">
+      <div class="unit"><span class="status c-blanks"><span class="owner">Purchasing</span><span class="nm">Blanks Ordered<small>+ DTF transfers / or stock</small></span></span><div class="conn"></div><div class="auto"><span class="lab">⚡ on this status</span>Email Malia → do digital QC <span class="chg">MOVED HERE</span></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-qc"><span class="owner">Malia (Jean bkup)</span><span class="nm">🔍 QC Passed<small>= released to schedule</small></span></span><div class="conn"></div><div class="auto"><span class="lab">⚡ on this status</span>Auto-add to Power Scheduler + email Luis “output film” <span class="new">NEW TRIGGER</span></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-floor"><span class="owner">Luis</span><span class="nm">In Prep (2 days)<small>films · burn screens</small></span></span><div class="conn"></div><div class="auto manual"><span class="lab">✓ inside this status</span>Luis artwork QC ×4 checkpoints (manual)</div><div class="conn"></div><div class="auto"><span class="lab">⚡ watchdog</span>Any prep step idle &gt;24h → alert <span class="new">NEW</span></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-floor"><span class="owner">Press</span><span class="nm">▶ Printing</span></span><div class="conn"></div><div class="auto manual"><span class="lab">✓ inside this status</span>In-line QC at catcher's table (manual)</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-prod"><span class="owner">Post-Pro</span><span class="nm">Post-Production<small>only if requested</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-fulfill"><span class="owner">Shipping</span><span class="nm">Ready: ship / pickup / delivery</span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-done"><span class="owner">Shipping</span><span class="nm">Complete</span></span><div class="auto manual"><span class="lab">✓ note</span>No QC here — done at catcher's table</div></div>
+    </div>
+  </div>
+  <span class="note">DTF = a single operation with a two-part material dependency (blanks + transfers ordered together) → hold status “Awaiting DTF transfers.” It is NOT a second production stage.</span>
+
+  <h2>3 · Trigger map <span class="sub">the same #in logic as a plain lookup — “when status set → what fires”</span></h2>
+  <table>
+    <tr><th style="width:22%">When this status is set…</th><th style="width:16%">Who sets it</th><th style="width:46%">…this fires automatically</th><th style="width:16%">vs today</th></tr>
+    <tr><td class="st">Paid / Terms</td><td>PM</td><td>Nothing auto. (Today this wrongly fires the scheduler + Luis film email — both removed.)</td><td><span class="pill-chg">CHANGED</span></td></tr>
+    <tr><td class="st">Blanks Ordered <small>(or stock confirmed)</small></td><td>Purchasing</td><td>Email Malia → run the digital QC.</td><td><span class="pill-chg">MOVED</span></td></tr>
+    <tr><td class="st">🔍 QC Passed</td><td>Malia <small>(Jean backup)</small></td><td>Auto-add job to Power Scheduler <b>and</b> email Luis “output the film.” This status is the release gate.</td><td><span class="pill-new">NEW</span></td></tr>
+    <tr><td class="st">In Prep</td><td>Luis</td><td>Watchdog: if any Luis step (film / burn) sits idle &gt;24h → alert to re-slot. Artwork QC ×4 happens inside (manual).</td><td><span class="pill-new">NEW</span></td></tr>
+    <tr><td class="st">Printing</td><td>Press</td><td>No automation — in-line QC at the catcher's table (manual).</td><td><span class="pill-same">SAME</span></td></tr>
+    <tr><td class="st">Ready / Complete</td><td>Shipping</td><td>No QC automation — quality already confirmed on the floor.</td><td><span class="pill-same">SAME</span></td></tr>
+  </table>
+
+  <h2>4 · The other modes <span class="sub">same status + trigger reading</span></h2>
+
+  <div class="lane">
+    <div class="laneLabel ll-out">#out — Outsourced<small>promo · sublimation · vendor apparel</small></div>
+    <div class="flow">
+      <div class="unit"><span class="status c-paid"><span class="owner">PM</span><span class="nm">Paid / Terms</span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-qc"><span class="owner">Malia</span><span class="nm">🔍 QC Passed</span></span><div class="conn"></div><div class="auto"><span class="lab">⚡ on this status</span>Send PO to vendor (blanks drop-ship to vendor) <span class="new">NEW</span></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-goods"><span class="owner">Vendor</span><span class="nm">Vendor Production<small>black box</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-goods"><span class="owner">Vendor</span><span class="nm">Ready: pickup / ship-back<small>flagged separately</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-prod"><span class="owner">Post-Pro</span><span class="nm">“Packaging” service</span></span><div class="conn"></div><div class="auto manual"><span class="lab">✓ inside this status</span>Return / incoming QC happens here (manual)</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-fulfill"><span class="owner">Shipping</span><span class="nm">Fulfillment</span></span><div class="nofire"></div></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="laneLabel ll-mix">#outmix<small>vendor → returns for real finishing</small></div>
+    <div class="flow">
+      <div class="unit"><span class="status c-qc"><span class="owner">Malia</span><span class="nm">🔍 QC Passed</span></span><div class="conn"></div><div class="auto"><span class="lab">⚡</span>PO to vendor</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-goods"><span class="owner">Vendor</span><span class="nm">Vendor Production</span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-goods"><span class="owner">Vendor</span><span class="nm">Pickup / ship-back<small>Empowered = pickup</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-prod"><span class="owner">Post-Pro</span><span class="nm">In-house Finishing<small>real finishing work</small></span></span><div class="conn"></div><div class="auto manual"><span class="lab">✓</span>Return QC (manual)</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-done"><span class="owner">Shipping</span><span class="nm">Ship</span></span><div class="nofire"></div></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="laneLabel ll-mix">#inmix<small>print here → out → back (rare)</small></div>
+    <div class="flow">
+      <div class="unit"><span class="status c-qc"><span class="owner">Malia</span><span class="nm">🔍 QC Passed</span></span><div class="conn"></div><div class="auto"><span class="lab">⚡</span>Add to scheduler + Luis film</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-floor"><span class="owner">Press</span><span class="nm">Screen-print in-house</span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-goods"><span class="owner">Vendor</span><span class="nm">Out: woven labels<small>local seamstress · pickup</small></span></span><div class="nofire"></div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-prod"><span class="owner">Post-Pro</span><span class="nm">Back → finishing</span></span><div class="conn"></div><div class="auto manual"><span class="lab">✓</span>QC (manual)</div></div><span class="arw">→</span>
+      <div class="unit"><span class="status c-done"><span class="owner">Shipping</span><span class="nm">Ship</span></span><div class="nofire"></div></div>
+    </div>
+  </div>
+  <span class="note">#inmix pre-count is usually SKIPPED — most blanks drop-ship direct to the vendor.</span>
+
+  <h2>5 · Two-stage combos &amp; notifications <span class="sub">confirmed by Jean</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>The real two-stage jobs (4)</h3>
+      <ul>
+        <li><span class="seq">1.</span> Screen-print → in-house post-production</li>
+        <li><span class="seq">2.</span> Screen-print → woven labels (outsourced) → in-house finishing <small>(common #inmix)</small></li>
+        <li><span class="seq">3.</span> Embroidery (outsourced) → in-house post-production</li>
+        <li><span class="seq">4.</span> Screen-print → embroidery (outsourced) <small>(rare)</small></li>
+      </ul>
+      <p style="margin:10px 0 0"><b style="color:var(--bad)">NOT two-stage:</b> DTF. <b>Stage change = the Printavo status change itself.</b></p>
+      <p style="margin:8px 0 0">Finishing order: <b style="color:#7e22ce">hang-tag → fold → bag → barcode → package</b> (outsourced services return first).</p>
+    </div>
+    <div class="card">
+      <h3>Emails to cut / keep</h3>
+      <ul>
+        <li><span class="cut">CUT</span> “Blanks to order” email — Jean works the scheduler directly <small>(⚠ overlaps your live bandana order-queue feed — check first)</small></li>
+        <li><span class="cut">CUT</span> Daily sales tracking <small>— <span class="keep">KEEP</span> month-end results</small></li>
+        <li><span class="cut">CUT</span> Front-of-house check (to Jean)</li>
+        <li><span class="keep">KEEP</span> “Output the film” → re-times to fire on QC Passed</li>
+      </ul>
+      <p style="margin:8px 0 0"><b>SEPS.io art watch</b> is separate/front-end: &gt;48h at quote → ping the PM. Out of this build.</p>
+    </div>
+  </div>
+
+  <h2>6 · Your call <span class="sub">3 open decisions Jean kicked to you</span></h2>
+  <div class="decide">
+    <h3>🎯 Decide before this locks</h3>
+    <ol>
+      <li><b>Named per-stage holds vs. one generic “Awaiting Stage 2.”</b> Named = “Awaiting Embroidery Return,” “Awaiting Woven Labels,” “Awaiting Post-Production” — more accurate, more statuses. <span class="lean">Jean leans NAMED</span></li>
+      <li><b>Keep the stuck-status alerts, or do they overwhelm?</b> Jean unsure — recommends shipping and watching live.</li>
+      <li><b>Station-based statuses (Jean's headline rec).</b> Every status owned by one station — the dark strip on each box. Low-lift; statuses untouched since first placed. <span class="lean">Jean's top pick</span></li>
+    </ol>
+  </div>
+
+  <footer>Planet Apparel · Production Flow Map · v3 (status + trigger layers) · 2026-06-26 · QC Passed = release gate · feeds PlanetOps · supersedes Draft v2</footer>
+
+</div>
+</body>
+</html>
