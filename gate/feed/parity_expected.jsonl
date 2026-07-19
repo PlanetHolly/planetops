@@ -1,0 +1,13 @@
+{"matched_rule":"R-inbound-order","destinations":["app_incoming","ledger"],"status":"routed"}
+{"matched_rule":"R-po","destinations":["app_incoming","ledger"],"status":"routed"}
+{"matched_rule":"R-analytics","destinations":["planetiq","ledger"],"status":"routed"}
+{"matched_rule":"R-period-expense","destinations":["expense_hold","ledger"],"status":"routed"}
+{"matched_rule":"R-expense","destinations":["expense_hold","ledger"],"status":"routed"}
+{"matched_rule":"R-inbound-order","destinations":["app_incoming","ledger"],"status":"routed"}
+{"matched_rule":"R-po","destinations":["app_incoming","ledger"],"status":"routed"}
+{"matched_rule":"R-analytics","destinations":["planetiq","ledger"],"status":"routed"}
+{"matched_rule":"R-period-expense","destinations":["expense_hold","ledger"],"status":"routed"}
+{"matched_rule":"R-expense","destinations":["expense_hold","ledger"],"status":"routed"}
+{"matched_rule":"R-period-expense","destinations":["expense_hold","ledger"],"status":"routed"}
+{"matched_rule":"R-inbound-order (missing required fields: entities.vendor)","destinations":["review","ledger"],"status":"review"}
+{"matched_rule":"R-fallback","destinations":["review","ledger"],"status":"review"}

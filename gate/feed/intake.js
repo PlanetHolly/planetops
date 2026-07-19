@@ -73,6 +73,8 @@ function pdfGuard(buf) {
   if (s.includes('/JavaScript') || s.includes('/JS') || s.includes('/OpenAction')) return 'PDFs with embedded scripts are not accepted';
   let pages = (s.match(/\/Type\s*\/Page(?![a-zA-Z])/g) || []).length;   // /Type/Page and /Type /Page, not /Pages
   for (const m of s.matchAll(/\/Count\s+(\d+)/g)) pages = Math.max(pages, parseInt(m[1], 10));
+  const hasObjectStreams = /\/ObjStm\b/.test(s) || (/\/Type\s*\/XRef\b/.test(s) && /\/Filter\b/.test(s));
+  if (hasObjectStreams && pages === 0) return 'PDF page count indeterminate due to compressed object streams';
   if (pages > 40) return 'PDF too long';
   return null;
 }
@@ -136,16 +138,13 @@ module.exports = function feedIntakeRouter(pool, requireSession, helpers) {
   });
 
   /* POST /api/feed/intake — mirrors requireShipdeckPost hardening, in order:
-     session → config guard → sameOrigin → CSRF → intake rate limit → validate
+     session → sameOrigin → CSRF → intake rate limit → body parser → config guard → validate
      → sniff → PDF guard → hash → encrypt → idempotent INSERT. */
-  router.post('/api/feed/intake', express.json({ limit: '35mb' }), async (req, res) => {
+  async function preBodyIntakeGuard(req, res, next) {
     try {
       const s = await requireSession(req, res);            // 401/503 already sent on failure
       if (!s) return;
       res.set('Cache-Control', 'no-store, private');
-
-      const key = feedRawKey();
-      if (!key) return res.status(500).json({ error: 'feed intake not configured (FEED_RAW_KEY)' });
 
       if (!helpers.sameOrigin(req)) {
         await helpers.alert('feed_bad_origin', { msg: 'Feed intake was called with a foreign/absent Origin — a valid session cookie was presented. Investigate.', ip: req.ip, origin: req.headers.origin || null });
@@ -156,6 +155,21 @@ module.exports = function feedIntakeRouter(pool, requireSession, helpers) {
         return res.status(403).json({ error: 'bad csrf token' });
       }
       if (intakeLimited(req.ip)) return res.status(429).json({ error: 'too many uploads, slow down' });
+      req.feedSession = s;
+      next();
+    } catch (e) {
+      await helpers.alert('feed_intake_error', { msg: 'Unexpected error before feed intake body parsing.', ip: req.ip, error: e.message });
+      if (!res.headersSent) res.status(500).json({ error: 'intake failed' });
+    }
+  }
+
+  router.post('/api/feed/intake', preBodyIntakeGuard, express.json({ limit: '35mb' }), async (req, res) => {
+    try {
+      const s = req.feedSession;
+      if (!s) return res.status(401).json({ error: 'auth required' });
+
+      const key = feedRawKey();
+      if (!key) return res.status(500).json({ error: 'feed intake not configured (FEED_RAW_KEY)' });
 
       /* body: { filename, mime, category, note, submitter_name, data } */
       const body = req.body || {};
@@ -207,16 +221,31 @@ module.exports = function feedIntakeRouter(pool, requireSession, helpers) {
 
       /* idempotent on content_hash — never a double-store */
       const ins = await pool.query(
-        `INSERT INTO feed_intake (content_hash, declared_category, submitter_name, session_id, ip, filename, mime, note, enc_raw, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'received')
+        `INSERT INTO feed_intake (content_hash, declared_category, submitter_name, session_id, ip, filename, mime, note, enc_raw, finance_unlocked_at_upload, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'received')
          ON CONFLICT (content_hash) DO NOTHING
          RETURNING id`,
-        [contentHash, category, submitterName, s.sid, req.ip, filename, storedMime, note, encRaw]
+        [contentHash, category, submitterName, s.sid, req.ip, filename, storedMime, note, encRaw, FINANCE_CATEGORIES.includes(category)]
       );
       if (ins.rows[0]) return res.status(201).json({ intake_id: ins.rows[0].id, status: 'received' });
 
       const dup = await pool.query('SELECT id, status FROM feed_intake WHERE content_hash=$1', [contentHash]);
       if (!dup.rows[0]) throw new Error('intake conflict but no existing row for content_hash');
+      if (dup.rows[0].status === 'failed') {
+        const rq = await pool.query(
+          `UPDATE feed_intake
+              SET status='received',
+                  attempt_count=0,
+                  last_error=NULL,
+                  locked_until=NULL,
+                  worker_id=NULL,
+                  updated_at=now()
+            WHERE id=$1 AND status='failed'
+            RETURNING id, status`,
+          [dup.rows[0].id]
+        );
+        if (rq.rows[0]) return res.status(200).json({ intake_id: rq.rows[0].id, status: rq.rows[0].status, requeued: true });
+      }
       return res.status(200).json({ intake_id: dup.rows[0].id, status: dup.rows[0].status, duplicate: true });
     } catch (e) {
       await helpers.alert('feed_intake_error', { msg: 'Unexpected error in feed intake.', ip: req.ip, error: e.message });
@@ -241,6 +270,7 @@ module.exports = function feedIntakeRouter(pool, requireSession, helpers) {
 /* Pure exports for intake_selftest.js (and the later worker increment). */
 module.exports.sniffType    = sniffType;
 module.exports.pdfGuard     = pdfGuard;
+module.exports.feedRawKey   = feedRawKey;
 module.exports.encryptRaw   = encryptRaw;
 module.exports.decryptRaw   = decryptRaw;
 module.exports.MIME_TO_TYPE = MIME_TO_TYPE;

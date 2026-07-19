@@ -39,14 +39,15 @@ Zero new npm dependencies were added (we used base64 + node built-ins instead of
 
 ## 2. Deploy
 1. **Confirm which branch/trigger the gate service deploys from.** This work is on `brain-incoming-board`; the front-door `main` is frozen. Do NOT push until you know exactly what deploying does.
-2. Push `brain-incoming-board` (or the confirmed deploy branch). **Never force-push.**
-3. Watch the boot logs. You should see, in order: migrations apply (`001`→`004`) under the advisory lock → `feed_schema ready` → `feed_worker_started` → `feed_dispatcher_started` → `feed_sink_started` (with `configured:false` if the sink env is unset — that's correct).
+2. Run `npm test`. This must pass the Python/Node parity check, the committed golden-output check, and the Node-only startup self-check before deploy.
+3. Push `brain-incoming-board` (or the confirmed deploy branch). **Never force-push.**
+4. Watch the boot logs. You should see, in order: migrations apply (`001`→`004`) under the advisory lock → `feed_schema ready` → `feed_worker_started` → `feed_dispatcher_started` → `feed_sink_started` (with `configured:false` if the sink env is unset — that's correct). If the routing self-check fails, the gate stays up but the feed workers refuse to start.
 
 ---
 
 ## 3. Verify — in order (each step proves a previously-unproven path)
 
-**3a. Schema guard.** Hit `GET /readyz` (behind the PIN). Confirm `checks.feed_schema === "ok"`. If it's not `ok`, a migration failed — read the boot logs, fix, redeploy. **Do not proceed until green.**
+**3a. Schema guard.** Hit public `GET /readyz`. Confirm `schema_ok === true`. If it's false, a migration failed or the feed startup self-check refused the workers — read the boot logs, fix, redeploy. **Do not proceed until green.**
 
 **3b. 🔴 THE structured-output schema smoke-test (the #4a flag — do this FIRST).**
 Upload ONE small simple doc (a 1-page PDF or a tiny CSV) via `/feed-upload/`. Watch the worker log for that intake:

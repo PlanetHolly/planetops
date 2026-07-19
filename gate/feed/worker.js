@@ -26,7 +26,7 @@
 
 const crypto = require('crypto');
 const os = require('os');
-const { decryptRaw } = require('./intake');
+const { feedRawKey, encryptRaw, decryptRaw, FINANCE_CATEGORIES } = require('./intake');
 const { extract } = require('./extract');
 const { evaluate, semanticKey, normalizeVendor, highDollarThreshold,
         isKnownVendor, addPendingVendor, findDuplicate } = require('./validate');
@@ -38,25 +38,15 @@ const POLL_MS   = 5_000;    // idle poll
 const BACKOFF_MS = 30_000;  // after a retryable failure
 const HALT_MS   = 60_000;   // budget exhausted / not configured
 
-/* Same FEED_RAW_KEY parsing as intake.js (not exported there; intake.js must
-   not be modified — keep this byte-for-byte compatible). */
-function feedRawKey() {
-  const v = process.env.FEED_RAW_KEY || '';
-  if (!v) return null;
-  if (/^[0-9a-fA-F]{64}$/.test(v)) return Buffer.from(v, 'hex');
-  if (/^[A-Za-z0-9+/=_-]+$/.test(v)) {
-    const b = Buffer.from(v, 'base64');
-    if (b.length === 32) return b;
-  }
-  return null;
-}
-
 /* ── module state ───────────────────────────────────────────────────────── */
 const WORKER_ID = `${os.hostname()}-${process.pid}-${crypto.randomBytes(3).toString('hex')}`;
 let timer = null;
+let sweeperTimer = null;
 let stopped = true;
 let cycleRunning = false;
 let haltLogged = null;   // dedupe config/budget halt logs: 'budget:<day>' | 'not_configured'
+let inFlightClaim = null;
+let sigtermHandlerInstalled = false;
 
 function log(event, detail) {
   console.log(JSON.stringify({ ts: new Date().toISOString(), event, worker_id: WORKER_ID, ...detail }));
@@ -66,6 +56,10 @@ function schedule(pool, alert, ms) {
   if (stopped) return;
   timer = setTimeout(() => { runCycle(pool, alert); }, ms);
   if (timer.unref) timer.unref();   // never hold the process open
+}
+
+function maxAttempts() {
+  return parseInt(process.env.FEED_MAX_ATTEMPTS, 10) || 5;
 }
 
 /* ── ledger helper (append-only; never throws into the cycle) ───────────── */
@@ -108,12 +102,14 @@ async function claimRow(pool) {
   try {
     await client.query('BEGIN');
     const sel = await client.query(
-      `SELECT id, content_hash, declared_category, mime, note, enc_raw, attempt_count
+      `SELECT id, content_hash, declared_category, mime, note, filename, enc_raw, attempt_count, finance_unlocked_at_upload
        FROM feed_intake
-       WHERE status = 'received' OR (status = 'processing' AND locked_until < now())
+       WHERE (status = 'received' OR (status = 'processing' AND locked_until < now()))
+         AND attempt_count < $1
        ORDER BY created_at
        FOR UPDATE SKIP LOCKED
-       LIMIT 1`
+       LIMIT 1`,
+      [maxAttempts()]
     );
     if (!sel.rows[0]) { await client.query('COMMIT'); return null; }
     const row = sel.rows[0];
@@ -127,6 +123,7 @@ async function claimRow(pool) {
     );
     await client.query('COMMIT');
     row.attempt_count = upd.rows[0].attempt_count;
+    inFlightClaim = { pool, id: row.id };
     return row;
   } catch (e) {
     try { await client.query('ROLLBACK'); } catch (_) {}
@@ -147,6 +144,145 @@ async function releaseRow(pool, id, burnAttempt) {
      WHERE id=$1 AND status='processing'`,
     [id]
   );
+}
+
+async function releaseInFlightClaimForShutdown() {
+  const claim = inFlightClaim;
+  if (!claim) return;
+  inFlightClaim = null;
+  await releaseRow(claim.pool, claim.id, false);
+}
+
+function _setInFlightClaimForTest(claim) {
+  inFlightClaim = claim;
+}
+
+function installSigtermHandler() {
+  if (sigtermHandlerInstalled) return;
+  sigtermHandlerInstalled = true;
+  process.once('SIGTERM', async () => {
+    stopped = true;
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (sweeperTimer) { clearInterval(sweeperTimer); sweeperTimer = null; }
+    try { await releaseInFlightClaimForShutdown(); }
+    catch (e) { log('feed_sigterm_release_failed', { error: e.message }); }
+    process.exit(0);
+  });
+}
+
+async function insertReviewRow(db, { intake_id, reason, payload, row }) {
+  const storage = prepareReviewStorage(row || {}, row && row.filename, payload);
+  await db.query(
+    `INSERT INTO feed_review (intake_id, reason, payload, payload_enc) VALUES ($1,$2,$3,$4)`,
+    [intake_id, String(reason || 'review').slice(0, 500), storage.payload, storage.payload_enc]
+  );
+}
+
+async function recordReview(pool, alert, { intake_id, doc_type, reason, payload }) {
+  await insertReviewRow(pool, { intake_id, reason, payload, row: { declared_category: doc_type, filename: null } });
+  await alert('feed_review_required', {
+    msg: 'Feed doc requires finance review.',
+    intake_id,
+    doc_type: doc_type || null,
+    reason: String(reason || 'review').slice(0, 500),
+  });
+}
+
+async function sweepExpiredCappedRows(pool, alert) {
+  const r = await pool.query(
+    `UPDATE feed_intake
+       SET status='failed',
+           last_error='max attempts reached after stale processing locks',
+           locked_until=NULL,
+           worker_id=NULL,
+           updated_at=now()
+     WHERE status='processing'
+       AND locked_until < now()
+       AND attempt_count >= $1
+     RETURNING id, doc_type, attempt_count`,
+    [maxAttempts()]
+  );
+  for (const row of r.rows || []) {
+    await alert('feed_extract_deadletter', {
+      msg: 'Feed doc failed extraction after repeated worker exits.',
+      intake_id: row.id,
+      doc_type: row.doc_type || null,
+      attempts: row.attempt_count,
+    });
+  }
+  return r.rowCount || 0;
+}
+
+function isFinanceCategory(category) {
+  return FINANCE_CATEGORIES.includes(String(category || ''));
+}
+
+function isFinanceFact(row, fact) {
+  return isFinanceCategory(row && row.declared_category) || isFinanceCategory(fact && fact.doc_type);
+}
+
+function requireRawKeyForFinanceStorage() {
+  const key = feedRawKey();
+  if (!key) throw new Error('FEED_RAW_KEY is required for finance fact encryption');
+  return key;
+}
+
+function prepareFactStorage(row, fact) {
+  if (isFinanceFact(row, fact)) {
+    return {
+      extracted: null,
+      extracted_enc: encryptRaw(requireRawKeyForFinanceStorage(), Buffer.from(JSON.stringify(fact))),
+    };
+  }
+  return {
+    extracted: fact ? JSON.stringify(fact) : null,
+    extracted_enc: null,
+  };
+}
+
+function hashedFilename(filename) {
+  if (!filename) return null;
+  return 'sha256:' + crypto.createHash('sha256').update(String(filename)).digest('hex');
+}
+
+function prepareReviewStorage(row, originalFilename, payload) {
+  if (isFinanceFact(row, payload)) {
+    const wrapped = { original_filename: originalFilename || null, fact: payload || null };
+    return {
+      payload: null,
+      payload_enc: encryptRaw(requireRawKeyForFinanceStorage(), Buffer.from(JSON.stringify(wrapped))),
+      filenameForStorage: hashedFilename(originalFilename),
+    };
+  }
+  return {
+    payload: payload ? JSON.stringify(payload) : null,
+    payload_enc: null,
+    filenameForStorage: originalFilename || null,
+  };
+}
+
+function financeMismatch(row, fact) {
+  return isFinanceCategory(fact && fact.doc_type)
+    && !isFinanceCategory(row && row.declared_category)
+    && !Boolean(row && row.finance_unlocked_at_upload);
+}
+
+function reviewReasonsWithFinanceMismatch(reasons, row, fact) {
+  const out = Array.isArray(reasons) ? reasons.slice() : [];
+  if (financeMismatch(row, fact) && !out.includes('finance_declared_mismatch')) out.push('finance_declared_mismatch');
+  return out;
+}
+
+function financeMismatchAlert(row, fact) {
+  return {
+    event: 'feed_finance_category_mismatch',
+    detail: {
+      msg: 'Feed doc was uploaded without a finance unlock but extraction detected a finance category. Content sensitivity cannot be fully determined at upload time; this row requires finance review.',
+      intake_id: row && row.id,
+      declared_category: row && row.declared_category || null,
+      detected_category: fact && fact.doc_type || null,
+    },
+  };
 }
 
 /* ── one cycle ──────────────────────────────────────────────────────────── */
@@ -201,12 +337,16 @@ async function runCycle(pool, alert) {
       if (e && e.notConfigured) {
         // Missing ANTHROPIC_API_KEY: budget-style halt — release, no attempt burned, never dead-letters.
         await releaseRow(pool, row.id, false);
-        if (haltLogged !== 'not_configured') { haltLogged = 'not_configured'; log('feed_worker_not_configured', { missing: 'ANTHROPIC_API_KEY' }); }
+        const key = e.configHalt || 'not_configured';
+        if (haltLogged !== key) {
+          haltLogged = key;
+          log('feed_worker_not_configured', { reason: key, status: e.status || null });
+          await alert('feed_worker_not_configured', { msg: 'Feed extraction is not configured correctly; rows are being released for retry.', reason: key, status: e.status || null });
+        }
         nextMs = HALT_MS;
         return;
       }
-      const maxAttempts = parseInt(process.env.FEED_MAX_ATTEMPTS, 10) || 5;
-      if (e && e.retryable && row.attempt_count < maxAttempts) {
+      if (e && e.retryable && row.attempt_count < maxAttempts()) {
         await releaseRow(pool, row.id, true);   // attempt stands; another try later
         log('feed_extract_retry', { intake_id: row.id, attempt: row.attempt_count, error: e.message });
         nextMs = BACKOFF_MS;
@@ -219,7 +359,7 @@ async function runCycle(pool, alert) {
       );
       await alert('feed_extract_deadletter', {
         msg: 'Feed doc failed extraction' + (e && e.permanent ? ' (permanent error).' : ` after ${row.attempt_count} attempts.`),
-        intake_id: row.id, attempts: row.attempt_count, error: String(e.message || e).slice(0, 500),
+        intake_id: row.id, doc_type: row.doc_type || null, attempts: row.attempt_count, error: String(e.message || e).slice(0, 500),
       });
       await ledger(pool, row, { decision: { stage: 'failed', reason: String(e.message || e).slice(0, 500) } });
       return;
@@ -237,6 +377,13 @@ async function runCycle(pool, alert) {
         [row.id, out.stop_reason, out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null]
       );
       await ledger(pool, row, { model: out.model, token_usage: out.usage, decision: { stage: 'review', reason: out.stop_reason } });
+      await insertReviewRow(pool, { intake_id: row.id, reason: out.stop_reason, payload: null, row });
+      await alert('feed_review_required', {
+        msg: 'Feed doc requires finance review.',
+        intake_id: row.id,
+        doc_type: null,
+        reason: String(out.stop_reason || 'review').slice(0, 500),
+      });
       log('feed_extract_review', { intake_id: row.id, reason: out.stop_reason });
       return;
     }
@@ -273,19 +420,35 @@ async function runCycle(pool, alert) {
       valInputs = { semantic_key: sk, error: String(e.message || e).slice(0, 500) };
     }
     const validatorResults = { checks: verdict.results, inputs: valInputs, reasons: verdict.reasons };
+    const reviewReasons = reviewReasonsWithFinanceMismatch(verdict.reasons, row, fact);
+    if (reviewReasons.length !== verdict.reasons.length) {
+      verdict = {
+        ...verdict,
+        status: 'review',
+        reasons: reviewReasons,
+        results: { ...verdict.results, finance_declared_mismatch: true },
+      };
+      validatorResults.checks = verdict.results;
+      validatorResults.reasons = verdict.reasons;
+      const mismatch = financeMismatchAlert(row, fact);
+      await alert(mismatch.event, mismatch.detail);
+    }
+    const factStorage = prepareFactStorage(row, fact);
+    const reviewStorage = prepareReviewStorage(row, row.filename, fact);
+    const filenameForStorage = isFinanceFact(row, fact) ? reviewStorage.filenameForStorage : row.filename || null;
 
     /* Same finalize UPDATE as #4b, now parameterized by the FINAL
        post-routing status and reused by every branch below. */
     const finalizeSql =
-      `UPDATE feed_intake SET extracted=$2, doc_type=$3, confidence=$4, extractor_model=$5, extractor_version=$6,
-              token_usage=$7, extracted_at=now(), semantic_key=$8, validator_results=$9,
-              status=$10, review_reason=$11, locked_until=NULL, updated_at=now()
+      `UPDATE feed_intake SET extracted=$2, extracted_enc=$3, doc_type=$4, confidence=$5, extractor_model=$6, extractor_version=$7,
+              token_usage=$8, extracted_at=now(), semantic_key=$9, validator_results=$10,
+              status=$11, review_reason=$12, filename=$13, locked_until=NULL, updated_at=now()
        WHERE id=$1`;
     const finalizeParams = (status, reviewReason) => [
-      row.id, JSON.stringify(fact), fact.doc_type || null,
+      row.id, factStorage.extracted, factStorage.extracted_enc, fact.doc_type || null,
       (typeof fact.confidence === 'number' ? fact.confidence : null),
       out.model, EXTRACTOR_VERSION, out.usage ? JSON.stringify(out.usage) : null,
-      sk, JSON.stringify(validatorResults), status, reviewReason,
+      sk, JSON.stringify(validatorResults), status, reviewReason, filenameForStorage,
     ];
     const ledgerBase = {
       detected_category: fact.doc_type || null, model: out.model, token_usage: out.usage,
@@ -294,7 +457,22 @@ async function runCycle(pool, alert) {
 
     if (verdict.status === 'review') {
       /* Validation said review — Build #4b path, unchanged. */
-      await pool.query(finalizeSql, finalizeParams('review', verdict.reasons.join(',')));
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query(finalizeSql, finalizeParams('review', verdict.reasons.join(',')));
+        await insertReviewRow(client, { intake_id: row.id, reason: verdict.reasons.join(','), payload: fact, row });
+        await client.query('COMMIT');
+      } catch (e) {
+        try { await client.query('ROLLBACK'); } catch (_) {}
+        throw e;
+      } finally { client.release(); }
+      await alert('feed_review_required', {
+        msg: 'Feed doc requires finance review.',
+        intake_id: row.id,
+        doc_type: fact.doc_type || null,
+        reason: verdict.reasons.join(',').slice(0, 500),
+      });
       await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: verdict.reasons } });
       log('feed_validated', {
         intake_id: row.id, doc_type: fact.doc_type, confidence: fact.confidence,
@@ -328,15 +506,18 @@ async function runCycle(pool, alert) {
           try {
             await client.query('BEGIN');
             await client.query(finalizeSql, finalizeParams('review', ('route:' + decision.matched_rule).slice(0, 500)));
-            await client.query(
-              `INSERT INTO feed_review (intake_id, reason, payload) VALUES ($1,$2,$3)`,
-              [row.id, String(decision.matched_rule).slice(0, 500), JSON.stringify(fact)]
-            );
+            await insertReviewRow(client, { intake_id: row.id, reason: decision.matched_rule, payload: fact, row });
             await client.query('COMMIT');
           } catch (e) {
             try { await client.query('ROLLBACK'); } catch (_) {}
             throw e;
           } finally { client.release(); }
+          await alert('feed_review_required', {
+            msg: 'Feed doc requires finance review.',
+            intake_id: row.id,
+            doc_type: fact.doc_type || null,
+            reason: String(decision.matched_rule).slice(0, 500),
+          });
           await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: [decision.matched_rule] } });
           log('feed_route_review', { intake_id: row.id, doc_type: fact.doc_type, matched_rule: decision.matched_rule });
         } else {
@@ -378,11 +559,18 @@ async function runCycle(pool, alert) {
         await pool.query(finalizeSql, finalizeParams('review', 'route_error'));
         await ledger(pool, row, { ...ledgerBase, decision: { stage: 'review', reasons: ['route_error'] } });
         try {
-          await pool.query(`INSERT INTO feed_review (intake_id, reason, payload) VALUES ($1,$2,$3)`,
-            [row.id, 'route_error', JSON.stringify(fact)]);
-        } catch (e2) { log('feed_review_write_failed', { intake_id: row.id, error: e2.message }); }
+          await insertReviewRow(pool, { intake_id: row.id, reason: 'route_error', payload: fact, row });
+          await alert('feed_review_required', {
+            msg: 'Feed doc requires finance review.',
+            intake_id: row.id,
+            doc_type: fact.doc_type || null,
+            reason: 'route_error',
+          });
+        }
+        catch (e2) { log('feed_review_write_failed', { intake_id: row.id, error: e2.message }); }
       }
     }
+    inFlightClaim = null;
     nextMs = 250;   // more work may be queued — come back fast
   } catch (e) {
     // Never let one bad row / DB hiccup kill the loop.
@@ -390,6 +578,7 @@ async function runCycle(pool, alert) {
     try { await alert('feed_worker_error', { msg: 'Unexpected error in feed extraction worker loop.', error: e.message, intake_id: row ? row.id : null }); } catch (_) {}
     nextMs = BACKOFF_MS;
   } finally {
+    if (row && inFlightClaim && inFlightClaim.id === row.id) inFlightClaim = null;
     cycleRunning = false;
     schedule(pool, alert, nextMs);
   }
@@ -401,12 +590,25 @@ function startFeedWorker(pool, alert) {
   stopped = false;
   const safeAlert = typeof alert === 'function' ? alert : async () => {};
   log('feed_worker_started', { poll_ms: POLL_MS });
+  installSigtermHandler();
+  sweepExpiredCappedRows(pool, safeAlert).catch(e => log('feed_sweeper_failed', { error: e.message }));
+  sweeperTimer = setInterval(() => {
+    sweepExpiredCappedRows(pool, safeAlert).catch(e => log('feed_sweeper_failed', { error: e.message }));
+  }, 60_000);
+  if (sweeperTimer.unref) sweeperTimer.unref();
   schedule(pool, safeAlert, POLL_MS);
 }
 
 function stopFeedWorker() {
   stopped = true;
   if (timer) { clearTimeout(timer); timer = null; }
+  if (sweeperTimer) { clearInterval(sweeperTimer); sweeperTimer = null; }
 }
 
-module.exports = { startFeedWorker, stopFeedWorker, feedRawKey, WORKER_ID, EXTRACTOR_VERSION };
+module.exports = {
+  startFeedWorker, stopFeedWorker, feedRawKey, WORKER_ID, EXTRACTOR_VERSION,
+  claimRow, releaseRow, releaseInFlightClaimForShutdown, sweepExpiredCappedRows,
+  recordReview, insertReviewRow, _setInFlightClaimForTest,
+  prepareFactStorage, prepareReviewStorage, isFinanceFact, financeMismatch,
+  reviewReasonsWithFinanceMismatch, financeMismatchAlert,
+};

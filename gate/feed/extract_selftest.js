@@ -50,22 +50,20 @@ ok('jpeg → media_type image/jpeg', () => {
 /* ── buildContent: CSV / plain text ─────────────────────────────────────── */
 const csvBytes = Buffer.from('sku,qty\nBAND-22,144\n');
 const csvContent = buildContent(csvBytes, 'text/csv', 'weekly order');
-ok('csv → single text block only (no document/image block)', () => {
-  assert.strictEqual(csvContent.length, 1);
+ok('csv → separate document text block and instruction text block', () => {
+  assert.strictEqual(csvContent.length, 2);
   assert.strictEqual(csvContent[0].type, 'text');
+  assert.strictEqual(csvContent[1].type, 'text');
 });
-ok('csv → instruction precedes DOCUMENT: + inlined body', () => {
-  const t = csvContent[0].text;
-  const iDoc = t.indexOf('\n\nDOCUMENT:\n');
-  assert.ok(iDoc > 0, 'DOCUMENT: marker present');
-  assert.ok(t.indexOf('Extract structured data') < iDoc, 'instruction comes first');
-  assert.ok(t.endsWith('sku,qty\nBAND-22,144\n'));
+ok('csv → document body is not concatenated into instructions', () => {
+  assert.strictEqual(csvContent[0].text, 'sku,qty\nBAND-22,144\n');
+  assert.ok(!csvContent[1].text.includes('BAND-22'));
+  assert.ok(csvContent[1].text.includes('Extract structured data'));
 });
 ok('text is capped at ~200k chars', () => {
   const big = Buffer.from('x'.repeat(MAX_TEXT_CHARS + 50_000));
   const c = buildContent(big, 'text/plain', '');
-  const body = c[0].text.split('\n\nDOCUMENT:\n')[1];
-  assert.strictEqual(body.length, MAX_TEXT_CHARS);
+  assert.strictEqual(c[0].text.length, MAX_TEXT_CHARS);
 });
 
 /* ── instruction content (every mime shares it) ─────────────────────────── */

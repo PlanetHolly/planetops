@@ -11,6 +11,10 @@ function feedSchemaStatus() {
   return schemaStatus;
 }
 
+function feedSchemaReady() {
+  return schemaStatus === 'ok';
+}
+
 function listMigrationFiles() {
   return fs.readdirSync(MIGRATIONS_DIR)
     .filter(name => name.endsWith('.sql'))
@@ -67,10 +71,10 @@ async function applyMigration(pool, version) {
   }
 }
 
-async function runFeedMigrations(pool) {
+async function runFeedMigrations(pool, alert) {
   if (inFlight) return inFlight;
 
-  inFlight = (async () => {
+  const p = (async () => {
     schemaStatus = 'pending';
     try {
       await ensureMigrationTable(pool);
@@ -87,11 +91,18 @@ async function runFeedMigrations(pool) {
       if (!schemaStatus.startsWith('FAIL: ')) {
         schemaStatus = `FAIL: ${err.message}`;
       }
+      if (typeof alert === 'function') {
+        await alert('feed_schema_migration_failed', { msg: 'Feed schema migration failed.', schema_ok: false });
+      }
       throw err;
     }
   })();
 
+  inFlight = p.then(
+    () => undefined,
+    err => { inFlight = null; throw err; }
+  );
   return inFlight;
 }
 
-module.exports = { runFeedMigrations, feedSchemaStatus };
+module.exports = { runFeedMigrations, feedSchemaStatus, feedSchemaReady };

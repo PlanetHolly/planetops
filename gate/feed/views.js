@@ -5,9 +5,51 @@
    Upload UI / ledger HTML page / frontdoor registry nodes are Build #6b. */
 
 const express = require('express');
+const { feedRawKey, decryptRaw, FINANCE_CATEGORIES } = require('./intake');
+
+function isFinanceCategory(category) {
+  return FINANCE_CATEGORIES.includes(String(category || ''));
+}
+
+function sanitizeValidatorResults(validatorResults) {
+  if (!validatorResults || typeof validatorResults !== 'object') return validatorResults || null;
+  return {
+    checks: validatorResults.checks || {},
+    reasons: Array.isArray(validatorResults.reasons) ? validatorResults.reasons : [],
+  };
+}
+
+function sanitizeLedgerRow(row, financeUnlocked) {
+  const isFinance = isFinanceCategory(row.detected_category) || isFinanceCategory(row.declared_category);
+  const sanitized = {
+    ...row,
+    validator_results: sanitizeValidatorResults(row.validator_results),
+  };
+  if (isFinance && !financeUnlocked) {
+    return {
+      intake_id: row.intake_id,
+      doc_type: row.detected_category || null,
+      created_at: row.created_at,
+      decision: row.decision && typeof row.decision === 'object' ? { stage: row.decision.stage || null, reasons: row.decision.reasons || [] } : row.decision,
+      validator_results: sanitized.validator_results,
+    };
+  }
+  return sanitized;
+}
+
+function decryptReviewPayload(row) {
+  if (!row.payload_enc) return row.payload || null;
+  const key = feedRawKey();
+  if (!key) throw new Error('FEED_RAW_KEY is required to decrypt finance review payloads');
+  const parsed = JSON.parse(decryptRaw(key, row.payload_enc).toString('utf8'));
+  return parsed && Object.prototype.hasOwnProperty.call(parsed, 'fact') ? parsed.fact : parsed;
+}
 
 /* ── Router factory (same mount style as gate/feed/intake.js) ───────────── */
-module.exports = function feedViewsRouter(pool, requireSession) {
+function feedViewsRouter(pool, requireSession, requireFinance) {
+  if (typeof requireFinance !== 'function') {
+    throw new Error('feedViewsRouter requires a finance gate for /api/feed/review');
+  }
   const router = express.Router();
 
   router.get('/api/feed/incoming', async (req, res) => {
@@ -42,12 +84,38 @@ module.exports = function feedViewsRouter(pool, requireSession) {
            FROM feed_ledger
           ORDER BY created_at DESC
           LIMIT 200`);
-      res.json({ items: rows });
+      res.json({ items: rows.map(row => sanitizeLedgerRow(row, false)) });
     } catch (e) {
       console.error('feed/ledger read failed:', e);
       res.status(500).json({ error: 'ledger unavailable' });
     }
   });
 
+  router.get('/api/feed/review', async (req, res) => {
+    if (!await requireFinance(req, res)) return;
+    res.set('Cache-Control', 'no-store, private');
+    try {
+      const { rows } = await pool.query(
+        `SELECT r.id, r.intake_id, r.reason, r.payload, r.payload_enc, r.created_at,
+                i.doc_type, i.declared_category, i.status, i.review_reason
+           FROM feed_review r
+           LEFT JOIN feed_intake i ON i.id = r.intake_id
+          WHERE r.resolved_at IS NULL
+          ORDER BY r.created_at DESC
+          LIMIT 200`);
+      res.json({
+        generated_at: new Date().toISOString(),
+        items: rows.map(row => ({ ...row, payload: decryptReviewPayload(row), payload_enc: undefined })),
+      });
+    } catch (e) {
+      console.error('feed/review read failed:', e);
+      res.status(500).json({ error: 'review unavailable' });
+    }
+  });
+
   return router;
-};
+}
+
+module.exports = feedViewsRouter;
+module.exports.sanitizeLedgerRow = sanitizeLedgerRow;
+module.exports.sanitizeValidatorResults = sanitizeValidatorResults;

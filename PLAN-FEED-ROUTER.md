@@ -35,7 +35,8 @@ Reuse over build; no new credential for upload (reuse PIN session). Don't destab
    • ROUTE: routeDoc(fact, routing_registry.json) — Node port; ledger ALWAYS appended; expanded on_* review paths (R1 #19)
    • DISPATCH via feed_outbox (one row per intake×destination: idempotency_key, state pending→sent→acked|failed, attempts, last_error — R1 #5/#6):
        internal sinks = Postgres writers; external sink = n8n POST w/ x-feed-secret + env-allowlisted URL (never doc-derived — R1 #24),
-       n8n contract: reject missing key/secret, UPSERT by idempotency_key BEFORE side-effect, return durable status; replay until acked (R2 #11)
+      n8n contract: reject missing key/secret, READ by idempotency_key before side-effect, append only when unseen, return durable status; replay until acked (R2 #11)
+      Destination idempotency is read-then-append, not upsert: destination sheets may grow human-owned columns such as Received checkboxes or notes, and the router must never rewrite those cells.
    • LEDGER every transition: correlation_id, content_hash, semantic_key, declared+detected category, registry_commit, extractor_version,
      model, token_usage, validator_results, decision, per-destination outcomes, enc-raw ref (R1 #17)
 ```

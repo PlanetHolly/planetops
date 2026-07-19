@@ -42,7 +42,10 @@ class ExtractError extends Error {
 /* ── EXTRACTION_SCHEMA — structured-outputs-safe JSON Schema ────────────────
    Rules honored: top-level type:object; additionalProperties:false at EVERY
    object level; EVERY property listed in `required`; nullability via type
-   arrays; NO minLength/maxLength/minimum/maximum. Mirrors the Fact exactly. */
+   arrays; NO minLength/maxLength/minimum/maximum. Mirrors the Fact exactly.
+   Anthropic union-typed parameter budget is 16 per request; this schema uses
+   10. Re-check that budget before adding nullable fields, because exceeding it
+   can turn schema expansion into a permanent 400. */
 const EXTRACTION_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -115,9 +118,13 @@ function buildContent(bytes, mime, note) {
       instr,
     ];
   }
-  // text/csv, text/plain — inline, capped
+  // text/csv, text/plain — separate data block, capped. The instruction text
+  // remains a defense-in-depth reminder, but it is no longer the only boundary.
   const text = bytes.toString('utf8').slice(0, MAX_TEXT_CHARS);
-  return [{ type: 'text', text: instr.text + '\n\nDOCUMENT:\n' + text }];
+  return [
+    { type: 'text', text },
+    instr,
+  ];
 }
 
 /* ── extract — the network call ─────────────────────────────────────────── */
@@ -155,8 +162,24 @@ async function extract(bytes, mime, note) {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    const kind = (res.status === 429 || res.status >= 500) ? 'retryable' : 'permanent';
-    throw new ExtractError(`anthropic ${res.status}: ${detail.slice(0, 500)}`, kind, res.status);
+    let kind;
+    let err;
+    if (res.status === 401 || res.status === 403) {
+      err = new ExtractError(`anthropic ${res.status}: ${detail.slice(0, 500)}`, 'not_configured', res.status);
+      err.configHalt = 'anthropic_auth';
+    } else if (res.status === 404) {
+      err = new ExtractError(`anthropic ${res.status}: ${detail.slice(0, 500)}`, 'not_configured', res.status);
+      err.configHalt = 'anthropic_model';
+    } else if (res.status === 400 || res.status === 413) {
+      kind = 'permanent';
+      err = new ExtractError(`anthropic ${res.status}: ${detail.slice(0, 500)}`, kind, res.status);
+    } else if (res.status === 429 || res.status >= 500) {
+      kind = 'retryable';
+      err = new ExtractError(`anthropic ${res.status}: ${detail.slice(0, 500)}`, kind, res.status);
+    } else {
+      err = new ExtractError(`anthropic unexpected status ${res.status}: ${detail.slice(0, 500)}`, 'retryable', res.status);
+    }
+    throw err;
   }
 
   let data;
