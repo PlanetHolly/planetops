@@ -35,7 +35,6 @@ const GLYPHS = {
   'revenue-house':'<svg viewBox="0 0 24 24"><path d="M12 4.5 20 14h-4.6v5.5H8.6V14H4z" fill="#10b981"/></svg>',
   planetiq:      '<svg viewBox="0 0 24 24"><rect x="4.5" y="12" width="3.6" height="7" rx="1" fill="#38bdf8"/><rect x="10.2" y="8" width="3.6" height="11" rx="1" fill="#38bdf8"/><rect x="15.9" y="5" width="3.6" height="14" rx="1" fill="#38bdf8"/></svg>',
   systems:       '<svg viewBox="0 0 24 24"><circle cx="9.5" cy="12" r="4.3" fill="none" stroke="#a78bfa" stroke-width="2.6"/><circle cx="14.5" cy="12" r="4.3" fill="none" stroke="#a78bfa" stroke-width="2.6"/></svg>',
-  training:      '<svg viewBox="0 0 24 24"><path d="M12 5.5 21 10l-9 4.5L3 10z" fill="#2dd4bf"/><path d="M17 12v3.2c0 1.8-2.2 3.3-5 3.3s-5-1.5-5-3.3V12" fill="none" stroke="#2dd4bf" stroke-width="2"/></svg>',
   references:    '<svg viewBox="0 0 24 24"><path d="M12 6.5C10.3 5.6 6.7 5.6 5 6.3V18c1.7-.7 5.3-.7 7 .2z" fill="#fbbf24"/><path d="M12 6.5c1.7-.9 5.3-.9 7-.2V18c-1.7-.7-5.3-.7-7 .2z" fill="#fbbf24" opacity=".65"/></svg>',
   'time-labor':  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#22d3ee" stroke-width="2.4"/><path d="M12 8.2V12l3 2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round"/></svg>',
   growth:        '<svg viewBox="0 0 24 24"><path d="M12 19v-7.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/><path d="M12 12.5C8 12.5 6.5 8 6.5 8c4 0 5.5 4.5 5.5 4.5z" fill="#34d399"/><path d="M12 13.5c3.5 0 4.8-3.2 4.8-3.2-3.6 0-4.8 3.2-4.8 3.2z" fill="#34d399" opacity=".8"/></svg>',
@@ -55,6 +54,8 @@ const GLYPHS = {
   'dtf-quote-desk':       '<svg viewBox="0 0 24 24"><path d="M12 4.5l8 13.5H4z" fill="#fb923c"/></svg>',
   'embroidery-quote-desk':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#34d399" stroke-width="3.2"/></svg>',
   desks:                  '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/></svg>',
+  'bandana-quoting-glance-card': '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="2.2" fill="#fb7185"/><path d="M8 9h8l-4 5.5z" fill="#232323"/></svg>',
+  'bandana-matrix-cheat-card': '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="2.2" fill="#fbbf24"/><path d="M4.5 10h15M4.5 14.5h15M10 4.5v15M15 4.5v15" stroke="#232323" stroke-width="1.6"/></svg>',
   // Revenue House surfaces
   watchtower:         '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="#2dd4bf"/></svg>',
   retention:          '<svg viewBox="0 0 24 24"><path d="M12 18.6S4.8 14.3 4.8 9.6A3.6 3.6 0 0 1 12 8.1a3.6 3.6 0 0 1 7.2 1.5c0 4.7-7.2 9-7.2 9z" fill="#f472b6"/></svg>',
@@ -126,13 +127,19 @@ const GLYPHS = {
   "floor-prepress":  '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="11.5" rx="2" fill="#a78bfa"/><path d="M8 4.5v11.5M12 4.5v11.5M16 4.5v11.5M4.5 8h15M4.5 12h15" stroke="#232323" stroke-width="0.8" opacity=".5"/><rect x="6" y="18" width="12" height="2.4" rx="1.2" fill="#7c3aed"/></svg>',
   "floor-running":   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="#22c55e"/><path d="M10 8.3l6 3.7-6 3.7z" fill="#fff"/></svg>',
   "floor-reports":   '<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2" fill="#0ea5e9"/><rect x="8" y="13" width="2" height="3" fill="#fff"/><rect x="11" y="11" width="2" height="5" fill="#fff"/><rect x="14" y="9" width="2" height="7" fill="#fff"/></svg>',
-  "floor-fulfillment":'<svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5 4.5 16.3V7.7z" fill="#f59e0b"/><path d="M9 11l3 3 3-3" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  "floor-fulfillment":'<svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5 4.5 16.3V7.7z" fill="#f59e0b"/><path d="M9 11l3 3 3-3" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  shipment:          '<svg viewBox="0 0 24 24"><path d="M4 9h16v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#0ea5e9"/><path d="M5.5 9 7 5.5h10L18.5 9" fill="none" stroke="#0ea5e9" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 17v-4.5M9.8 14.2 12 12l2.2 2.2" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  'retention-rollout-part-1': '<svg viewBox="0 0 24 24"><path d="M4.5 10v4l3 .6 6.5 4V5.4l-6.5 4z" fill="#f472b6"/><path d="M16.5 9.2a4.4 4.4 0 0 1 0 5.6" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round"/><path d="M19 7.2a7.4 7.4 0 0 1 0 9.6" fill="none" stroke="#f472b6" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>',
+  'graphics-templates': '<svg viewBox="0 0 24 24"><rect x="7.5" y="7.5" width="12" height="12" rx="2" fill="#c084fc" opacity=".55"/><rect x="4.5" y="4.5" width="12" height="12" rx="2" fill="#c084fc"/><circle cx="8.5" cy="8.5" r="1.6" fill="#232323"/></svg>',
+  'art-namer':        '<svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h6.5l7.5 6-5.5 7.5L4 14z" fill="#f472b6"/><circle cx="8.6" cy="9.6" r="1.5" fill="#232323"/><path d="M11 14.5h5" stroke="#232323" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  'photo-namer':      '<svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="10" rx="2" fill="#34d399"/><circle cx="8.5" cy="8" r="1.6" fill="#232323"/><path d="M11 12.5 14 9.5l4 5" fill="none" stroke="#232323" stroke-width="1.7" stroke-linejoin="round"/><path d="M5.5 17.8h9M5.5 20.3h6" stroke="#34d399" stroke-width="1.7" stroke-linecap="round"/></svg>',
 };
 function iconInner(node) {
   if (GLYPHS[node.id]) return GLYPHS[node.id];
   return `<span class="bEmoji">${esc(node.icon || (node.kind === 'hub' ? '🗂️' : '📄'))}</span>`;
 }
-function badge(node, size) { return `<span class="iconBadge ib-${size}">${iconInner(node)}</span>`; }
+function ringClass(node) { const t = railHubFor(node); return t ? ' ring-' + t.id : ''; }
+function badge(node, size) { return `<span class="iconBadge ib-${size}${ringClass(node)}">${iconInner(node)}</span>`; }
 
 let REG = null;          // the registry
 let BYID = new Map();    // id -> node
@@ -171,6 +178,7 @@ function validate(reg) {
       if (node.type && !ENUMS.type.includes(node.type)) errs.push(`"${node.id}": bad type "${node.type}"`);
       if (node.status && !ENUMS.status.includes(node.status)) errs.push(`"${node.id}": bad status "${node.status}"`);
       if (node.access && !ENUMS.access.includes(node.access)) errs.push(`"${node.id}": bad access "${node.access}"`);
+      if (node.display && node.display !== 'fullscreen') warnings.push(`"${node.id}": unknown display "${node.display}" (ignored)`);
     }
   };
   reg.tree.forEach(n => walk(n, '', 0));
@@ -262,6 +270,64 @@ async function fetchSummary() {
   } catch { SUMMARY = { error: 'network' }; }
 }
 
+/* ── home signal row: Watchtower open incidents + this week's sales ──
+   Both read things that ALREADY exist. Fetched once per page load, in boot();
+   renderSignalRow() re-renders from module state on every home render.
+   FAIL SILENT: a dead feed renders NOTHING (console.warn only) — a permanently
+   lit "unavailable" chip trains people to ignore the row (the 3-amber-flags lesson). */
+
+// Same webhook the command center's Watchtower view reads (its FLIGHTLOG_ENDPOINT).
+// NOT the retention-activity feed — that one cold-assembles for 15-40s; never call it here.
+const WATCHTOWER_FLIGHTLOG = 'https://primary-production-079f9.up.railway.app/webhook/watchtower-flightlog';
+let WATCH = undefined;   // undefined = not yet fetched/failed · number = open-incident count
+let SALES = undefined;   // undefined = none · {week, quoted, converted}
+
+async function fetchSignals() {
+  try {   // payload contract (command center L2131): { agents:[{ incidents:[...open only...] , ...}] }
+    const r = await fetch(WATCHTOWER_FLIGHTLOG, { signal: AbortSignal.timeout(3500) });
+    const d = await r.json();
+    if (d && Array.isArray(d.agents))
+      WATCH = d.agents.reduce((n, a) => n + (Array.isArray(a.incidents) ? a.incidents.length : 0), 0);
+  } catch (e) { console.warn('watchtower signal unavailable:', e.message); }
+  try {   // signals/scoreboard-data.json: { weeks:[{iso_week, rows:[{rep:'Company', quotes_dollar, converted_dollar}]}] }
+    const r = await fetch('../signals/scoreboard-data.json', { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    const wk = Array.isArray(d.weeks) && d.weeks[d.weeks.length - 1];
+    const co = wk && (wk.rows || []).find(x => x.rep === 'Company');
+    if (co) SALES = { week: wk.iso_week, quoted: co.quotes_dollar || 0, converted: co.converted_dollar || 0 };
+  } catch (e) { console.warn('sales signal unavailable:', e.message); }
+  renderSignalRow();
+}
+
+function renderSignalRow() {
+  const row = document.getElementById('sigRow');
+  if (!row) return;                                    // not on home right now
+  row.innerHTML = '';
+  const wt = BYID.get('watchtower');
+  if (WATCH === undefined) { /* failed or pending → render nothing for Watchtower */ }
+  else if (WATCH === 0) {                              // QUIET at zero: one slim, low-contrast line
+    const c = el('div', 'sigQuiet', '🟢 Watchtower — all clear');
+    if (wt) { c.classList.add('clickable'); c.onclick = () => openNode(wt); }
+    row.appendChild(c);
+  } else {                                             // LOUD when not: full-width red strip
+    const c = el('div', 'sigAlert');
+    const label = el('span');                          // fetched-adjacent → textContent, never innerHTML
+    label.textContent = `🚨 Watchtower — ${WATCH} open incident${WATCH === 1 ? '' : 's'}`;
+    c.appendChild(label);
+    const go = el('span', 'flagGo', 'Go →');
+    c.appendChild(go);
+    if (wt) c.onclick = () => openNode(wt);
+    row.appendChild(c);
+  }
+  if (SALES) {
+    const sn = BYID.get('signals');
+    const c = el('div', 'sigChip');
+    c.textContent = `📡 W${SALES.week}: $${Math.round(SALES.quoted).toLocaleString()} quoted · $${Math.round(SALES.converted).toLocaleString()} won`;
+    if (sn) { c.classList.add('clickable'); c.onclick = () => openNode(sn); }
+    row.appendChild(c);
+  }
+}
+
 /* ── navigation (hash routing: #/planetops/time-labor) ── */
 function pathOf(node) {
   const ids = [];
@@ -299,6 +365,7 @@ function railHubFor(node) {                 // which top-level hub to highlight 
 function openNode(node) {
   if (node.kind === 'hub') { navTo(node); return; }
   noteRecent(node);
+  if (node.display === 'fullscreen' && node.url) { openUrl(node.url); return; }   // kiosk/own-router apps: new tab, no shell chrome
   if (!node.url) { navTo(PARENT.get(node.id) || REG.tree[0]); return; }
   if (isExternal(node.url)) { openUrl(node.url); return; }   // Google Sheets etc. → new tab
   navTo(node);                                               // internal → embed in the pane
@@ -318,27 +385,35 @@ function renderRail() {
         `${badge(node, 'sm')}<span class="riName">${esc(RAIL_LABEL[node.id] || node.name)}</span>`);
       item.onmouseenter = () => showFlyout(node, item);
       item.onmouseleave = scheduleHideFlyout;
-      item.onclick = () => showFlyout(node, item);   // click works for touch too
+      item.onclick = () => { hideAllFly(); navTo(node); };   // click = landing; hover = flyout; landing is the touch path
       rail.appendChild(item);
     });
   });
 }
 
 let flyHideTimer, subHideTimer;
-function hideAllFly() { const f = document.getElementById('flyout'); if (f) f.hidden = true; const sf = document.getElementById('subflyout'); if (sf) sf.hidden = true; }
+function hideAllFly() { const f = document.getElementById('flyout'); if (f) { f.hidden = true; f.classList.remove('collapsed'); } const sf = document.getElementById('subflyout'); if (sf) sf.hidden = true; }
 function scheduleHideFlyout() { clearTimeout(flyHideTimer); flyHideTimer = setTimeout(hideAllFly, 350); }
 function keepFlyout() { clearTimeout(flyHideTimer); }
-function hideSubFlyout(now) { clearTimeout(subHideTimer); const sf = document.getElementById('subflyout'); if (!sf) return; if (now) sf.hidden = true; else subHideTimer = setTimeout(() => { sf.hidden = true; }, 350); }
+function hideSubFlyout(now) {
+  clearTimeout(subHideTimer);
+  const sf = document.getElementById('subflyout');
+  if (!sf) return;
+  if (now) { sf.hidden = true; document.getElementById('flyout')?.classList.remove('collapsed'); }
+  else subHideTimer = setTimeout(() => { sf.hidden = true; document.getElementById('flyout')?.classList.remove('collapsed'); }, 350);
+}
 function flyRow(n) {
   const lock = isFinanceNode(n) ? ' <span class="lock" title="Financials — needs the finance PIN">🔒</span>' : '';
   const ext = (n.kind === 'surface' && isExternal(n.url)) ? ' <span class="ext" title="Opens in a new tab">↗</span>' : '';
   const st = (n.kind === 'surface' && n.status && n.status !== 'live') ? ` <span class="badge ${esc(n.status)}">${esc(BADGE[n.status])}</span>` : '';
   const row = el('div', 'flyRow' + (isInWorks(n) ? ' inWorks' : ''), `${badge(n, 'sm')}<span class="flyName">${esc(safeName(n))}</span>${st}${lock}${ext}`);
+  row.title = safeName(n);
   row.onclick = () => { openNode(n); hideAllFly(); };
   return row;
 }
 function cascadeRow(hub) {                                    // a sub-hub → hover fans out its flyout, CLICK navigates into its section
   const row = el('div', 'flyRow hasKids', `${badge(hub, 'sm')}<span class="flyName">${esc(hub.name)}</span><span class="flyCaret">›</span>`);
+  row.title = hub.name;
   row.onmouseenter = () => showSubFlyout(hub, row);
   row.onclick = () => { hideAllFly(); navTo(hub); };
   return row;
@@ -367,15 +442,20 @@ function placeFly(fly, leftPx, topAnchor) {
 function showFlyout(hub, anchorEl) {
   keepFlyout(); hideSubFlyout(true);
   const fly = document.getElementById('flyout');
+  fly.classList.remove('collapsed');
   fillFlyout(fly, hub);
   placeFly(fly, document.getElementById('rail').getBoundingClientRect().right, anchorEl.getBoundingClientRect().top);
 }
 function showSubFlyout(hub, rowEl) {
   keepFlyout(); clearTimeout(subHideTimer);
+  const fly = document.getElementById('flyout');
   const sf = document.getElementById('subflyout');
   fillFlyout(sf, hub);
-  /* overlap the parent flyout by a few px — no dead gap for the pointer to fall through */
-  placeFly(sf, document.getElementById('flyout').getBoundingClientRect().right - 4, rowEl.getBoundingClientRect().top - 6);
+  /* collapse the parent to a slim icon strip BEFORE measuring — the sub anchors
+     to the collapsed width, so there is never a dead gap for the pointer */
+  fly.classList.add('collapsed');
+  [...fly.querySelectorAll('.flyRow')].forEach(r => r.classList.toggle('srcRow', r === rowEl));
+  placeFly(sf, fly.getBoundingClientRect().right - 4, rowEl.getBoundingClientRect().top - 6);
 }
 
 /* ── main pane ── */
@@ -463,8 +543,88 @@ function renderPane() {
     if (first) { navTo(first); return; }
   }
 
-  /* a top-level hub hash → hubs have no page of their own; go home (nav lives in the flyouts) */
-  navHome();
+  /* any other hub (top-level, or a sub-hub with nothing embeddable) → its landing page */
+  renderHubLanding(node, pane);
+}
+
+function countSurfaces(hub) {              // registry metadata, stated honestly — NOT business signal
+  let total = 0, live = 0;
+  (function w(n){ (n.children || []).forEach(c => {
+    if (c.kind === 'surface') { total++; if (c.status === 'live' && c.url) live++; }
+    else w(c);
+  }); })(hub);
+  return { total, live };
+}
+
+function renderHubLanding(node, pane) {
+  document.body.classList.remove('embedding');
+  renderCrumbs(node);
+  pane.innerHTML = '';
+
+  /* hero band — command-center pattern: dark card, gold kicker, big name, blurb, count top-right */
+  const parent = PARENT.get(node.id);
+  const { total, live } = countSurfaces(node);
+  const hero = el('div', 'hubHero');
+  hero.innerHTML =
+    `<div class="hhKicker">${esc(parent ? parent.name : 'Planet Apparel')}</div>` +
+    `<h1>${badge(node, 'lg')}<span>${esc(safeName(node))}</span></h1>` +
+    (node.blurb ? `<p class="hhSub">${esc(node.blurb)}</p>` : '') +
+    `<div class="hhCount">${total}<small>inside · ${live} live</small></div>`;
+  pane.appendChild(hero);
+
+  const kids = node.children || [];
+  const hubKids = kids.filter(c => c.kind === 'hub');
+  const surfKids = kids.filter(c => c.kind === 'surface');
+
+  /* 1 · the rooms — child hubs as big cards */
+  if (hubKids.length) {
+    pane.appendChild(el('div', 'groupHead', 'Inside'));
+    const hg = el('div', 'hubCards');
+    hubKids.forEach(h => hg.appendChild(hubCard(h)));
+    pane.appendChild(hg);
+  }
+
+  /* 2 · direct tools — reuse tileFor(); finance-locked ones aggregate to ONE tile */
+  const { ready, works } = splitWorks(surfKids);
+  const locked = ready.filter(n => isFinanceNode(n) && !financeVisible(n));
+  const visible = ready.filter(n => !locked.includes(n));
+  if (visible.length || locked.length) {
+    pane.appendChild(el('div', 'groupHead', 'Tools'));
+    const grid = el('div', 'tiles');
+    visible.forEach(n => grid.appendChild(tileFor(n)));
+    if (locked.length) grid.appendChild(lockedAggTile(locked.length));
+    pane.appendChild(grid);
+  }
+
+  /* 3 · in the works — dimmed, last (same hygiene as flyouts/Browse) */
+  if (works.length) {
+    pane.appendChild(el('div', 'groupHead', 'In the works'));
+    const wg = el('div', 'tiles');
+    works.forEach(n => wg.appendChild(tileFor(n)));
+    pane.appendChild(wg);
+  }
+  if (!kids.length) pane.appendChild(el('div', 'emptyHub', 'Nothing here yet.'));
+}
+
+function hubCard(h) {
+  const { total, live } = countSurfaces(h);
+  const c = el('div', 'hubCard clickable');
+  c.innerHTML =
+    `<div class="hcCnt">${total}<small>inside · ${live} live</small></div>` +
+    `${badge(h, 'lg')}<div class="hcLab">${esc(h.name)}</div>` +
+    (h.blurb ? `<div class="hcOne">${esc(h.blurb)}</div>` : '');
+  c.onclick = () => openNode(h);
+  return c;
+}
+
+function lockedAggTile(n) {                 // PlanetIQ answer: 6 identical masked tiles → ONE honest tile
+  const t = el('div', 'tile clickable lockedAgg');
+  t.innerHTML =
+    `<h3><span class="iconBadge ib-lg"><svg viewBox="0 0 24 24"><rect x="6" y="10.5" width="12" height="9" rx="2" fill="#94a3b8"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="#94a3b8" stroke-width="2.2"/></svg></span>` +
+    `<span class="tName">🔒 Financials (${n})</span></h3>` +
+    `<p>${n} locked tool${n === 1 ? '' : 's'} — enter the finance PIN to see them.</p>`;
+  t.onclick = () => { location.href = '/gate/finance?r=%2Ffrontdoor%2F'; };
+  return t;
 }
 
 /* ── HOME — the canvas (welcome · needs-attention · quick access · feed · browse) ── */
@@ -481,6 +641,11 @@ function renderHome(pane) {
   wb.querySelector('.hwLogo').appendChild(document.getElementById('paLogo').content.cloneNode(true));
   wb.querySelector('.hwDate').textContent = today;
   pane.appendChild(wb);
+
+  /* 1.5 · live signal row — Watchtower headline + sales pulse */
+  const sig = el('div', 'sigRow'); sig.id = 'sigRow';
+  pane.appendChild(sig);
+  renderSignalRow();
 
   /* 2 · needs attention */
   pane.appendChild(el('div', 'groupHead', '⚠️ Needs attention'));
@@ -663,6 +828,7 @@ function boot() {
   setupRail(); renderRail(); renderPane(); renderPinned(); setupSearch();
   window.addEventListener('hashchange', () => { renderRail(); renderPane(); });
   fetchSummary().then(() => { renderFlagBoard(); renderPinned(); if (currentNode() === null) renderPane(); });
+  fetchSignals();
 }
 
 async function main() {

@@ -217,6 +217,7 @@
           "blurb": "Kiosk for the whole customer-comms system - scripts, calls, journeys, automations, lifecycle. Sheet-driven.",
           "type": "live-app",
           "url": "../revenue-house/command/",
+          "display": "fullscreen",
           "status": "live",
           "access": "open",
           "icon": "🎛️"
@@ -228,6 +229,7 @@
           "blurb": "Pick a Printavo status, see which customer email fires and what happens next. Training and audit view of the whole status flow.",
           "type": "live-app",
           "url": "../revenue-house/command/#/simulator",
+          "display": "fullscreen",
           "status": "live",
           "access": "open",
           "icon": "🎬"
@@ -722,6 +724,7 @@
               "blurb": "Floor kiosk punch in/out — CA overtime math",
               "type": "live-app",
               "url": "../clock/",
+              "display": "fullscreen",
               "status": "live",
               "access": "open",
               "dataSource": "Railway /webhook/timesheets-admin",
@@ -781,6 +784,7 @@
           "blurb": "One view over every engine — the agent/system overview. It rings when something breaks.",
           "type": "live-app",
           "url": "../revenue-house/command/#/activity",
+          "display": "fullscreen",
           "status": "live",
           "access": "open",
           "icon": "📡"
