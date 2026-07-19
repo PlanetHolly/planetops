@@ -1,31 +1,31 @@
 {
-  "_comment": "Feed Fork C routing registry — the map from 'what a doc is' to 'where it goes'. Data, not code. Rows walked top-down; first match(es) win; 'ledger' is ALWAYS appended by the router. Adding a route = adding a rule here. Later phase promotes this file to a Google Sheet.",
+  "_comment": "Feed Fork C routing registry — the map from 'what a doc is' to 'where it goes'. Data, not code. Rules match SOLELY on doc_type (the AI's classification). Rows walked top-down; first match wins; 'ledger' is ALWAYS appended by the router. NOTE_KEYWORDS REMOVED 2026-07-18: they were inert (the router is never handed the submitter's note) AND unsafe — R-analytics routes to planetiq (an external write), and a free-text note containing 'spend'/'kpi' could have overridden the real doc_type and mis-routed any document externally. All six rules already have distinct doc_types, so doc_type matching does the whole job. If notes should ever influence routing, that is a deliberate redesign (tie-breaker only, never override, never route external), built when a real document proves the need. Adding a route = adding a rule here. Later phase promotes this file to a Google Sheet.",
   "rules": [
     {
       "rule_id": "R-inbound-order",
-      "match": { "doc_type": ["inbound_order"], "note_keywords": ["order for", "activewear order", "sns order"] },
+      "match": { "doc_type": ["inbound_order"] },
       "destinations": ["app_incoming"],
       "required_fields": ["entities.job", "entities.vendor", "amounts.total"],
       "on_missing": "review"
     },
     {
       "rule_id": "R-po",
-      "match": { "doc_type": ["purchase_order"], "note_keywords": ["po ", "purchase order"] },
+      "match": { "doc_type": ["purchase_order"] },
       "destinations": ["app_incoming"],
       "required_fields": ["entities.job", "entities.vendor"],
       "on_missing": "review"
     },
     {
       "rule_id": "R-analytics",
-      "match": { "doc_type": ["analytics_report"], "note_keywords": ["analytics", "kpi", "spend", "ga "] },
+      "match": { "doc_type": ["analytics_report"] },
       "destinations": ["planetiq"],
       "required_fields": ["dates.period"],
       "on_missing": "review"
     },
     {
-      "_note": "Consolidated vendor bills (UPS weekly, utilities, ad spend) cover MANY jobs, so they have no single job by design — they belong to a PERIOD. Holly's ruling 2026-07-16, proven on a real UPS invoice. MUST stay ABOVE R-expense: rules match on doc_type OR note keyword, and R-expense's 'shipping invoice' keyword would otherwise steal these.",
+      "_note": "Consolidated vendor bills (UPS weekly, utilities, ad spend) cover MANY jobs, so they have no single job by design — they belong to a PERIOD. Holly's ruling 2026-07-16, proven on a real UPS invoice. period_expense and expense are DISTINCT doc_types (no overlap), so order is not load-bearing now that note keywords are gone — but kept ABOVE R-expense as a cheap seatbelt.",
       "rule_id": "R-period-expense",
-      "match": { "doc_type": ["period_expense"], "note_keywords": ["weekly bill", "monthly bill", "consolidated bill"] },
+      "match": { "doc_type": ["period_expense"] },
       "destinations": ["expense_hold"],
       "required_fields": ["amounts.total", "dates.period"],
       "on_missing": "review"
@@ -33,14 +33,14 @@
     {
       "_note": "Job-attributable one-off expense (a single freight charge billed to one job). Job stays optional; use R-period-expense for consolidated bills.",
       "rule_id": "R-expense",
-      "match": { "doc_type": ["expense"], "note_keywords": ["invoice $", "expense", "shipping invoice"] },
+      "match": { "doc_type": ["expense"] },
       "destinations": ["expense_hold"],
       "required_fields": ["amounts.total"],
       "on_missing": "review"
     },
     {
       "rule_id": "R-fallback",
-      "match": { "doc_type": ["*"], "note_keywords": ["*"] },
+      "match": { "doc_type": ["*"] },
       "destinations": ["review"],
       "required_fields": [],
       "on_missing": "review"
