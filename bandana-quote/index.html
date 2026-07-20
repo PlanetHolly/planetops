@@ -246,13 +246,30 @@ const clampInt = (v, min, max) => Math.max(min, Math.min(max, Math.floor(Number(
 function setupFinishing(){ $('finishing').innerHTML = FINISHING.map(f => '<option value="'+f.id+'">'+f.label+(f.price ? ' - '+money(f.price)+'/unit' : '')+'</option>').join(''); }
 function optionsFor(size, ink){ return (PRODUCT_OPTIONS[size] && PRODUCT_OPTIONS[size][ink]) || []; }
 function updateProducts(){
-  const size = $('size').value, ink = $('ink').value;
+  const size = $('size').value;
   const prior = $('product').value;
-  const opts = optionsFor(size, ink);
-  $('product').innerHTML = opts.map((p,i) => '<option value="'+i+'">'+p.label+' ('+p.sku+')</option>').join('');
+  const inks = Object.keys(PRODUCT_OPTIONS[size] || {});
+  $('product').innerHTML = inks.map(ink => {
+    const opts = optionsFor(size, ink);
+    if (!opts.length) return '';
+    return '<optgroup label="' + (INK_LABELS[ink] || ink) + '">' +
+      opts.map((p,i) => '<option value="' + ink + '|' + i + '">' + p.label + ' (' + p.sku + ')</option>').join('') +
+      '</optgroup>';
+  }).join('');
   if ([...$('product').options].some(o => o.value === prior)) $('product').value = prior;
 }
-function currentProduct(){ return optionsFor($('size').value, $('ink').value)[Number($('product').value) || 0]; }
+function setProductToInk(ink){
+  const opt = [...$('product').options].find(o => o.value.split('|')[0] === ink);
+  if (opt) $('product').value = opt.value;
+}
+function currentSel(){
+  const size = $('size').value;
+  const parts = ($('product').value || '').split('|');
+  const ink = parts[0] || Object.keys(PRODUCT_OPTIONS[size] || {})[0] || '';
+  const idx = Number(parts[1]) || 0;
+  return {size, ink, idx, product: optionsFor(size, ink)[idx] || null};
+}
+function currentProduct(){ return currentSel().product; }
 function recordsFor(product, ink, colors){ return DATA.filter(r => r.line === product.line && r.ink === ink && r.colors === colors); }
 function floorRecord(recs, qty){
   if (!recs.length) return null;
@@ -278,13 +295,13 @@ function readState(){
   const colors = clampInt($('colors').value, 1, 6);
   const inkChanges = Math.max(0, Math.floor(Number($('inkChanges').value) || 0));
   $('qty').value = qty; $('colors').value = colors; $('inkChanges').value = inkChanges;
-  const ink = $('ink').value;
+  const sel = currentSel();
+  const ink = sel.ink;
   const fullColor = FULLCOLOR_INKS.includes(ink);
-  return {size:$('size').value, ink, product:currentProduct(), qty, colors, colorsLookup:fullColor ? 0 : colors, fullColor, finishing:FINISHING.find(f => f.id === $('finishing').value) || FINISHING[0], inkChanges, mode:$('teamMarkup').value};
+  if (ink && $('ink').value !== ink && [...$('ink').options].some(o => o.value === ink)) $('ink').value = ink;
+  return {size:$('size').value, ink, product:sel.product, qty, colors, colorsLookup:fullColor ? 0 : colors, fullColor, finishing:FINISHING.find(f => f.id === $('finishing').value) || FINISHING[0], inkChanges, mode:$('teamMarkup').value};
 }
 function render(){
-  updateInks();
-  updateProducts();
   const s = readState();
   $('colors').disabled = s.fullColor;
   const warnings = [];
@@ -406,9 +423,14 @@ function renderPriceCheck(){
   out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
 }
 setupFinishing();
+updateInks();
 updateProducts();
-document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', render));
-document.querySelectorAll('select').forEach(el => el.addEventListener('change', render));
+$('size').addEventListener('change', () => { updateInks(); updateProducts(); render(); });
+$('ink').addEventListener('change', () => { setProductToInk($('ink').value); render(); });
+$('product').addEventListener('change', render);
+['qty','colors','inkChanges'].forEach(id => $(id).addEventListener('input', render));
+['finishing','teamMarkup'].forEach(id => $(id).addEventListener('change', render));
+$('targetPrice').addEventListener('input', renderPriceCheck);
 $('addToBasket').addEventListener('click', addToBasket);
 $('copyBasket').addEventListener('click', copyBasket);
 $('clearBasket').addEventListener('click', clearBasket);
