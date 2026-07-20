@@ -451,9 +451,10 @@ function showSubFlyout(hub, rowEl) {
   const fly = document.getElementById('flyout');
   const sf = document.getElementById('subflyout');
   fillFlyout(sf, hub);
-  /* collapse the parent to a slim icon strip BEFORE measuring — the sub anchors
-     to the collapsed width, so there is never a dead gap for the pointer */
-  fly.classList.add('collapsed');
+  /* The parent stays fully open. Collapsing it to an icon strip was tried and
+     reverted 2026-07-19: stacked against the section side-nav it produced three
+     competing columns and read as clutter, not focus. The source row is
+     highlighted instead — same "you are here" signal, no layout churn. */
   [...fly.querySelectorAll('.flyRow')].forEach(r => r.classList.toggle('srcRow', r === rowEl));
   placeFly(sf, fly.getBoundingClientRect().right - 4, rowEl.getBoundingClientRect().top - 6);
 }

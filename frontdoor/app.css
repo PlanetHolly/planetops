@@ -202,12 +202,6 @@ body.embedding .foot{display:none}
 .ring-references{--ring:#fbbf24}
 
 /* ── cascade collapse: parent flyout → slim hoverable icon strip ── */
-.flyout.collapsed{min-width:0;width:46px;padding:7px 4px;overflow-x:hidden}
-.flyout.collapsed .flyName,.flyout.collapsed .flyCaret,.flyout.collapsed .badge,
-.flyout.collapsed .lock,.flyout.collapsed .ext,
-.flyout.collapsed .flyGroupHead,.flyout.collapsed .flyEmpty{display:none}
-.flyout.collapsed .flyRow{justify-content:center;padding:7px 4px;gap:0}
-.flyout.collapsed .flyRow.srcRow{background:#fffbeb}
 
 /* ── hub landing (command-center visual pattern) ── */
 .hubHero{position:relative;background:#232323;color:#fff;border-radius:16px;padding:22px 26px;margin:4px 0 18px}
