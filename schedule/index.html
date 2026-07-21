@@ -2723,21 +2723,30 @@ document.getElementById('backupBtn').onclick=()=>{
 };
 document.getElementById('resetBtn').onclick=()=>{
   const shared=!sharingPaused();
-  const msg=shared
-    ?'Reset the SHARED board? This clears all planning edits (moves, splits, minutes, QC, verified times…) for EVERY device, and reloads from the live feed.'
-    :'Reset the board? This drops the imported CSV and this device\'s local changes, and returns to the live feed + shared edits.';
-  if(confirm(msg)){
-    (async()=>{
-      if(shared){
-        try{
-          store=defaultStore();
-          await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
-            headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(sharedPayload())});
-        }catch(e){/* server unreachable — local reset still proceeds; another device's next push re-seeds */}
-      }
-      localStorage.removeItem(KEY);location.reload();
-    })();
-  }
+  // Reset wipes the shared planning state for EVERY device and, once PlanetOps holds the
+  // schedule itself, there is no longer a Printavo copy to fall back on. So the shared path
+  // now requires typing the placement count — a plain OK can't fat-finger the board away.
+  // (Nightly backups: workflow "PlanetOps — Schedule Board Nightly Snapshot" → Dropbox.)
+  if(shared){
+    const placed=new Set([...Object.keys(store.moves||{}),...Object.keys(store.stations||{})]).size;
+    const ph=(store.placeholders||[]).length;
+    const total=placed+ph;
+    if(total>0){
+      const typed=prompt('⚠ RESET THE SHARED BOARD\n\nThis permanently deletes '+placed+' placed job'+(placed===1?'':'s')+(ph?(' + '+ph+' placeholder'+(ph===1?'':'s')):'')+' for EVERY device, and cannot be undone.\n\nType the number  '+total+'  to confirm, or Cancel to keep the board.');
+      if(typed===null)return;
+      if(typed.trim()!==String(total)){alert('Reset cancelled — that number didn\'t match, so nothing was changed.');return;}
+    }else if(!confirm('Reset the shared board? There are no placements to lose — this just reloads from the live feed.')){return;}
+  }else if(!confirm('Reset the board? This drops the imported CSV and this device\'s local changes, and returns to the live feed + shared edits.')){return;}
+  (async()=>{
+    if(shared){
+      try{
+        store=defaultStore();
+        await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(sharedPayload())});
+      }catch(e){/* server unreachable — local reset still proceeds; another device's next push re-seeds */}
+    }
+    localStorage.removeItem(KEY);location.reload();
+  })();
 };
 window.addEventListener('beforeunload',e=>{
   if(!store.exported&&changeList().length){e.preventDefault();e.returnValue='';}
