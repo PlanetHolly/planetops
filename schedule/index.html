@@ -490,6 +490,11 @@ const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},al
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
+// One-time purge: 2a's first release ingested the stale baked-in csvdata fallback into
+// store.jobRecords before the live feed resolved. Clear those once per browser; the guarded
+// ingestion above (live feed only) then reseeds cleanly. Shadow data — nothing renders from
+// it yet — so this is zero-risk to placements.
+try{if(localStorage.getItem('jobRecordsFallbackPurge')!=='1'){store.jobRecords={};localStorage.setItem('jobRecordsFallbackPurge','1');}}catch(e){}
 // Heal state poisoned by the .splitbtn selector collision: every ✎ status / park / tracking
 // click ran the split handler with no data-split, writing store.splits["undefined"]. Harmless
 // to the model (no imprint is named "undefined") but hasLocalEdits() counts it, so the board
@@ -1094,7 +1099,7 @@ function _recMeaningfulEqual(a,b){
   return F.every(k=>a[k]===b[k]);
 }
 function ingestRecords(base){
-  if(histCsv||store.csvText)return;           // live feed only — history snapshots + manual imports stay out of records
+  if(histCsv||store.csvText||!liveCsv)return;  // ONLY ingest from the real live feed — never history, never a manual import, and never the stale baked-in <script id="csvdata"> fallback (which pollutes records with old sample jobs before the live feed resolves)
   if(!store.jobRecords)store.jobRecords={};
   const now=Date.now();
   const idMap={};
