@@ -486,7 +486,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},jobRecords:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -1077,6 +1077,56 @@ function apiToJob(a){
   };
 }
 const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{},pptype:{},attrs:{},placeholders:[],statusOv:{}};
+
+/* ───────── Phase B step 2 (SHADOW, write-only): durable job records ─────────
+   Each live-feed job gets a persisted record so a job SURVIVES dropping out of
+   the feeds — the bug that empties the board on a truncated CSV and silently drops
+   a job weeks after scheduling (it ages out of the pre-production-scoped intake feed
+   while still holding press capacity). Records are the feed-BASE only; the override
+   maps (moves/stations/minutesEdit/splits/alloc/placeholders) stay the USER layer,
+   applied on top at render exactly as today. NOTHING renders from records yet — this
+   only writes them and reports what the feeds dropped. Rendering from records = 2b.
+   Console during the shadow: jobRecordsDiag()  →  {droppedActive, dropped:[…]}. */
+let _recordsDirty=false, _recordDiag=null;
+function _recMeaningfulEqual(a,b){
+  if(!a||!b)return false;
+  const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','source','archived'];
+  return F.every(k=>a[k]===b[k]);
+}
+function ingestRecords(base){
+  if(histCsv||store.csvText)return;           // live feed only — history snapshots + manual imports stay out of records
+  if(!store.jobRecords)store.jobRecords={};
+  const now=Date.now();
+  const idMap={};
+  if(intakeJobs)intakeJobs.forEach(a=>{const k=String(a.imprint);if(a.imprintId)idMap[k]=String(a.imprintId);});
+  const feedKeys=new Set();
+  base.forEach(j=>{
+    const key=j.imprint;if(!key)return;
+    feedKeys.add(key);
+    const prev=store.jobRecords[key]||null;
+    const rec={
+      imprint:key,
+      imprintId:idMap[key]||(prev&&prev.imprintId)||null,
+      invoice:j.invoice||'', nickname:j.nickname||'', qty:+j.qty||0,
+      projectType:j.projectType||'', screens:j.screens||'', ink:j.ink||'',
+      pallet:j.pallet||'', postProdType:j.postProdType||'', inkChange:j.inkChange||'',
+      csvDate:j.date||'', csvStation:j.station||'', csvMinutes:+j.minutes||0,
+      prodDue:j.prodDue||'', custDue:j.custDue||'',
+      status:j.status||'', source:j.apiIntake?'intake':'csv',
+      firstSeen:(prev&&prev.firstSeen)||now, lastFeedSeen:now,
+      archived:(prev&&prev.archived)||false,
+    };
+    if(_recMeaningfulEqual(prev,rec)){prev.lastFeedSeen=now;}   // heartbeat only — no persist
+    else{store.jobRecords[key]=rec;_recordsDirty=true;}
+  });
+  const dropped=Object.values(store.jobRecords).filter(r=>!r.archived&&!feedKeys.has(r.imprint));
+  _recordDiag={at:now,totalRecords:Object.keys(store.jobRecords).length,inFeed:feedKeys.size,
+    droppedActive:dropped.length,
+    dropped:dropped.map(r=>({imprint:r.imprint,csvDate:r.csvDate,csvStation:r.csvStation,csvMinutes:r.csvMinutes,status:r.status,source:r.source}))};
+  if(dropped.length)console.log('[jobRecords] '+dropped.length+' active record(s) NOT in the current feed (would have vanished pre-records):',dropped.map(r=>r.imprint).join(', '));
+}
+if(typeof window!=='undefined')window.jobRecordsDiag=()=>_recordDiag;
+
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
@@ -1093,6 +1143,7 @@ function buildModel(){
       seen.add(String(a.imprint));base.push(apiToJob(a));intakeAdded++;
     });
   }
+  ingestRecords(base);   // Phase B step 2 (SHADOW): persist a record per feed job. Write-only — render still uses `base` below.
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
@@ -1136,7 +1187,7 @@ function buildModel(){
   });
   // F9: persist the self-clear (buildModel mutated the shared store) — deferred out of the
   // per-job loop so schedPush()/localStorage write happen once, after the build, not mid-render.
-  if(_statusCleared)save();
+  if(_statusCleared||_recordsDirty){_recordsDirty=false;save();}
   (OV.placeholders||[]).forEach(p=>{jobs.push({placeholder:true,uid:p.uid||'',minutes:p.minutes,qty:0,date:p.date,station:p.station,imprint:p.id,invoice:'',impNum:'',splitLetter:'',parentKey:p.id,nickname:p.ref,prodDue:'',custDue:'',projectType:'PH',screens:0,inkChange:'',ink:'N/A',pallet:'N/A',postProdType:'N/A',steps:[],status:'Scheduled Placeholder',localSplit:false,moved:false});});
   fam={};jobs.forEach(j=>{fam[j.parentKey]=(fam[j.parentKey]||0)+(j.splitLetter?1:0);});
   unscheduled=jobs.filter(j=>!j.date);
