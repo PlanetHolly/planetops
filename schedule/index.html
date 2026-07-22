@@ -1097,7 +1097,7 @@ const RETIRE_STATUS_RE=/delivered\s*\/\s*picked/i;  // the ONLY terminal status:
 const RETIRE_STALE_DAYS=30;   // backstop: a dated job this many days past its Prod. Date, never delivered, gets archived anyway
 function _recMeaningfulEqual(a,b){
   if(!a||!b)return false;
-  const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','source','archived'];
+  const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','typeOfWork','source','archived'];
   return F.every(k=>a[k]===b[k]);
 }
 function ingestRecords(base){
@@ -1129,6 +1129,7 @@ function ingestRecords(base){
       csvDate:keep?prev.csvDate:(j.date||''), csvStation:keep?prev.csvStation:(j.station||''), csvMinutes:keep?prev.csvMinutes:(+j.minutes||0),
       prodDue:j.prodDue||'', custDue:j.custDue||'',
       status:j.status||(keep&&prev.status)||'', source:keep?prev.source:(j.apiIntake?'intake':'csv'),
+      typeOfWork:(j.typeOfWork||'')||(prev&&prev.typeOfWork)||'',   // only the intake feed carries it; a CSV row (no typeOfWork) must NEVER clear a value already captured from intake — isOut()/Arrivals depends on it
       firstSeen:(prev&&prev.firstSeen)||now, lastFeedSeen:now,
       archived:(prev&&prev.archived)||false,
     };
@@ -1208,7 +1209,7 @@ function recordBase(){
       projectType:r.projectType||'', screens:r.screens||'', inkChange:r.inkChange||'None',
       ink:r.ink||'', pallet:r.pallet||'', postProdType:r.postProdType||'',
       steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
-      status:r.status||'', localSplit:false, moved:false,
+      status:r.status||'', typeOfWork:r.typeOfWork||'', localSplit:false, moved:false,   // typeOfWork feeds isOut()/Arrivals — must survive the record round-trip
     };
     if(r.source==='intake')j.apiIntake=true;
     return j;
