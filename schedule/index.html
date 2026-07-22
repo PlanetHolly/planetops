@@ -1766,7 +1766,7 @@ function renderBoard(filterLane){
     </section>`:''}
     ${rows}`;
 }
-let listSort={key:null,dir:1},listShowAll=false;
+let listSort={key:null,dir:1},listShowAll=false,showRemoved=false;   // showRemoved: view-only, NOT persisted — resets to false on every page load
 const SORTVAL={
   imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
   station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
@@ -1834,8 +1834,8 @@ function renderList(){
     rows=act.map(rowFor).join('')
       +(park.length?`<tr><td colspan="17" style="background:#f7f7f7;font-weight:600;padding:8px 10px;border-top:2px solid #ddd">⏸ NOT READY YET · ${park.length} parked — grayed and out of the to-schedule count (the estimator's gray-out, made explicit). Fill fields anytime; tap ▶ when it's time to schedule.</td></tr>`:'')
       +park.map(rowFor).join('')
-      +(rmList.length?`<tr><td colspan="17" style="background:#fbf3f3;font-weight:600;padding:8px 10px;border-top:2px solid #e0c9c9">✕ REMOVED · ${rmList.length} not production work — out of the queue and out of the count. Tap ↩ to put one back.</td></tr>`:'')
-      +rmList.map(j=>rowFor(j,'removed')).join('');
+      +(showRemoved&&rmList.length?`<tr><td colspan="17" style="background:#fbf3f3;font-weight:600;padding:8px 10px;border-top:2px solid #e0c9c9">✕ REMOVED · ${rmList.length} not production work — out of the queue and out of the count. Tap ↩ to put one back.</td></tr>`:'')
+      +(showRemoved?rmList.map(j=>rowFor(j,'removed')).join(''):'');
   }
   const H=(key,label)=>{
     const on=listSort.key===key;
@@ -1843,7 +1843,7 @@ function renderList(){
   };
   return `<div class="hint" style="margin-bottom:8px">${listShowAll
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
-    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''}${rmList.length?` <span style="color:#a12e2e">· ✕ ${rmList.length} removed below</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
+    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''}${rmList.length?` <span id="rmToggle" style="color:#a12e2e;cursor:pointer;text-decoration:underline" title="These are jobs you dismissed as not production work (e.g. a paid invoice with no imprint). Hidden by default — click to show them, where you can restore one with ↩.">✕ ${rmList.length} removed${showRemoved?' (hide)':' (show)'}</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
   <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}<th title="Project manager — the Printavo invoice Owner">PM</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -2765,6 +2765,9 @@ function wireMain(){
       save();renderAll();
     });
   });
+  // ✕ N removed (show/hide) — view state only, not saved; resets to hidden on reload
+  const rmt=document.getElementById('rmToggle');
+  if(rmt)rmt.addEventListener('click',e=>{e.stopPropagation();showRemoved=!showRemoved;renderAll();});
   main.querySelectorAll('[data-unstation]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
