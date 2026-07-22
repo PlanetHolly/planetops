@@ -1109,15 +1109,24 @@ function ingestRecords(base){
     const key=j.imprint;if(!key)return;
     feedKeys.add(key);
     const prev=store.jobRecords[key]||null;
+    // Intake carries no scheduling data and no reliable attrs — it contributes
+    // identity/status/gap-fill only, and must NEVER overwrite a good CSV value with
+    // an intake null. A real CSV row stays authoritative for base fields, INCLUDING a
+    // legitimately blank Prod. Date (Jean unscheduling a job in Printavo produces a
+    // real CSV row with an empty date, and the record must follow it). New records
+    // (no prev) have nothing to preserve, so they take the incoming value either way.
+    const keep=!!(j.apiIntake&&prev);
+    const gapStr=(inc,pv)=>keep?(inc||pv||''):(inc||'');
+    const gapNum=(inc,pv)=>{const n=+inc||0;return keep?(n||pv||0):n;};
     const rec={
       imprint:key,
       imprintId:idMap[key]||(prev&&prev.imprintId)||null,
-      invoice:j.invoice||'', nickname:j.nickname||'', qty:+j.qty||0,
-      projectType:j.projectType||'', screens:j.screens||'', ink:j.ink||'',
-      pallet:j.pallet||'', postProdType:j.postProdType||'', inkChange:j.inkChange||'',
-      csvDate:j.date||'', csvStation:j.station||'', csvMinutes:+j.minutes||0,
+      invoice:j.invoice||'', nickname:gapStr(j.nickname,prev&&prev.nickname), qty:gapNum(j.qty,prev&&prev.qty),
+      projectType:gapStr(j.projectType,prev&&prev.projectType), screens:gapStr(j.screens,prev&&prev.screens), ink:gapStr(j.ink,prev&&prev.ink),
+      pallet:gapStr(j.pallet,prev&&prev.pallet), postProdType:gapStr(j.postProdType,prev&&prev.postProdType), inkChange:gapStr(j.inkChange,prev&&prev.inkChange),
+      csvDate:keep?prev.csvDate:(j.date||''), csvStation:keep?prev.csvStation:(j.station||''), csvMinutes:keep?prev.csvMinutes:(+j.minutes||0),
       prodDue:j.prodDue||'', custDue:j.custDue||'',
-      status:j.status||'', source:j.apiIntake?'intake':'csv',
+      status:j.status||(keep&&prev.status)||'', source:keep?prev.source:(j.apiIntake?'intake':'csv'),
       firstSeen:(prev&&prev.firstSeen)||now, lastFeedSeen:now,
       archived:(prev&&prev.archived)||false,
     };

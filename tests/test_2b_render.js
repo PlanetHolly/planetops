@@ -201,19 +201,11 @@ check(
 const baselineSched = recSchedGood;
 
 /* ───────── check 5: retention — switch to TRUNCFEED, re-ingest, records must still hold everything ─────────
-   KNOWN FINDING (not a defect in feedBase/recordBase/the flag gating built here — ingestRecords()
-   itself is untouched by this change, and this same call pattern has run unmodified in production
-   since Phase B step 2 shipped): intake_now.json is a broad, independently-pulled snapshot of
-   active invoices. When an invoice's row disappears from a truncated CSV pull, feedBase()'s
-   intake-union (existing logic, step 2's own base-assembly) still finds that invoice in the intake
-   feed — with no schedule, since the API carries no scheduling data — and re-adds it to the base
-   with a blank date. ingestRecords() then treats "present in this render's base" as authoritative
-   and overwrites the previously-good CSV-sourced record with that blank one, UNscheduling it.
-   Net effect below: TRUNCFEED drops the CSV row for most of GOODFEED's 48 scheduled jobs, but only
-   the subset ALSO absent from intake_now.json survive re-ingestion with their schedule intact — the
-   rest get silently blanked by the intake-union overwrite. This is exactly the "per-item shared-state
-   merge / last-write-wins hardening" the plan names as OUT OF SCOPE for this step (see
-   scratchpad/PLAN_2b_render.md) — flagged here, not fixed, per "touch nothing else." */
+   Depends on ingestRecords()'s field-level precedence: intake contributes identity/status/gap-fill
+   only and must never blank a good CSV value. Without that precedence, feedBase()'s intake-union
+   re-adds any invoice still known to the (independently-pulled, broader) intake feed as an
+   unscheduled placeholder the moment its row drops from a truncated CSV pull, and a wholesale
+   record-replace would let that blank clobber the previously-good csvDate/csvStation/csvMinutes. */
 sandbox.liveCsv = truncCsvText;
 vm.runInContext('ingestRecords(feedBase())', sandbox);
 const feedBaseTrunc = vm.runInContext('feedBase()', sandbox);
@@ -223,18 +215,17 @@ const recSchedAfterTrunc = schedMap(recBaseAfterTrunc);
 
 const lostByFeedAlone = Object.keys(baselineSched).filter(k => !feedSchedTrunc[k]);
 const retentionDiffs = Object.keys(baselineSched).filter(k => !fieldsEqual(baselineSched[k], recSchedAfterTrunc[k]));
-const retentionOk = Object.keys(baselineSched).filter(k => fieldsEqual(baselineSched[k], recSchedAfterTrunc[k]));
 check(
   '5. retention: TRUNCFEED actually drops jobs vs GOODFEED (feed alone lost ' + lostByFeedAlone.length + ' of ' + Object.keys(baselineSched).length + ' scheduled jobs)',
   lostByFeedAlone.length > 0,
   'expected TRUNCFEED to be a genuine truncation — 0 jobs lost means the fixture is not actually truncated relative to GOODFEED'
 );
 check(
-  '5. retention: recordBase() after truncated re-ingest still contains ALL ' + Object.keys(baselineSched).length + ' baseline scheduled jobs with identical date/station/minutes' +
-    ' [' + retentionOk.length + '/' + Object.keys(baselineSched).length + ' held; ' + retentionDiffs.length + ' overwritten via intake-union re-add — see KNOWN FINDING comment above]',
+  '5. retention: recordBase() after truncated re-ingest still contains ALL ' + Object.keys(baselineSched).length + ' baseline scheduled jobs with identical date/station/minutes',
   retentionDiffs.length === 0,
-  retentionDiffs.length + ' of ' + Object.keys(baselineSched).length + ' lost to the intake-union overwrite (pre-existing ingestRecords/feedBase merge behavior, out of scope here): ' +
-    retentionDiffs.slice(0, 5).join(', ') + (retentionDiffs.length > 5 ? ', +' + (retentionDiffs.length - 5) + ' more' : '')
+  retentionDiffs.length + ' of ' + Object.keys(baselineSched).length + ' lost/changed: ' +
+    retentionDiffs.slice(0, 5).map(k => k + ': baseline=' + JSON.stringify(baselineSched[k]) + ' now=' + JSON.stringify(recSchedAfterTrunc[k])).join(' | ') +
+    (retentionDiffs.length > 5 ? ' | +' + (retentionDiffs.length - 5) + ' more' : '')
 );
 
 /* ───────── check 6: flag gating — history/import always force the feed path ───────── */
@@ -258,6 +249,50 @@ check('6. flag gating: useRecords = RENDER_FROM_RECORDS && !histCsv && !store.cs
 const buildModelSrc = extractFunction(html, 'buildModel');
 const hasUseRecordsLine = /const useRecords=RENDER_FROM_RECORDS&&!histCsv&&!store\.csvText;/.test(buildModelSrc);
 check('6. flag gating: buildModel() contains the exact useRecords gating expression verified above', hasUseRecordsLine, 'buildModel() source did not contain the expected literal expression');
+
+/* ───────── check 7: a real CSV row's Prod. Date going set -> blank DOES blank the record ─────────
+   The precedence fix must not overcorrect: a REAL CSV row (j.apiIntake falsy) stays authoritative
+   for base fields — INCLUDING a legitimately blank date (Jean unscheduling the job in Printavo
+   produces exactly this: a real CSV row with an empty Prod. Date). Built via the real parseCSV +
+   rowToJob against a genuine GOODFEED row for '27444 - 1' (already seeded with a real date by
+   check 4/5), with its Prod. Date column cleared — a faithful stand-in for the next live pull
+   after Jean unschedules it. */
+const realConsole = sandbox.console;
+sandbox.console = { log: () => {} };   // mute ingestRecords' "dropped" diagnostic — these isolated 1-job bases make nearly everything look dropped, which is expected noise, not a finding
+
+sandbox._t7Good = goodCsvText;
+const t7Rows = vm.runInContext('parseCSV(_t7Good)', sandbox);
+const t7Hdr = t7Rows[0];
+const t7DateIdx = t7Hdr.indexOf('Prod. Date');
+const t7OrigRow = t7Rows.find(r => r[t7Hdr.indexOf('Imprint')] === '27444 - 1');
+const preT7 = (sandbox.store.jobRecords['27444 - 1'] || {}).csvDate;
+const t7Row = t7OrigRow.slice(); t7Row[t7DateIdx] = '';
+sandbox._t7Row = t7Row; sandbox._t7Hdr = t7Hdr;
+const t7Job = vm.runInContext('rowToJob(_t7Row,_t7Hdr)', sandbox);
+sandbox._t7Base = [t7Job];
+vm.runInContext('ingestRecords(_t7Base)', sandbox);
+const postT7 = sandbox.store.jobRecords['27444 - 1'].csvDate;
+check(
+  "7. real CSV row: '27444 - 1' Prod. Date set (" + JSON.stringify(preT7) + ') -> blank CSV row blanks the record (csvDate now ' + JSON.stringify(postT7) + ')',
+  !!preT7 && postT7 === '',
+  'expected a non-empty prior date and an empty date after ingesting the blanked CSV row'
+);
+
+/* ───────── check 8: an intake-only heartbeat over an unchanged record must not dirty the store ───────── */
+sandbox._t8Input = { imprint: '99999 - 1', nickname: 'TEST HEARTBEAT JOB', qty: 10, custDue: '2026-08-01', prodDue: '2026-07-30', invoiceStatus: 'Test Status', screens: 2, ink: 'Plastisol', typeOfWork: 'In-House Production', invoiceId: '1', groupId: '1', imprintId: '12345' };
+const t8Job1 = vm.runInContext('apiToJob(_t8Input)', sandbox);
+sandbox._t8Base1 = [t8Job1];
+vm.runInContext('ingestRecords(_t8Base1)', sandbox);   // seed: new record, prev=null -> _recordsDirty=true expected here, not under test
+sandbox._recordsDirty = false;                          // reset right before the actual heartbeat under test
+const t8Job2 = vm.runInContext('apiToJob(_t8Input)', sandbox);   // simulate a second, identical intake pull
+sandbox._t8Base2 = [t8Job2];
+vm.runInContext('ingestRecords(_t8Base2)', sandbox);
+sandbox.console = realConsole;
+check(
+  '8. intake-only heartbeat over an unchanged record does not mark the store dirty (no save loop) — _recordsDirty=' + sandbox._recordsDirty,
+  sandbox._recordsDirty === false,
+  '_recMeaningfulEqual(prev,rec) should have held true on an identical repeat intake pull'
+);
 
 console.log('\n' + passCount + ' passed, ' + failCount + ' failed');
 process.exit(failCount > 0 ? 1 : 0);
