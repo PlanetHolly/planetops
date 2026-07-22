@@ -4,7 +4,8 @@
   "description": "The gate: PIN auth + static serving + credential-holding proxies for the PlanetOps app (Codex-reviewed design — see PLAN.md at repo root)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "sh feed/parity_test.sh"
   },
   "engines": {
     "node": ">=18"

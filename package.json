@@ -3,7 +3,8 @@
   "private": true,
   "description": "Planet Apparel operating system — static surfaces served behind the frontdoor-gate (gate/index.js). This root package.json exists so Railway's Node builder deploys the gate; the site itself is static.",
   "scripts": {
-    "start": "node gate/index.js"
+    "start": "node gate/index.js",
+    "test": "sh gate/feed/parity_test.sh"
   },
   "engines": {
     "node": ">=18"

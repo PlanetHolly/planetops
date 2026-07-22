@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-07-16 (sample data - not live)",
+  "items": [
+    {
+      "fact_id": "F-20260716-0001",
+      "vendor": "SNS Activewear",
+      "job": "1234",
+      "customer": "Blink",
+      "summary": "SNS Activewear order for Blink #1234 - 3 invoices - $4,820 - 130 units - ETA 7/22",
+      "total": 4820.00,
+      "line_count": 3,
+      "eta": "2026-07-22",
+      "status": "routed",
+      "received_at": "2026-07-16T15:45:17Z",
+      "doc_refs": ["sns-779120", "sns-779121", "sns-779122"]
+    },
+    {
+      "fact_id": "F-20260716-0002",
+      "vendor": "SanMar",
+      "job": "1288",
+      "customer": "Northstar Coffee",
+      "summary": "SanMar PO for Northstar Coffee #1288 - 1 invoice - $1,245 - 48 units - ETA 7/17",
+      "total": 1245.35,
+      "line_count": 1,
+      "eta": "2026-07-17",
+      "status": "routed",
+      "received_at": "2026-07-16T16:12:03Z",
+      "doc_refs": ["po-sm-4418"]
+    },
+    {
+      "fact_id": "F-20260716-0003",
+      "vendor": "AlphaBroder",
+      "job": "1291",
+      "customer": "Canyon Crew",
+      "summary": "AlphaBroder order for Canyon Crew #1291 - 2 invoices - $2,670 - 72 units - ETA unknown",
+      "total": 2670.00,
+      "line_count": 2,
+      "eta": null,
+      "status": "routed",
+      "received_at": "2026-07-16T17:04:49Z",
+      "doc_refs": ["ab-330901", "ab-330902"]
+    },
+    {
+      "fact_id": "F-20260716-0004",
+      "vendor": "S&S Canada",
+      "job": "1227",
+      "customer": "Iron & Velvet",
+      "summary": "S&S Canada order for Iron & Velvet #1227 - 1 invoice - $935 - 36 units - ETA 7/14",
+      "total": 935.60,
+      "line_count": 1,
+      "eta": "2026-07-14",
+      "status": "routed",
+      "received_at": "2026-07-15T22:18:51Z",
+      "doc_refs": ["ssca-98217"]
+    }
+  ]
+}

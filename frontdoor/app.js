@@ -679,7 +679,7 @@ function renderHome(pane) {
     pane.appendChild(el('div', 'groupHead', '⚡ The Feed'));
     const fc = el('div', 'feedCard',
       `<span class="iconBadge ib-lg"><svg viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M3 12h5M16 12h5M5.6 5.6l3.5 3.5M14.9 14.9l3.5 3.5M18.4 5.6l-3.5 3.5M9.1 14.9l-3.5 3.5" stroke="#F7BE00" stroke-width="2.3" stroke-linecap="round"/></svg></span>` +
-      `<div><h3>Feed the system</h3><p>Drop documents — payroll, financials, production times, anything notable — and they flow into PlanetIQ.</p></div><span class="feedGo">Open →</span>`);
+      `<div><h3>Feed the system</h3><p>Where to drop payroll, financials, production times or anything notable — and how to know it actually landed.</p></div><span class="feedGo">Open →</span>`);
     fc.onclick = () => openNode(feedNode);
     pane.appendChild(fc);
   }

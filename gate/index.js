@@ -25,11 +25,18 @@ const crypto  = require('crypto');
 const path    = require('path');
 const fs      = require('fs');
 const { Pool } = require('pg');
+const { runFeedMigrations, feedSchemaStatus, feedSchemaReady } = require('./feed/migrate');
+const { runFeedStartupSelfCheck } = require('./feed/startup_selfcheck');
+const { readyzResponse } = require('./feed/readiness');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);                       // Railway sits behind a proxy
-app.use(express.json({ limit: '10mb' }));
+const globalJson = express.json({ limit: '10mb' });
+function shouldBypassGlobalJson(req) {
+  return String(req.path || '').replace(/\/+$/, '').toLowerCase() === '/api/feed/intake';
+}
+app.use((req, res, next) => (shouldBypassGlobalJson(req) ? next() : globalJson(req, res, next)));
 app.use(express.urlencoded({ extended: false }));
 // Anti-clickjacking: our own front door may frame these pages; nobody else can.
 app.use((req, res, next) => { res.set('X-Frame-Options', 'SAMEORIGIN'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
@@ -50,7 +57,7 @@ const DENY_PREFIXES = ['/gate/', '/state-api/', '/_planning/', '/.git/', '/node_
 const DENY_EXACT    = ['/PLAN.md', '/PLAN-REVIEW-LOG.md'];
 
 // Finance zone — requires the second PIN (server-side map; registry labels are display-only)
-const FINANCE_PREFIXES = ['/planetiq/', '/pricing/'];   // margin/SP-bearing pages — finance PIN, not just the team PIN
+const FINANCE_PREFIXES = ['/planetiq/', '/pricing/', '/api/feed/review'];   // margin/SP-bearing pages — finance PIN, not just the team PIN
 const FINANCE_EXACT    = ['/clock/admin.html', '/clock/report.html'];
 
 const FINANCE_IDLE_MIN = 60;   // finance unlock re-prompts after 60 min idle
@@ -84,6 +91,25 @@ pool.query(`
   )
 `).then(() => console.log('gate_sessions ready'))
   .catch(err => console.error('DB init failed:', err.message));
+let feedWorkersReady = false;
+let feedStartupSelfCheck = { ok: false, error: 'not checked' };
+
+runFeedMigrations(pool, alert)
+  .then(() => {
+    console.log('feed_schema ready');
+    feedStartupSelfCheck = runFeedStartupSelfCheck();
+    if (!feedStartupSelfCheck.ok) {
+      feedWorkersReady = false;
+      alert('feed_startup_selfcheck_failed', { msg: 'Feed workers refused to start because routing registry self-check failed.', schema_ok: false }).catch(() => {});
+      console.error('feed_startup_selfcheck failed:', feedStartupSelfCheck.error);
+      return;
+    }
+    require('./feed/worker').startFeedWorker(pool, alert);   // Build #4a: extraction worker (safe without ANTHROPIC_API_KEY — rows just wait)
+    require('./feed/dispatch').startOutboxDispatcher(pool, alert);   // Build #5a: outbox dispatcher (internal destinations only; 'planetiq' waits for #5b)
+    require('./feed/sink').startExternalDispatcher(pool, alert);   // Build #5b: external n8n sink (shadow-held until a doc_type graduates; halts without FEED_SINK_URL/SECRET)
+    feedWorkersReady = true;
+  })
+  .catch(err => console.error('feed_schema init failed:', err.message));
 // housekeeping: purge expired sessions hourly
 setInterval(() => pool.query('DELETE FROM gate_sessions WHERE expires_at < NOW()').catch(()=>{}), 3600e3);
 
@@ -231,6 +257,12 @@ function hasFinanceUnlock(session) {
 /* ── Routes: health ─────────────────────────────────────────────────────── */
 app.get('/healthz', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));   // pure liveness — heartbeat target
 
+app.get('/readyz', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const ready = readyzResponse(feedSchemaReady(), feedWorkersReady);
+  res.status(ready.status).json(ready.body);
+});
+
 app.get('/health-public', async (req, res) => {                                            // plain language, never gated
   let db = true; try { await pool.query('SELECT 1'); } catch { db = false; }
   res.set('Cache-Control', 'no-store');
@@ -241,13 +273,15 @@ app.get('/health-public', async (req, res) => {                                 
 If it says 🟠, wait a few minutes; the system alerts the 🚨 channel automatically.</p></body>`);
 });
 
-app.get('/readyz', async (req, res) => {                                                    // dependency detail — gated
+app.get('/readyz/detail', async (req, res) => {                                             // dependency detail — gated
   const s = await loadSession(req);
   if (!s || s === DB_DOWN) return res.status(401).json({ error: 'auth required' });
   const checks = {};
   try { await pool.query('SELECT 1'); checks.db = 'ok'; } catch (e) { checks.db = 'FAIL: ' + e.message; }
   try { const r = await fetch(process.env.STATE_API_URL + '/health', { signal: AbortSignal.timeout(5000) }); checks.stateApi = r.ok ? 'ok' : 'HTTP ' + r.status; } catch (e) { checks.stateApi = 'FAIL: ' + e.message; }
   checks.alertWebhook = process.env.ALERT_WEBHOOK_URL ? 'configured' : 'NOT CONFIGURED';
+  checks.feed_schema = feedSchemaStatus();
+  checks.feed_workers = feedWorkersReady ? 'ok' : 'FAIL';
   const ok = Object.values(checks).every(v => v === 'ok' || v === 'configured');
   res.status(ok ? 200 : 503).json({ ok, checks, ts: new Date().toISOString() });
 });
@@ -309,6 +343,16 @@ async function requireSession(req, res) {
   if (!s) { res.status(401).json({ error: 'auth required' }); return null; }
   return s;
 }
+async function requireFinanceSession(req, res) {
+  const s = await requireSession(req, res);
+  if (!s) return null;
+  if (!hasFinanceUnlock(s)) {
+    res.status(403).json({ error: 'finance unlock required' });
+    return null;
+  }
+  pool.query('UPDATE gate_sessions SET finance_until = NOW() + $1::interval WHERE sid=$2', [`${FINANCE_IDLE_MIN} minutes`, s.sid]).catch(()=>{});
+  return s;
+}
 const SS_SECRET_FIELDS = ['shipStationApiKey', 'shipStationApiSecret'];
 function scrubState(obj) {                       // creds never round-trip through browsers again
   if (obj && obj.fulfillment) SS_SECRET_FIELDS.forEach(f => { delete obj.fulfillment[f]; });
@@ -334,6 +378,8 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
   } catch (e) { res.status(502).json({ error: 'state-api unreachable: ' + e.message }); }
 });
 app.use(require('./graphics')(pool, requireSession));
+app.use(require('./feed/intake')(pool, requireSession, { hmac, timingEq, sameOrigin, alert, loadSession }));
+app.use(require('./feed/views')(pool, requireSession, requireFinanceSession));   // Build #6a: gated reads — /api/feed/incoming + /api/feed/ledger + finance-gated review queue
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance
