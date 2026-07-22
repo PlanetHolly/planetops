@@ -1182,6 +1182,13 @@ function feedBase(){
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
   intakeAdded=0;intakeStale=0;
   if(intakeJobs&&!histCsv&&!store.csvText){   // live mode only — history snapshots + manual imports stay pure
+    // Due dates track the LIVE intake feed, not the stale CSV snapshot. Prod./Cust. Due change in Printavo
+    // after the last export and the CSV lags; the intake feed is a live GraphQL pull, so it is authoritative
+    // for DUE DATES even on invoices where the CSV still wins on Prod. Date/station/minutes. Invoice-level,
+    // non-empty only; falls back to the CSV date when an invoice has aged out of the intake feed.
+    const liveDue={};
+    intakeJobs.forEach(a=>{const m=String(a.imprint).match(/^(\d+)/);if(m&&!liveDue[m[1]])liveDue[m[1]]={prodDue:a.prodDue||'',custDue:a.custDue||''};});
+    base.forEach(j=>{const d=liveDue[j.invoice];if(d){if(d.prodDue)j.prodDue=d.prodDue;if(d.custDue)j.custDue=d.custDue;}});
     const known=new Set(base.map(j=>j.invoice)), seen=new Set();
     const staleCut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
     intakeJobs.forEach(a=>{
