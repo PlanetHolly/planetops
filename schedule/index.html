@@ -1147,10 +1147,13 @@ if(typeof window!=='undefined')window.jobRecordsDiag=()=>_recordDiag;
    Default OFF. ?render=records turns it on and persists per-browser; ?render=feed
    turns it off and clears; no param keeps whatever was last persisted. Same
    URL-param-then-localStorage pattern as capacity/index.html's ?mode=jean. */
-const _renderParam=new URLSearchParams(location.search).get('render');
-if(_renderParam==='records')localStorage.setItem('sb_render_source','records');
-else if(_renderParam==='feed')localStorage.removeItem('sb_render_source');
-const RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
+let RENDER_FROM_RECORDS=false;
+try{ // storage can throw at load (private browsing / partitioned iframe) — never let the flag kill the render
+  const _renderParam=new URLSearchParams(location.search).get('render');
+  if(_renderParam==='records')localStorage.setItem('sb_render_source','records');
+  else if(_renderParam==='feed')localStorage.removeItem('sb_render_source');
+  RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
+}catch(e){}
 
 /* feedBase(): CSV rows (rowToJob) unioned with live intake (apiToJob) — the base
    assembly buildModel() has always done. Pulled out unchanged so ingestRecords()
