@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>QC Gate Checklist — Planet Apparel</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.7;
+  --pa-icon-size: 36px;
+  --pa-icon-color: var(--pa-black);
+}
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: var(--pa-white); line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+body { padding: 0.4in 0.7in; }
+h1, h2, h3, h4 { font-family: var(--pa-font-stack); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.25; margin: 1.4em 0 0.4em; color: var(--pa-black); }
+h1 { font-size: 2.0rem; margin-top: 0.6em; }
+h2 { font-size: 1.35rem; font-weight: 700; border-top: 3px solid var(--pa-yellow); padding-top: 0.6rem; }
+h3 { font-size: 1.05rem; font-weight: 700; margin-top: 1.1em; }
+p { margin: 0.5em 0; }
+strong, b { font-weight: 700; }
+a { color: var(--pa-black); text-decoration: underline; text-underline-offset: 2px; }
+.lead { font-size: 1.02rem; }
+.pa-accent { color: var(--pa-yellow); }
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 1.2rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
+.pa-icon { height: var(--pa-icon-size); width: auto; color: var(--pa-icon-color); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding-top: 0.75rem; border-top: 1px solid var(--pa-black); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { --pa-icon-size: 22px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+.pa-callout { border-left: 4px solid var(--pa-yellow); background: #FFFBEC; padding: 0.7rem 1rem; margin: 1rem 0; }
+.pa-callout .pa-callout-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; color: #8A7000; display:block; margin-bottom: 0.15rem; }
+.step { margin: 0.9rem 0 0.5rem; }
+.step .num { display:inline-block; min-width: 1.6em; height: 1.6em; line-height: 1.6em; text-align:center; background: var(--pa-black); color: var(--pa-yellow); font-weight: 900; border-radius: 50%; margin-right: 0.5rem; font-size: 0.9rem; }
+ul { margin: 0.3em 0 0.6em; padding-left: 1.3rem; }
+li { margin: 0.2em 0; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #DDD; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #E8E8E8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.8rem; }
+/* Screenshot slots — drop a Printavo capture here */
+.shot { border: 2px dashed #C9A100; background: #FFFDF4; border-radius: 6px; padding: 0.9rem 1rem; margin: 0.6rem 0 0.9rem; color: var(--pa-tonal); font-size: 0.84rem; }
+.shot .shot-label { display:block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.68rem; color: #8A7000; margin-bottom: 0.2rem; }
+.shot .shot-file { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.78rem; background:#F2E9C8; padding: 0.05rem 0.3rem; border-radius: 3px; }
+.shot img { display:block; max-width: 100%; height: auto; border: 1px solid #CCC; border-radius: 4px; margin-top: 0.5rem; }
+.note { font-size: 0.85rem; color: var(--pa-tonal); }
+@page { size: letter; margin: 0.6in 0.7in; }
+@media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; padding: 0; } table, .pa-callout, .shot { page-break-inside: avoid; } h2, h3 { page-break-after: avoid; } }
+</style>
+</head>
+<body>
+
+<header class="pa-header">
+  <div class="pa-header-title">QC Gate Checklist</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+
+<h1>The QC Gate — Checklist</h1>
+
+<p class="lead">The QC Gate is owned by the <strong>Operations Coordinator (Malia)</strong> and run by whoever covers it on her off-days. Every order passes through the gate before it goes to production — the gate-runner catches what doesn't add up, for the sales team and the production team, while there's still time to fix it.</p>
+
+<p class="lead">This is the gate-runner's anchor (wherever it says "you," it means the person running the gate). You will <strong>not</strong> know every answer at first, and you're not supposed to. The gate is <strong>step by step, top to bottom</strong>. Start at the top of the order, work straight down, and you'll catch what matters.</p>
+
+<h2>When you run it</h2>
+<ul>
+  <li>Run the gate on every order that lands in <strong>Paid &rarr; Blanks-to-Order</strong> status. That's the trigger — the moment an order becomes a real, push-to-production project (it's also what sends the alert email).</li>
+  <li>Open the order in <strong>Admin / edit view</strong> — <em>not</em> the public invoice. The public view is what the customer sees; you need the full deconstructed version to actually check it.</li>
+  <li>One order at a time. Top to bottom. Don't skip down — once it's out of sight, it's out of mind.</li>
+</ul>
+
+<div class="pa-callout">
+  <span class="pa-callout-label">On your off-days</span>
+  This checklist is built so <strong>anyone</strong> can run it — it's not "only Malia." Mondays, or any day you're out, someone else opens the same list and runs the same steps.
+</div>
+
+<h2>The 12 steps</h2>
+
+<div class="step"><h3><span class="num">1</span>Open it right</h3></div>
+<p>Order is in <strong>Paid &rarr; Blanks-to-Order</strong>. Open <strong>Admin / edit view</strong>. Start at the very top.</p>
+<div class="shot">
+  <span class="shot-label">📷 Screenshot slot — capture &amp; save as <span class="shot-file">images/step-01-admin-view.png</span></span>
+  The order open in <strong>Admin / edit view</strong>, with "More options &rarr; Public invoice" visible — so the difference between admin view and what the customer sees is obvious.
+</div>
+
+<div class="step"><h3><span class="num">2</span>Top box — who &amp; how</h3></div>
+<p>Note the <strong>owner</strong> (the rep — Shara on bandanas, Cortney on apparel) and the <strong>ship method</strong>. PO number and created date aren't your concern — skip them.</p>
+
+<div class="step"><h3><span class="num">3</span>The date triangle <span class="note">— spend time here</span></h3></div>
+<p>Line up three dates:</p>
+<ul>
+  <li><strong>Production due date</strong></li>
+  <li><strong>Customer's in-hands / due date</strong></li>
+  <li><strong>Shipping transit time</strong> (how many days to get there)</li>
+</ul>
+<p>Do they fit together? Cross-check the <strong>Production Availability</strong> tool for that day's capacity. Is the order even scheduled yet? If it's tight, that's a flag — bring it to Jean's attention (don't panic-flag; just make sure he's aware).</p>
+<div class="shot">
+  <span class="shot-label">📷 Screenshot slot — capture &amp; save as <span class="shot-file">images/step-03-dates.png</span></span>
+  The invoice header showing <strong>production due date</strong> + <strong>customer due date</strong> side by side, and a capture of the <strong>Production Availability</strong> tool for the relevant day.
+</div>
+
+<div class="step"><h3><span class="num">4</span>Production notes</h3></div>
+<p>Read them. Hard deadline? Anything unusual? Is there a <strong>press-check</strong> note where it should be?</p>
+
+<div class="step"><h3><span class="num">5</span>Shipping notes</h3></div>
+<p>Special labels, box markings, convention-center markings, overnight shipping — anything the floor needs to know to ship it right.</p>
+
+<div class="step"><h3><span class="num">6</span>Blanks &amp; inventory</h3></div>
+<p>Check <strong>live inventory</strong> against the quantity needed. Is there enough? If it's low, flag it. <span class="note">(Bandana ordering math — the 50-dozen logic, pick-and-pull — stays with Jean for now; he fills in the blanks notes.)</span></p>
+<div class="shot">
+  <span class="shot-label">📷 Screenshot slot — capture &amp; save as <span class="shot-file">images/step-06-inventory.png</span></span>
+  The <strong>live inventory</strong> readout on a line item — quantity needed vs. quantity on hand (a low-stock example is ideal so the flag is clear).
+</div>
+
+<div class="step"><h3><span class="num">7</span>Art vs. separation file <span class="note">— the big one</span></h3></div>
+<p>Does the attached <strong>separation file match the mockup</strong>? Size, dimensions, content. If it's a <strong>reprint</strong>, go investigate the previous order's folder as a fact-check (not to rely on — to verify).</p>
+<div class="pa-callout">
+  <span class="pa-callout-label">The Peekskill rule</span>
+  On the Peekskill hoodie, the mockup said 12&Prime; but the attached separation file was 10&Prime; — caught on press, against the deadline. <strong>The attached file not matching the mockup is your first flag, every time.</strong> That's the whole reason this gate exists.
+</div>
+<div class="shot">
+  <span class="shot-label">📷 Screenshot slot — capture &amp; save as <span class="shot-file">images/step-07-art-vs-sep.png</span></span>
+  The <strong>mockup</strong> and the <strong>attached separation file</strong> shown together, with the imprint dimensions visible on each — so the match (or mismatch) is the thing you see.
+</div>
+
+<div class="step"><h3><span class="num">8</span>Color</h3></div>
+<p>Verify the <strong>PMS / Pantone</strong> color was chosen from the <strong>physical Pantone book</strong>, not just off the screen. Cross-check the number. The press mixes ink from that number — it has to be right.</p>
+
+<div class="step"><h3><span class="num">9</span>Tags / hashtags</h3></div>
+<p>Confirm the tags: <strong>in-house vs. outsourced</strong>, client type, rep. These are how we filter and report — even when it's outsourced and comes back to us, it's still tagged <em>outsourced</em>.</p>
+
+<div class="step"><h3><span class="num">10</span>Hand-select the production file</h3></div>
+<p>Attach the <strong>exact</strong> production file the floor should print from — so no one digs through the folder and grabs the wrong version. This is the safety net.</p>
+
+<div class="step"><h3><span class="num">11</span>Final glance</h3></div>
+<p>Get out of edit mode. Go back to the overview and sweep <strong>top to bottom one more time</strong>. You'll catch the thing you meant to come back to.</p>
+
+<div class="step"><h3><span class="num">12</span>Sign off</h3></div>
+<p>Set the status to <strong>QC Complete</strong> and drop the <span class="shot-file">/QC</span> snippet ("QC'd by Malia"). Done.</p>
+<div class="shot">
+  <span class="shot-label">📷 Screenshot slot — capture &amp; save as <span class="shot-file">images/step-12-signoff.png</span></span>
+  The order set to <strong>QC Complete</strong> status, plus the <span class="shot-file">/QC</span> text-blaze snippet expanded in the notes ("QC'd by Malia").
+</div>
+
+<h2>If something's off</h2>
+<p>You don't fix it yourself — you <strong>flag it to the right person while there's still time</strong>:</p>
+<ul>
+  <li><strong>Timing / scheduling</strong> &rarr; Jean</li>
+  <li><strong>Apparel art or customer questions</strong> &rarr; Cortney</li>
+  <li><strong>Bandana art or customer questions</strong> &rarr; Shara</li>
+</ul>
+<p>The goal is simple: <em>nothing reaches production that doesn't add up.</em> When you're not sure whether something's a real problem, ask — that's the job working, not the job failing.</p>
+
+<p class="note">Source: live QC walk-throughs, June 15, 2026 (Modern Animal + School of bandana, with the Peekskill case study). This is the source-of-truth checklist; the QC Log form mirrors these 12 steps. Dashed boxes are screenshot slots — capture the described Printavo view and save it to <span class="shot-file">images/</span> with the filename shown, then re-render.</p>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · June 15, 2026 · QC Gate v1</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</body>
+</html>

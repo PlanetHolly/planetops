@@ -12,6 +12,7 @@ const ENUMS = {
 };
 const BADGE = { live: 'LIVE', stale: 'STALE', wip: 'WIP', planned: 'PLANNED' };
 const PINS_KEY = 'frontdoor.pins';
+const DEFAULT_PINS = ['floor-board', 'schedule', 'command-center', 'qc-gate-form', 'signals', 'capacity', 'bandana-quote-team', 'apparel-quote-team'];
 
 /* Registry URLs may only be same-origin paths or approved external domains —
    a bad registry edit must never send the team to a lookalike site. */
@@ -34,13 +35,14 @@ const GLYPHS = {
   'revenue-house':'<svg viewBox="0 0 24 24"><path d="M12 4.5 20 14h-4.6v5.5H8.6V14H4z" fill="#10b981"/></svg>',
   planetiq:      '<svg viewBox="0 0 24 24"><rect x="4.5" y="12" width="3.6" height="7" rx="1" fill="#38bdf8"/><rect x="10.2" y="8" width="3.6" height="11" rx="1" fill="#38bdf8"/><rect x="15.9" y="5" width="3.6" height="14" rx="1" fill="#38bdf8"/></svg>',
   systems:       '<svg viewBox="0 0 24 24"><circle cx="9.5" cy="12" r="4.3" fill="none" stroke="#a78bfa" stroke-width="2.6"/><circle cx="14.5" cy="12" r="4.3" fill="none" stroke="#a78bfa" stroke-width="2.6"/></svg>',
-  training:      '<svg viewBox="0 0 24 24"><path d="M12 5.5 21 10l-9 4.5L3 10z" fill="#2dd4bf"/><path d="M17 12v3.2c0 1.8-2.2 3.3-5 3.3s-5-1.5-5-3.3V12" fill="none" stroke="#2dd4bf" stroke-width="2"/></svg>',
   references:    '<svg viewBox="0 0 24 24"><path d="M12 6.5C10.3 5.6 6.7 5.6 5 6.3V18c1.7-.7 5.3-.7 7 .2z" fill="#fbbf24"/><path d="M12 6.5c1.7-.9 5.3-.9 7-.2V18c-1.7-.7-5.3-.7-7 .2z" fill="#fbbf24" opacity=".65"/></svg>',
   'time-labor':  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#22d3ee" stroke-width="2.4"/><path d="M12 8.2V12l3 2" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round"/></svg>',
   growth:        '<svg viewBox="0 0 24 24"><path d="M12 19v-7.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/><path d="M12 12.5C8 12.5 6.5 8 6.5 8c4 0 5.5 4.5 5.5 4.5z" fill="#34d399"/><path d="M12 13.5c3.5 0 4.8-3.2 4.8-3.2-3.6 0-4.8 3.2-4.8 3.2z" fill="#34d399" opacity=".8"/></svg>',
   brain:         '<svg viewBox="0 0 24 24"><path d="M8 9.5 16 9.5 12 16.5z" fill="none" stroke="#f472b6" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2.1" fill="#f472b6"/><circle cx="16" cy="9.5" r="2.1" fill="#f472b6"/><circle cx="12" cy="16.5" r="2.1" fill="#f472b6"/></svg>',
   decisions:     '<svg viewBox="0 0 24 24"><path d="M12 5.5v6M12 11.5l-5 5M12 11.5l5 5" fill="none" stroke="#cbd5e1" stroke-width="2.4" stroke-linecap="round"/></svg>',
   floor:         '<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="4" height="13" rx="1.4" fill="#F7BE00"/><rect x="10" y="5.5" width="4" height="8.5" rx="1.4" fill="#F7BE00"/><rect x="16" y="5.5" width="4" height="10.5" rx="1.4" fill="#F7BE00"/></svg>',
+  guides:        '<svg viewBox="0 0 24 24"><path d="M6 5.5h7.2c2 0 3.6 1.6 3.6 3.6v9.4H9.6A3.6 3.6 0 0 1 6 14.9z" fill="#fbbf24"/><path d="M9.3 9h4.9M9.3 12h4.9" stroke="#232323" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  graphics:      '<svg viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="12.5" rx="2.5" fill="#f472b6"/><circle cx="8.5" cy="9" r="1.7" fill="#fff"/><path d="M5 15.5l4.5-4.5 3 3 3.5-4 3.5 5.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>',
   qc:            '<svg viewBox="0 0 24 24"><path d="M12 3.8l6.8 2.6v5.1c0 4-2.9 6.9-6.8 8.2-3.9-1.3-6.8-4.2-6.8-8.2V6.4z" fill="#4ade80"/><path d="M8.8 12.1l2.2 2.2 4.2-4.5" fill="none" stroke="#232323" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   'qc-gate-form':'<svg viewBox="0 0 24 24"><rect x="5" y="3.6" width="14" height="16.8" rx="2.6" fill="#4ade80"/><path d="M8.4 8.6h7.2M8.4 12h7.2M8.4 15.4h4.2" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round"/></svg>',
   // ── Revenue House + Desks (QB-style: distinct bright glyph per surface) ──
@@ -52,8 +54,10 @@ const GLYPHS = {
   'dtf-quote-desk':       '<svg viewBox="0 0 24 24"><path d="M12 4.5l8 13.5H4z" fill="#fb923c"/></svg>',
   'embroidery-quote-desk':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#34d399" stroke-width="3.2"/></svg>',
   desks:                  '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.6" fill="#38bdf8"/></svg>',
+  'bandana-quoting-glance-card': '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="2.2" fill="#fb7185"/><path d="M8 9h8l-4 5.5z" fill="#232323"/></svg>',
+  'bandana-matrix-cheat-card': '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="2.2" fill="#fbbf24"/><path d="M4.5 10h15M4.5 14.5h15M10 4.5v15M15 4.5v15" stroke="#232323" stroke-width="1.6"/></svg>',
   // Revenue House surfaces
-  'watchtower-rev':   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="#2dd4bf"/></svg>',
+  watchtower:         '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="2.6" fill="#2dd4bf"/></svg>',
   retention:          '<svg viewBox="0 0 24 24"><path d="M12 18.6S4.8 14.3 4.8 9.6A3.6 3.6 0 0 1 12 8.1a3.6 3.6 0 0 1 7.2 1.5c0 4.7-7.2 9-7.2 9z" fill="#f472b6"/></svg>',
   'command-center':   '<svg viewBox="0 0 24 24"><path d="M6 8h12M6 12h12M6 16h12" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round"/><circle cx="9" cy="8" r="2.1" fill="#c084fc"/><circle cx="15.5" cy="12" r="2.1" fill="#c084fc"/><circle cx="10" cy="16" r="2.1" fill="#c084fc"/></svg>',
   'status-simulator': '<svg viewBox="0 0 24 24"><path d="M9 7l8 5-8 5z" fill="#38bdf8"/></svg>',
@@ -65,7 +69,7 @@ const GLYPHS = {
   'apparel-quote-calc':'<svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2.2" fill="#F7BE00"/><rect x="8" y="6.4" width="8" height="3" rx="1" fill="#232323"/><circle cx="9" cy="13" r="1.2" fill="#232323"/><circle cx="12" cy="13" r="1.2" fill="#232323"/><circle cx="15" cy="13" r="1.2" fill="#232323"/><circle cx="9" cy="16.6" r="1.2" fill="#232323"/><circle cx="12" cy="16.6" r="1.2" fill="#232323"/><circle cx="15" cy="16.6" r="1.2" fill="#232323"/></svg>',
   'bandana-pricing-desk':'<svg viewBox="0 0 24 24"><path d="M4 7.5h16l-8 10.5z" fill="#fda4af"/></svg>',
   'revenue-discovery':'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.2" fill="none" stroke="#94a3b8" stroke-width="2.4"/><path d="M14.6 14.6l4 4" stroke="#94a3b8" stroke-width="2.4" stroke-linecap="round"/></svg>',
-  // ── PlanetOps surfaces (batch 1) ──
+  // ── Production surfaces (batch 1) ──
   schedule:          '<svg viewBox="0 0 24 24"><rect x="4.5" y="6" width="15" height="13" rx="3" fill="#38bdf8"/><rect x="7.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="14.5" y="3.5" width="2" height="4.5" rx="1" fill="#0ea5e9"/><rect x="7.5" y="11" width="9" height="1.8" rx=".9" fill="#232323"/><rect x="7.5" y="14.5" width="6" height="1.8" rx=".9" fill="#232323"/></svg>',
   capacity:          '<svg viewBox="0 0 24 24"><path d="M4.5 17a7.5 7.5 0 0 1 15 0" fill="none" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><path d="M12 17l4.5-4" stroke="#f59e0b" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.7" fill="#f59e0b"/></svg>',
   estimator:         '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2.5" fill="#a78bfa"/><rect x="8.5" y="6.5" width="7" height="3" rx="1" fill="#232323"/><circle cx="9.5" cy="13" r="1.1" fill="#232323"/><circle cx="12" cy="13" r="1.1" fill="#232323"/><circle cx="14.5" cy="13" r="1.1" fill="#232323"/><circle cx="9.5" cy="16.5" r="1.1" fill="#232323"/><circle cx="12" cy="16.5" r="1.1" fill="#232323"/><circle cx="14.5" cy="16.5" r="1.1" fill="#232323"/></svg>',
@@ -74,20 +78,16 @@ const GLYPHS = {
   boxes:             '<svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5 4.5 16.3V7.7z" fill="#d4a373"/><path d="M4.7 7.8L12 12l7.3-4.2M12 12v8.3" fill="none" stroke="#232323" stroke-width="1.5"/></svg>',
   "prod-flow-map":   '<svg viewBox="0 0 24 24"><path d="M6 6v5.5a3 3 0 0 0 3 3h6" fill="none" stroke="#2dd4bf" stroke-width="2.4"/><path d="M13 11l4 3.5-4 3.5" fill="none" stroke="#2dd4bf" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="5.5" r="2.2" fill="#2dd4bf"/></svg>',
   "graphics-suite":  '<svg viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="12.5" rx="2.5" fill="#f472b6"/><circle cx="8.5" cy="9" r="1.7" fill="#fff"/><path d="M5 15.5l4.5-4.5 3 3 3.5-4 3.5 5.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-  "qc-invoice":      '<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2.2" fill="#34d399"/><path d="M9 12.2l2.3 2.3 4.2-4.5" fill="none" stroke="#232323" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   clock:             '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#22d3ee"/><path d="M12 7.5V12l3.2 2" fill="none" stroke="#232323" stroke-width="2.2" stroke-linecap="round"/></svg>',
   "timesheets-report":'<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2.2" fill="#60a5fa"/><path d="M8.5 9h7M8.5 12.2h7M8.5 15.4h4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
   "team-admin":      '<svg viewBox="0 0 24 24"><circle cx="9" cy="9.5" r="2.7" fill="#fbbf24"/><circle cx="15.6" cy="10" r="2.2" fill="#fbbf24"/><path d="M4.4 18c0-2.7 2.1-4.4 4.6-4.4s4.6 1.7 4.6 4.4" fill="none" stroke="#fbbf24" stroke-width="1.9" stroke-linecap="round"/><path d="M14.5 18c0-2 1.4-3.4 3.2-3.4S20.9 16 20.9 18" fill="none" stroke="#fbbf24" stroke-width="1.9" stroke-linecap="round"/></svg>',
   "screen-readiness":'<svg viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="14" rx="2.5" fill="#c084fc"/><path d="M8.3 5v14M12 5v14M15.7 5v14M4.5 9h15M4.5 13h15" stroke="#232323" stroke-width="0.9" opacity=".6"/></svg>',
   // ── Revenue House surfaces ──
-  "rh-hub-page":      '<svg viewBox="0 0 24 24"><path d="M12 4l8 6.5h-2.5V19h-11V10.5H4z" fill="#10b981"/></svg>',
-  signals:           '<svg viewBox="0 0 24 24"><circle cx="12" cy="16.5" r="2.4" fill="#0ea5e9"/><path d="M8 13a5.5 5.5 0 0 1 8 0M6 10.3a9 9 0 0 1 12 0" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round"/></svg>',
   "retention-map":   '<svg viewBox="0 0 24 24"><path d="M7 5v6a5 5 0 0 0 10 0V5h-3v6a2 2 0 0 1-4 0V5z" fill="#ef4444"/><rect x="7" y="4.3" width="3" height="2.6" fill="#e5e7eb"/><rect x="14" y="4.3" width="3" height="2.6" fill="#e5e7eb"/></svg>',
   "save-touch":      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#f97316" stroke-width="3"/><circle cx="12" cy="12" r="2.8" fill="#f97316"/></svg>',
   "retention-playbook":'<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2" fill="#8b5cf6"/><path d="M13.5 4v7l2-1.4 2 1.4V4z" fill="#c4b5fd"/></svg>',
   "ship-estimate":   '<svg viewBox="0 0 24 24"><rect x="3" y="8" width="10" height="7" rx="1" fill="#f59e0b"/><path d="M13 10h4l3 3v2h-7z" fill="#f59e0b"/><circle cx="7" cy="16.5" r="1.8" fill="#232323"/><circle cx="16.5" cy="16.5" r="1.8" fill="#232323"/></svg>',
   "retention-registry":'<svg viewBox="0 0 24 24"><rect x="4.5" y="6" width="15" height="12" rx="2" fill="#14b8a6"/><path d="M7.5 10h9M7.5 13h9M7.5 15.5h5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>',
-  "pipeline-dashboard":'<svg viewBox="0 0 24 24"><path d="M4 6h16l-6 7v5.5l-4 1.5V13z" fill="#94a3b8"/></svg>',
   // ── PlanetIQ surfaces ──
   "planetiq-panel":  '<svg viewBox="0 0 24 24"><path d="M4 17l5-5 3 3 7-8" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7" r="1.8" fill="#38bdf8"/></svg>',
   "pricing-dashboard":'<svg viewBox="0 0 24 24"><path d="M11 4h5l4 4v5l-8 8-9-9z" fill="#fbbf24"/><circle cx="15.3" cy="8.7" r="1.5" fill="#232323"/></svg>',
@@ -95,10 +95,8 @@ const GLYPHS = {
   "iq-data-layer":   '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="7" ry="2.8" fill="#818cf8"/><path d="M5 7v10c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V7M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8" fill="none" stroke="#818cf8" stroke-width="2"/></svg>',
   "invoice-tracker": '<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2" fill="#22c55e"/><path d="M12 8v8M14 10.3c0-1-1-1.5-2-1.5s-2 .5-2 1.4 1 1.3 2 1.5 2 .6 2 1.6-1 1.4-2 1.4-2-.5-2-1.5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>',
   "employee-orders": '<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="2" fill="#f472b6"/><path d="M4 10.5h16" stroke="#232323" stroke-width="1.6"/><rect x="7" y="13" width="5" height="1.8" rx=".9" fill="#232323"/></svg>',
-  "financial-dashboard":'<svg viewBox="0 0 24 24"><path d="M4 7l5 5 3-3 7 8" fill="none" stroke="#94a3b8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   // ── Growth surfaces ──
   "bandana-templates":'<svg viewBox="0 0 24 24"><path d="M12 5l7 7-7 7-7-7z" fill="#ec4899"/><path d="M9 12l3 3 3-3-3-3z" fill="#fff"/></svg>',
-  "bandana-revamp":  '<svg viewBox="0 0 24 24"><path d="M12 4l1.5 4.5L18 10l-4.5 1.5L12 16l-1.5-4.5L6 10l4.5-1.5z" fill="#a78bfa"/></svg>',
   "bandana-web-pricing":'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="#10b981"/><path d="M4.5 12h15M12 4.5c3 3 3 12 0 15M12 4.5c-3 3-3 12 0 15" fill="none" stroke="#fff" stroke-width="1.3"/></svg>',
   "photo-tagger":    '<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="11" rx="2" fill="#0ea5e9"/><rect x="8.5" y="5" width="7" height="3" rx="1" fill="#0ea5e9"/><circle cx="12" cy="12.5" r="3" fill="#232323"/></svg>',
   "mockup-vs-real":  '<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2" fill="#fb7185"/><path d="M12 6v12" stroke="#232323" stroke-width="1.6"/><circle cx="8" cy="10" r="1.3" fill="#fff"/></svg>',
@@ -123,18 +121,25 @@ const GLYPHS = {
   "feed-guide":      '<svg viewBox="0 0 24 24"><path d="M5 13v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4h-3.5a2.5 2.5 0 0 1-5 0z" fill="#10b981"/><path d="M12 4v7m0 0l-3-3m3 3l3-3" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   "invoice-column-guide":'<svg viewBox="0 0 24 24"><rect x="4.5" y="5" width="15" height="14" rx="2" fill="#f59e0b"/><path d="M9.5 5v14M14.5 5v14M4.5 9h15" stroke="#232323" stroke-width="1.1"/></svg>',
   "data-summary-2025":'<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2" fill="#8b5cf6"/><rect x="8" y="13" width="2" height="3" fill="#fff"/><rect x="11" y="11" width="2" height="5" fill="#fff"/><rect x="14" y="9" width="2" height="7" fill="#fff"/></svg>',
+  "status-taxonomy-mock":'<svg viewBox="0 0 24 24"><path d="M6 6h12v4H6zM6 14h12v4H6z" fill="#38bdf8"/><path d="M9 10v4M15 10v4" stroke="#38bdf8" stroke-width="2"/></svg>',
   // ── The Floor sections ──
   "floor-board":     '<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="4" height="13" rx="1.4" fill="#F7BE00"/><rect x="10" y="5.5" width="4" height="8.5" rx="1.4" fill="#F7BE00"/><rect x="16" y="5.5" width="4" height="10.5" rx="1.4" fill="#F7BE00"/></svg>',
   "floor-prepress":  '<svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="11.5" rx="2" fill="#a78bfa"/><path d="M8 4.5v11.5M12 4.5v11.5M16 4.5v11.5M4.5 8h15M4.5 12h15" stroke="#232323" stroke-width="0.8" opacity=".5"/><rect x="6" y="18" width="12" height="2.4" rx="1.2" fill="#7c3aed"/></svg>',
   "floor-running":   '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="#22c55e"/><path d="M10 8.3l6 3.7-6 3.7z" fill="#fff"/></svg>',
   "floor-reports":   '<svg viewBox="0 0 24 24"><rect x="5.5" y="4" width="13" height="16" rx="2" fill="#0ea5e9"/><rect x="8" y="13" width="2" height="3" fill="#fff"/><rect x="11" y="11" width="2" height="5" fill="#fff"/><rect x="14" y="9" width="2" height="7" fill="#fff"/></svg>',
-  "floor-fulfillment":'<svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5 4.5 16.3V7.7z" fill="#f59e0b"/><path d="M9 11l3 3 3-3" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  "floor-fulfillment":'<svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4.2v8.6L12 20.5 4.5 16.3V7.7z" fill="#f59e0b"/><path d="M9 11l3 3 3-3" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  shipment:          '<svg viewBox="0 0 24 24"><path d="M4 9h16v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#0ea5e9"/><path d="M5.5 9 7 5.5h10L18.5 9" fill="none" stroke="#0ea5e9" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 17v-4.5M9.8 14.2 12 12l2.2 2.2" fill="none" stroke="#232323" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  'retention-rollout-part-1': '<svg viewBox="0 0 24 24"><path d="M4.5 10v4l3 .6 6.5 4V5.4l-6.5 4z" fill="#f472b6"/><path d="M16.5 9.2a4.4 4.4 0 0 1 0 5.6" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round"/><path d="M19 7.2a7.4 7.4 0 0 1 0 9.6" fill="none" stroke="#f472b6" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>',
+  'graphics-templates': '<svg viewBox="0 0 24 24"><rect x="7.5" y="7.5" width="12" height="12" rx="2" fill="#c084fc" opacity=".55"/><rect x="4.5" y="4.5" width="12" height="12" rx="2" fill="#c084fc"/><circle cx="8.5" cy="8.5" r="1.6" fill="#232323"/></svg>',
+  'art-namer':        '<svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h6.5l7.5 6-5.5 7.5L4 14z" fill="#f472b6"/><circle cx="8.6" cy="9.6" r="1.5" fill="#232323"/><path d="M11 14.5h5" stroke="#232323" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  'photo-namer':      '<svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="10" rx="2" fill="#34d399"/><circle cx="8.5" cy="8" r="1.6" fill="#232323"/><path d="M11 12.5 14 9.5l4 5" fill="none" stroke="#232323" stroke-width="1.7" stroke-linejoin="round"/><path d="M5.5 17.8h9M5.5 20.3h6" stroke="#34d399" stroke-width="1.7" stroke-linecap="round"/></svg>',
 };
 function iconInner(node) {
   if (GLYPHS[node.id]) return GLYPHS[node.id];
   return `<span class="bEmoji">${esc(node.icon || (node.kind === 'hub' ? '🗂️' : '📄'))}</span>`;
 }
-function badge(node, size) { return `<span class="iconBadge ib-${size}">${iconInner(node)}</span>`; }
+function ringClass(node) { const t = railHubFor(node); return t ? ' ring-' + t.id : ''; }
+function badge(node, size) { return `<span class="iconBadge ib-${size}${ringClass(node)}">${iconInner(node)}</span>`; }
 
 let REG = null;          // the registry
 let BYID = new Map();    // id -> node
@@ -146,15 +151,23 @@ const esc = s => (s == null ? '' : String(s)).replace(/[&<>]/g, m => ({ '&': '&a
 /* ── validation: fail loudly, never render half an app ── */
 function validate(reg) {
   const errs = [];
-  if (!reg || typeof reg !== 'object') return ['registry.json is not an object'];
+  const warnings = [];
+  if (!reg || typeof reg !== 'object') return { errs: ['registry.json is not an object'], warnings };
   if (!reg.app || !reg.app.name) errs.push('app.name missing');
-  if (!Array.isArray(reg.tree)) return errs.concat('tree is not an array');
+  if (!Array.isArray(reg.tree)) return { errs: errs.concat('tree is not an array'), warnings };
   const seen = new Set();
+  const names = new Map();
   const walk = (node, path, depth) => {
     const where = path + '/' + (node.id || '?');
     if (!node.id) errs.push(`node at ${where}: missing id`);
     else if (seen.has(node.id)) errs.push(`duplicate id "${node.id}"`);
     else seen.add(node.id);
+    if (node.name && node.access !== 'pin') {
+      const key = node.name.trim().toLowerCase();
+      const prior = names.get(key) || [];
+      prior.push(node.id || where);
+      names.set(key, prior);
+    }
     if (!ENUMS.kind.includes(node.kind)) errs.push(`"${node.id}": bad kind "${node.kind}"`);
     if (!node.name) errs.push(`"${node.id}": missing name`);
     if (depth === 0 && !ENUMS.group.includes(node.group)) errs.push(`"${node.id}": top-level node needs group hubs|library`);
@@ -165,10 +178,14 @@ function validate(reg) {
       if (node.type && !ENUMS.type.includes(node.type)) errs.push(`"${node.id}": bad type "${node.type}"`);
       if (node.status && !ENUMS.status.includes(node.status)) errs.push(`"${node.id}": bad status "${node.status}"`);
       if (node.access && !ENUMS.access.includes(node.access)) errs.push(`"${node.id}": bad access "${node.access}"`);
+      if (node.display && node.display !== 'fullscreen') warnings.push(`"${node.id}": unknown display "${node.display}" (ignored)`);
     }
   };
   reg.tree.forEach(n => walk(n, '', 0));
-  return errs;
+  names.forEach((ids, name) => {
+    if (ids.length > 1) warnings.push(`duplicate display name "${name}" on ids: ${ids.join(', ')}`);
+  });
+  return { errs, warnings };
 }
 
 function index(reg) {
@@ -183,6 +200,20 @@ function index(reg) {
 /* ── pins ── */
 const getPins = () => { try { return JSON.parse(localStorage.getItem(PINS_KEY)) || []; } catch { return []; } };
 const setPins = p => localStorage.setItem(PINS_KEY, JSON.stringify(p));
+function scrubStoredIds(key, limit) {
+  const raw = (() => { try { return JSON.parse(localStorage.getItem(key)); } catch { return []; } })();
+  const clean = (Array.isArray(raw) ? raw : []).filter((id, i, arr) => BYID.has(id) && arr.indexOf(id) === i);
+  const out = typeof limit === 'number' ? clean.slice(0, limit) : clean;
+  localStorage.setItem(key, JSON.stringify(out));
+  return out;
+}
+function initPins() {
+  if (localStorage.getItem(PINS_KEY) == null) {
+    setPins(DEFAULT_PINS.filter(id => BYID.has(id)));
+    return;
+  }
+  scrubStoredIds(PINS_KEY);
+}
 function togglePin(id) {
   const pins = getPins();
   const i = pins.indexOf(id);
@@ -192,7 +223,7 @@ function togglePin(id) {
 function renderPinned() {
   const wrap = document.getElementById('pinnedChips');
   wrap.innerHTML = '';
-  getPins().map(id => BYID.get(id)).filter(Boolean).forEach(node => {
+  scrubStoredIds(PINS_KEY).map(id => BYID.get(id)).filter(Boolean).forEach(node => {
     const c = el('span', 'chip', badge(node, 'xs') + esc(safeName(node)));
     c.onclick = () => openNode(node);
     wrap.appendChild(c);
@@ -239,6 +270,64 @@ async function fetchSummary() {
   } catch { SUMMARY = { error: 'network' }; }
 }
 
+/* ── home signal row: Watchtower open incidents + this week's sales ──
+   Both read things that ALREADY exist. Fetched once per page load, in boot();
+   renderSignalRow() re-renders from module state on every home render.
+   FAIL SILENT: a dead feed renders NOTHING (console.warn only) — a permanently
+   lit "unavailable" chip trains people to ignore the row (the 3-amber-flags lesson). */
+
+// Same webhook the command center's Watchtower view reads (its FLIGHTLOG_ENDPOINT).
+// NOT the retention-activity feed — that one cold-assembles for 15-40s; never call it here.
+const WATCHTOWER_FLIGHTLOG = 'https://primary-production-079f9.up.railway.app/webhook/watchtower-flightlog';
+let WATCH = undefined;   // undefined = not yet fetched/failed · number = open-incident count
+let SALES = undefined;   // undefined = none · {week, quoted, converted}
+
+async function fetchSignals() {
+  try {   // payload contract (command center L2131): { agents:[{ incidents:[...open only...] , ...}] }
+    const r = await fetch(WATCHTOWER_FLIGHTLOG, { signal: AbortSignal.timeout(3500) });
+    const d = await r.json();
+    if (d && Array.isArray(d.agents))
+      WATCH = d.agents.reduce((n, a) => n + (Array.isArray(a.incidents) ? a.incidents.length : 0), 0);
+  } catch (e) { console.warn('watchtower signal unavailable:', e.message); }
+  try {   // signals/scoreboard-data.json: { weeks:[{iso_week, rows:[{rep:'Company', quotes_dollar, converted_dollar}]}] }
+    const r = await fetch('../signals/scoreboard-data.json', { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    const wk = Array.isArray(d.weeks) && d.weeks[d.weeks.length - 1];
+    const co = wk && (wk.rows || []).find(x => x.rep === 'Company');
+    if (co) SALES = { week: wk.iso_week, quoted: co.quotes_dollar || 0, converted: co.converted_dollar || 0 };
+  } catch (e) { console.warn('sales signal unavailable:', e.message); }
+  renderSignalRow();
+}
+
+function renderSignalRow() {
+  const row = document.getElementById('sigRow');
+  if (!row) return;                                    // not on home right now
+  row.innerHTML = '';
+  const wt = BYID.get('watchtower');
+  if (WATCH === undefined) { /* failed or pending → render nothing for Watchtower */ }
+  else if (WATCH === 0) {                              // QUIET at zero: one slim, low-contrast line
+    const c = el('div', 'sigQuiet', '🟢 Watchtower — all clear');
+    if (wt) { c.classList.add('clickable'); c.onclick = () => openNode(wt); }
+    row.appendChild(c);
+  } else {                                             // LOUD when not: full-width red strip
+    const c = el('div', 'sigAlert');
+    const label = el('span');                          // fetched-adjacent → textContent, never innerHTML
+    label.textContent = `🚨 Watchtower — ${WATCH} open incident${WATCH === 1 ? '' : 's'}`;
+    c.appendChild(label);
+    const go = el('span', 'flagGo', 'Go →');
+    c.appendChild(go);
+    if (wt) c.onclick = () => openNode(wt);
+    row.appendChild(c);
+  }
+  if (SALES) {
+    const sn = BYID.get('signals');
+    const c = el('div', 'sigChip');
+    c.textContent = `📡 W${SALES.week}: $${Math.round(SALES.quoted).toLocaleString()} quoted · $${Math.round(SALES.converted).toLocaleString()} won`;
+    if (sn) { c.classList.add('clickable'); c.onclick = () => openNode(sn); }
+    row.appendChild(c);
+  }
+}
+
 /* ── navigation (hash routing: #/planetops/time-labor) ── */
 function pathOf(node) {
   const ids = [];
@@ -254,6 +343,13 @@ function navHome() {                                   // the Ø logo's job: hom
   if (currentNode() === null) renderPane(); else location.hash = '#/';
 }
 const isExternal = u => APPROVED_EXTERNAL.some(pre => u && u.startsWith(pre));
+const isInWorks = n => n && n.kind === 'surface' && !n.url;
+function splitWorks(nodes) {
+  return {
+    ready: (nodes || []).filter(n => !isInWorks(n)),
+    works: (nodes || []).filter(isInWorks)
+  };
+}
 /* The node the hash points at — hub OR surface. null = HOME (explicit route:
    empty hash / #/ / #/home / any unresolvable stale hash all land on home). */
 function currentNode() {
@@ -269,13 +365,14 @@ function railHubFor(node) {                 // which top-level hub to highlight 
 function openNode(node) {
   if (node.kind === 'hub') { navTo(node); return; }
   noteRecent(node);
+  if (node.display === 'fullscreen' && node.url) { openUrl(node.url); return; }   // kiosk/own-router apps: new tab, no shell chrome
   if (!node.url) { navTo(PARENT.get(node.id) || REG.tree[0]); return; }
   if (isExternal(node.url)) { openUrl(node.url); return; }   // Google Sheets etc. → new tab
   navTo(node);                                               // internal → embed in the pane
 }
 
 /* ── slim rail + hover flyout (QuickBooks: tucked icon+short-label, dashboards on hover) ── */
-const RAIL_LABEL = { planetops: 'PlanetOps', 'revenue-house': 'Revenue', planetiq: 'PlanetIQ', systems: 'Systems', training: 'Training', references: 'Reference' };
+const RAIL_LABEL = { planetops: 'Production', 'revenue-house': 'Revenue', planetiq: 'PlanetIQ', systems: 'Systems', references: 'Resources' };
 function renderRail() {
   const rail = document.getElementById('rail');
   rail.innerHTML = '';
@@ -288,41 +385,53 @@ function renderRail() {
         `${badge(node, 'sm')}<span class="riName">${esc(RAIL_LABEL[node.id] || node.name)}</span>`);
       item.onmouseenter = () => showFlyout(node, item);
       item.onmouseleave = scheduleHideFlyout;
-      item.onclick = () => showFlyout(node, item);   // click works for touch too
+      item.onclick = () => { hideAllFly(); navTo(node); };   // click = landing; hover = flyout; landing is the touch path
       rail.appendChild(item);
     });
   });
 }
 
 let flyHideTimer, subHideTimer;
-function hideAllFly() { const f = document.getElementById('flyout'); if (f) f.hidden = true; const sf = document.getElementById('subflyout'); if (sf) sf.hidden = true; }
+function hideAllFly() { const f = document.getElementById('flyout'); if (f) { f.hidden = true; f.classList.remove('collapsed'); } const sf = document.getElementById('subflyout'); if (sf) sf.hidden = true; }
 function scheduleHideFlyout() { clearTimeout(flyHideTimer); flyHideTimer = setTimeout(hideAllFly, 350); }
 function keepFlyout() { clearTimeout(flyHideTimer); }
-function hideSubFlyout(now) { clearTimeout(subHideTimer); const sf = document.getElementById('subflyout'); if (!sf) return; if (now) sf.hidden = true; else subHideTimer = setTimeout(() => { sf.hidden = true; }, 350); }
+function hideSubFlyout(now) {
+  clearTimeout(subHideTimer);
+  const sf = document.getElementById('subflyout');
+  if (!sf) return;
+  if (now) { sf.hidden = true; document.getElementById('flyout')?.classList.remove('collapsed'); }
+  else subHideTimer = setTimeout(() => { sf.hidden = true; document.getElementById('flyout')?.classList.remove('collapsed'); }, 350);
+}
 function flyRow(n) {
   const lock = isFinanceNode(n) ? ' <span class="lock" title="Financials — needs the finance PIN">🔒</span>' : '';
   const ext = (n.kind === 'surface' && isExternal(n.url)) ? ' <span class="ext" title="Opens in a new tab">↗</span>' : '';
   const st = (n.kind === 'surface' && n.status && n.status !== 'live') ? ` <span class="badge ${esc(n.status)}">${esc(BADGE[n.status])}</span>` : '';
-  const row = el('div', 'flyRow', `${badge(n, 'sm')}<span class="flyName">${esc(safeName(n))}</span>${st}${lock}${ext}`);
+  const row = el('div', 'flyRow' + (isInWorks(n) ? ' inWorks' : ''), `${badge(n, 'sm')}<span class="flyName">${esc(safeName(n))}</span>${st}${lock}${ext}`);
+  row.title = safeName(n);
   row.onclick = () => { openNode(n); hideAllFly(); };
   return row;
 }
 function cascadeRow(hub) {                                    // a sub-hub → hover fans out its flyout, CLICK navigates into its section
   const row = el('div', 'flyRow hasKids', `${badge(hub, 'sm')}<span class="flyName">${esc(hub.name)}</span><span class="flyCaret">›</span>`);
+  row.title = hub.name;
   row.onmouseenter = () => showSubFlyout(hub, row);
   row.onclick = () => { hideAllFly(); navTo(hub); };
   return row;
 }
 function fillFlyout(fly, hub) {
   fly.innerHTML = '';
-  fly.appendChild(el('div', 'flyHead', `${badge(hub, 'sm')}<span>${esc(hub.name)}</span>`));
   /* NOTE: plain rows must NOT hide the sub-flyout on hover — the diagonal
      mouse path from a cascade row to the sub-flyout crosses them, and hiding
      here made the sub-menu unreachable. It hides via hideAllFly/other cascades. */
-  (hub.children || []).forEach(c => {
+  const groups = splitWorks(hub.children || []);
+  groups.ready.forEach(c => {
     if (c.kind === 'hub') fly.appendChild(cascadeRow(c));
     else fly.appendChild(flyRow(c));
   });
+  if (groups.works.length) {
+    fly.appendChild(el('div', 'flyGroupHead inWorksHead', 'In the works'));
+    groups.works.forEach(c => fly.appendChild(flyRow(c)));
+  }
   if (!(hub.children || []).length) fly.appendChild(el('div', 'flyEmpty', 'Nothing here yet.'));
 }
 function placeFly(fly, leftPx, topAnchor) {
@@ -333,15 +442,21 @@ function placeFly(fly, leftPx, topAnchor) {
 function showFlyout(hub, anchorEl) {
   keepFlyout(); hideSubFlyout(true);
   const fly = document.getElementById('flyout');
+  fly.classList.remove('collapsed');
   fillFlyout(fly, hub);
   placeFly(fly, document.getElementById('rail').getBoundingClientRect().right, anchorEl.getBoundingClientRect().top);
 }
 function showSubFlyout(hub, rowEl) {
   keepFlyout(); clearTimeout(subHideTimer);
+  const fly = document.getElementById('flyout');
   const sf = document.getElementById('subflyout');
   fillFlyout(sf, hub);
-  /* overlap the parent flyout by a few px — no dead gap for the pointer to fall through */
-  placeFly(sf, document.getElementById('flyout').getBoundingClientRect().right - 4, rowEl.getBoundingClientRect().top - 6);
+  /* The parent stays fully open. Collapsing it to an icon strip was tried and
+     reverted 2026-07-19: stacked against the section side-nav it produced three
+     competing columns and read as clutter, not focus. The source row is
+     highlighted instead — same "you are here" signal, no layout churn. */
+  [...fly.querySelectorAll('.flyRow')].forEach(r => r.classList.toggle('srcRow', r === rowEl));
+  placeFly(sf, fly.getBoundingClientRect().right - 4, rowEl.getBoundingClientRect().top - 6);
 }
 
 /* ── main pane ── */
@@ -358,7 +473,7 @@ function renderCrumbs(node) {
 function tileFor(node) {
   const pins = getPins();
   const isHub = node.kind === 'hub';
-  const t = el('div', 'tile' + (isHub || node.url ? ' clickable' : ''));
+  const t = el('div', 'tile' + (isHub || node.url ? ' clickable' : '') + (isInWorks(node) ? ' inWorks' : ''));
   const statusBadge = !isHub && node.status ? ` <span class="badge ${esc(node.status)}">${esc(BADGE[node.status])}</span>` : '';
   const lock = node.access === 'pin' ? ' <span class="lock" title="Financials — needs the finance PIN">🔒</span>' : '';
   const ext = !isHub && isExternal(node.url) ? ' <span class="ext" title="Opens in a new tab">↗</span>' : '';
@@ -406,7 +521,7 @@ function renderPane() {
       const wrap = el('div', 'sectionWrap');
       const nav = el('div', 'sectionNav');
       nav.appendChild(el('div', 'snHead', `${badge(section, 'sm')}<span>${esc(section.name)}</span>`));
-      (section.children || []).forEach(k => {
+      (section.children || []).filter(k => !isInWorks(k)).forEach(k => {
         const ext = (k.kind === 'surface' && isExternal(k.url)) ? ' <span class="ext" title="Opens in a new tab">↗</span>' : '';
         const key = el('div', 'snKey' + (k.id === node.id ? ' active' : ''),
           `${badge(k, 'sm')}<span class="snName">${esc(safeName(k))}</span>${ext}`);
@@ -429,8 +544,88 @@ function renderPane() {
     if (first) { navTo(first); return; }
   }
 
-  /* a top-level hub hash → hubs have no page of their own; go home (nav lives in the flyouts) */
-  navHome();
+  /* any other hub (top-level, or a sub-hub with nothing embeddable) → its landing page */
+  renderHubLanding(node, pane);
+}
+
+function countSurfaces(hub) {              // registry metadata, stated honestly — NOT business signal
+  let total = 0, live = 0;
+  (function w(n){ (n.children || []).forEach(c => {
+    if (c.kind === 'surface') { total++; if (c.status === 'live' && c.url) live++; }
+    else w(c);
+  }); })(hub);
+  return { total, live };
+}
+
+function renderHubLanding(node, pane) {
+  document.body.classList.remove('embedding');
+  renderCrumbs(node);
+  pane.innerHTML = '';
+
+  /* hero band — command-center pattern: dark card, gold kicker, big name, blurb, count top-right */
+  const parent = PARENT.get(node.id);
+  const { total, live } = countSurfaces(node);
+  const hero = el('div', 'hubHero');
+  hero.innerHTML =
+    `<div class="hhKicker">${esc(parent ? parent.name : 'Planet Apparel')}</div>` +
+    `<h1>${badge(node, 'lg')}<span>${esc(safeName(node))}</span></h1>` +
+    (node.blurb ? `<p class="hhSub">${esc(node.blurb)}</p>` : '') +
+    `<div class="hhCount">${total}<small>inside · ${live} live</small></div>`;
+  pane.appendChild(hero);
+
+  const kids = node.children || [];
+  const hubKids = kids.filter(c => c.kind === 'hub');
+  const surfKids = kids.filter(c => c.kind === 'surface');
+
+  /* 1 · the rooms — child hubs as big cards */
+  if (hubKids.length) {
+    pane.appendChild(el('div', 'groupHead', 'Inside'));
+    const hg = el('div', 'hubCards');
+    hubKids.forEach(h => hg.appendChild(hubCard(h)));
+    pane.appendChild(hg);
+  }
+
+  /* 2 · direct tools — reuse tileFor(); finance-locked ones aggregate to ONE tile */
+  const { ready, works } = splitWorks(surfKids);
+  const locked = ready.filter(n => isFinanceNode(n) && !financeVisible(n));
+  const visible = ready.filter(n => !locked.includes(n));
+  if (visible.length || locked.length) {
+    pane.appendChild(el('div', 'groupHead', 'Tools'));
+    const grid = el('div', 'tiles');
+    visible.forEach(n => grid.appendChild(tileFor(n)));
+    if (locked.length) grid.appendChild(lockedAggTile(locked.length));
+    pane.appendChild(grid);
+  }
+
+  /* 3 · in the works — dimmed, last (same hygiene as flyouts/Browse) */
+  if (works.length) {
+    pane.appendChild(el('div', 'groupHead', 'In the works'));
+    const wg = el('div', 'tiles');
+    works.forEach(n => wg.appendChild(tileFor(n)));
+    pane.appendChild(wg);
+  }
+  if (!kids.length) pane.appendChild(el('div', 'emptyHub', 'Nothing here yet.'));
+}
+
+function hubCard(h) {
+  const { total, live } = countSurfaces(h);
+  const c = el('div', 'hubCard clickable');
+  c.innerHTML =
+    `<div class="hcCnt">${total}<small>inside · ${live} live</small></div>` +
+    `${badge(h, 'lg')}<div class="hcLab">${esc(h.name)}</div>` +
+    (h.blurb ? `<div class="hcOne">${esc(h.blurb)}</div>` : '');
+  c.onclick = () => openNode(h);
+  return c;
+}
+
+function lockedAggTile(n) {                 // PlanetIQ answer: 6 identical masked tiles → ONE honest tile
+  const t = el('div', 'tile clickable lockedAgg');
+  t.innerHTML =
+    `<h3><span class="iconBadge ib-lg"><svg viewBox="0 0 24 24"><rect x="6" y="10.5" width="12" height="9" rx="2" fill="#94a3b8"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="#94a3b8" stroke-width="2.2"/></svg></span>` +
+    `<span class="tName">🔒 Financials (${n})</span></h3>` +
+    `<p>${n} locked tool${n === 1 ? '' : 's'} — enter the finance PIN to see them.</p>`;
+  t.onclick = () => { location.href = '/gate/finance?r=%2Ffrontdoor%2F'; };
+  return t;
 }
 
 /* ── HOME — the canvas (welcome · needs-attention · quick access · feed · browse) ── */
@@ -448,6 +643,11 @@ function renderHome(pane) {
   wb.querySelector('.hwDate').textContent = today;
   pane.appendChild(wb);
 
+  /* 1.5 · live signal row — Watchtower headline + sales pulse */
+  const sig = el('div', 'sigRow'); sig.id = 'sigRow';
+  pane.appendChild(sig);
+  renderSignalRow();
+
   /* 2 · needs attention */
   pane.appendChild(el('div', 'groupHead', '⚠️ Needs attention'));
   const board = el('div', 'flagBoard'); board.id = 'flagBoard';
@@ -455,14 +655,14 @@ function renderHome(pane) {
   renderFlagBoard();
 
   /* 3 · quick access — pins + recents */
-  const pins = getPins().map(id => BYID.get(id)).filter(Boolean);
+  const pins = scrubStoredIds(PINS_KEY).map(id => BYID.get(id)).filter(Boolean);
   pane.appendChild(el('div', 'groupHead', '📌 Quick access'));
   if (pins.length) {
     const grid = el('div', 'tiles');
     pins.forEach(n => grid.appendChild(tileFor(n)));
     pane.appendChild(grid);
   } else pane.appendChild(el('p', 'homeHint', 'Pin your go-to tools with the 📌 on any tile and they’ll live here (and in the top bar).'));
-  const recents = getRecents().map(id => BYID.get(id)).filter(n => n && !getPins().includes(n.id));
+  const recents = scrubStoredIds(RECENT_KEY, 6).map(id => BYID.get(id)).filter(n => n && !getPins().includes(n.id));
   if (recents.length) {
     const row = el('div', 'recentRow', '<span class="recentLabel">Recent:</span>');
     recents.forEach(n => {
@@ -496,10 +696,17 @@ function renderHome(pane) {
       body.hidden = !body.hidden;
       head.classList.toggle('open', !body.hidden);
       if (!body.hidden && !body.childNodes.length) {
-        const addRows = (nodes) => nodes.forEach(n => {
-          if (n.kind === 'hub') { body.appendChild(el('div', 'flyGroupHead', `${badge(n, 'xs')}<span>${esc(n.name)}</span>`)); addRows(n.children || []); }
-          else body.appendChild(browseRow(n));
-        });
+        const addRows = (nodes) => {
+          const groups = splitWorks(nodes);
+          groups.ready.forEach(n => {
+            if (n.kind === 'hub') { body.appendChild(el('div', 'flyGroupHead', `${badge(n, 'xs')}<span>${esc(n.name)}</span>`)); addRows(n.children || []); }
+            else body.appendChild(browseRow(n));
+          });
+          if (groups.works.length) {
+            body.appendChild(el('div', 'flyGroupHead inWorksHead', 'In the works'));
+            groups.works.forEach(n => body.appendChild(browseRow(n)));
+          }
+        };
         addRows(hub.children || []);
       }
     };
@@ -510,7 +717,7 @@ function renderHome(pane) {
 function browseRow(n) {
   const lock = isFinanceNode(n) ? ' <span class="lock" title="Financials — needs the finance PIN">🔒</span>' : '';
   const ext = (n.kind === 'surface' && isExternal(n.url)) ? ' <span class="ext" title="Opens in a new tab">↗</span>' : '';
-  const row = el('div', 'flyRow', `${badge(n, 'sm')}<span class="flyName">${esc(safeName(n))}</span>${lock}${ext}`);
+  const row = el('div', 'flyRow' + (isInWorks(n) ? ' inWorks' : ''), `${badge(n, 'sm')}<span class="flyName">${esc(safeName(n))}</span>${lock}${ext}`);
   row.onclick = () => openNode(n);
   return row;
 }
@@ -561,8 +768,10 @@ function setupSearch() {
   const run = q => {
     q = q.trim().toLowerCase();
     if (!q) { close(); return; }
-    results = [...BYID.values()].filter(n =>
-      n.name.toLowerCase().includes(q) || (n.blurb || '').toLowerCase().includes(q)).slice(0, 12);
+    results = [...BYID.values()]
+      .filter(n => n.name.toLowerCase().includes(q) || (n.blurb || '').toLowerCase().includes(q))
+      .sort((a, b) => Number(isInWorks(a)) - Number(isInWorks(b)))
+      .slice(0, 12);
     box.innerHTML = '';
     if (!results.length) { box.innerHTML = '<div class="sr">No matches</div>'; box.hidden = false; return; }
     results.forEach((n, i) => {
@@ -612,6 +821,7 @@ function setupRail() {
 
 /* ── boot ── */
 function boot() {
+  initPins();
   document.getElementById('brandName').textContent = REG.app.name;
   document.querySelector('.brand').onclick = navHome;            // the Ø always walks you home
   document.getElementById('foot').innerHTML =
@@ -619,6 +829,7 @@ function boot() {
   setupRail(); renderRail(); renderPane(); renderPinned(); setupSearch();
   window.addEventListener('hashchange', () => { renderRail(); renderPane(); });
   fetchSummary().then(() => { renderFlagBoard(); renderPinned(); if (currentNode() === null) renderPane(); });
+  fetchSignals();
 }
 
 async function main() {
@@ -634,8 +845,9 @@ async function main() {
       'Open via a server (the gate or python3 -m http.server), not file://']);
     return;
   }
-  const errs = validate(reg);
+  const { errs, warnings } = validate(reg);
   if (errs.length) { showRegError(errs); return; }
+  if (warnings.length) showRegWarnings(warnings);
   REG = reg; index(reg);
   document.getElementById('app').hidden = false;
   boot();
@@ -646,6 +858,14 @@ function showRegError(errs) {
   b.hidden = false;
   b.innerHTML = `<b>registry.json failed validation — fix it before this page will render:</b><br>` +
     errs.slice(0, 10).map(e => '• ' + e).join('<br>') + (errs.length > 10 ? `<br>…and ${errs.length - 10} more` : '');
+}
+function showRegWarnings(warnings) {
+  console.warn('registry.json warnings:', warnings);
+  const b = document.getElementById('regError');
+  b.hidden = false;
+  b.className = 'regWarning';
+  b.innerHTML = `<b>registry.json warnings:</b><br>` +
+    warnings.slice(0, 6).map(e => '• ' + esc(e)).join('<br>') + (warnings.length > 6 ? `<br>…and ${warnings.length - 6} more` : '');
 }
 
 main();

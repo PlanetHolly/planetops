@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Apparel — Order Flow & Automations (Status-by-Status)</title>
+<style>
+  :root{
+    --gold:#F7BE00; --ink:#111; --line:#dcdce0;
+    --cust:#0369a1; --intern:#475569; --aio:#9333ea; --mech:#64748b;
+    --on:#047857; --off:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f4f5;color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 60px;}
+  header{background:var(--ink);color:#fff;border-radius:14px;padding:22px 26px;margin-bottom:8px;position:relative}
+  header h1{margin:0;font-size:25px}header h1 .y{color:var(--gold)}
+  header p{margin:8px 0 0;color:#cfcfcf;font-size:13.5px;max-width:920px;line-height:1.55}
+  .o{position:absolute;top:18px;right:22px;font-size:26px;font-weight:800;color:var(--gold)}
+  .tag{display:inline-block;background:var(--gold);color:#000;font-weight:700;font-size:11px;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+
+  .howto{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:14px 0 6px;font-size:12.5px;line-height:1.6}
+  .howto b{color:#000}
+  .key{display:inline-block;font-weight:800;border-radius:5px;padding:1px 7px;color:#fff;font-size:11px;margin:0 2px}
+  .k-cust{background:var(--cust)} .k-int{background:var(--intern)} .k-aio{background:var(--aio)} .k-mech{background:var(--mech)}
+  .badge{display:inline-block;font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px;color:#fff}
+  .b-on{background:var(--on)} .b-off{background:var(--off)}
+
+  .phase{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:#fff;background:var(--ink);
+         border-radius:8px;padding:8px 14px;margin:30px 0 10px;font-weight:700}
+  .phase .ph-sub{text-transform:none;letter-spacing:0;font-weight:500;color:var(--gold);font-size:12px;margin-left:8px}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0;margin:11px 0;overflow:hidden}
+  .sname{background:#f1f5f9;border-bottom:1px solid var(--line);padding:10px 16px;font-weight:800;font-size:15px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+  .sname .setby{font-weight:600;font-size:11px;color:#64748b;background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+  .sname .evt{font-weight:600;font-size:11px;color:#7c2d12;background:#ffedd5;border-radius:999px;padding:1px 9px}
+  .trig{padding:9px 16px;font-size:12.5px;color:#b45309;background:#fffbeb;border-bottom:1px solid #fde6b8;line-height:1.5}
+  .trig b{color:#7c4a03}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .col{padding:12px 16px}
+  .col.cust{border-right:1px solid var(--line)}
+  .col h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .col.cust h4{color:var(--cust)} .col.intern h4{color:var(--intern)}
+  .none{color:#94a3b8;font-style:italic;font-size:12.5px}
+
+  .email{border:1px solid #dbeafe;background:#f8fbff;border-radius:8px;padding:9px 11px;margin:0 0 8px;font-size:12px;line-height:1.5}
+  .email .subj{font-weight:700;color:#0c4a6e;display:block;margin-bottom:4px;font-size:12px}
+  .email .body{color:#334155;white-space:pre-line;font-size:11.5px}
+  .email .to{font-size:10.5px;color:#64748b;display:block;margin-top:5px}
+  .ie{border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:9px 11px;margin:0 0 8px;font-size:12px;line-height:1.5}
+  .ie .subj{font-weight:700;color:#334155;display:block;margin-bottom:3px}
+  .ie .body{color:#475569;white-space:pre-line;font-size:11.5px}
+  .ie .to{font-size:10.5px;color:#64748b;display:block;margin-top:5px}
+  .mech{font-size:12px;color:#475569;padding:5px 0;border-bottom:1px dashed #e2e8f0}
+  .mech:last-child{border-bottom:0}
+  .mech b{color:#1e293b}
+  .relay{border:1px solid #f3e8ff;background:#faf5ff;border-radius:8px;padding:8px 11px;margin:0 0 8px;font-size:12px;color:#6b21a8}
+  .relay b{color:#581c87}
+
+  .callout{background:#fffbeb;border:1px solid #fde68a;border-left:5px solid var(--gold);border-radius:11px;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.55}
+  .callout h3{margin:0 0 6px;font-size:14px}
+  footer{margin-top:26px;font-size:11.5px;color:#888;text-align:center}
+  @media (max-width:760px){.cols{grid-template-columns:1fr}.col.cust{border-right:0;border-bottom:1px solid var(--line)}}
+  @media print{body{background:#fff}.card,.callout,.howto{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="o">Ø</div>
+    <h1>Planet Apparel — <span class="y">Order Flow & Automations</span><span class="tag">status-by-status</span></h1>
+    <p>Every Printavo automation, read the way the order actually moves. Each card is <b style="color:#fff">one status</b>; under it: <b style="color:var(--gold)">⚡ what the trigger kicks off</b>, <b style="color:#fff">👤 what the customer sees</b>, and <b style="color:#fff">🔧 what happens internally</b>. Built 2026-06-29 from 48 captured automations.</p>
+  </header>
+
+  <div style="background:#0f172a;color:#e2e8f0;border-radius:12px;padding:14px 18px;margin:8px 0 4px;font-size:13px;line-height:1.55;border-left:5px solid var(--gold)">
+    <b style="color:var(--gold)">📍 THIS IS CURRENT STATE — how the system moves <u>today</u>, not a proposal.</b><br>
+    Every status, trigger, and <b>email template here is verbatim from the live Printavo automations</b> as captured 2026-06-29 — nothing is rewritten or "improved." Anything that is a <i>recommendation</i> or not-yet-built is explicitly tagged <b>🎯 target</b> / <b>⚠️ fix</b> and lives on the build list in <code>Test_Drive_Findings_2026-06-29.md</code> — those are <b>NOT live.</b> This is also <b>separate from the Production Flow Redesign</b> (<code>Production_Flow_Map_v3.html</code>), which is the <i>proposed-changes</i> doc built from Jean / Cortney / Shara's feedback. This doc reflects none of that — only what runs now.
+  </div>
+
+  <div class="howto">
+    <b>How to read each card:</b> the grey bar is the <b>Printavo status</b> (and who sets it). <span class="key k-cust">customer email</span> = the customer receives it · <span class="key k-int">internal email</span> = the team receives it · <span class="key k-aio">→ Automations.io</span> = Printavo pings an <code>@mail.automations.io</code> inbox that runs a downstream sequence · <span class="key k-mech">mechanic</span> = no email; it changes a status, attaches a button, or applies a task list. Toggle: <span class="badge b-on">ON</span> / <span class="badge b-off">OFF</span> (confirmed only where the list-view showed it; others unmarked).
+    <br><br><b>⛔ Excluded:</b> 3 automations tagged <b>"(active care)"</b> (an abandoned project) are left out by your rule.
+  </div>
+
+  <div class="callout">
+    <h3>🛣️ Two ways to run a quote — pick by tier</h3>
+    <p>A quote can be worked <b>two</b> ways, chosen by the Streak stage. The automated path is hands-off but fragments; the manual path is personal but needs a human.</p>
+    <table style="margin-top:8px">
+      <tr><th>&nbsp;</th><th>Automated path</th><th>Manual path</th></tr>
+      <tr><td class="st">Streak stage</td><td>"Automations in Printavo"</td><td>"Quote Sent (manual)" → 1st–4th Check-In Sent</td></tr>
+      <tr><td class="st">Who sends</td><td>Printavo chase, hands-off (from messages.printavo.com)</td><td>PM personally, in-thread (TextBlaze from their inbox)</td></tr>
+      <tr><td class="st">Best for</td><td><b>T3 / low-value</b></td><td><b>T1 / T2 / big brands</b></td></tr>
+      <tr><td class="st">Next PM action</td><td>none until the Archived email (= didn't proceed)</td><td>PM works it actively</td></tr>
+    </table>
+    <p style="margin-top:8px"><b style="color:var(--off)">Why the automated path is T3-only:</b> every status change sends a <b>brand-new email with a new subject line</b> — so a big brand gets 5–10 disconnected emails they can't keep in one thread (reads as spammy). Combined with the chase-firing-during-a-reply flaw, the automated chase is only safe for low-value quotes.</p>
+    <p style="margin-top:6px"><b>🎯 Target state:</b> once every rep's email is connected, <b>Streak-triggered emails that send from the rep's own inbox</b> (one thread, personal) replace the Printavo chase for everyone — select a Streak status → the customer gets a personal, threaded email automatically. <i>(Build candidate: Streak automations or n8n→Gmail send-as. Owner: Chandler/Systems.)</i></p>
+  </div>
+
+  <!-- PHASE A -->
+  <div class="phase">A · Quote & Approval <span class="ph-sub">getting a yes on the price</span></div>
+
+  <div class="card">
+    <div class="sname">Quote Sent (Manually) <span class="setby">PM</span></div>
+    <div class="trig">⚡ PM manually marks a quote sent — attaches the approval button so the customer can approve/decline.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing auto-sent — button only (the PM emails manually).</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>Quote Button</b> — attaches a Quote approval button to the invoice; both email + text are unchecked, so no message fires.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">1: 🚀 Quote Approval Sent <span class="setby">PM</span></div>
+    <div class="trig">⚡ The quote is sent for approval → emails the customer the approval request <b>and</b> kicks off the Automations.io chase.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Quote Approval Request 👍</span><span class="body">Hi [first-name] — Thank you for choosing Planet Apparel! Your quote is ready for review. Click the Quote button → review details → Approve or Decline (no payment at this stage). Send vector files (AI/PDF) for best results; rush orders welcome once approved. A family-run, women-owned business. — [owner]</span><span class="to">+ adds the Quote approval button</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="relay"><b>→ Automations.io "Chase Sequence"</b> — pings <code>7fe945…@mail.automations.io</code>, runs the timed quote-chasing loop. <span class="badge b-on">ON</span><br><b style="color:var(--off)">⚠️ Live flaw (Quote #27332):</b> it self-cancels on a <i>status</i> change, but a customer <b>replying by email does NOT change the status</b> — so the chase kept firing "we're awaiting your approval" at a customer who was mid-conversation with Shara. The chase needs to detect a reply/engagement, not just a status move.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">1: 🚀 REVISED Quote Approval Sent <span class="setby">PM</span></div>
+    <div class="trig">⚡ A revised quote is sent after the customer asked for changes.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Revised Approval 👍</span><span class="body">Hi [first-name]! We've made revisions and it's ready for review. Approving does NOT require payment or obligate you — we just want you to see the price before we move to art. Approve if correct, or Decline and detail the changes like last time. Thank you!</span><span class="to">+ adds the Quote approval button</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">2: 🚀 Quote Approval Follow Up <span class="setby">PM / auto</span></div>
+    <div class="trig">⚡ First reminder when the quote hasn't been approved.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Checking In! 👀</span><span class="body">Hi [first-name] — Your order is important to us! We're awaiting your approval. Click the Quote → watch the short video in Customer Notes → review → Approve or Decline. Approving does NOT require payment. Looking forward to hearing back!</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">3: 🚀 Quote Approval Final Follow Up <span class="setby">PM / auto</span></div>
+    <div class="trig">⚡ Second / final reminder before the quote is paused.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Don't Miss Your Chance! 🌎🚨</span><span class="body">Hi [first-name] — I know you're busy; this order could be in your hands ASAP! We're just awaiting approval. Approve for a mockup + invoice, or reply / decline with questions. If we don't hear back we'll pause the quote — reach out anytime to restart. We appreciate your support!</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname"><span class="evt">event: customer approves / declines the quote</span></div>
+    <div class="trig">⚡ When the customer clicks Approve or Decline on the quote, the status flips automatically.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing (their click is the trigger).</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="mech"><b>Approved →</b> status changes to ✅ Quote Approved ✅</div>
+        <div class="mech"><b>Declined →</b> status changes to 🚫 Quote Declined</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">✅ Quote Approved <span class="setby">auto (on approval)</span></div>
+    <div class="trig">⚡ Quote approved → request the deposit/payment to begin.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">Payment required for [invoice-id]</span><span class="body">Hi [first-name]! 🙏 We're excited to continue your order! To continue processing, we're requesting payment of [amount]. Thank you — let us know if you have any questions!</span><span class="to">+ creates a 100% payment request / button</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">4: 🚀 Archived Quote Notice Sent <span class="setby">PM / auto</span></div>
+    <div class="trig">⚡ The quote is being archived (customer didn't proceed) → notifies the customer and the PM.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Archived, But Not Forgotten! 🗃️</span><span class="body">Hi [first-name] — Thank you for considering us. Since you've decided not to move forward, we'll archive the quote for now. Reach out whenever you're ready or have a new project to quote. We appreciate your interest!</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="ie"><span class="subj">Archive Quote - [invoice-id]</span><span class="body">[owner] — This project finished the automation workflow. Confirm all customer messages were opened (re-send if the email bounced). Actions: Printavo → ARCHIVED QUOTE; Streak → Closed–Lost/Archived. Optional Streak task: "Annual Check In" 1 yr after quote date.</span><span class="to">→ invoice owner (PM) · <span class="badge b-on">ON</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE B -->
+  <div class="phase">B · Art / Invoice Approval <span class="ph-sub">getting a yes on the artwork</span></div>
+
+  <div class="card">
+    <div class="sname">🎨 Art/Order – Ready for Approval (Terms Only) <span class="setby">PM</span> <span class="evt">DWC / terms customers</span></div>
+    <div class="trig">⚡ Terms customers (e.g. Death Wish) — art is ready, but no payment gate.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">No auto-message — approval button only (both email + text unchecked).</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>Art Approval, No Payment (DWC)</b> — attaches the Artwork/Order approval button for terms customers; PM sends manually.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🚀 Art / Invoice Approval Sent <span class="setby">PM</span></div>
+    <div class="trig">⚡ Artwork is ready → emails the customer to approve art + confirm shipping.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">Art Approval for [invoice-id] ([nickname]) ✅</span><span class="body">Hi [first-name]! We're almost there — your artwork is ready. 🎨 Also double-check your order details and SHIPPING: [shipping-address]. Approve if correct; Decline (incl. address changes) and tell us what to change ASAP. Thank you!</span><span class="to">+ approval button · BCC → 04aaa6…@mail.automations.io</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="relay"><b>→ Automations.io (BCC)</b> — this art-approval email is silently copied to an Automations.io inbox (4th bridge).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🚀 REVISED Art / Invoice Approval Sent <span class="setby">PM</span></div>
+    <div class="trig">⚡ Revised artwork sent after the customer asked for changes.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Revised Order</span><span class="body">Hi [first-name]! Your adjusted artwork/invoice is ready. 👏 Double-check details + SHIPPING: [shipping-address]. Approve if correct; Decline and tell us the changes like last time. Thank you!</span><span class="to">+ approval button · BCC → 04aaa6…@mail.automations.io</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="relay"><b>→ Automations.io (BCC)</b> — also copied to Automations.io.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🚀 Follow Up – Art / Invoice Approval Sent <span class="setby">auto</span></div>
+    <div class="trig">⚡ A day passed with no art approval → reminds the customer AND tells the PM to call.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">REMINDER - Art Approval for [invoice-id] ([nickname]) ✅</span><span class="body">Hi [first-name]! As a reminder — your artwork is ready. Double-check details + SHIPPING: [shipping-address]. Approve if correct; Decline with changes ASAP. Thank you!</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="ie"><span class="subj">[invoice-id] – Your customer was sent Art / Invoice Approval reminder</span><span class="body">Hi [owner] — A follow-up reminder was sent after a day with no approval. This is your reminder to follow up with a CALL to the customer!</span><span class="to">→ invoice owner (PM) · <span class="badge b-on">ON</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname"><span class="evt">event: customer approves / declines the art</span></div>
+    <div class="trig">⚡ Customer clicks Approve or Decline on the artwork.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing (their click is the trigger).</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="mech"><b>Approved →</b> status to ✅ Art / Invoice Approved – Awaiting Payment, <b>and applies the "Production Prep" preset task list.</b></div>
+        <div class="mech"><b>Declined →</b> status to 🚫 Art / Invoice Declined</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE C -->
+  <div class="phase">C · Payment → Into Production <span class="ph-sub">money in, order kicked off</span></div>
+
+  <div class="card">
+    <div class="sname">✅ Art / Invoice Approved – Awaiting Payment <span class="setby">auto</span> <span class="evt">non-terms customers</span></div>
+    <div class="trig">⚡ Art approved → request final payment from non-terms customers.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - Payment Required</span><span class="body">Hi [first-name] — Thank you for your order approval. To begin your job we're requesting payment of [amount]. Click the invoice → GREEN payment button. Your order stays on hold until payment is received; once processed we move to next steps. Thank you!</span><span class="to">+ 100% payment request (non-terms only)</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>"Production Prep" task list</b> was applied on the approval event (above).</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname"><span class="evt">event: invoice paid in full</span></div>
+    <div class="trig">⚡ Payment lands → thank the customer, confirm production, and advance the status.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">Thank you for your payment! [invoice-id]</span><span class="body">Hi [first-name]! Thank you so much for your payment on [invoice-id] ([nickname]). We'll now begin the art process and send the design approval when it's ready. Keep your eyes peeled!</span><span class="to">fires for paid-in-full</span></div>
+        <div class="email"><span class="subj">[invoice-id] - Order in Production</span><span class="body">Hi [first-name] — Thank you for your payment! Your order is now in production. We'll send a tracking number as soon as it ships. We appreciate your support!</span><span class="to">non-terms customers</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>Non-terms paid →</b> status changes to 👕 Paid / Terms – Blanks To Order (Jean / Luis)</div>
+      <div class="mech" style="color:#b45309"><b>⚠️ Note:</b> two payment emails reference different next steps ("begin art" vs "now in production") — sequencing to reconcile.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">👕 Paid / Terms – Blanks To Order (Jean / Luis) <span class="setby">PM / auto</span></div>
+    <div class="trig">⚡ The big one — paid order kicks off blank ordering, production prep, and internal tracking. <b>5 automations fire on this single status.</b></div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing on this status.</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="ie"><span class="subj">[invoice-id] [nickname] Pre Production Check</span><span class="body">Front-of-house pre-production check (link to customer profile).</span><span class="to">→ Holly + Malia</span></div>
+        <div class="ie"><span class="subj">❗🏁 Order Bandana Blanks</span><span class="body">[invoice] is locked in! 1) Check Production Notes for samples 2) Include 3% reject rate 3) Confirm blank arrival aligns with customer due date 4) Don't schedule into production without ordering blanks first.</span><span class="to">→ Jean</span></div>
+        <div class="ie"><span class="subj">Confirm Seps for [invoice-id]</span><span class="body">[invoice] is locked in! 1) Check Production Notes 2) Check Production Files 3) Prepare Films. Double-check they're correct!</span><span class="to">→ Luis</span></div>
+        <div class="relay"><b>→ Automations.io "Daily Sales Tracking"</b> — pings <code>abe473…@mail.automations.io</code>. <span class="badge b-on">ON</span></div>
+        <div class="mech"><b>Add to Power Scheduler</b> — adds the imprints to the Power Scheduler (no email).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE D -->
+  <div class="phase">D · Production <span class="ph-sub">in-house vs outsourced routing + work-step automations</span></div>
+
+  <div class="callout">
+    <h3>🔀 In-house vs Outsourced — the production fork (tagged in Printavo)</h3>
+    <p>Every paid job routes by its Printavo tag — <b>#in</b> (decorated in-house) or <b>#out</b> (sent to a vendor), plus mixes (<b>#inmix</b> / <b>#outmix</b>, where it's printed here then sent out — or vice-versa — for a second operation like woven labels or embroidery). <b style="color:var(--off)">⚠️ Data gap:</b> Printavo knows the route (the <code>#in</code>/<code>#out</code> tag + the imprint reads "In-House Production"), but the Streak <b>"In-house / Outsourced"</b> field is <b>not being populated</b> on the box. <b>Fix:</b> have <b>Pass 2a</b> copy the tag into the field — it already pulls the order, so it's a small add.</p>
+    <table style="margin-top:8px">
+      <tr><th>&nbsp;</th><th>🏠 In-house (#in)</th><th>🚚 Outsourced (#out)</th></tr>
+      <tr><td class="st">Art</td><td>Art In-House (Luis)</td><td>Art (Seps.io) · Digitizing (Outsourced)</td></tr>
+      <tr><td class="st">Production path</td><td>Blanks Ordered → QC Passed → In Prep (films/screens) → Printing → Post-Production</td><td>PO to vendor → Vendor Production (black box) → In Transit to PA → Goods Received → Finishing/Packaging</td></tr>
+      <tr><td class="st">Who runs it</td><td>Luis · Press · Post-Pro (PA floor)</td><td>Vendor builds it → PA receives + finishes/ships</td></tr>
+      <tr><td class="st">Customer emails</td><td colspan="2">Identical on both ends — <b>none during production</b>; the customer only hears again at the <b>Ready / Shipped</b> stage</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="sname">In-house work-step automations <span class="setby">production floor</span></div>
+    <div class="trig">⚡ These fire off <b>work-step status changes</b> (not the main order status) and just advance the order status — no emails.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing.</div></div>
+      <div class="col intern"><h4>🔧 Internally (status mechanics)</h4>
+        <div class="mech"><b>Blanks – Completed →</b> status to 👕 Blanks Counted In – Ready for Production 🎉</div>
+        <div class="mech"><b>Printing/Heat – Started →</b> status to 🚧 In Production</div>
+        <div class="mech"><b>Printing/Heat – Pause →</b> status to ⏸ Production On Hold</div>
+        <div class="mech"><b>Post Production – Completed →</b> status to 📦 Production Completed – Ready to Package</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🚧 In Production <span class="setby">auto (work step)</span></div>
+    <div class="trig">⚡ Optionally tells the customer their order started.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] is in production, [first-name]!</span><span class="body">Hi [first-name]! [invoice-id] is in production! 🚧🔨 We'll let you know when it's done. Thanks friend,</span><span class="to"><span class="badge b-off">OFF</span> — currently disabled</span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">—</div></div>
+    </div>
+  </div>
+
+  <!-- PHASE E -->
+  <div class="phase">E · Outsourced & Goods <span class="ph-sub">vendor jobs coming back to PA</span></div>
+
+  <div class="card">
+    <div class="sname">🛫 In Transit to PA (Outsourced – In Production) <span class="setby">PM / vendor</span></div>
+    <div class="trig">⚡ An outsourced order is shipping back to Planet Apparel.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing.</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="ie"><span class="subj">[invoice-id] [nickname] – In Transit from Outsourced Vendor to Planet Apparel</span><span class="body">Check Production notes for tracking/updates. This order may land early, on time, or late. [link to project]</span><span class="to">→ Jean (cc shipping, Malia) · <span class="badge b-on">ON</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">👕 Goods Received <span class="setby">production</span></div>
+    <div class="trig">⚡ Outsourced goods arrived and were received by production.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">Nothing.</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="ie"><span class="subj">Order Update – Goods Received for [invoice-id]</span><span class="body">Hi [owner] — Status updated to "Goods Received": an outsourced vendor order was delivered + received. Production will proceed per the schedule.</span><span class="to">→ invoice owner · <span class="badge b-on">ON</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE F -->
+  <div class="phase">F · Ready / Shipped / Delivered <span class="ph-sub">getting it to the customer + final payment</span></div>
+
+  <div class="card">
+    <div class="sname">🚚 Order Ready for Delivery <span class="setby">shipping</span></div>
+    <div class="trig">⚡ Order complete + prepped for delivery → notify customer + create final payment button.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Delivery 🚚</span><span class="body">Hi [first-name] — Great news! Your order is complete and prepped for delivery. 🚚 Your PM will reach out to confirm a delivery window. Attached is your up-to-date invoice; if you have a balance, please process payment in the listed terms. Have a great day!</span><span class="to">→ customer (cc owner) · <span class="badge b-on">ON</span></span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>Payment Button For Delivery</b> — creates a 100% payment request (no message sent).</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🚗 Order Ready for Pickup <span class="setby">shipping</span></div>
+    <div class="trig">⚡ Order ready for in-store pickup → notify customer + create final payment button.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Ready for Pick-up 🛍️</span><span class="body">Hi [first-name]! Your order is ready for pickup! 🛍️ Stop by Mon–Fri 8am–4pm and ask for [invoice-id] [nickname]. Attached is your up-to-date invoice; if you have a balance, please process payment in the listed terms. Have a wonderful day! 🙌</span><span class="to">→ customer (cc owner) · <span class="badge b-on">ON</span></span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="mech"><b>Payment Button For Pickup</b> — creates a 100% payment request (no message sent).</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">✈️ Order Shipped <span class="setby">shipping</span></div>
+    <div class="trig">⚡ Order shipped → send tracking + final payment button + (an OFF review relay).</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - [nickname] - Shipped! 📦🤗</span><span class="body">Hi [first-name]! Good news — we've shipped [invoice-id]! 💌 Click the invoice button + scroll to the bottom for tracking. 📦 If you have a balance, process payment within the listed terms. Have a great day — we hope to work with you again soon!</span><span class="to">→ customer (cc owner) · <span class="badge b-on">ON</span></span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="mech"><b>Payment Button on Order Shipped</b> — creates a 100% payment request (no message sent).</div>
+        <div class="relay"><b>→ Automations.io "Follow Up – Review"</b> — pings <code>d3deee…@mail.automations.io</code>. <span class="badge b-off">OFF</span> (duplicate of the Delivered/Picked-up review trigger)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sname">🤝 Delivered / Picked Up <span class="setby">shipping</span></div>
+    <div class="trig">⚡ Order received by the customer → trigger the review-request sequence.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4><div class="none">The review email comes from the Automations.io sequence (template pending from vendor).</div></div>
+      <div class="col intern"><h4>🔧 Internally</h4>
+        <div class="relay"><b>→ Automations.io "Follow Up – Review Request"</b> — pings <code>d3deee…@mail.automations.io</code>, which runs the Ask-Review sequence. <span class="badge b-on">ON</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE G -->
+  <div class="phase">G · Reorder <span class="ph-sub">bringing them back</span></div>
+
+  <div class="card">
+    <div class="sname">🔁 Need it Again? <span class="setby">PM / auto</span></div>
+    <div class="trig">⚡ Prompt a repeat order.</div>
+    <div class="cols">
+      <div class="col cust"><h4>👤 Customer sees</h4>
+        <div class="email"><span class="subj">[invoice-id] - Need it again?</span><span class="body">Hi [first-name]! A lot of our customers reprint about once a year (or more/less!). Is that the case for you? Let us know and we'll get going on another round with any changes you'd like. Have a great day!</span><span class="to">→ customer · <span class="badge b-on">ON</span></span></div>
+      </div>
+      <div class="col intern"><h4>🔧 Internally</h4><div class="none">— (this is the natural handoff to the CRM → Retention "AT-Risk Save-Email" — coordinate so we don't double-contact.)</div></div>
+    </div>
+  </div>
+
+  <!-- WHAT JUMPS OUT -->
+  <div class="callout">
+    <h3>🎯 What jumps out for the redesign</h3>
+    <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;font-size:13px">
+      <li><b>The "Paid / Blanks To Order" status fires 5 automations at once</b> — Front-of-House check, Jean, Luis, Daily Sales Tracking, Power Scheduler. The v3 plan splits these (QC email → Blanks Ordered; scheduler/film → QC Passed).</li>
+      <li><b>Two review triggers</b> — one on Order Shipped (OFF), one on Delivered/Picked Up (ON). Keep one anchor, retire the other.</li>
+      <li><b>4 Automations.io bridges</b>, not 3 — Chase Sequence, Daily Sales Tracking, Review Request, <b>and the art-approval email BCC</b>.</li>
+      <li><b>Two payment emails on paid-in-full</b> say different next steps ("begin art" vs "now in production") — sequencing to reconcile.</li>
+      <li><b>Voice:</b> customer copy is friendly but inconsistent (emoji-heavy, varied sign-offs) — a single voice pass would tighten it.</li>
+      <li><b>ON/OFF confirmed only for the list-view set;</b> grab the list page to verify the rest. Known OFF: In-Production customer notice, Order-Shipped review relay.</li>
+    </ol>
+    <h3 style="margin-top:14px">👀 Seen in the wild — live examples (6/29)</h3>
+    <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;font-size:13px">
+      <li><b style="color:var(--off)">The chase fires during an active conversation.</b> On Quote #27332 the customer replied asking for a 2-color comparison, Shara answered him personally — and 3 days later the "Checking In! — awaiting your approval" follow-up <b>still auto-fired.</b> The status-based chase can't see an email reply. <b>Top fix.</b></li>
+      <li><b>Customer emails send under the PM's name</b> (e.g. "Shara Hildebrand"), not a generic address — so they read as personal. Keep that in the voice pass.</li>
+      <li><b style="color:var(--off)">A no-discount conflict is baked into a template.</b> The internal "Archive Quote" email tells the PM to "email a discount code for new quote" on the annual check-in — contradicts the standing no-discount rule. Decide + edit the copy.</li>
+      <li><b>The full chase→archive funnel works as designed</b> (Quote #27197 ran the complete sequence to a clean archive) — the issue is only the missing reply-detection above.</li>
+    </ol>
+  </div>
+
+  <footer>Planet Apparel · Order Flow & Automations (status-by-status) · 2026-06-29 · built from 48 captures · companion to Production_Flow_Map_v3 + Retention_Master_Flow_Map · excludes "(active care)"</footer>
+
+</div>
+</body>
+</html>

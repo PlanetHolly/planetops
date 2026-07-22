@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bandana Quote Bot — System Map</title>
+<style>
+:root{--y:#F7BE00;--k:#000;--t:#232323;--w:#fff;--f:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+--send:#1e874b;--sendbg:#e8f6ee;--hold:#c0392b;--holdbg:#fdecea;--ask:#b8860b;--askbg:#fbf3dc;--line:#c9c9c9;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--f);color:var(--k);background:#fafafa;line-height:1.55;letter-spacing:.01em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:30px 26px 80px}
+h1,h2,h3{font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:0}
+h2{font-size:1.35rem;margin:0 0 4px}
+.sub{color:#777;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}
+p{margin:.4rem 0}
+.pa-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--k);margin-bottom:26px}
+.pa-header .tag{font-weight:900;text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;color:#8a8a8a}
+.pa-icon{height:34px;width:auto;color:var(--k)}
+.lede{background:#111;color:#fff;padding:18px 22px;margin:0 0 30px}
+.lede b{color:var(--y)}
+.sec{margin:44px 0 0}
+.rule{border:0;border-top:3px solid var(--y);width:56px;margin:0 0 16px}
+
+/* flow */
+.flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.node{background:#fff;border:1.5px solid #333;border-radius:10px;padding:12px 18px;text-align:center;max-width:560px;width:100%;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.node .n-t{font-weight:900;text-transform:uppercase;letter-spacing:.03em;font-size:.92rem}
+.node .n-d{font-size:.82rem;color:#555;margin-top:2px}
+.node.trigger{border-color:var(--send);background:var(--sendbg)}
+.node.wait{border-style:dashed;border-color:var(--ask);background:var(--askbg);max-width:420px}
+.node.wait .n-t{color:#8a6d00}
+.arrow{width:2px;height:26px;background:var(--line)}
+.arrow.short{height:16px}
+.diamond{width:230px;min-height:96px;display:flex;align-items:center;justify-content:center;text-align:center;
+  background:#fff;border:1.5px solid #333;transform:rotate(45deg);margin:14px 0}
+.diamond > span{transform:rotate(-45deg);font-weight:900;text-transform:uppercase;font-size:.82rem;letter-spacing:.02em;padding:6px}
+.branchrow{display:flex;justify-content:center;gap:70px;width:100%;max-width:640px;margin-top:2px}
+.branch{display:flex;flex-direction:column;align-items:center;flex:1}
+.pill{font-weight:900;text-transform:uppercase;font-size:.7rem;letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:6px}
+.pill.no{background:var(--holdbg);color:var(--hold);border:1px solid var(--hold)}
+.pill.yes{background:var(--sendbg);color:var(--send);border:1px solid var(--send)}
+.endcap{font-weight:900;text-transform:uppercase;font-size:.72rem;letter-spacing:.06em;color:#999;border:1px dashed #bbb;border-radius:20px;padding:5px 14px}
+
+/* the gate 3-up */
+.gate{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.card{border-radius:12px;padding:16px;border:1.5px solid}
+.card h3{font-size:1rem;margin-bottom:6px}
+.card.send{border-color:var(--send);background:var(--sendbg)}
+.card.ask{border-color:var(--ask);background:var(--askbg)}
+.card.hold{border-color:var(--hold);background:var(--holdbg)}
+.card .cond{font-size:.8rem;color:#444;margin:6px 0 10px;border-top:1px solid rgba(0,0,0,.1);padding-top:8px}
+.card ul{margin:6px 0 0;padding-left:16px;font-size:.86rem}
+.card li{margin:3px 0}
+.tagm{display:inline-block;font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:#111;color:#fff;margin-top:8px}
+.tagm.soon{background:#b8860b}
+
+/* timeline */
+.tl{border-left:3px solid var(--y);margin-left:8px;padding-left:0}
+.tl .row{display:flex;gap:16px;align-items:flex-start;padding:9px 0 9px 20px;position:relative}
+.tl .row::before{content:"";position:absolute;left:-8px;top:15px;width:12px;height:12px;border-radius:50%;background:var(--y);border:2px solid #fff}
+.tl .tm{font-weight:900;min-width:74px;font-size:.9rem}
+.tl .ev{font-size:.9rem}
+.tl .ev b{text-transform:uppercase;font-size:.82rem;letter-spacing:.02em}
+.tl small{color:#777}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin-top:8px;background:#fff;font-size:.85rem}
+th,td{border:1px solid #e2e2e2;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f0f0f0;text-transform:uppercase;letter-spacing:.03em;font-size:.72rem}
+td b{font-weight:700}
+.px{white-space:nowrap;font-weight:700}
+.gate-s{color:var(--send)}.gate-h{color:var(--hold)}.gate-a{color:var(--ask)}
+
+/* email preview */
+.mail{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 20px;font-size:.86rem;max-width:620px}
+.mail .subj{font-weight:900;border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:10px}
+.mail .l{color:#333;margin:5px 0}
+.mail .ladder{background:#faf7ec;border-left:3px solid var(--y);padding:8px 12px;margin:8px 0;font-family:monospace;font-size:.8rem}
+
+/* gaps */
+.gaps{background:#fff;border:1.5px solid var(--hold);border-radius:12px;padding:8px 4px}
+.gaps table{margin:0;border:0}
+.gaps th{background:var(--holdbg);color:var(--hold)}
+.state{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.state .chip{border:1px solid #ccc;border-radius:8px;padding:8px 12px;font-size:.82rem;background:#fff}
+.state .chip b{display:block;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em;color:#888}
+.pa-footer{display:flex;align-items:center;justify-content:space-between;margin-top:50px;padding-top:14px;border-top:1px solid var(--k);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:#8a8a8a}
+.pa-footer .pa-icon{height:20px;color:#8a8a8a}
+@media(max-width:720px){.gate{grid-template-columns:1fr}.branchrow{gap:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="pa-header">
+  <div class="tag">Bandana Quote Bot · System Map</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+</header>
+
+<h1 style="font-size:2.4rem;line-height:1">What the Bandana<br>Quote Bot Does</h1>
+<div class="sub" style="margin-top:10px">Intended behavior · current build · 2026-07-07</div>
+
+<div class="lede">
+  A customer fills out the <b>Get a Quote</b> form. Five minutes later, one of three things happens:
+  the bot <b>emails them a price</b>, <b>drafts a quote for Shara to review</b>, or <b>asks one quick question</b> —
+  then quietly sets up the Streak box and the Printavo quote behind the scenes. It never sends anything before the 5-minute wait,
+  and it never auto-sends anything outside a tight, safe lane.
+</div>
+
+<!-- ============ FLOW ============ -->
+<div class="sec">
+  <hr class="rule"><h2>The Flow</h2>
+  <div class="sub">Read top to bottom · diamonds are decisions</div>
+
+  <div class="flow">
+    <div class="node trigger"><div class="n-t">📨 New form email lands</div><div class="n-d">Customer submits the Get-a-Quote form → it arrives in bandanas@ · the bot checks for new mail every minute</div></div>
+    <div class="arrow"></div>
+    <div class="node wait"><div class="n-t">⏱ Wait 5 minutes</div><div class="n-d">Deliberate hold — a human can step in first, and other systems settle</div></div>
+    <div class="arrow"></div>
+    <div class="node"><div class="n-t">Read the form</div><div class="n-d">Blank type · imprint size · bandana color · ink type · quantity · # colors · deadline · zip · artwork</div></div>
+    <div class="arrow"></div>
+
+    <div class="diamond"><span>Is it a<br>bandana?</span></div>
+    <div class="branchrow">
+      <div class="branch"><span class="pill no">No</span><div class="endcap">Stop — not ours</div></div>
+      <div class="branch"><span class="pill yes">Yes</span><div class="arrow short"></div>
+        <div class="node"><div class="n-t">Price it + estimate shipping</div><div class="n-d">Price from the Canonical sheet (Classic tab = plastisol · Classic Eco tab = water-based) by quantity + color count · shipping via EasyPost (UPS Ground + 15%)</div></div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+    <div class="diamond" style="border-color:var(--y);background:var(--askbg)"><span>The Gate<br>3 outcomes</span></div>
+  </div>
+
+  <div class="gate">
+    <div class="card send"><h3 class="gate-s">① Send</h3>
+      <div class="cond"><b>Clean &amp; in-scope:</b> Import/Classic blank · qty 48–999 · 1–6 colors · zip present</div>
+      <ul>
+        <li>Emails the customer the all-inclusive price ladder</li>
+        <li>Archives the form + labels it <i>Auto-Quoted</i></li>
+        <li>Builds the Streak box → stage <i>Quote Sent (Auto)</i></li>
+        <li>Fills the Printavo quote (plastisol 1–3c today)</li>
+      </ul>
+      <span class="tagm">Fully automatic</span>
+    </div>
+    <div class="card ask"><h3 class="gate-a">② Ask</h3>
+      <div class="cond"><b>One thing missing</b> that only the customer can answer: colors, quantity, or zip</div>
+      <ul>
+        <li>Sends one short question</li>
+        <li>Re-runs automatically on their reply</li>
+        <li>Nothing quoted until it's answered</li>
+      </ul>
+      <span class="tagm soon">Fast-follow — not built yet</span>
+    </div>
+    <div class="card hold"><h3 class="gate-h">③ Hold</h3>
+      <div class="cond"><b>Needs a human:</b> USA/Organic blank · qty ≥ 1,000 (T1) · under 48 · art looks like more colors than stated · rush + high value · anything unclear</div>
+      <ul>
+        <li><b>No auto-send</b></li>
+        <li>Drafts a quote in Shara's mailbox</li>
+        <li>Creates a task so Shara finishes + sends it</li>
+      </ul>
+      <span class="tagm">Draft only</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CADENCE ============ -->
+<div class="sec">
+  <hr class="rule"><h2>Response Cadence</h2>
+  <div class="sub">Clock starts when the form email lands in bandanas@</div>
+  <div class="tl">
+    <div class="row"><div class="tm">0:00</div><div class="ev"><b>Form lands</b><br><small>Customer submitted; the form tool emailed bandanas@</small></div></div>
+    <div class="row"><div class="tm">0–1 min</div><div class="ev"><b>Bot notices it</b><br><small>Inbox is polled once a minute</small></div></div>
+    <div class="row"><div class="tm">+5 min</div><div class="ev"><b>The wait</b><br><small>Intrinsic hold before anything is written or sent</small></div></div>
+    <div class="row"><div class="tm">~6 min</div><div class="ev"><b>Customer hears back</b> — price email (Send) or a draft is prepared (Hold)<br><small>This is the moment the customer experiences</small></div></div>
+    <div class="row"><div class="tm">~11 min</div><div class="ev"><b>Streak box ready</b><br><small>Named "{Company} Bandana", stage set, task + breakdown for Shara, email thread attached</small></div></div>
+    <div class="row"><div class="tm">~13 min</div><div class="ev"><b>Printavo quote filled</b><br><small>Line item, imprint, shipping + card fee, UPS Ground, Pre-Production terms (plastisol 1–3 color)</small></div></div>
+  </div>
+  <p style="font-size:.82rem;color:#666;margin-top:10px">The customer only sees step 4 (~6 min). Steps 5–6 are back-office prep so Shara opens a ready quote.</p>
+</div>
+
+<!-- ============ PRICING = FORM ============ -->
+<div class="sec">
+  <hr class="rule"><h2>Pricing Reflects the Form</h2>
+  <div class="sub">Every field → what the bot does with it</div>
+  <table>
+    <tr><th>Form field</th><th>How the bot reads it</th><th>Effect on the price</th></tr>
+    <tr><td><b>Bandana shape</b></td><td>Square vs triangle/other</td><td>Non-square → <span class="gate-h">Hold</span> (no matrix yet)</td></tr>
+    <tr><td><b>Bandana type (blank)</b></td><td>Import/Classic · USA Made · Organic</td><td><b>Import/Classic → priced.</b> USA/Organic → <span class="gate-h">Hold</span></td></tr>
+    <tr><td><b>Ink type</b></td><td>Plastisol vs Waterbase</td><td>Plastisol → <b>Classic tab</b>; Waterbase → <b>Classic Eco tab</b> (higher). This is the price-driver alongside qty + colors.</td></tr>
+    <tr><td><b>Quantity</b></td><td>Exact number → nearest tier, interpolated</td><td>Sets the per-unit rate; shows their qty + the next 2 breaks</td></tr>
+    <tr><td><b># colors in design</b></td><td>1–6 supported</td><td>Picks the price column. 4–6c uses Bear pricing. Outside 1–6 → <span class="gate-a">Ask/Hold</span></td></tr>
+    <tr><td><b>Imprint size</b></td><td>e.g. 17.1–19" (Most Popular)</td><td>Display only (shown on the quote); does not change core price</td></tr>
+    <tr><td><b>Bandana color</b></td><td>e.g. White, Charcoal</td><td>Display only</td></tr>
+    <tr><td><b>Zip code</b></td><td>Ship-to</td><td>Drives the shipping estimate baked into the all-inclusive price</td></tr>
+    <tr><td><b>Deadline</b></td><td>Requested in-hand date</td><td>Rush detection + sets production/customer due dates</td></tr>
+    <tr><td><b>Artwork</b></td><td>Files attached, or none</td><td>None → adds the templates link. Color-vs-art check = later (D7)</td></tr>
+  </table>
+  <p style="font-size:.82rem;color:#666;margin-top:10px"><b>One source of truth:</b> the bot never invents a number — it reads the live <b>Canonical pricing sheet</b>. Update pricing there and the bot follows. The Printavo matrix is display-only and must stay in sync with that sheet.</p>
+</div>
+
+<!-- ============ WHAT IT SAYS ============ -->
+<div class="sec">
+  <hr class="rule"><h2>What the Email Says</h2>
+  <div class="sub">Send path — the customer-facing quote</div>
+  <div class="mail">
+    <div class="subj">Your {Company} bandana pricing — Planet Apparel</div>
+    <div class="l">Hi {First}, thanks for reaching out to Planet Apparel. We'd love to make your {color} bandanas with a {N}-color print.</div>
+    <div class="l">Here's your preliminary pricing with everything included — no separate setup, screen, or shipping fees:</div>
+    <div class="ladder">500 bandanas: $4.99 each (your quantity)<br>600 bandanas: $4.85 each<br>750 bandanas: $4.54 each</div>
+    <div class="l">Most customers bump up once they see the per-piece price drop.</div>
+    <div class="l"><i>(If no artwork was attached:)</i> Don't have artwork yet? Browse our 21 ready-to-print templates…</div>
+    <div class="l">If this looks good, just reply and we'll put together your formal quote and review your artwork.</div>
+  </div>
+  <p style="font-size:.82rem;color:#666;margin-top:8px">Hold path uses a <i>request</i> subject and a short "we're putting your pricing together" note — no numbers, since a human will finish it.</p>
+</div>
+
+<!-- ============ GAPS ============ -->
+<div class="sec">
+  <hr class="rule"><h2 style="color:var(--hold)">What Diverged on the 7/7 Test</h2>
+  <div class="sub">Honest punch list — fix + re-verify before re-arming</div>
+  <div class="gaps"><table>
+    <tr><th>What you saw</th><th>Status / plan</th></tr>
+    <tr><td><b>Subject line looked like machinery</b> ("Re: New submission")</td><td>Changed to "Your {Company} bandana pricing/request". <b>Re-verify</b> the wording + that the em-dash renders cleanly.</td></tr>
+    <tr><td><b>A price that didn't match the form</b> (plastisol shown on a water-based test)</td><td>The <b>email</b> priced water-based correctly (Eco tab). The mismatch was a Printavo <b>fill</b> — that path only supports plastisol today, so water-based should <b>Hold</b>, not fill. Lock: ink type must carry all the way to Printavo.</td></tr>
+    <tr><td><b>Response wasn't ~5 min after received</b></td><td>The 5-min wait starts when the bot <i>notices</i> the mail, not when the customer submits. Verify the true form-received → reply gap and adjust the wait if needed.</td></tr>
+    <tr><td><b>Errored too many times during testing</b></td><td>Mostly the n8n status API returning stale reads during rapid tests, plus test-artifact noise. Re-test cleanly in TEST mode with sample injections.</td></tr>
+  </table></div>
+
+  <div class="state">
+    <div class="chip"><b>Bot state now</b>Paused — trigger off. Nothing processes.</div>
+    <div class="chip"><b>Safe way to test</b>TEST mode (LIVE=false) + sample form injection — no customer risk, no trigger needed.</div>
+    <div class="chip"><b>Go-live switch</b>Re-enable the trigger (LIVE already true) once this map checks out.</div>
+  </div>
+</div>
+
+<footer class="pa-footer">
+  <div>Planet Apparel · Bandana Quote Bot · Internal reference</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></svg>
+</footer>
+
+</div>
+</body>
+</html>

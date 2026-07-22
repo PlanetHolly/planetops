@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retention Rollout — Part 1 — Planet Apparel</title>
+<!--
+  Planet Apparel — Retention Rollout Part 1 deck (Holly presents 2026-07-10).
+  Copy is FINAL (deck_copy_part1.md) — typeset, not rewritten.
+  Slide 5 emails pulled live 2026-07-09 from Command Center webhook (^qc_new / ^xsell),
+  merge fields filled with script_fields sample values (Sam / Trailhead 5K / bandanas).
+  Font substitution: Mr Eaves Mod OT unavailable in web context -> Montserrat (if locally
+  installed) then Helvetica Neue / Arial per Brand/CLAUDE.md fallback order.
+  Self-contained: Ø icon inlined as SVG symbol; no external fonts / CDNs / remote images.
+  Placeholders [GO-LIVE DATE] (slide 3) + 288 (slide 10) left as visible yellow chips.
+-->
+<style>
+:root{
+  --pa-yellow:#F7BE00;
+  --pa-black:#000000;
+  --pa-tonal:#232323;
+  --pa-white:#FFFFFF;
+  --pa-font:"Montserrat","Proxima Nova","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --pa-muted:#9a9a9a;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:var(--pa-font);
+  background:var(--pa-black);
+  color:var(--pa-white);
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:0.01em;
+  overflow:hidden;
+}
+
+/* ---------- slide shell ---------- */
+.slide{
+  position:fixed;inset:0;
+  display:none;
+  flex-direction:column;
+  padding:3.2vh 4.5vw 2.4vh;
+  background:var(--pa-black);
+  overflow:auto;
+}
+.slide.active{display:flex;}
+.slide.tonal{background:var(--pa-tonal);}
+
+/* header + footer bars */
+.pa-head,.pa-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  flex:0 0 auto;
+}
+.pa-head{border-bottom:1px solid rgba(255,255,255,.18);padding-bottom:1.1vh;}
+.pa-foot{border-top:1px solid rgba(255,255,255,.18);padding-top:1.1vh;margin-top:auto;}
+.pa-tag{
+  font-weight:800;text-transform:uppercase;letter-spacing:.18em;
+  font-size:clamp(9px,1.05vw,13px);color:var(--pa-muted);
+}
+.pa-foot .pa-tag{color:var(--pa-muted);}
+.pa-count{font-weight:800;letter-spacing:.12em;font-size:clamp(10px,1.1vw,14px);color:var(--pa-yellow);}
+.pa-icon{height:clamp(24px,3.2vh,40px);width:auto;color:var(--pa-white);flex-shrink:0;}
+.pa-foot .pa-icon{height:clamp(16px,2.2vh,24px);}
+
+/* body region */
+.stage{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;
+  padding:2vh 0;gap:2.4vh;min-height:0;}
+
+/* ---------- type ---------- */
+h1,h2{font-family:var(--pa-font);font-weight:900;text-transform:uppercase;
+  line-height:.98;letter-spacing:.005em;margin:0;}
+h1{font-size:clamp(34px,6.6vw,92px);}
+h2{font-size:clamp(26px,4.8vw,64px);}
+.kicker{color:var(--pa-yellow);font-weight:800;text-transform:uppercase;
+  letter-spacing:.26em;font-size:clamp(11px,1.3vw,16px);margin-bottom:.4vh;}
+.lede{font-size:clamp(18px,2.5vw,34px);font-weight:600;line-height:1.28;max-width:24ch;}
+.sub{font-size:clamp(14px,1.6vw,22px);line-height:1.5;color:#e6e6e6;max-width:60ch;}
+.sub.dim{color:var(--pa-muted);}
+.accent{color:var(--pa-yellow);}
+b,strong{color:var(--pa-white);font-weight:800;}
+.rule{height:5px;width:clamp(70px,9vw,140px);background:var(--pa-yellow);border:0;margin:0;}
+
+/* placeholder chip */
+.chip{
+  display:inline-block;border:2px dashed var(--pa-yellow);color:var(--pa-yellow);
+  font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  padding:.15em .6em;border-radius:8px;font-size:.82em;white-space:nowrap;
+  background:rgba(247,190,0,.07);
+}
+
+/* kiosk link */
+.kiosk{
+  display:inline-flex;align-items:center;gap:.6ch;
+  background:var(--pa-yellow);color:var(--pa-black);text-decoration:none;
+  font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+  font-size:clamp(15px,1.9vw,26px);padding:.55em 1.1em;border-radius:10px;
+}
+
+/* rows / cards */
+.rows{display:flex;flex-direction:column;gap:1.6vh;}
+.row{
+  display:flex;gap:clamp(14px,2vw,34px);align-items:baseline;
+  background:rgba(255,255,255,.05);border-left:6px solid var(--pa-yellow);
+  border-radius:10px;padding:1.7vh clamp(16px,2vw,30px);
+}
+.slide.tonal .row{background:rgba(0,0,0,.28);}
+.row .when{flex:0 0 clamp(150px,20vw,270px);font-weight:900;text-transform:uppercase;
+  letter-spacing:.02em;font-size:clamp(14px,1.7vw,23px);line-height:1.15;}
+.row .what{font-size:clamp(13px,1.45vw,20px);line-height:1.4;color:#eaeaea;}
+.footnote{font-size:clamp(12px,1.35vw,18px);line-height:1.4;color:var(--pa-muted);
+  border-top:1px dashed rgba(255,255,255,.22);padding-top:1.4vh;}
+.footnote b{color:var(--pa-yellow);}
+
+/* named inbox blocks */
+.people{display:flex;flex-direction:column;gap:1.5vh;}
+.person{background:rgba(255,255,255,.05);border-radius:12px;
+  padding:1.7vh clamp(16px,2vw,30px);}
+.slide.tonal .person{background:rgba(0,0,0,.28);}
+.person .name{font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+  font-size:clamp(16px,2vw,28px);color:var(--pa-yellow);margin-bottom:.4vh;}
+.person .who{color:var(--pa-muted);font-weight:700;font-size:.62em;letter-spacing:.05em;}
+.person p{margin:0;font-size:clamp(13px,1.45vw,20px);line-height:1.42;color:#eaeaea;}
+
+/* numbered / plain stack list */
+.stack{display:flex;flex-direction:column;gap:2vh;max-width:64ch;}
+.item{display:flex;gap:clamp(12px,1.6vw,24px);align-items:flex-start;}
+.item .dot{flex:0 0 auto;width:clamp(30px,3.6vw,52px);height:clamp(30px,3.6vw,52px);
+  border-radius:50%;background:var(--pa-yellow);color:var(--pa-black);
+  display:flex;align-items:center;justify-content:center;font-weight:900;
+  font-size:clamp(15px,1.8vw,26px);}
+.item .txt{font-size:clamp(15px,1.75vw,26px);line-height:1.35;padding-top:.15em;}
+.item .txt .arrow{color:var(--pa-yellow);font-weight:900;}
+
+/* slide 5 email split */
+.mail-wrap{display:flex;gap:clamp(14px,1.8vw,28px);flex:1 1 auto;min-height:0;}
+.mail-col{flex:1 1 0;display:flex;flex-direction:column;min-width:0;}
+.mail-label{font-weight:800;text-transform:uppercase;letter-spacing:.14em;
+  font-size:clamp(10px,1.1vw,14px);color:var(--pa-yellow);margin-bottom:.8vh;}
+.mail{background:var(--pa-white);color:#000;border-radius:12px;overflow:hidden;
+  display:flex;flex-direction:column;flex:1 1 auto;min-height:0;
+  box-shadow:0 14px 40px rgba(0,0,0,.45);}
+.mail-bar{background:#f2f2f2;border-bottom:1px solid #ddd;padding:10px 16px;
+  font-size:clamp(10px,1.05vw,13px);color:#333;line-height:1.5;}
+.mail-bar .subj{font-weight:800;color:#000;font-size:clamp(12px,1.25vw,16px);
+  display:block;margin-bottom:2px;}
+.mail-bar .fld b{color:#000;font-weight:700;}
+.mail-body{padding:14px 18px;overflow:auto;flex:1 1 auto;
+  font-size:clamp(11px,1.15vw,15px);}
+.mail-body p{margin:0 0 10px;}
+.draft-body{white-space:pre-line;line-height:1.55;color:#111;}
+.sig-embed{margin-top:14px;border-top:1px solid #eee;padding-top:12px;}
+.mail-caption{margin-top:1.6vh;font-size:clamp(12px,1.3vw,18px);line-height:1.4;
+  color:var(--pa-muted);text-align:center;}
+.mail-caption b{color:var(--pa-yellow);}
+
+/* teaser parts */
+.parts{display:flex;flex-direction:column;gap:2.4vh;max-width:70ch;}
+.part{display:flex;gap:clamp(14px,2vw,30px);align-items:baseline;}
+.part .n{font-weight:900;color:var(--pa-yellow);font-size:clamp(20px,2.6vw,40px);
+  text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;}
+.part .d{font-size:clamp(15px,1.8vw,26px);line-height:1.35;}
+
+/* nav hint */
+.navhint{position:fixed;bottom:1.1vh;left:50%;transform:translateX(-50%);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);
+  pointer-events:none;z-index:20;}
+
+/* ---------- print: one slide per landscape page ---------- */
+@page{size:letter landscape;margin:0.35in;}
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff;}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .slide{position:relative;inset:auto;display:flex !important;
+    height:7.1in;page-break-after:always;break-after:page;overflow:hidden;
+    border:1px solid #000;}
+  .navhint{display:none;}
+}
+
+/* ---------- narrow / phone ---------- */
+@media (max-width:760px){
+  .row{flex-direction:column;gap:.5vh;}
+  .row .when{flex-basis:auto;}
+  .mail-wrap{flex-direction:column;overflow:auto;}
+  .mail{min-height:44vh;}
+  .lede{max-width:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- Ø icon defined once, reused via <use> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="oicon" viewBox="-270 -185 3237 2226" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor"><path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/></g></symbol></svg>
+
+<main id="deck">
+
+<!-- ================= SLIDE 1 ================= -->
+<section class="slide active">
+  <div class="pa-head"><span class="pa-tag">Retention Rollout · Part 1</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <div class="kicker">Retention Rollout — Part 1</div>
+    <h1>RETENTION<br>ROLLOUT<br><span class="accent">PART 1</span></h1>
+    <hr class="rule">
+    <p class="lede">The machine opens the door. You close it.</p>
+    <p class="sub dim">What changes this week, what lands in your inbox, and the one thing the system can't do without you.</p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Jul 10 2026</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 2 ================= -->
+<section class="slide tonal">
+  <div class="pa-head"><span class="pa-tag">The Why</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>WE'RE HUNTING <span class="accent">T1s</span></h2>
+    <p class="sub">Every bandana customer is a door. Behind some of them is a T1 apparel and merch account we've never asked about.</p>
+    <p class="sub">Until now, following up meant tasks, memory, and heroics. As of this week, the follow-up is a machine — and your job moves from <b>remembering</b> to <b>closing</b>.</p>
+    <div>
+      <p class="sub dim" style="margin-bottom:1.2vh;">One place to see all of it: the Retention Command Center.</p>
+      <a class="kiosk" href="https://planetholly.github.io/planetops/revenue-house/command/" target="_blank" rel="noopener">Retention Command Center →</a>
+    </div>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 3 ================= -->
+<section class="slide">
+  <div class="pa-head"><span class="pa-tag">What Starts When</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>WHAT STARTS WHEN</h2>
+    <div class="rows">
+      <div class="row">
+        <div class="when">Live now<br><span class="chip">[GO-LIVE DATE]</span></div>
+        <div class="what">QC + review emails send automatically from <b>YOUR mailbox</b>, 5 business days after the order hits its final Printavo status — Shipped, Ready for Pickup, Ready for Delivery, or Delivered. Every tier.</div>
+      </div>
+      <div class="row">
+        <div class="when">Tue Jul 14<br>9–11am</div>
+        <div class="what">Cross-sell drafts start landing in <b>Drafts</b>. Max 12 a day, Tue–Thu. You read, you send.</div>
+      </div>
+      <div class="row">
+        <div class="when">Announced<br>when ready</div>
+        <div class="what">At-risk win-back sequence, 4-month check-in, annual reorder, lost-customer note from Holly. Built, tested, waiting.</div>
+      </div>
+    </div>
+    <p class="footnote">Manual post-project check-in tasks are <b>RETIRED</b>. If you're still working an old task list, stop — the machine took it.</p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 4 ================= -->
+<section class="slide tonal">
+  <div class="pa-head"><span class="pa-tag">Your Inbox, By Name</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>YOUR INBOX, BY NAME</h2>
+    <div class="people">
+      <div class="person">
+        <div class="name">SHARA <span class="who">bandanas@</span></div>
+        <p><b style="color:#F7BE00">SEE:</b> QC+review emails in your Sent folder (automatic, every tier — nothing to do unless they reply). Cross-sell <b>DRAFTS</b> in your Drafts folder, labeled <b>Cross-Sell</b>, subjects "a thought on your … run" / "i don't think i told you" — plus a Chat ping when a batch lands. T1 QC-call tasks in Streak.</p>
+        <p><b style="color:#F7BE00">DO:</b> Send the drafts — every cross-sell email is sent by YOU, never auto-sent. Tweak or skip any; a deleted draft stays unsent. Make the T1 calls and LOG them.</p>
+      </div>
+      <div class="person">
+        <div class="name">CORTNEY <span class="who">team@</span></div>
+        <p><b style="color:#F7BE00">SEE:</b> Three things. (1) cc copies of every intro Shara sends — FYI only, that's how your reply lands in-thread. (2) Your <b>OWN</b> intro drafts for shared-department customers — Shara is <b>NOT</b> on these. (3) The bites — customer replies in team@.</p>
+        <p><b style="color:#F7BE00">DO:</b> Send your drafts. Answer every bite within 1 business day (script's on the kiosk). Make the inactive calls and LOG them.</p>
+      </div>
+      <div class="person">
+        <div class="name">KELLY</div>
+        <p><b style="color:#F7BE00">SEE:</b> Nothing new. <b style="color:#F7BE00">DO:</b> Nothing daily — you're off the desk. The generator does what you were doing by hand. <b>Oversight only.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 5 ================= -->
+<section class="slide">
+  <div class="pa-head"><span class="pa-tag">It Looks Like This</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage" style="gap:1.4vh;">
+    <h2 style="flex:0 0 auto;">IT LOOKS LIKE THIS</h2>
+    <div class="mail-wrap">
+
+      <!-- LEFT: ^qc_new rendered HTML in a Gmail-like frame -->
+      <div class="mail-col">
+        <div class="mail-label">QC + Review · sends automatically</div>
+        <div class="mail">
+          <div class="mail-bar">
+            <span class="subj">how'd they come out?</span>
+            <span class="fld"><b>from:</b> Shara Hildebrand &lt;bandanas@planetapparel.com&gt;</span><br>
+            <span class="fld"><b>to:</b> Sam</span>
+          </div>
+          <div class="mail-body">
+            <div style="font-family:inherit;color:#000;max-width:560px;margin:0 auto;line-height:1.6">
+              <p>Hi Sam,</p>
+              <p>First run with us, so I want to be sure we nailed it. Did your Trailhead 5K turn out the way you pictured? If anything's not right, just reply and I'm on it.</p>
+              <p>And if it came out great, a quick Google review would mean a lot. We're a small, women-owned, family-run shop, and a few honest words from you help the next person find us. If you can mention your Trailhead 5K and add a photo, even better. It shows people exactly what we make.</p>
+              <p style="text-align:center;margin:22px 0 6px"><a href="https://g.page/r/CQhn52SlLBoeEBM/review" style="background:#F7BE00;color:#000;text-decoration:none;font-weight:700;padding:12px 26px;border-radius:6px;display:inline-block" rel="noopener noreferrer" target="_blank">Leave us a Google review</a></p>
+              <p style="text-align:center;color:#666;font-size:.85em;margin:0 0 18px">One click. Takes about 20 seconds.</p>
+              <p>Thanks for choosing Planet Apparel.</p>
+              <p>Shara Hildebrand, Planet Apparel</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: ^xsell plain draft + inlined signature -->
+      <div class="mail-col">
+        <div class="mail-label">Cross-Sell · sits in Drafts</div>
+        <div class="mail">
+          <div class="mail-bar">
+            <span class="subj">a thought on your Trailhead 5K run</span>
+            <span class="fld"><b>to:</b> Sam &nbsp; <b>cc:</b> team@planetapparel.com</span>
+          </div>
+          <div class="mail-body">
+            <div class="draft-body">Hi Sam,
+
+Your bandanas came out great. Quick thought while it's fresh: bandanas are how most people meet us, but if you can put a logo on it, we've probably made it. Shirts, hats, custom promo, all of it.
+
+My teammate Cortney runs that side of the shop and she's copied here. If anything catches your eye or you've got something coming up, just reply and she'll take care of you.
+
+No pressure at all. Either way, glad we got to make these for you.</div>
+            <!-- Shara cross-sell signature, inlined (remote IG img swapped for inline SVG for self-containment) -->
+            <div class="sig-embed">
+              <table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;color:#232323;line-height:1.4;">
+                <tr><td style="padding-bottom:11px;"><div style="width:46px;height:4px;background-color:#F7BE00;font-size:1px;line-height:1px;">&nbsp;</div></td></tr>
+                <tr><td style="font-size:15px;color:#000000;padding-bottom:5px;"><span style="font-weight:bold;">Shara Hildebrand</span><span style="color:#7a7a7a;">&nbsp;&nbsp;Project Manager</span></td></tr>
+                <tr><td style="font-size:12px;color:#232323;padding-bottom:10px;">Bandana Department</td></tr>
+                <tr><td style="font-size:12px;color:#232323;padding-bottom:14px;">
+                  <a href="tel:+18585692090" style="color:#232323;text-decoration:none;">858-569-2090 x 400</a> &middot;
+                  <a href="mailto:bandanas@planetapparel.com" style="color:#232323;text-decoration:none;">bandanas@planetapparel.com</a> &middot;
+                  <a href="https://www.planetapparel.com/about/" style="color:#232323;text-decoration:none;">Read About Us</a> &middot;
+                  <a href="https://www.instagram.com/planet.apparel/" style="text-decoration:none;" aria-label="Instagram"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7a7a7a" stroke-width="2" style="vertical-align:-3px;"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="#7a7a7a" stroke="none"/></svg></a>
+                </td></tr>
+                <tr><td style="font-size:13px;color:#232323;padding-bottom:8px;"><span style="font-weight:bold;color:#000000;">Click below.</span> Our newest work, all in one place.</td></tr>
+                <tr><td><table cellpadding="0" cellspacing="0" border="0" width="240" style="width:240px;"><tr><td align="center" style="background-color:#000000;border-radius:999px;padding:14px 6px;white-space:nowrap;"><a href="https://planetholly.github.io/lookbook-2026/" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;color:#FFFFFF;text-decoration:none;letter-spacing:0.5px;white-space:nowrap;">REAL WORK. REAL PHOTOS&nbsp;&nbsp;&rarr;</a></td></tr></table></td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p class="mail-caption">Real copy, approved by Holly, pulled live from the Command Center. <b>If it's wrong there, it's wrong everywhere — so it's never wrong there.</b></p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 6 ================= -->
+<section class="slide tonal">
+  <div class="pa-head"><span class="pa-tag">When It Works</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>WHEN IT <span class="accent">WORKS</span></h2>
+    <div class="stack">
+      <div class="item"><div class="dot">1</div><div class="txt">They reply to a QC email <span class="arrow">→</span> it's a normal conversation in your inbox. <b>You own it.</b></div></div>
+      <div class="item"><div class="dot">2</div><div class="txt">They click the review button <span class="arrow">→</span> we get a Google review. <b>Say thank you</b> when you see it.</div></div>
+      <div class="item"><div class="dot">3</div><div class="txt">They bite on a cross-sell <span class="arrow">→</span> Cortney takes it from there. <b>That's the door opening.</b></div></div>
+    </div>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 7 ================= -->
+<section class="slide">
+  <div class="pa-head"><span class="pa-tag">When It Hiccups</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>WHEN IT <span class="accent">HICCUPS</span></h2>
+    <div class="stack" style="max-width:72ch;">
+      <div class="item"><div class="dot">?</div><div class="txt">A customer mid-production or mid-quote says "why did I get this?" <span class="arrow">→</span> open the kiosk, grab the <b>^oops</b> script, send it, log the incident on the box. <b>Five seconds to find, one minute to send.</b></div></div>
+      <div class="item"><div class="dot">☎</div><div class="txt">Wrong phone number on a call task <span class="arrow">→</span> log <b>WRONG NUMBER</b> and move on. The email sequence continues without you lifting a finger — <b>nobody gets stranded.</b></div></div>
+      <div class="item"><div class="dot">★</div><div class="txt">VIP accounts <span class="arrow">→</span> <b>never auto-sent.</b> Their emails land as drafts with a note to you. <b>You decide.</b></div></div>
+    </div>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 8 ================= -->
+<section class="slide tonal">
+  <div class="pa-head"><span class="pa-tag">The Contract</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>THE CALLS ARE<br>THE <span class="accent">JOB</span></h2>
+    <p class="sub">The emails are automatic. <b>The calls are mandatory</b> — they're the personal layer that makes us us.</p>
+    <p class="sub">After EVERY call: mark the Streak task <b>DONE</b>, and comment on the box: <b class="accent">CONNECTED / LEFT VOICEMAIL / WRONG NUMBER</b> + one line.</p>
+    <p class="sub">The system reads emails automatically. <b>It is blind to phones.</b> Your log is its eyes — no log, and the machine thinks nothing happened.</p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 9 ================= -->
+<section class="slide">
+  <div class="pa-head"><span class="pa-tag">Your Signature</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <div class="kicker">One more thing</div>
+    <h2>YOUR <span class="accent">SIGNATURE</span></h2>
+    <p class="sub"><b>Shara + Cortney:</b> you have new cross-sell signatures (the black <b>REAL WORK. REAL PHOTOS →</b> button to the lookbook).</p>
+    <p class="sub">Drafts include them automatically. Install yours in Gmail too so your manual replies match: <b>open the file → select all → copy → Gmail Settings → Signature → paste.</b></p>
+    <p class="footnote" style="color:#cfcfcf;">Files: <b>Brand/Email_Signatures/Shara_Signature_Xsell.html</b> · <b>Cortney_Signature_Xsell.html</b></p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 10 ================= -->
+<section class="slide tonal">
+  <div class="pa-head"><span class="pa-tag">The Big Sweep</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <h2>THE BIG <span class="accent">SWEEP</span></h2>
+    <p class="sub">Every ACTIVE bandana-only customer — <span class="chip">288</span> of them — gets one honest note:<br><b style="font-size:1.05em;">"i don't think i told you the rest of what we make."</b></p>
+    <p class="sub">No pitch. One capability line. <b>The lookbook does the talking.</b></p>
+    <p class="lede accent" style="max-width:none;">We are looking for the T1 customers.<br>We are going to find them.</p>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+<!-- ================= SLIDE 11 ================= -->
+<section class="slide">
+  <div class="pa-head"><span class="pa-tag">What's Next</span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+  <div class="stage">
+    <div class="kicker">Next</div>
+    <h2>PARTS <span class="accent">2 + 3</span></h2>
+    <div class="parts">
+      <div class="part"><div class="n">Part 2</div><div class="d">New bandana pricing structure + automated pricing responses.</div></div>
+      <div class="part"><div class="n">Part 3</div><div class="d">New Printavo statuses + touchpoint automations. Fewer check-in tasks, more closing.</div></div>
+    </div>
+  </div>
+  <div class="pa-foot"><span class="pa-tag">Planet Apparel · Retention Rollout</span><span class="pa-count"></span><svg class="pa-icon"><use href="#oicon"/></svg></div>
+</section>
+
+</main>
+
+<div class="navhint">← → or tap to advance</div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var counts=[].slice.call(document.querySelectorAll('.pa-count'));
+  var n=slides.length, i=0;
+  counts.forEach(function(c,idx){c.textContent=(idx+1)+' / '+n;});
+  function show(x){
+    i=Math.max(0,Math.min(n-1,x));
+    slides.forEach(function(s,idx){s.classList.toggle('active',idx===i);});
+    var s=slides[i]; if(s) s.scrollTop=0;
+  }
+  function next(){show(i+1);} function prev(){show(i-1);}
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){show(0);} else if(e.key==='End'){show(n-1);}
+  });
+  // tap / click advances, but never when tapping a link
+  document.getElementById('deck').addEventListener('click',function(e){
+    if(e.target.closest('a')) return;
+    next();
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>

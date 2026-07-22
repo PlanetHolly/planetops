@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>2025 Annual Data Summary &amp; Source-of-Truth Map — Planet Apparel</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.7;
+  --pa-icon-size: 36px;
+  --pa-icon-color: var(--pa-black);
+}
+
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: var(--pa-white); line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+body { padding: 0.4in 0.7in; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--pa-font-stack); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.25; margin: 1.5em 0 0.5em; color: var(--pa-black); }
+h1 { font-size: 2.0rem; }
+h2 { font-size: 1.5rem; font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+strong, b { font-weight: 700; }
+a { color: var(--pa-black); text-decoration: underline; text-underline-offset: 2px; }
+.pa-accent { color: var(--pa-yellow); }
+.pa-rule { border: 0; border-top: 3px solid var(--pa-yellow); margin: 1.25rem 0; }
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 1.5rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
+.pa-icon { height: var(--pa-icon-size); width: auto; color: var(--pa-icon-color); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding-top: 0.75rem; border-top: 1px solid var(--pa-black); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { --pa-icon-size: 22px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+th, td { border: 1px solid #DDD; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #E8E8E8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.8rem; }
+.pa-callout { border-left: 4px solid var(--pa-yellow); background: #FFFBEC; padding: 0.75rem 1rem; margin: 1rem 0; }
+.pa-callout p { margin: 0.4em 0; }
+.pa-sensitivity { border-left: 4px solid #DDD; background: #F7F7F7; padding: 0.6rem 1rem; margin: 0.75rem 0; font-size: 0.88rem; color: var(--pa-tonal); }
+.pa-intro { font-size: 0.92rem; color: var(--pa-tonal); margin-bottom: 1.25rem; }
+.pa-howto { background: #F0F0F0; border-left: 4px solid var(--pa-black); padding: 0.75rem 1rem; margin: 1rem 0; }
+.pa-howto ol { margin: 0.5rem 0 0 1.2rem; padding: 0; }
+.pa-howto ol li { margin-bottom: 0.3em; }
+.pa-gap-list { list-style: none; padding: 0; margin: 0; }
+.pa-gap-list li { padding: 0.6rem 0; border-bottom: 1px solid #EEE; }
+.pa-gap-list li:last-child { border-bottom: none; }
+.pa-pending { color: #888; font-style: italic; }
+@page { size: letter; margin: 0.6in 0.7in; }
+@media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; padding: 0; } table, .pa-callout, .pa-rule, .pa-howto { page-break-inside: avoid; } h2, h3 { page-break-after: avoid; } }
+</style>
+</head>
+<body>
+
+<header class="pa-header">
+  <div class="pa-header-title">2025 Annual Data Summary &amp; Source-of-Truth Map</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+
+<h1>Planet Apparel — Annual Data Summary &amp; Source-of-Truth Map — 2025</h1>
+
+<p class="pa-intro">The "never start from scratch again" document. Everything essential that drives the <strong>Master Curve</strong> (production cost) and the <strong>Sales Profit</strong> layer (overhead + profit), in one place. <strong>Refresh the same sections every year</strong> so the picture is always one read away. Created 2026-05-25; <strong>product foundation numbers QuickBooks-verified + source paths reorganized 2026-05-26</strong> — see <code>PlanetIQ/Source_Data/_SOURCE_OF_TRUTH.md</code>.</p>
+
+<div class="pa-sensitivity">
+  <strong>Sensitivity:</strong> this lives in the shared workspace, so it holds <strong>aggregates only</strong> — no individual pay. Owner/leadership/crew compensation detail lives in Holly's private vault (<code>Claude_Holly/Leadership/Pay_Plan_2026-05-25.md</code>).
+</div>
+
+<hr class="pa-rule">
+
+<h2>How to Use This (the Yearly Process)</h2>
+<div class="pa-howto">
+  <ol>
+    <li>After year-end, pull the same source reports (listed in Part 2) for the new year.</li>
+    <li>Re-run the item classification on the new <code>Sales by Product/Service</code> (the 5-bucket split).</li>
+    <li>Update Part 1 numbers; note what changed vs prior year.</li>
+    <li>Re-confirm the source-of-truth map (Part 2) + close any gaps (Part 3).</li>
+    <li>Keep prior years' files in this folder so trends are visible (<code>2025_…</code>, <code>2026_…</code>, …).</li>
+  </ol>
+</div>
+
+<hr class="pa-rule">
+
+<h2>Part 1 — 2025 Essential Data</h2>
+
+<h3>A. Revenue by Product Source — 5 Buckets (the SP Allocation Basis)</h3>
+<p><em>Source of truth: <strong>QuickBooks <code>Sales by Product/Service</code></strong> — <code>PlanetIQ/Source_Data/QuickBooks/</code> (Summary + Detail). The <strong>Detail reconciles to the Summary to the dollar</strong> (verified 2026-05-26). <strong>For any product total, use QB — never Printavo tags</strong> (see <code>_SOURCE_OF_TRUTH.md</code> for why).</em></p>
+
+<p><strong>QB-verified product lines — 2025 (the authoritative breakdown):</strong></p>
+<table>
+  <thead>
+    <tr><th>QB Product Line</th><th>Units</th><th>Revenue</th><th>Avg Price</th><th>→ Bucket</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Screen Printed Bandanas</strong></td><td><strong>177,800</strong></td><td><strong>$776,949</strong></td><td><strong>$4.37</strong></td><td>Bandana in-house</td></tr>
+    <tr><td>Sublimated Bandanas <em>(Fiel)</em></td><td>20,010</td><td>$112,662</td><td>$5.63</td><td>Bandana outsourced</td></tr>
+    <tr><td>Digital Bandanas</td><td>4,910</td><td>$43,620</td><td>$8.88</td><td>Bandana outsourced</td></tr>
+    <tr><td>Screen Printing <em>(apparel)</em></td><td>23,487</td><td>$273,874</td><td>$11.66</td><td>Apparel in-house</td></tr>
+    <tr><td>Screen Printed Apparel</td><td>114</td><td>$608</td><td>$5.33</td><td>Apparel in-house</td></tr>
+    <tr><td><em>(embroidery · DTF · promo/merch — same report)</em></td><td></td><td></td><td></td><td>per buckets below</td></tr>
+  </tbody>
+</table>
+<p>Screen Printed Bandanas = <strong>735 line items across 522 invoices</strong> → this is also the clean <strong>order-size distribution</strong> for the bandana SP curve.</p>
+
+<p><strong>5-bucket rollup (the SP allocation basis):</strong></p>
+<table>
+  <thead>
+    <tr><th>Bucket</th><th>Revenue</th><th>%</th><th>Units</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Bandana — In-house (screen print)</td><td>$776,949</td><td>49.6%</td><td>177,800</td></tr>
+    <tr><td>Bandana — Outsourced (sublimation + digital)</td><td>$156,281</td><td>10.0%</td><td>24,920</td></tr>
+    <tr><td>Apparel — In-house (screen print + DTF)</td><td>$303,182</td><td>19.4%</td><td>25,436</td></tr>
+    <tr><td>Apparel — Outsourced (embroidery)</td><td>$152,383</td><td>9.7%</td><td>6,856</td></tr>
+    <tr><td>Merch — Outsourced (promo)</td><td>$176,267</td><td>11.3%</td><td>59,984</td></tr>
+    <tr><td><strong>Total product</strong></td><td><strong>~$1,565,061</strong></td><td></td><td></td></tr>
+    <tr><td><em>In-house</em></td><td><em>$1,080,131 (69%)</em></td><td></td><td></td></tr>
+    <tr><td><em>Outsourced</em></td><td><em>$484,931 (31%)</em></td><td></td><td></td></tr>
+  </tbody>
+</table>
+<p>Total 2025 income (incl. fees/services/shipping): <strong>~$1,752,189</strong> (QB P&amp;L). 3-yr cumulative Net Income (2023–25): <strong>−$138,766</strong> (loss).</p>
+
+<div class="pa-callout">
+  <p><strong>2024 → 2025 trend — Screen Printed Bandanas (clean QB Detail, both years carry the line; verified 2026-05-26):</strong></p>
+  <table>
+    <thead>
+      <tr><th>Year</th><th>Orders</th><th>Units</th><th>Revenue</th><th>$/unit</th><th>Median Order</th><th>Mode</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2024</td><td>276</td><td>80,188</td><td>$383,151</td><td>$4.78</td><td>100</td><td>100</td></tr>
+      <tr><td>2025</td><td>522</td><td>177,800</td><td>$776,949</td><td>$4.37</td><td>100</td><td>100</td></tr>
+    </tbody>
+  </table>
+  <p><strong>The screen-print bandana business roughly DOUBLED</strong> (orders +89%, units +122%, revenue +103%). <strong>Order-size distribution is stable year-over-year</strong> — median <em>and</em> mode are <strong>100 units in both years</strong>; ~55–61% of orders are under 200u; the 1000+ tail is ~7–8%. Avg price dipped $4.78 → $4.37 (mix shifted toward larger orders — mean order 291 → 341 — pulling per-unit down). <strong>→ SP-curve anchor = 100 units</strong> (the clean median+mode, confirmed across two years; the earlier "mode 48" was a Printavo-data artifact, not real).</p>
+  <p><strong>2023:</strong> older QB product taxonomy — there was <strong>no dedicated "Screen Printed Bandanas" line</strong> (bandana screen-print was under a combined/older item), so 2023 is not directly comparable without a mapping pass. Pull deferred unless needed.</p>
+</div>
+
+<h3>B. Production Cost → the Master Curve</h3>
+<ul>
+  <li><strong>Rate: $140 / productive press hour</strong> (winter-idle-adjusted; supersedes old $225). = $284K production pool ÷ ~2,050 winter-adjusted annual press-busy hrs.</li>
+  <li><strong>$284K production pool (2025):</strong> labor $179K + consumables $42K + energy $15K + equipment $2K + production rent share $45K.</li>
+  <li><strong>Master Curve formula:</strong> <code>JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty</code> → <code>cost/unit = (JobTime ÷ 60) × $140 ÷ qty</code>.</li>
+  <li><strong>Print rates (min/unit):</strong> apparel color-dependent (1c .34 · 2c .51 · 3c .58 · 4c .76 · 5c 1.24 — driven by press <em>passes</em>); bandana flat single-pass (1c .33 · 2c .35 · 3c .40 · 4c .42).</li>
+  <li class="pa-pending">⏳ Pending: fold the <strong>2026 +5% crew raise</strong> (+$9,334/yr) and the <strong>off-books Venmo production support</strong> into the rate numerator.</li>
+</ul>
+
+<h3>C. Sales Profit Layer (Overhead + Profit)</h3>
+<ul>
+  <li><strong>Overhead anchor: ~$69.2K/mo (~$830K/yr)</strong> — production-stripped; includes fair owner pay ($112K, <em>detail in private vault</em>) + the 2026 +5% leadership/sales raises.</li>
+  <li><strong>Target profit: $13K/mo ($156K/yr)</strong> — Level 2 "Build" (clears ~$300K debt in ~3 yrs + reserve).</li>
+  <li><strong>Total SP pool: ~$986K/yr.</strong></li>
+  <li><strong>Option C allocation (LOCKED 2026-05-25):</strong>
+    <ul>
+      <li>Outsourced lines carry ~$257K overhead via markup; in-house carries $573K overhead + $156K profit = <strong>$729K</strong>.</li>
+      <li>Levers: in/out overhead <strong>69/31</strong> · in-house overhead <strong>78/22</strong> bandana/apparel · in-house profit <strong>75/25</strong> bandana/apparel.</li>
+      <li><strong>Per-unit SP (2025 volume, AVERAGES):</strong> Bandana <strong>$3.17/u</strong> ($564K) · Apparel <strong>$6.49/u</strong> ($165K).</li>
+      <li>Minimum order 48u (12/24 VIP-gated). Buffer ~5% (noise-only).</li>
+      <li class="pa-pending">⏳ Pending: shape the per-unit SP to <strong>decline with quantity</strong> (average holds).</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>D. Vendor / Outsource COGS (2025)</h3>
+<p><em>Source: <code>QB_2025._Expenses by Vendor Summary.csv</code>.</em></p>
+<table>
+  <thead>
+    <tr><th>Outsource Vendor</th><th>2025 COGS</th><th>Bucket</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Bear Designz</td><td>$6,648</td><td>Apparel — screen print</td></tr>
+    <tr><td>Factory 1, LLC</td><td>$3,760</td><td>Apparel — screen print</td></tr>
+    <tr><td>Empowered Threads <em>(ex-Authentic/KNB, renamed)</em></td><td>$27,409</td><td>Apparel — embroidery</td></tr>
+    <tr><td>Fiel / Fairdeal Import &amp; Export</td><td>$76,367</td><td>Bandana — sublimation</td></tr>
+    <tr><td>Leemier Sports / Tom</td><td>$3,500</td><td>Merch</td></tr>
+  </tbody>
+</table>
+<p><strong>Blank suppliers (in-house COGS, NOT outsourcing):</strong> Tans $113K (import bandana blanks) · AS Colour $81K + SanMar $32K + S&amp;S $48K (apparel blanks) · Bandanna Warehouse $74K (USA bandana blanks + digital) · Maiwa $23K (organic bandana blanks). <strong>Overhead:</strong> Riverdale $91K (lease), FedEx/UPS, SDG&amp;E, Google, Printavo, insurance, Dynamic (ink/screens).</p>
+
+<h3>E. Volumes</h3>
+<ul>
+  <li><strong>2025 actual (units):</strong> bandana ~202,795 (in+out) · apparel ~32,292 · merch ~59,984.</li>
+  <li><strong>2026 forward projection:</strong> bandana ~294K · apparel ~74K (lumped) · total ~368K.</li>
+</ul>
+
+<hr class="pa-rule">
+
+<h2>Part 2 — Source-of-Truth Map (Where Each Data Point Lives)</h2>
+
+<p><em>Full folder map + the authoritative-source rules now live in <code>PlanetIQ/Source_Data/_SOURCE_OF_TRUTH.md</code> (raw data reorganized by system 2026-05-26). This table is the metric-level view.</em></p>
+
+<div class="pa-callout">
+  <p><strong>Living registry:</strong> the working, status-tracked version of this map is <strong><code>PlanetIQ/Data_Source_Inventory.xlsx</code></strong> (19 data points · status have/partial/gap · accuracy/risk · owner · action-to-close · target date — refreshed continuously as gaps close). <strong>This Part-2 table is the yearly narrative snapshot; the Excel is the day-to-day registry.</strong> Keep them in sync at the annual refresh.</p>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Data Point</th><th>Where It's Stored / Charted</th><th>Source of Truth</th><th>Pulls From / or IS the SoT</th><th>Gap</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Revenue by department</td><td>QB</td><td><strong>QB Sales by Product/Service</strong></td><td>QB <em>is</em> SoT</td><td>⚠️ "Promo" item mis-mapped to generic "Sales" acct → dept split incomplete</td></tr>
+    <tr><td>Revenue by in-house/outsourced</td><td>Kelly's Invoice Tracker (manual, monthly)</td><td><strong>Kelly's tracker</strong></td><td>manual per-invoice classification</td><td>⚠️ 2026 clean; 2025 used a rougher scheme</td></tr>
+    <tr><td>P&amp;L / overhead</td><td>QB P&amp;L by Month</td><td><strong>QB</strong></td><td>QB <em>is</em> SoT</td><td>clean</td></tr>
+    <tr><td>Production payroll hours</td><td>QB Payroll Summary by Employee</td><td><strong>QB payroll</strong></td><td>QB <em>is</em> SoT</td><td>⚠️ off-books Venmo support not in P&amp;L</td></tr>
+    <tr><td>Press times (setup / print)</td><td>Printavo Schedule + Jean's calculator</td><td><strong>Printavo</strong> (Jean's actual minutes)</td><td>manual CSV export</td><td>⚠️ no API; setup vs print not split; <strong>PlanetOps Writeback = intended future SoT</strong></td></tr>
+    <tr><td>Units &amp; revenue by product</td><td>QB Sales by Product/Service (Summary + Detail)</td><td><strong>QB — verified</strong></td><td>QB <em>is</em> SoT</td><td>✅ resolved 2026-05-26 (Detail reconciles to the dollar). <strong>Printavo NOT usable for totals</strong></td></tr>
+    <tr><td>Order-size distribution (pricing curves)</td><td>QB Sales by Product/Service <strong>Detail</strong> (group by invoice <code>Num</code>)</td><td><strong>QB Detail</strong></td><td>QB <em>is</em> SoT</td><td>✅ 522 screen-print bandana invoices, 2025</td></tr>
+    <tr><td>Vendor / outsource COGS</td><td>QB Expenses by Vendor</td><td><strong>QB</strong></td><td>QB <em>is</em> SoT</td><td>clean once vendors mapped</td></tr>
+    <tr><td>Blank COGs</td><td>Printavo catalog + vendor invoices</td><td><strong>— no single clean source —</strong></td><td>scattered</td><td>⚠️ <strong>need one clean blank-cost SoT</strong></td></tr>
+    <tr><td>Pricing matrix / SP</td><td>Price Builder <code>.xlsx</code> (ENGINE tab)</td><td><strong>the workbook</strong></td><td>workbook <em>is</em> SoT</td><td>clean (ENGINE rule)</td></tr>
+    <tr><td>Product/production tags</td><td>Printavo "Tags" field</td><td><strong>Printavo</strong> (operational/order-shape only)</td><td>Printavo <em>is</em> SoT</td><td>⚠️ <strong>64% of bandana orders untagged for production type</strong>; <code>#bandana</code> over-applied (~$2.5M vs $928K real); use for order-shape, <strong>NEVER totals</strong></td></tr>
+    <tr><td>SKU definitions</td><td><code>Pricing/Products/SKU_Dictionary.md</code></td><td><strong>the dictionary</strong></td><td>doc <em>is</em> SoT</td><td>living doc</td></tr>
+  </tbody>
+</table>
+
+<hr class="pa-rule">
+
+<h2>Part 3 — Gaps &amp; Strategy (Eliminate Human Error)</h2>
+
+<p><strong>Principle:</strong> every metric has <strong>ONE source of truth</strong> and <strong>ONE owner</strong>; automate the pull where possible; the yearly refresh (top of this doc) is a checklist, not a from-scratch rebuild.</p>
+
+<ol class="pa-gap-list">
+  <li>
+    <strong>1. QB chart-of-accounts mis-mapping (Kelly).</strong> The "Promo" service item (and ~$170K of other items) posts to a generic <strong>"Sales"</strong> account, so ~21% of revenue is un-departmentized and the P&amp;L department split reads wrong (Merchandise shows ~$0 when it was really ~$202K). <strong>Fix:</strong> remap "Promo" + the stray items to their proper department income accounts → the P&amp;L self-classifies going forward.
+  </li>
+  <li>
+    <strong>2. Printavo tag hygiene (Jean / PMs) — Exhibit A for the 2026-05-27 data meeting.</strong> Product + production-type tags are unreliable: <strong>64% of bandana orders have NO production-type tag</strong>, <code>#bandana</code> is over-applied (attached to ~$2.5M of order value vs $928K real bandana revenue), typos (<code>#badana</code> / <code>#outsoursed</code>), the combined <code>#a&amp;m</code>. This is why we now use <strong>QuickBooks</strong> for all product totals and treat Printavo as order-shape-only. <strong>Fix:</strong> enforce the standard tags at quote creation; the <code>SKU_Dictionary.md</code> is the standard. (Won't change that QB stays the SoT for totals — but clean tags make Printavo trustworthy for the <em>order-level</em> slices QB can't give.)
+  </li>
+  <li>
+    <strong>3. Blank-COG single source.</strong> Blank costs are scattered across the Printavo catalog + vendor invoices with no clean home. <strong>Fix:</strong> establish one maintained blank-cost table.
+  </li>
+  <li>
+    <strong>4. Press-time capture.</strong> Currently manual (screenshots of Printavo schedule). <strong>Fix:</strong> <strong>PlanetOps Writeback</strong> becomes the single source for setup/print times once live.
+  </li>
+  <li>
+    <strong>5. This document.</strong> Refreshed yearly = the antidote to "starting from scratch." It's the index; the detail lives in the cited source files.
+  </li>
+</ol>
+
+<hr class="pa-rule">
+
+<p><em>Companion canonical docs: pricing methodology → <code>Pricing/</code> + <code>Pricing/Products/SKU_Dictionary.md</code>; production cost → <code>PlanetIQ/Production/</code>; in/out + dept classification → Kelly's <code>Financial/INVOICE TRACKER…</code>.</em></p>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · 2025 Annual Data Summary · Created 2026-05-25</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</body>
+</html>

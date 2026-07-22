@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How We're Organized — Planet Apparel</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.7;
+  --pa-icon-size: 36px;
+  --pa-icon-color: var(--pa-black);
+}
+
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: #FAFAFA; line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+body { padding: 0.4in 0.7in; }
+.wrap { max-width: 880px; margin: 0 auto; background: var(--pa-white); padding: 0 1.25rem 2rem; box-shadow: 0 0 0 1px #ECECEC; }
+
+h1, h2, h3, h4 { font-family: var(--pa-font-stack); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.2; color: var(--pa-black); }
+h1 { font-size: 2.1rem; margin: 0.6em 0 0.2em; }
+h2 { font-size: 1.45rem; font-weight: 900; margin: 2.2rem 0 0.5rem; padding-top: 1.2rem; border-top: 3px solid var(--pa-yellow); }
+h3 { font-size: 1.08rem; font-weight: 700; margin: 1.4rem 0 0.4rem; }
+.lede { font-size: 1.05rem; color: var(--pa-tonal); margin: 0 0 1.5rem; }
+.eyebrow { font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.72rem; color: var(--pa-tonal); margin: 0; }
+strong, b { font-weight: 700; }
+p, li { font-size: 0.97rem; }
+a { color: var(--pa-black); text-underline-offset: 2px; }
+code { font-family: "SF Mono", "Menlo", "Consolas", monospace; font-size: 0.86em; background: #F2F2F2; padding: 0.08em 0.35em; border-radius: 3px; }
+.pa-accent { color: var(--pa-yellow); }
+
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 0.5rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
+.pa-icon { height: var(--pa-icon-size); width: auto; color: var(--pa-icon-color); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding-top: 0.75rem; border-top: 1px solid var(--pa-black); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { --pa-icon-size: 22px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+
+/* The one rule banner */
+.rule-banner { background: var(--pa-black); color: var(--pa-white); padding: 1.5rem 1.5rem; margin: 1.5rem 0; }
+.rule-banner .eyebrow { color: var(--pa-yellow); }
+.rule-banner p { font-size: 1.25rem; font-weight: 700; line-height: 1.45; margin: 0.4rem 0 0; color: var(--pa-white); }
+.rule-banner .pa-accent { color: var(--pa-yellow); }
+
+/* Three-layer cards */
+.cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; margin: 1.2rem 0; }
+.card { border: 1px solid #E0E0E0; border-top: 5px solid var(--pa-black); padding: 0.9rem 1rem 1.1rem; background: var(--pa-white); }
+.card.shared { border-top-color: var(--pa-yellow); }
+.card.private { border-top-color: var(--pa-tonal); }
+.card.local { border-top-color: var(--pa-black); }
+.card h3 { margin-top: 0.2rem; font-size: 1rem; }
+.card .where { font-family: "SF Mono","Menlo","Consolas",monospace; font-size: 0.74rem; color: var(--pa-tonal); display: block; margin-bottom: 0.5rem; word-break: break-all; }
+.card ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+.card li { font-size: 0.85rem; line-height: 1.5; }
+.badge { display: inline-block; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.12rem 0.45rem; border-radius: 2px; margin: 0 0.25rem 0.5rem 0; }
+.badge.synced { background: #FFF6D6; color: #7a5d00; }
+.badge.nosync { background: #EDEDED; color: var(--pa-tonal); }
+.badge.shared-yes { background: var(--pa-black); color: var(--pa-yellow); }
+.badge.shared-no { background: #EDEDED; color: var(--pa-tonal); }
+
+.pa-callout { border-left: 4px solid var(--pa-yellow); background: #FFFBEC; padding: 0.75rem 1rem; margin: 1rem 0; }
+.pa-callout.warn { border-left-color: #C8102E; background: #FDF2F3; }
+.pa-callout p { margin: 0.3rem 0; }
+
+.diagram { font-family: "SF Mono","Menlo","Consolas",monospace; font-size: 0.8rem; line-height: 1.6; background: var(--pa-tonal); color: #F4F4F4; padding: 1rem 1.2rem; border-radius: 4px; margin: 1rem 0; white-space: pre; overflow-x: auto; }
+.diagram .hl { color: var(--pa-yellow); font-weight: 700; }
+.diagram .dim { color: #9a9a9a; }
+
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #DDD; padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; font-size: 0.9rem; }
+th { background: #E8E8E8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.78rem; }
+td .tag { font-weight: 700; }
+.done { color: #1a7f37; font-weight: 700; }
+.pending { color: #b35900; font-weight: 700; }
+
+.checklist { list-style: none; padding-left: 0; }
+.checklist li { padding-left: 1.7rem; position: relative; margin-bottom: 0.5rem; }
+.checklist li::before { content: "✔"; position: absolute; left: 0; color: var(--pa-yellow); font-weight: 900; }
+
+.cheat { background: #FAFAF5; border: 1px solid #E8E4D0; padding: 0.4rem 1.2rem 1rem; margin: 1rem 0; }
+
+@page { size: letter; margin: 0.55in 0.6in; }
+@media print {
+  body { background: var(--pa-white); padding: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .wrap { box-shadow: none; max-width: none; padding: 0; }
+  .card, .pa-callout, .diagram, table, .rule-banner, .cheat { page-break-inside: avoid; }
+  h2 { page-break-after: avoid; }
+}
+@media (max-width: 720px) { .cards { grid-template-columns: 1fr; } body { padding: 0.4in 0.3in; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="pa-header">
+  <div class="pa-header-title">How We're Organized · Claude System</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+
+<p class="eyebrow">Planet Apparel · How Holly, Kelly &amp; Jean share Claude</p>
+<h1>How We're Organized</h1>
+<p class="lede">We built our Claude setup as we went. Now that all three of us use it, we need one clear picture of what's <strong>shared</strong>, what's <strong>private</strong>, and what stays on <strong>your own machine</strong> — so nobody overwrites anyone, and the next tool we add doesn't trip the same wire the checkpoint skill just did.</p>
+
+<div class="rule-banner">
+  <p class="eyebrow">The one rule everything follows</p>
+  <p>The shared folder holds the <span class="pa-accent">logic everyone shares</span>.<br>
+  Memory, state, credentials, and settings stay on <span class="pa-accent">each person's own machine</span>.</p>
+</div>
+
+<p>Jean said it exactly right in his note. The rest of this page is just that one sentence, drawn out so it's obvious where any new file, skill, or memory belongs.</p>
+
+<h2>The Three Places Things Live</h2>
+<p>Every file in our world sits in exactly one of three buckets. The trick is that <strong>two of them are in Dropbox and one is not</strong> — and being in Dropbox does not mean "shared."</p>
+
+<div class="cards">
+  <div class="card shared">
+    <h3>1 · Shared Logic</h3>
+    <span class="where">~/Dropbox/PlanetApparel/</span>
+    <span class="badge synced">Synced</span><span class="badge shared-yes">Shared · all 3</span>
+    <ul>
+      <li>Skills (the <code>_Skills/</code> folder)</li>
+      <li>Pricing, PlanetIQ, client work, processes</li>
+      <li>Project notes, references, templates</li>
+      <li>The company "brain" any Claude can read</li>
+    </ul>
+  </div>
+  <div class="card private">
+    <h3>2 · Private Vault</h3>
+    <span class="where">~/Dropbox/Claude_Holly/<br>Claude_Kelly/ · Claude_Jean/</span>
+    <span class="badge synced">Synced</span><span class="badge shared-no">Private · just you</span>
+    <ul>
+      <li>Your sensitive thinking</li>
+      <li>Pay, performance, personal notes</li>
+      <li>Your own project drafts</li>
+      <li>In Dropbox for <em>backup</em> — never shared with the others</li>
+    </ul>
+  </div>
+  <div class="card local">
+    <h3>3 · Machine-Local</h3>
+    <span class="where">~/.claude/  (your laptop only)</span>
+    <span class="badge nosync">Not synced</span><span class="badge shared-no">Never leaves machine</span>
+    <ul>
+      <li>Claude's <strong>memory</strong> of you</li>
+      <li>Skill <strong>state</strong> &amp; tracking files</li>
+      <li><strong>Credentials</strong> / API keys</li>
+      <li><strong>Settings</strong> &amp; hooks</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pa-callout">
+  <p><strong>The one that surprises people:</strong> your private vault <em>is</em> in Dropbox, but Dropbox only syncs it back to <em>your own</em> account — it is not in the shared folder, so Kelly and Jean never see it. "In Dropbox" and "shared" are two different things.</p>
+</div>
+
+<h2>Where Memory Lives — and Whose It Is</h2>
+<p>This was the heart of Jean's question. The answer: <strong>memory is per-person and stays on each machine.</strong> It is not shared, and that is correct — not a bug.</p>
+<ul>
+  <li><strong>Your Claude's memory</strong> lives at <code>~/.claude/projects/…/memory/</code> on your own laptop. When you tell Claude "I prefer terse answers" or "I'm the CFO," that's saved <em>there</em> — only your Claude knows it.</li>
+  <li><strong>Holly's Claude</strong> knows Holly's context. <strong>Kelly's</strong> knows Kelly's. <strong>Jean's</strong> knows Jean's. They don't bleed into each other.</li>
+  <li><strong>Shared knowledge</strong> — facts about the company, pricing, processes, a project's status — does <em>not</em> go in personal memory. It goes in a document inside <code>PlanetApparel/</code>, where any of our Claudes can read it.</li>
+</ul>
+<div class="pa-callout">
+  <p><strong>Rule of thumb:</strong> a fact about <em>you</em> → personal memory (local). A fact about <em>the company</em> → a shared doc in <code>PlanetApparel/</code>.</p>
+</div>
+
+<h3>Whose Memory Is It? — Automatic</h3>
+<p>You never have to tell Claude "save this as mine." Identity is settled before you type a word — for two reasons:</p>
+<ul>
+  <li><strong>The machine is the boundary.</strong> Your memory lives on <em>your own laptop</em> and is never synced. When Kelly opens Claude on Kelly's machine, the only memory it can touch is Kelly's — it physically cannot reach Holly's, because Holly's memory exists only on Holly's laptop. No shared pool to misfile into.</li>
+  <li><strong>Skills detect you automatically.</strong> Any skill that needs "your vault" runs <code>whoami</code> first and routes to <em>that</em> person's folders. On Kelly's machine that's <code>Claude_Kelly</code>, on Jean's it's <code>Claude_Jean</code> — no declaration needed.</li>
+</ul>
+<p>The only thing that needs a decision is <strong>personal vs. shared</strong> — and that's about the <em>content</em>, not whose: "I prefer short answers" is personal (auto-saved locally); "our bandana COGS is ~$1/unit" is a company fact that belongs in a shared <code>PlanetApparel/</code> doc.</p>
+<div class="pa-callout warn">
+  <p><strong>The catch:</strong> this only stays automatic for skills written the right way. A skill that hardcodes a path instead of using <code>whoami</code> will misroute no matter who's logged in — exactly the checkpoint bug above. That's what the "every new skill" rule protects.</p>
+</div>
+
+<h2>Where Obsidian Fits</h2>
+<p>Obsidian is just a <strong>nicer window</strong> onto the same Dropbox folders — it doesn't add a fourth bucket and it has nothing to do with Claude's memory.</p>
+<ul>
+  <li>When you open <code>Claude_Holly/</code> in Obsidian, you're looking at your <strong>private vault</strong> (bucket 2).</li>
+  <li>The <code>PlanetApparel/Projects/</code> notes are <strong>shared project state</strong> (bucket 1) — the same files Claude reads.</li>
+  <li>Obsidian notes are <em>documents</em>. Claude's memory is separate plumbing under <code>~/.claude/</code>. Editing a note in Obsidian never touches Claude's memory, and vice-versa.</li>
+</ul>
+
+<h2>The Trap We Just Hit — The Symlink</h2>
+<p>Here's the wire the checkpoint skill tripped, and why it matters for everything we build next.</p>
+<p>To share skills, each machine has a <strong>shortcut</strong> (a "symlink") at <code>~/.claude/skills</code> that points <em>into</em> the shared Dropbox folder. That's how all three of us run the same <code>/build-doc</code>, <code>/today</code>, etc. Good design.</p>
+<p>But it has a hidden edge: <strong>anything a skill writes inside its own folder lands in shared Dropbox</strong> — even when the code looks like it's writing to your private <code>~/.claude/</code>.</p>
+
+<div class="diagram"><span class="dim">What the code looked like it wrote to:</span>
+  ~/.claude/skills/checkpoint/state/processed.log
+                 <span class="hl">│</span>
+                 <span class="hl">│  ← this is a shortcut (symlink)</span>
+                 <span class="hl">▼</span>
+<span class="dim">Where it actually wrote to:</span>
+  ~/Dropbox/PlanetApparel/_Skills/checkpoint/state/...   <span class="hl">← SHARED with everyone</span></div>
+
+<p>The checkpoint skill — the one that saves what each session worked on — kept its tracking ledger there. So it became <strong>one file all three of us would share</strong>, holding only Holly's sessions. If Kelly or Jean had turned it on as-is:</p>
+<ul>
+  <li>Dropbox "conflicted copy" fights over a file Holly's memory leans on,</li>
+  <li>everyone's sessions bleeding into one ledger, and</li>
+  <li>each other's old sessions wrongly flagged as "crashed."</li>
+</ul>
+<div class="pa-callout">
+  <p><strong>Fixed as of 2026-05-29.</strong> The checkpoint skill's tracking file now lives at <code>~/.claude/checkpoint-state/</code> — outside the shortcut, on each machine. The skill also now detects who's running it (<code>whoami</code>) and uses <em>that</em> person's folders. Holly's 6 sessions were migrated with nothing lost; her setup behaves identically. Kelly and Jean can now safely turn it on. <strong>The shared <code>_Skills/checkpoint/</code> folder now holds only logic — no state.</strong></p>
+</div>
+
+<h2>The Rule for Every New Skill</h2>
+<p>So this never happens again, every skill we add or share gets checked against three questions:</p>
+<ul class="checklist">
+  <li><strong>Logic → shared.</strong> The <code>SKILL.md</code> instructions and scripts go in <code>_Skills/</code>. Everyone runs the same logic.</li>
+  <li><strong>State, ledgers, memory → local.</strong> Anything the skill <em>writes and tracks over time</em> goes to a machine-local path like <code>~/.claude/&lt;skill&gt;-state/</code> — never inside the skill's own folder (that's the symlink trap).</li>
+  <li><strong>Person-specific paths → detect the user.</strong> If a skill needs "your vault" or "your folder," it resolves the current user with <code>whoami</code> (the way <code>file-organization</code> and <code>/ss</code> already do) — never hardcodes one person.</li>
+</ul>
+<p>Quick test before sharing a skill: <em>"If Kelly runs this, does it write to Holly's stuff or fight over a shared file?"</em> If yes, its state isn't local yet.</p>
+
+<h2>Two Terminals, One Project</h2>
+<p>Holly hit this directly: open two Claude windows on the same project and they can overwrite each other's memory or notes. Two reasons, two fixes.</p>
+<table>
+  <tr><th>Situation</th><th>What happens</th><th>What to do</th></tr>
+  <tr><td>Two windows on the <strong>same machine</strong>, both saving memory</td><td>Last one to write wins — the other's update is clobbered</td><td>Let one finish its save / checkpoint before kicking off the other. Don't run parallel sessions both editing memory.</td></tr>
+  <tr><td>Two <strong>people</strong> editing the same shared doc at once</td><td>Dropbox makes a "(Conflicted copy)" — Holly resolves by hand</td><td>For a big edit, say so in chat: "rewriting <code>Pricing/x.md</code> for the next hour." (Already in the shared <code>CLAUDE.md</code> conflict rules.)</td></tr>
+  <tr><td>Renaming or moving a shared folder</td><td>Links, references, and CLAUDE.md paths break for everyone</td><td>Coordinate first. Folder structure changes happen on purpose, not by accident.</td></tr>
+</table>
+<p>Personal memory is safe across <em>machines</em> because it's local — Holly's and Jean's never collide. The only real overwrite risk is two windows on the <em>same</em> machine, or two people in the <em>same</em> shared file.</p>
+
+<h2>Where Things Stand</h2>
+<table>
+  <tr><th>Item</th><th>Status</th><th>Detail</th></tr>
+  <tr><td>Checkpoint skill made shareable</td><td class="done">DONE · 2026-05-29</td><td>State moved local + user-aware; Holly's ledger migrated; shared folder now logic-only.</td></tr>
+  <tr><td>Kelly &amp; Jean turn checkpoint on</td><td class="pending">READY</td><td>Each runs the skill's <code>install-hooks.sh</code> once on their own machine. Now safe — no shared state.</td></tr>
+  <tr><td>The symlink (<code>~/.claude/skills</code>)</td><td class="done">SET</td><td>Each machine points <code>~/.claude/skills</code> → the shared <code>_Skills/</code> folder. Mac: <code>ln -s</code>; Windows: <code>New-Item -ItemType SymbolicLink</code> (see shared CLAUDE.md).</td></tr>
+  <tr><td>Kelly's GWS-CLI install</td><td class="pending">PENDING</td><td>Kelly's machine was set up like Holly's <em>except</em> the Google Workspace CLI (<code>gws</code>) still needs installing. Last to-do for full parity.</td></tr>
+</table>
+
+<h2>Quick Reference</h2>
+<div class="cheat">
+<table>
+  <tr><th>I have…</th><th>It goes…</th></tr>
+  <tr><td>A fact about <strong>the company</strong> (pricing, process, project status)</td><td>A doc in <code>PlanetApparel/</code> — shared</td></tr>
+  <tr><td>A fact about <strong>me</strong> (my preference, my role)</td><td>My Claude's memory — local, automatic</td></tr>
+  <tr><td>Something <strong>sensitive</strong> (pay, performance, candid notes)</td><td>My private vault <code>Claude_&lt;Me&gt;/</code> — never the shared folder</td></tr>
+  <tr><td>An <strong>API key or password</strong></td><td>Never in any synced folder. Secrets manager / env vars.</td></tr>
+  <tr><td>A <strong>new skill</strong></td><td>Logic → <code>_Skills/</code>. Its state → <code>~/.claude/&lt;skill&gt;-state/</code>. Detect the user.</td></tr>
+  <tr><td>Not sure?</td><td>Default to private + ask. Or ask Claude: "Where does this go per PlanetApparel/CLAUDE.md?"</td></tr>
+</table>
+</div>
+
+<p class="lede" style="margin-top:1.5rem;">This page is the friendly version. The enforceable rulebook is <code>PlanetApparel/CLAUDE.md</code> — it already carries the same three buckets, the memory rule, and the conflict etiquette. When in doubt, that file wins.</p>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · 2026-05-29</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</div>
+</body>
+</html>

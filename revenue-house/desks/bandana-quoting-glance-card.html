@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bandana Quoting — Popularity Glance Card — Planet Apparel</title>
+<style>
+:root {
+  --pa-yellow: #F7BE00;
+  --pa-black:  #000000;
+  --pa-tonal:  #232323;
+  --pa-white:  #FFFFFF;
+  --pa-font-stack: "Mr Eaves Mod OT", "Montserrat", "Proxima Nova", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --pa-line-height: 1.5;
+  --pa-icon-size: 36px;
+  --pa-icon-color: var(--pa-black);
+}
+html, body { margin: 0; padding: 0; font-family: var(--pa-font-stack); color: var(--pa-black); background: var(--pa-white); line-height: var(--pa-line-height); letter-spacing: 0.01em; }
+body { padding: 0.4in 0.7in; }
+h1, h2, h3 { font-family: var(--pa-font-stack); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.2; margin: 0.9em 0 0.35em; color: var(--pa-black); }
+h1 { font-size: 1.6rem; margin-top: 0.3em; }
+h2 { font-size: 1.05rem; font-weight: 700; }
+strong, b { font-weight: 700; }
+.pa-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0 0.85rem; border-bottom: 1px solid var(--pa-black); margin-bottom: 0.85rem; }
+.pa-header .pa-header-title { font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
+.pa-icon { height: var(--pa-icon-size); width: auto; color: var(--pa-icon-color); flex-shrink: 0; }
+.pa-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1.25rem; padding-top: 0.6rem; border-top: 1px solid var(--pa-black); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-footer .pa-icon { --pa-icon-size: 20px; }
+.pa-footer .pa-footer-meta { color: var(--pa-tonal); }
+table { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: 0.82rem; }
+th, td { border: 1px solid #DDD; padding: 0.35rem 0.55rem; text-align: left; vertical-align: top; }
+th { background: #E8E8E8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.7rem; }
+.top5 th { background: var(--pa-black); color: var(--pa-white); }
+.top5 td:first-child { font-weight: 900; font-size: 1rem; }
+.pa-callout { border-left: 4px solid var(--pa-yellow); background: #FFFBEC; padding: 0.55rem 0.9rem; margin: 0.6rem 0; }
+.pa-callout ol { margin: 0.2rem 0 0.2rem 1.1rem; padding: 0; }
+.pa-callout li { margin: 0.3rem 0; }
+.check { font-size: 0.85rem; background: #F4F4F4; padding: 0.45rem 0.9rem; margin: 0.6rem 0; border-left: 4px solid var(--pa-black); }
+.note { font-size: 0.75rem; color: var(--pa-tonal); }
+.meta-note { font-size: 0.68rem; color: #999; margin-top: 1rem; font-family: monospace; }
+@page { size: letter; margin: 0.5in 0.6in; }
+@media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; padding: 0; } table, .pa-callout, .check { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<header class="pa-header">
+  <div class="pa-header-title">Bandana Quoting — Popularity Glance Card</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</header>
+
+<main>
+
+<h1>Bandana Quoting <span style="color:var(--pa-yellow)">·</span> Popularity Order</h1>
+<p style="margin:0 0 0.4rem; font-size:0.9rem"><strong>Effective 2026-07-11.</strong> Use the current "Bandana …" matrix names in Printavo — the old "ZZ" prefix is gone. This card is ordered by how often each request actually comes in, so the thing Shara needs is almost always near the top.</p>
+
+<h2>Top 5 <span style="color:var(--pa-yellow)">·</span> Most Bandana Quotes Are One of These</h2>
+<table class="top5">
+<tr><th>Rank</th><th>Customer Wants</th><th>SKU</th><th>Matrix to Pick</th></tr>
+<tr><td>1</td><td>Classic plastisol (standard, most common)</td><td>PL2220</td><td>Bandana Classic (Screen Print)</td></tr>
+<tr><td>2</td><td>Classic water-based / eco</td><td>PL2220ECO</td><td>Bandana - Classic ECO (Water-Based)</td></tr>
+<tr><td>3</td><td>USA-made, water-based / eco</td><td>US2120ECO</td><td>Bandana USA ECO (Water-Based)</td></tr>
+<tr><td>4</td><td>USA-made, plastisol</td><td>US2120 <span class="note">(live Printavo SKU is still US2119 until renamed)</span></td><td>Bandana USA (Screen Print)</td></tr>
+<tr><td>5</td><td>Organic (always quoted eco to customers)</td><td>ORG2420ECO / ORG2422ECO</td><td>Bandana Organic ECO (Water-Based)</td></tr>
+</table>
+
+<h2>Everything Else</h2>
+<table>
+<tr><th>Customer Wants</th><th>SKU</th><th>Matrix to Pick</th></tr>
+<tr><td>Full-Color Digital print</td><td>DIG22</td><td>Bandana Full-Color (Digital)</td></tr>
+<tr><td>Full-Color Digital, triangle</td><td>DIGTRI14 / DIGTRI22</td><td>Bandana Full-Color Triangle (Digital)</td></tr>
+<tr><td>Classic or USA screen print, triangle</td><td>square's SKU pattern (TRIBAN / USTRIBAN)</td><td>uses the <strong>square's</strong> matrix — Bandana Classic (Screen Print) or Bandana USA (Screen Print)</td></tr>
+<tr><td>27&quot; oversized Classic</td><td>PL2720 / PL2722</td><td>Bandana Classic (Screen Print-27in) or its ECO</td></tr>
+<tr><td>Fold / poly bag add-on</td><td>add-on, not a base SKU</td><td>Bandana Standard Fold / Custom Fold (+ Poly Bag)</td></tr>
+<tr><td>Belly band add-on</td><td>add-on, not a base SKU</td><td>Belly Band Only (no application) / + Standard Fold / + Custom Fold</td></tr>
+<tr><td>Organic plastisol (screen print)</td><td>&mdash;</td><td><strong>Bandana Organic (Screen Print) — INTERNAL ONLY.</strong> Never quote this one to a customer; always sell Organic ECO (see Top 5, #5).</td></tr>
+<tr><td>Sublimation — <em>least common, quote last if the customer is comparing options</em></td><td>SUB1 / SUB2 / SUB27 / SUBGTR family</td><td>Bandana Sublimation</td></tr>
+<tr><td>Sublimation, triangle — <em>least common</em></td><td>SUBTRI-SM / SUBTRI-MED / SUBTRI-LG</td><td>Bandana Sublimation Triangle</td></tr>
+</table>
+
+<div class="pa-callout">
+<strong>THE THREE RULES</strong>
+<ol>
+<li><strong>Bandana products are $0 on purpose</strong> — the matrix column is the whole per-piece price.</li>
+<li><strong>Use only matrices that start with "Bandana."</strong></li>
+<li><strong>Never hit "Refresh Pricing"</strong> on a bandana quote made before 2026-07-10.</li>
+</ol>
+</div>
+
+<div class="check"><strong>SANITY CHECK:</strong> Bandana Classic, 1-color, 50 pc = <strong>$9.70</strong>. If you see <strong>$8.15</strong> you're on an old/retired matrix.</div>
+
+<p class="meta-note">📌 Bookmark:<br>
+&nbsp;&nbsp;Folder:&nbsp; 🟡 In Development<br>
+&nbsp;&nbsp;Title:&nbsp;&nbsp; Revenue House · 📇 Bandana Quoting Glance<br>
+&nbsp;&nbsp;Link:&nbsp;&nbsp;&nbsp; file:///Users/hollytrevino/Dropbox/PlanetApparel/Sales/Bandana_Quote_Automation/Shara_Quoting_Glance_Card_2026-07-11.html</p>
+
+</main>
+
+<footer class="pa-footer">
+  <div class="pa-footer-meta">Planet Apparel · 2026-07-11 · Lockstep Pricing Cutover</div>
+  <svg class="pa-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-270 -185 3237 2226" role="img" aria-label="Planet Apparel" preserveAspectRatio="xMidYMid meet">
+    <g transform="translate(0,1856) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M26172 18550 c-77 -11 -149 -33 -222 -71 -30 -15 -1319 -875 -2865 -1911 l-2810 -1884 -79 96 c-317 380 -621 695 -976 1011 -1352 1203 -2909 1899 -4679 2094 -587 64 -1288 72 -1861 20 -1460 -133 -2796 -615 -4049 -1462 -1429 -966 -2537 -2349 -3190 -3981 -566 -1416 -736 -3047 -481 -4602 151 -917 461 -1808 919 -2645 39 -71 70 -133 69 -137 -2 -3 -1279 -862 -2838 -1908 -2558 -1715 -2842 -1908 -2910 -1978 -270 -277 -263 -712 15 -988 84 -82 195 -145 311 -174 154 -40 355 -21 486 46 29 15 736 485 1571 1045 835 561 1520 1019 1522 1019 2 0 594 396 1315 880 721 484 1315 880 1319 880 4 0 48 -51 98 -113 607 -750 1346 -1387 2203 -1897 1047 -623 2169 -1022 3302 -1174 958 -129 2004 -93 2953 100 1473 301 2847 993 4000 2013 173 153 542 522 697 698 825 934 1454 2053 1803 3208 185 613 285 1156 347 1890 21 239 17 1108 -5 1365 -47 534 -129 1032 -249 1505 -22 88 -43 166 -47 173 -5 8 -201 -118 -632 -407 l-626 -420 28 -148 c102 -540 134 -934 126 -1546 -7 -498 -28 -754 -98 -1177 -200 -1216 -704 -2316 -1494 -3265 -391 -470 -873 -928 -1345 -1277 -918 -680 -1949 -1106 -3100 -1282 -593 -91 -1328 -112 -1950 -55 -1565 142 -2908 728 -4099 1788 -258 229 -777 780 -754 801 9 8 12267 8233 16338 10962 2200 1475 2468 1657 2535 1726 42 42 90 102 107 132 103 181 121 420 46 610 -60 149 -186 292 -320 363 -126 66 -293 96 -431 77z m-12062 -2035 c760 -63 1436 -220 2100 -487 945 -380 1771 -934 2476 -1660 138 -142 414 -455 414 -468 -1 -3 -397 -270 -882 -595 -484 -324 -3185 -2136 -6002 -4026 l-5121 -3436 -49 91 c-246 458 -483 1111 -604 1666 -126 572 -175 1046 -175 1675 0 412 14 652 59 1010 200 1588 886 2967 2059 4140 961 961 2052 1591 3290 1899 464 115 910 178 1495 210 146 8 767 -4 940 -19z"/>
+    </g>
+  </svg>
+</footer>
+
+</body>
+</html>

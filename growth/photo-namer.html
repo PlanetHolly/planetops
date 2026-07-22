@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bandana Photo Namer</title>
+  <style>
+    :root {
+      --black: #111111;
+      --white: #ffffff;
+      --yellow: #F7BE00;
+      --gray-50: #fafafa;
+      --gray-100: #f2f2f2;
+      --gray-200: #dedede;
+      --gray-500: #707070;
+      --gray-700: #333333;
+      --radius: 8px;
+      --shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--gray-50);
+      color: var(--black);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--black);
+      border-radius: 6px;
+      background: var(--black);
+      color: var(--white);
+      cursor: pointer;
+      font-weight: 700;
+      min-height: 42px;
+      padding: 0 14px;
+    }
+
+    button:hover,
+    button:focus-visible {
+      background: var(--gray-700);
+      outline: none;
+    }
+
+    button.secondary {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    button.secondary:hover,
+    button.secondary:focus-visible {
+      background: var(--gray-100);
+    }
+
+    button.danger {
+      border-color: #8a1f1f;
+      background: #8a1f1f;
+    }
+
+    header {
+      border-bottom: 4px solid var(--yellow);
+      background: var(--black);
+      color: var(--white);
+      padding: 24px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 44px);
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 0.8fr);
+      gap: 24px;
+      margin: 0 auto;
+      max-width: 1180px;
+      padding: 24px;
+    }
+
+    section {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--gray-700);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--black);
+      padding: 9px 11px;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--black);
+      outline: 3px solid rgba(247, 190, 0, 0.35);
+    }
+
+    .drop-zone {
+      display: grid;
+      place-items: center;
+      min-height: 142px;
+      margin-top: 16px;
+      border: 2px dashed var(--gray-200);
+      border-radius: var(--radius);
+      background: var(--gray-50);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .drop-zone.dragging {
+      border-color: var(--yellow);
+      background: #fff8db;
+    }
+
+    .drop-zone input {
+      margin-top: 10px;
+      max-width: 100%;
+    }
+
+    .file-name {
+      margin: 8px 0 0;
+      color: var(--gray-500);
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .output-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .output-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .filename {
+      min-height: 58px;
+      overflow-wrap: anywhere;
+      border: 1px solid var(--gray-200);
+      border-left: 6px solid var(--yellow);
+      border-radius: 6px;
+      background: var(--gray-50);
+      padding: 14px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .row-preview,
+    .log-preview {
+      min-height: 88px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      background: var(--gray-50);
+      padding: 12px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status {
+      min-height: 20px;
+      color: var(--gray-500);
+      font-size: 13px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 840px) {
+      main,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BANDANA PHOTO NAMER</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2>Inputs</h2>
+      <form id="namerForm" autocomplete="off">
+        <div class="form-grid">
+          <label>
+            Brand
+            <input id="brand" name="brand" type="text" required>
+          </label>
+
+          <label>
+            SKU
+            <select id="sku" name="sku" required></select>
+          </label>
+
+          <label>
+            Color
+            <input id="color" name="color" type="text" required>
+          </label>
+
+          <label>
+            Layout
+            <select id="layout" name="layout">
+              <option value="centered">centered</option>
+              <option value="diamond">diamond</option>
+              <option value="tiled">tiled</option>
+              <option value="doggie">doggie</option>
+            </select>
+          </label>
+
+          <label>
+            Style
+            <select id="style" name="style">
+              <option value="flat">flat</option>
+              <option value="worn">worn</option>
+              <option value="folded">folded</option>
+              <option value="neck-gaiter">neck-gaiter</option>
+            </select>
+          </label>
+
+          <label>
+            Print-method override
+            <select id="printMethodOverride" name="printMethodOverride">
+              <option value="">Use SKU default</option>
+              <option value="Screen-Printed">Screen-Printed</option>
+              <option value="Digitally Printed">Digitally Printed</option>
+              <option value="Sublimated">Sublimated</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="dropZone" class="drop-zone full">
+          <div>
+            <strong>Drop photo here</strong>
+            <div>or choose a file</div>
+            <input id="photoFile" name="photoFile" type="file" accept="image/*">
+            <p id="fileName" class="file-name">No photo selected. Filename will use .jpg.</p>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="output-stack">
+      <div class="output-box">
+        <h2>Computed Filename</h2>
+        <div id="computedFilename" class="filename" aria-live="polite"></div>
+        <div class="button-row">
+          <button id="copyFilename" type="button">Copy</button>
+          <button id="downloadPhoto" type="button" class="secondary" disabled>Download renamed photo</button>
+        </div>
+      </div>
+
+      <div class="output-box">
+        <h2>Import Row</h2>
+        <div id="importRow" class="row-preview" aria-live="polite"></div>
+        <div class="button-row">
+          <button id="copyRow" type="button">Copy row</button>
+        </div>
+      </div>
+
+      <div class="output-box">
+        <h2>Running Log</h2>
+        <div id="runningLog" class="log-preview" aria-live="polite"></div>
+        <div class="button-row">
+          <button id="copyLog" type="button" class="secondary">Copy log as TSV</button>
+          <button id="clearLog" type="button" class="danger">Clear log</button>
+        </div>
+      </div>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const SKU_DICTIONARY = {
+      "PL2220": { fabric: "Cotton", size: "22x22", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "PL2220ECO": { fabric: "Cotton", size: "22x22", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "PL2222ECO": { fabric: "Cotton", size: "22x22", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "TRIBAN14": { fabric: "Cotton", size: "14x14x20", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "TRIBAN14ECO": { fabric: "Cotton", size: "14x14x20", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "TRIBAN22": { fabric: "Cotton", size: "22x22x31", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "TRIBAN22ECO": { fabric: "Cotton", size: "22x22x31", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "US2120": { fabric: "Cotton", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "US2120ECO": { fabric: "Cotton", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "US2121ECO": { fabric: "Cotton", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "US2121": { fabric: "Cotton", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "USTRIBAN14": { fabric: "Cotton", size: "14x14x19", shape: "Triangle", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "USTRIBAN22": { fabric: "Cotton", size: "22x22x31", shape: "Triangle", product_type: "Standard", made_in_usa: "Yes", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "ORG2420ECO": { fabric: "Organic Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "ORG2420": { fabric: "Organic Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "ORG2422ECO": { fabric: "Organic Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Water-Based" },
+      "ORG2422": { fabric: "Organic Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Screen-Printed", default_ink: "Plastisol" },
+      "PL2720": { fabric: "Cotton", size: "27x27", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "", default_ink: "N/A" },
+      "PL2722": { fabric: "Cotton", size: "27x27", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "", default_ink: "N/A" },
+      "SUB1": { fabric: "Polyester", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUB2": { fabric: "Polyester", size: "21x21", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUB27": { fabric: "Polyester", size: "27x27", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUBTRI-SM": { fabric: "Polyester", size: "14x14x20", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUBTRI-MED": { fabric: "Polyester", size: "19x19x27", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUBTRI-LG": { fabric: "Polyester", size: "22x22x29", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "SUBGTR": { fabric: "Polyester", size: "9x18", shape: "Gaiter", product_type: "Gaiter", made_in_usa: "No", default_print_method: "Sublimated", default_ink: "Sublimation Dye" },
+      "DIG22": { fabric: "Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "CUSTOMDIGBAN": { fabric: "Cotton", size: "", shape: "Custom shape", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "DIGCR25": { fabric: "Cotton", size: "22x25", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "DIGTRI22": { fabric: "Cotton", size: "22x22x29", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "DIGTRI14": { fabric: "Cotton", size: "14x14x20", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "BELBAN": { fabric: "", size: "", shape: "", product_type: "Standard", made_in_usa: "No", default_print_method: "", default_ink: "N/A" },
+      "PROTOTYPE": { fabric: "", size: "", shape: "Any", product_type: "Standard", made_in_usa: "No", default_print_method: "", default_ink: "N/A" },
+      "LWDIG24": { fabric: "Cotton", size: "24x24", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "LWDIG22": { fabric: "Cotton", size: "22x22", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "LWDIG20": { fabric: "Cotton", size: "20x20", shape: "Square", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "LWDIGTRI22": { fabric: "Cotton", size: "22x22x29", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "LWDIGTRI14": { fabric: "Cotton", size: "14x14x22", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+      "LWDIGTRI24": { fabric: "Cotton", size: "24x24", shape: "Triangle", product_type: "Standard", made_in_usa: "No", default_print_method: "Digitally Printed", default_ink: "N/A" },
+    };
+
+    const LOG_STORAGE_KEY = "planetPhotoNamerLog";
+    const COUNTER_STORAGE_KEY = "planetPhotoNamerCounter";
+    let selectedFile = null;
+    let lastLoggedFilename = "";
+
+    function slugify(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function getSkuRecord(sku) {
+      return SKU_DICTIONARY[sku] || SKU_DICTIONARY.PL2216;
+    }
+
+    function getPrintMethod(inputs, skuRecord) {
+      return inputs.printMethodOverride || skuRecord.default_print_method || "";
+    }
+
+    function getExtension(fileName) {
+      const match = String(fileName || "").match(/\.([^.]+)$/);
+      return match ? match[1].toLowerCase() : "jpg";
+    }
+
+    // shared spec — future production automation must call this same logic.
+    function buildFilename(inputs) {
+      const skuRecord = getSkuRecord(inputs.sku);
+      const tokens = [
+        slugify(inputs.brand),
+        slugify(getPrintMethod(inputs, skuRecord)),
+        slugify(inputs.color),
+        slugify(skuRecord.fabric),
+        slugify(skuRecord.size),
+        slugify(inputs.layout),
+        slugify(inputs.style)
+      ].filter(Boolean);
+      return tokens.join("-") + "." + getExtension(inputs.fileName);
+    }
+
+    // shared spec — future production automation must call this same logic.
+    function buildImportRow(inputs) {
+      const skuRecord = getSkuRecord(inputs.sku);
+      const filename = buildFilename(inputs);
+      const columns = [
+        inputs.sku,
+        filename,
+        skuRecord.shape,
+        skuRecord.product_type,
+        skuRecord.fabric,
+        inputs.color || "",
+        getPrintMethod(inputs, skuRecord),
+        skuRecord.size,
+        "50",
+        skuRecord.made_in_usa
+      ];
+      return columns.join("\t");
+    }
+
+    function getInputs() {
+      return {
+        brand: document.getElementById("brand").value,
+        sku: document.getElementById("sku").value,
+        color: document.getElementById("color").value,
+        layout: document.getElementById("layout").value,
+        style: document.getElementById("style").value,
+        printMethodOverride: document.getElementById("printMethodOverride").value,
+        fileName: selectedFile ? selectedFile.name : ""
+      };
+    }
+
+    function displayName(sku, record) {
+      const pieces = [record.fabric, record.size, record.shape, record.product_type].filter(Boolean);
+      return sku + " — " + (pieces.length ? pieces.join(" ") + " Bandana" : "Bandana");
+    }
+
+    function populateSkuOptions() {
+      const skuSelect = document.getElementById("sku");
+      Object.keys(SKU_DICTIONARY).forEach(function(sku) {
+        const option = document.createElement("option");
+        option.value = sku;
+        option.textContent = displayName(sku, SKU_DICTIONARY[sku]);
+        skuSelect.appendChild(option);
+      });
+      skuSelect.value = "PL2220";
+    }
+
+    function renderOutputs() {
+      const inputs = getInputs();
+      const filename = buildFilename(inputs);
+      document.getElementById("computedFilename").textContent = filename;
+      document.getElementById("importRow").textContent = buildImportRow(inputs);
+      document.getElementById("downloadPhoto").disabled = !selectedFile;
+    }
+
+    function setStatus(message) {
+      document.getElementById("status").textContent = message;
+    }
+
+    function copyText(text, label) {
+      if (!text) {
+        setStatus("Nothing to copy.");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          setStatus(label + " copied.");
+        }).catch(function() {
+          fallbackCopyText(text, label);
+        });
+        return;
+      }
+      fallbackCopyText(text, label);
+    }
+
+    function fallbackCopyText(text, label) {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        setStatus(label + " copied.");
+      } catch (error) {
+        setStatus("Copy failed. Select the text and copy manually.");
+      }
+    }
+
+    function getLog() {
+      try {
+        return JSON.parse(localStorage.getItem(LOG_STORAGE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function setLog(log) {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
+    }
+
+    function nextCounter() {
+      const current = Number(localStorage.getItem(COUNTER_STORAGE_KEY) || "0") + 1;
+      localStorage.setItem(COUNTER_STORAGE_KEY, String(current));
+      return current;
+    }
+
+    function logToTsv(log) {
+      return ["counter\tfilename\tsku\tbrand\tcolor"].concat(log.map(function(item) {
+        return [item.counter, item.filename, item.sku, item.brand, item.color].join("\t");
+      })).join("\n");
+    }
+
+    function renderLog() {
+      const log = getLog();
+      document.getElementById("runningLog").textContent = log.length ? logToTsv(log) : "";
+    }
+
+    function appendCurrentToLogIfReady() {
+      const inputs = getInputs();
+      if (!inputs.brand.trim() || !inputs.color.trim() || !inputs.sku) {
+        return;
+      }
+      const filename = buildFilename(inputs);
+      if (filename === lastLoggedFilename) {
+        return;
+      }
+      const log = getLog();
+      const entry = {
+        counter: nextCounter(),
+        filename: filename,
+        sku: inputs.sku,
+        brand: inputs.brand,
+        color: inputs.color
+      };
+      log.push(entry);
+      setLog(log);
+      lastLoggedFilename = filename;
+      renderLog();
+    }
+
+    function clearLog() {
+      localStorage.removeItem(LOG_STORAGE_KEY);
+      localStorage.removeItem(COUNTER_STORAGE_KEY);
+      lastLoggedFilename = "";
+      renderLog();
+      setStatus("Log cleared.");
+    }
+
+    function setSelectedFile(file) {
+      selectedFile = file || null;
+      document.getElementById("fileName").textContent = selectedFile ? selectedFile.name : "No photo selected. Filename will use .jpg.";
+      renderOutputs();
+    }
+
+    function downloadRenamedPhoto() {
+      if (!selectedFile) {
+        return;
+      }
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(selectedFile);
+      link.download = buildFilename(getInputs());
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(function() {
+        URL.revokeObjectURL(link.href);
+      }, 1000);
+      appendCurrentToLogIfReady();
+      setStatus("Renamed photo download started.");
+    }
+
+    function bindEvents() {
+      document.getElementById("namerForm").addEventListener("input", renderOutputs);
+      document.getElementById("namerForm").addEventListener("change", renderOutputs);
+      document.getElementById("copyFilename").addEventListener("click", function() {
+        copyText(document.getElementById("computedFilename").textContent, "Filename");
+        appendCurrentToLogIfReady();
+      });
+      document.getElementById("copyRow").addEventListener("click", function() {
+        copyText(document.getElementById("importRow").textContent, "Import row");
+      });
+      document.getElementById("copyLog").addEventListener("click", function() {
+        copyText(logToTsv(getLog()), "Log");
+      });
+      document.getElementById("clearLog").addEventListener("click", clearLog);
+      document.getElementById("downloadPhoto").addEventListener("click", downloadRenamedPhoto);
+
+      document.getElementById("photoFile").addEventListener("change", function(event) {
+        setSelectedFile(event.target.files[0]);
+      });
+
+      const dropZone = document.getElementById("dropZone");
+      ["dragenter", "dragover"].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(event) {
+          event.preventDefault();
+          dropZone.classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, function(event) {
+          event.preventDefault();
+          dropZone.classList.remove("dragging");
+        });
+      });
+      dropZone.addEventListener("drop", function(event) {
+        setSelectedFile(event.dataTransfer.files[0]);
+      });
+    }
+
+    populateSkuOptions();
+    bindEvents();
+    renderOutputs();
+    renderLog();
+  </script>
+</body>
+</html>

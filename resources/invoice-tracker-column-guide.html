@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Tracker — Column Guide & Automation Plan</title>
+<style>
+  :root{
+    --yellow:#F7BE00; --black:#000; --tonal:#232323; --white:#fff;
+    --gray:#E8E8E8; --line:#ddd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Montserrat','Helvetica Neue',Arial,sans-serif;
+    color:var(--tonal); background:#f4f4f4; line-height:1.5;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+  /* header */
+  header{
+    background:var(--black); color:var(--white);
+    padding:38px 0 34px; margin-bottom:34px; position:relative;
+  }
+  header .wrap{position:relative;}
+  .oicon{
+    position:absolute; top:0; right:24px;
+    width:46px;height:46px;border:3px solid var(--yellow);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;font-weight:800;color:var(--yellow);
+  }
+  .kicker{color:var(--yellow);letter-spacing:3px;font-size:12px;font-weight:700;text-transform:uppercase;}
+  h1{font-size:30px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-top:6px;}
+  .sub{color:#cfcfcf;font-size:14px;margin-top:8px;max-width:760px;}
+  /* trigger banner */
+  .triggers{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:30px;}
+  .trig{background:var(--white);border-left:5px solid var(--yellow);padding:18px 20px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .trig h3{font-size:14px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+  .trig p{font-size:13.5px;color:#444;}
+  .trig .tag{display:inline-block;background:var(--yellow);color:var(--black);font-weight:700;font-size:11px;padding:2px 8px;border-radius:3px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+  /* legend */
+  .legend{background:var(--white);border-radius:6px;padding:18px 22px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .legend h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;border:1px solid transparent;}
+  .c-pv{background:var(--yellow);color:var(--black);}
+  .c-exp{background:var(--black);color:var(--yellow);}
+  .c-press{background:var(--tonal);color:var(--white);}
+  .c-formula{background:var(--white);color:var(--black);border:1px solid var(--black);}
+  .c-crm{background:var(--gray);color:#333;}
+  .chip small{display:block;font-weight:500;text-transform:none;letter-spacing:0;color:inherit;opacity:.85;font-size:10px;margin-top:1px;}
+  /* sections */
+  .section{background:var(--white);border-radius:6px;margin-bottom:20px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .section > .head{background:var(--black);color:var(--white);padding:11px 20px;font-size:14px;font-weight:800;letter-spacing:2px;text-transform:uppercase;border-bottom:3px solid var(--yellow);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{background:#fafafa;text-align:left;padding:9px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1px solid var(--line);}
+  td{padding:10px 14px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .col{font-weight:700;white-space:nowrap;}
+  .col .ref{color:#aaa;font-weight:500;font-size:11px;}
+  .lock{color:var(--yellow);background:var(--black);font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;}
+  .minichip{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+  td.src{white-space:normal;}
+  /* note box */
+  .note{background:#fffaf0;border:1px solid var(--yellow);border-radius:6px;padding:20px 24px;margin-top:30px;}
+  .note h3{text-transform:uppercase;font-size:14px;letter-spacing:1px;margin-bottom:10px;}
+  .note ul{margin-left:18px;font-size:13.5px;color:#444;}
+  .note li{margin-bottom:7px;}
+  .askbox{background:var(--black);color:var(--white);border-radius:6px;padding:22px 24px;margin-top:18px;}
+  .askbox h3{color:var(--yellow);text-transform:uppercase;font-size:14px;letter-spacing:1px;margin-bottom:8px;}
+  .askbox p{font-size:14px;color:#e6e6e6;}
+  footer{text-align:center;color:#999;font-size:11px;margin-top:40px;}
+  @media print{body{background:#fff;} .section,.trig,.legend{box-shadow:none;border:1px solid #ddd;}}
+  @media(max-width:720px){.triggers{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="oicon">Ø</div>
+    <div class="kicker">Planet Apparel · PlanetIQ</div>
+    <h1>Invoice Tracker — Column Guide</h1>
+    <p class="sub">What every column means, where its data comes from, and how the tracker fills itself. Built for month-end close so per-job profit, in-house %, and collections are answered in one place — without manual entry.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- TRIGGERS -->
+  <div class="triggers">
+    <div class="trig">
+      <span class="tag">Trigger 1 · Status</span>
+      <h3>When an invoice hits "Paid / Terms"</h3>
+      <p>The workflow pulls that invoice from Printavo and writes (or refreshes) its row — customer, totals, payments, product, SKU, color count, impressions, quantity. Partial payments update the same row; no more "-A / -B" split lines.</p>
+    </div>
+    <div class="trig">
+      <span class="tag">Trigger 2 · Expense</span>
+      <h3>When an expense is entered in Printavo</h3>
+      <p>Blanks, materials, outsourced PO cost, and shipping flow into the COGS columns automatically. Total COGS, Real Revenue, and margin recalculate themselves the moment a cost lands.</p>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <h3>How each column gets filled</h3>
+    <div class="chips">
+      <span class="chip c-pv">Auto · Printavo<small>on status change</small></span>
+      <span class="chip c-exp">Auto · Expense<small>when a cost is entered</small></span>
+      <span class="chip c-press">Auto · Press Capture<small>Jean's print-time → cost</small></span>
+      <span class="chip c-formula">Formula<small>calculated in-sheet</small></span>
+      <span class="chip c-crm">CRM / Manual<small>Streak tier or hand-set</small></span>
+    </div>
+  </div>
+
+  <!-- SECTIONS -->
+  <!-- IDENTITY -->
+  <div class="section">
+    <div class="head">Identity</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Customer <span class="ref">A</span></td><td>Company name on the order</td><td class="src">Printavo customer name</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Project Name <span class="ref">B</span></td><td>The job / order title</td><td class="src">Printavo order name</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Customer Status <span class="ref">C</span></td><td>New, or Repeat tier (T1 / T2 / T3)</td><td class="src">Streak CRM tier, joined by Customer ID</td><td><span class="minichip c-crm">CRM</span></td></tr>
+      <tr><td class="col">VIP <span class="ref">D</span></td><td>Key account flag (DWC, I&amp;V, RV)</td><td class="src">Printavo VIP tag</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Production Mode <span class="ref">E</span></td><td>In-House, Outsourced, or Both</td><td class="src">Printavo #inhouse / #outsource tag</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Invoice Number <span class="ref">F</span><span class="lock">KEY</span></td><td>The unique invoice #. This is the match key — every update finds the row by this.</td><td class="src">Printavo invoice ID</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+    </table>
+  </div>
+
+  <!-- PROFIT -->
+  <div class="section">
+    <div class="head">Profit</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Invoice Total <span class="ref">G</span></td><td>Full invoice value (treated as paid-in-full for true job profit, even on terms)</td><td class="src">Printavo invoice total</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Net Margin $ <span class="ref">H</span></td><td>Real Revenue minus Production Cost — the dollars the job actually contributed</td><td class="src">= Real Rev − Production Cost</td><td><span class="minichip c-formula">Formula</span></td></tr>
+      <tr><td class="col">Margin % <span class="ref">I</span></td><td>Margin as a % of invoice. Color-coded against the 25% goal (green ≥25%, amber 20–25%, red &lt;20%).</td><td class="src">= Net Margin ÷ Invoice Total</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- PAYMENT -->
+  <div class="section">
+    <div class="head">Payment &nbsp;·&nbsp; <span style="font-weight:500;letter-spacing:0;text-transform:none;font-size:12px;color:#F7BE00">Kelly's collections view</span></div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Pmt Date <span class="ref">J</span></td><td>Date payment posted (latest installment)</td><td class="src">Printavo transaction date</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Target Date (Day 15) <span class="ref">K</span></td><td>The 15-working-day collection deadline</td><td class="src">= Invoice date + 15 working days</td><td><span class="minichip c-formula">Formula</span></td></tr>
+      <tr><td class="col">Payment <span class="ref">L</span></td><td>Total collected so far (grows with each partial payment)</td><td class="src">Printavo amount paid</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Payment Status <span class="ref">M</span></td><td>Paid in Full / Deposit / 50% Down / Partial / Final / Terms</td><td class="src">Printavo paid status</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Payment Stage <span class="ref">N</span></td><td>First vs final payment on installment deals</td><td class="src">Printavo transactions</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Outstanding <span class="ref">O</span></td><td><strong>Who still owes us, and how much</strong></td><td class="src">= Invoice Total − Payment</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- COGS -->
+  <div class="section">
+    <div class="head">COGS — Cost of Goods</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Blanks <span class="ref">P</span></td><td>Cost of blank garments / goods</td><td class="src">Printavo expense: Blanks</td><td><span class="minichip c-exp">Expense</span></td></tr>
+      <tr><td class="col">Materials <span class="ref">Q</span></td><td>DTF transfers, hem/sew labels, hang tags, belly bands, etc.</td><td class="src">Printavo expense: Materials</td><td><span class="minichip c-exp">Expense</span></td></tr>
+      <tr><td class="col">Outsourced <span class="ref">R</span></td><td>Vendor PO cost for outsourced work</td><td class="src">Printavo expense: Outsourced Production</td><td><span class="minichip c-exp">Expense</span></td></tr>
+      <tr><td class="col">Shipping <span class="ref">S</span></td><td>Actual shipping cost on the job</td><td class="src">Printavo expense: Shipping</td><td><span class="minichip c-exp">Expense</span></td></tr>
+      <tr><td class="col">Total COGS <span class="ref">T</span></td><td>Sum of all four cost columns above</td><td class="src">= Blanks + Materials + Outsourced + Shipping</td><td><span class="minichip c-formula">Formula</span></td></tr>
+      <tr><td class="col">% Goods <span class="ref">U</span></td><td>Goods cost as a % of invoice (toward the 40/40/20 target)</td><td class="src">= (Blanks + Materials) ÷ Invoice</td><td><span class="minichip c-formula">Formula</span></td></tr>
+      <tr><td class="col">% Services <span class="ref">V</span></td><td>Services cost as a % of invoice</td><td class="src">= (Outsourced + Production) ÷ Invoice</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- REVENUE -->
+  <div class="section">
+    <div class="head">Revenue</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Invoice Real Rev <span class="ref">W</span></td><td>Real Revenue (Profit First) — invoice minus COGS. What's left to cover overhead.</td><td class="src">= Invoice Total − Total COGS</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- PRODUCTION -->
+  <div class="section">
+    <div class="head">Production</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Production Cost <span class="ref">X</span><span class="lock">LOCKED</span></td><td>In-house cost of running the press, at the loaded $140 / productive hour rate</td><td class="src">Press-time capture → automation</td><td><span class="minichip c-press">Press</span></td></tr>
+      <tr><td class="col">Production Date <span class="ref">Y</span></td><td>Date the job ran on press</td><td class="src">Printavo / production schedule</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Press Min <span class="ref">Z</span></td><td>Total minutes on press for the job</td><td class="src">Press-time capture (Jean)</td><td><span class="minichip c-press">Press</span></td></tr>
+      <tr><td class="col">MPH <span class="ref">AA</span></td><td>Margin per press hour — the core efficiency number</td><td class="src">= Net Margin ÷ (Press Min ÷ 60)</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- PRODUCT -->
+  <div class="section">
+    <div class="head">Product</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Product Type <span class="ref">AB</span></td><td>Apparel / Bandana / Promo / Merch</td><td class="src">Printavo category &amp; tag</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Method <span class="ref">AC</span></td><td>Screen Print / Sublimation / DTF / Embroidery</td><td class="src">Printavo category</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">SKU <span class="ref">AD</span></td><td>Line-item code (clean codes for bandanas)</td><td class="src">Printavo line item</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Bandana Type <span class="ref">AE</span></td><td>Import / USA-Made / Organic / Sublimated / Digital</td><td class="src">SKU prefix</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+    </table>
+  </div>
+
+  <!-- VOLUME -->
+  <div class="section">
+    <div class="head">Volume</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Impressions <span class="ref">AF</span></td><td>Screen-print impressions (prints × qty), excluding packaging</td><td class="src">Printavo imprints (parsed)</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Color Count <span class="ref">AG</span></td><td>Number of ink colors per imprint</td><td class="src">Printavo imprint "N/c"</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Post-Prod 1–3 <span class="ref">AH–AJ</span></td><td>Finishing / packaging steps (fold &amp; band, tagging, kitting…)</td><td class="src">Printavo "Packaging" imprint</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Post-Prod Qty <span class="ref">AK</span></td><td>Units finished / packaged</td><td class="src">Printavo</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+    </table>
+  </div>
+
+  <!-- AUDIT -->
+  <div class="section">
+    <div class="head">Audit</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Auto-Fill Marker <span class="ref">AL</span></td><td>Confirms the row was filled by automation (vs typed by hand)</td><td class="src">Set by the workflow</td><td><span class="minichip c-pv">System</span></td></tr>
+      <tr><td class="col">Review Flag <span class="ref">AM</span></td><td>OK / Review / Missing Data — anything needing a human look</td><td class="src">Workflow or manual</td><td><span class="minichip c-crm">Manual</span></td></tr>
+      <tr><td class="col">Margin vs Goal <span class="ref">AN</span></td><td>Above Goal / On Goal / Below Goal vs the 25% target</td><td class="src">= read from Margin %</td><td><span class="minichip c-formula">Formula</span></td></tr>
+    </table>
+  </div>
+
+  <!-- LINK -->
+  <div class="section">
+    <div class="head">Link</div>
+    <table>
+      <tr><th style="width:23%">Column</th><th style="width:37%">What it represents</th><th style="width:25%">Where it comes from</th><th style="width:15%">Fill</th></tr>
+      <tr><td class="col">Customer ID <span class="ref">AO</span></td><td>The universal join key — links this row to Streak, Printavo, and every other system</td><td class="src">Printavo customer ID</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+      <tr><td class="col">Total Quantity <span class="ref">AP</span></td><td>Total units on the order</td><td class="src">Printavo line-item quantities</td><td><span class="minichip c-pv">Printavo</span></td></tr>
+    </table>
+  </div>
+
+  <!-- NOTE / OPEN ITEMS -->
+  <div class="note">
+    <h3>Open for this meeting</h3>
+    <ul>
+      <li><strong>Where we are:</strong> the column layout (this template) is built. The <em>automation</em> that fills it — the two triggers above — is the next build. Until it's live, we can't be 100% confident on the field-by-field auto-fill, so treat this as the design to pressure-test.</li>
+      <li><strong>Already on the list:</strong> move <strong>Outstanding</strong> closer to the front so Kelly's who-still-owes-us view is right up top, not buried after COGS.</li>
+      <li><strong>June version:</strong> once we lock Kelly's adjustments, we'll build the matching June tab.</li>
+    </ul>
+  </div>
+
+  <div class="askbox">
+    <h3>Kelly — what we need from you</h3>
+    <p>Walk the columns and flag anything: missing fields, wrong order, names that don't match how you think about it, or a number you'd rather see calculated differently. Your collections view (the Payment block) especially — tell us what you want front-and-center.</p>
+  </div>
+
+  <footer>Planet Apparel · PlanetIQ · Invoice Tracker Column Guide · Draft for review</footer>
+
+</div>
+</body>
+</html>
