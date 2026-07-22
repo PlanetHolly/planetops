@@ -544,7 +544,7 @@ function showUndoToast(msg,onUndo,secs){
 const STATE_API='';
 const STATE_KEY=''; // retired: the gate session cookie is the auth; header kept harmless below
 const SHARED_DOC='schedule_board';
-const LOCAL_ONLY=['csvName','csvText','range','exported'];
+const LOCAL_ONLY=['csvName','csvText','range','exported','removed'];  // removed = Jean's private queue curation — never synced to the shared schedule doc
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
 const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','invsvc','statusOv'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
@@ -1198,6 +1198,20 @@ try{ // storage can throw at load (private browsing / partitioned iframe) — ne
   RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
 }catch(e){}
 
+/* ───────── Queue ✕ remove button — per-browser VISIBILITY flag, not auth ─────────
+   Anyone who knows the URL param can flip this on in their own browser; it exists
+   only so the ✕ remove control shows up in Jean's browser and stays hidden for
+   everyone else. Default OFF. ?remove=on turns it on and persists per-browser;
+   ?remove=off turns it off and clears; no param keeps whatever was last persisted.
+   Same URL-param-then-localStorage pattern as RENDER_FROM_RECORDS above. */
+let QUEUE_REMOVE=false;
+try{ // storage can throw at load (private browsing / partitioned iframe) — never let the flag kill the render
+  const _removeParam=new URLSearchParams(location.search).get('remove');
+  if(_removeParam==='on')localStorage.setItem('sb_queue_remove','on');
+  else if(_removeParam==='off')localStorage.removeItem('sb_queue_remove');
+  QUEUE_REMOVE=localStorage.getItem('sb_queue_remove')==='on';
+}catch(e){}
+
 /* feedBase(): CSV rows (rowToJob) unioned with live intake (apiToJob) — the base
    assembly buildModel() has always done. Pulled out unchanged so ingestRecords()
    can be fed a fresh feed base even when the render itself uses recordBase(). */
@@ -1807,7 +1821,7 @@ function renderList(){
     <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
-    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`}</td>
+    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:(QUEUE_REMOVE?`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`:'')}</td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
