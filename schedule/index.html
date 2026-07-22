@@ -1132,8 +1132,21 @@ function ingestRecords(base){
 }
 if(typeof window!=='undefined')window.jobRecordsDiag=()=>_recordDiag;
 
-function buildModel(){
-  const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
+/* ───────── Phase B step 2b (flag-gated): render from records ─────────
+   RENDER_FROM_RECORDS picks buildModel()'s base job list: the feeds (today's
+   behavior) or the persisted records (survives a feed dropout/truncation).
+   Default OFF. ?render=records turns it on and persists per-browser; ?render=feed
+   turns it off and clears; no param keeps whatever was last persisted. Same
+   URL-param-then-localStorage pattern as capacity/index.html's ?mode=jean. */
+const _renderParam=new URLSearchParams(location.search).get('render');
+if(_renderParam==='records')localStorage.setItem('sb_render_source','records');
+else if(_renderParam==='feed')localStorage.removeItem('sb_render_source');
+const RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
+
+/* feedBase(): CSV rows (rowToJob) unioned with live intake (apiToJob) — the base
+   assembly buildModel() has always done. Pulled out unchanged so ingestRecords()
+   can be fed a fresh feed base even when the render itself uses recordBase(). */
+function feedBase(){
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
@@ -1148,7 +1161,36 @@ function buildModel(){
       seen.add(String(a.imprint));base.push(apiToJob(a));intakeAdded++;
     });
   }
-  ingestRecords(base);   // Phase B step 2 (SHADOW): persist a record per feed job. Write-only — render still uses `base` below.
+  return base;
+}
+/* recordBase(): active job records (store.jobRecords, !archived) mapped to the same
+   shape rowToJob emits, so the override/split/placeholder block downstream is untouched.
+   Records don't carry per-step progress — 'Not Started' is accepted while this path is
+   flag-gated off by default. */
+function recordBase(){
+  return Object.values(store.jobRecords||{}).filter(r=>!r.archived).map(r=>{
+    const m=String(r.imprint).match(/^(\d+)\s*-\s*(\d+)([a-z])?$/i);
+    const j={
+      minutes:+r.csvMinutes||0, qty:+r.qty||0,
+      date:r.csvDate||'', station:r.csvStation||'',
+      imprint:r.imprint, invoice:m?m[1]:r.imprint, impNum:m?m[2]:'', splitLetter:m&&m[3]?m[3].toLowerCase():'',
+      parentKey:m?`${m[1]}-${m[2]}`:r.imprint,
+      nickname:r.nickname||'', prodDue:r.prodDue||'', custDue:r.custDue||'',
+      projectType:r.projectType||'', screens:r.screens||'', inkChange:r.inkChange||'None',
+      ink:r.ink||'', pallet:r.pallet||'', postProdType:r.postProdType||'',
+      steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
+      status:r.status||'', localSplit:false, moved:false,
+    };
+    if(r.source==='intake')j.apiIntake=true;
+    return j;
+  });
+}
+
+function buildModel(){
+  const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
+  const useRecords=RENDER_FROM_RECORDS&&!histCsv&&!store.csvText;   // history snapshot + manual import always stay on the feed path
+  let base=useRecords?recordBase():feedBase();
+  ingestRecords(useRecords?feedBase():base);   // Phase B step 2 (SHADOW): persist a record per feed job — always sourced from the feed, even when rendering from records, so records keep learning from the live feed. Write-only.
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
