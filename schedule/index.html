@@ -1093,6 +1093,8 @@ const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{}
    only writes them and reports what the feeds dropped. Rendering from records = 2b.
    Console during the shadow: jobRecordsDiag()  →  {droppedActive, dropped:[…]}. */
 let _recordsDirty=false, _recordDiag=null;
+const RETIRE_STATUS_RE=/delivered\s*\/\s*picked/i;  // the ONLY terminal status: "🤝 Delivered / Picked up 🏁" — Shipped/Ready-for-Pickup carry the same 🏁 but are customer-email triggers, not "done for us"
+const RETIRE_STALE_DAYS=30;   // backstop: a dated job this many days past its Prod. Date, never delivered, gets archived anyway
 function _recMeaningfulEqual(a,b){
   if(!a||!b)return false;
   const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','source','archived'];
@@ -1140,6 +1142,21 @@ function ingestRecords(base){
   if(dropped.length)console.log('[jobRecords] '+dropped.length+' active record(s) NOT in the current feed (would have vanished pre-records):',dropped.map(r=>r.imprint).join(', '));
 }
 if(typeof window!=='undefined')window.jobRecordsDiag=()=>_recordDiag;
+/* retireRecords(): a records-rendered board must drop finished work. Only the true
+   terminal status archives a record — Shipped/Ready-for-Pickup stay active (Jean: the 🏁
+   flag is a customer-email trigger, not "done for us"). A dated job that goes stale past
+   RETIRE_STALE_DAYS without ever hitting delivered is archived as a backstop; an unscheduled
+   record (blank csvDate) is never backstop-archived. Never un-archives. */
+function retireRecords(){
+  if(histCsv||store.csvText||!liveCsv)return;  // same guard as ingestRecords — never act on history/manual/fallback data
+  if(!store.jobRecords)return;
+  const cutoff=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date(Date.now()-RETIRE_STALE_DAYS*864e5));
+  Object.values(store.jobRecords).forEach(r=>{
+    if(r.archived)return;
+    if(RETIRE_STATUS_RE.test(r.status||'')){r.archived=Date.now();_recordsDirty=true;}
+    else if(r.csvDate&&r.csvDate<cutoff){r.archived=Date.now();_recordsDirty=true;}
+  });
+}
 
 /* ───────── Phase B step 2b (flag-gated): render from records ─────────
    RENDER_FROM_RECORDS picks buildModel()'s base job list: the feeds (today's
@@ -1203,6 +1220,7 @@ function buildModel(){
   const useRecords=RENDER_FROM_RECORDS&&!histCsv&&!store.csvText;   // history snapshot + manual import always stay on the feed path
   let base=useRecords?recordBase():feedBase();
   ingestRecords(useRecords?feedBase():base);   // Phase B step 2 (SHADOW): persist a record per feed job — always sourced from the feed, even when rendering from records, so records keep learning from the live feed. Write-only.
+  retireRecords();   // Phase B: archive finished records so a records-rendered board drops them (recordBase() already filters !archived)
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
