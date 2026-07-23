@@ -347,6 +347,11 @@
   .strkbtn.on{background:#000;color:var(--yellow);border-color:#000}
   .estbox{border-left:3px solid #d9b74a;padding-left:10px;margin:6px 0}
   .stpill{font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;display:inline-block;line-height:1.35;max-width:280px}
+  /* queue status column: never clip a Printavo status — the pill stays one line and the scroller grows right (Jean 7/10) */
+  .tablewrap .stpill{max-width:none;white-space:nowrap}
+  /* park/ready = a decision button, not a utility — blue square so it reads at a glance next to Station (Jean 7/10) */
+  .parkbtn{font:inherit;font-size:13px;background:#1f6fe0;color:#fff;border:1px solid #185bbd;border-radius:5px;padding:3px 9px;cursor:pointer;margin-left:4px}
+  .parkbtn:hover{background:#185bbd}
   /* calendar view */
   .calhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:13px;color:var(--grey-text);margin:2px 0 4px;padding:0 2px}
   .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
@@ -1941,7 +1946,7 @@ function renderList(){
     <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
-    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:(QUEUE_REMOVE?`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`:'')}</td>
+    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="parkbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:(QUEUE_REMOVE?`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`:'')}</td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
