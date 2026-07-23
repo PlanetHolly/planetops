@@ -1629,10 +1629,10 @@ function invGroup(inv,rows){
   const labeled=[...new Set(rows.filter(j=>realPP(pptOf(j))).map(j=>ppLabel(pptOf(j))))];
   const svcNone=(store.invsvc||{})[inv]==='none';
   const svcTag=svcNone
-    ?`<span class="chip" style="background:#9aa1ab" title="Ships direct from the vendor — on ✓ arrived it closes straight to history, nothing joins the queue.">📪 no 2nd service</span><button class="splitbtn" data-invsvc="${inv}|" title="Undo — this invoice DOES need an in-house leg">↩</button>`
+    ?`<span class="chip" style="background:#9aa1ab" title="Ships direct from the vendor — never joins the queue; closes straight to history on arrival.">📪 no 2nd service</span><button class="splitbtn" data-invsvc="${inv}|" title="Undo — this invoice DOES need an in-house leg">↩</button>`
     :labeled.length
-      ?`<span class="chip out" title="On ✓ arrived, only the labeled in-house imprints join the QUEUE; the vendor leg closes to history.">🔧 in-house after arrival: ${labeled.join(' · ')}</span>`
-      :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — on ✓ arrived everything joins the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
+      ?`<span class="chip out" title="The labeled in-house imprint(s) are already in the QUEUE — no need to wait for arrival. The vendor leg (no label) stays here and closes to history once it arrives.">🔧 in-house after arrival: ${labeled.join(' · ')}</span>`
+      :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — until one is, everything on this invoice is already in the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
   return `<div class="invgrp">
     <div class="invhead"><b>Invoice ${inv}</b> <span class="invnick">${escHtml(rep.nickname||'')}</span><span class="dcount">· ${rows.length} imprint${rows.length>1?'s':''}</span> ${svcTag}</div>
     <div data-invbar="${inv}">${etaBar(rep)}</div>
@@ -1683,7 +1683,7 @@ function arrivalsSection(standalone){
     <div class="arrhead" ${standalone?'style="cursor:default"':'id="arrToggle" title="Click to collapse/expand"'}>
       ${standalone?'':'<span class="chev">▾</span>'}<h2>⟵ Arrivals — outsourced print returning for in-house handling</h2>
       <span class="dcount">· ${pending.length} pending${done.length?' · '+done.length+' arrived':''}</span></div>
-    <div class="hint">These are NOT fully-outsourced jobs — the vendor prints them, then the goods <b>land here for the in-house leg</b>: count-in, QC, packaging (the timed post-production event). While inbound: track est. arrival, tracking # and return method. When goods land, tap <b>✓ arrived</b> — the job then <b>joins the QUEUE</b> to get its Post-Pro type, ⏱ time and station like any other job.</div>
+    <div class="hint">These are NOT fully-outsourced jobs — the vendor prints them, then the goods <b>land here for the in-house leg</b>: count-in, QC, packaging (the timed post-production event). The in-house leg is already sitting in the <b>QUEUE</b> — set its Post-Pro type, ⏱ time and station now, before the goods even land, so it's ready to go the moment they do. While inbound: track est. arrival, tracking # and return method. When goods land, tap <b>✓ arrived</b> — that just stamps the date (📦 landed) and moves the row down into arrived history below.</div>
     <div class="arrbody">${body||'<span class="hint">Nothing inbound.</span>'}</div>
   </section>`;
 }
@@ -1778,17 +1778,27 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  // QUEUE mode: actionable only — outsourced waits in Arrivals UNTIL ✓ arrived, then ONLY its
-  // in-house legs join the queue (G1): if any sibling imprint on the invoice carries a real
-  // Post-Pro label, unlabeled siblings (the pure vendor leg) stay in Arrivals history; if NONE
-  // is labeled yet, all release (legacy flow — label lands in the queue). An invoice marked
-  // "no 2nd service" never releases — it ships direct from the vendor and closes to history.
+  // QUEUE mode (2026-07-22): normal jobs enter the queue when they have no station.
+  // Outsourced jobs with a real in-house leg (G1 invReleasable, below) enter the Queue and
+  // Arrivals AT THE SAME TIME, from the moment they appear, so a packaging time can be set
+  // before the goods land — they stay in the queue until they're given a production date
+  // (placed on the board). ✓ arrived no longer gates queue entry for them; it remains only
+  // an arrival stamp (see the "📦 landed" badge below). invReleasable still governs WHICH
+  // outsourced imprints are eligible at all: an invoice marked "no 2nd service" never
+  // releases (ships direct from the vendor, closes to history on arrival instead), and when
+  // any sibling imprint on the invoice carries a real Post-Pro label, unlabeled siblings
+  // (the pure vendor leg, e.g. the `-1` print) stay in Arrivals only — only the labeled
+  // in-house leg (e.g. `-2` packaging) reaches the queue. If NONE of an invoice's siblings
+  // is labeled yet, all of them release (legacy flow — labeling happens once it's in the
+  // queue). For outsourced jobs, invReleasable is the ENTIRE gate — Printavo's pre-stamped
+  // (or blank) station on these rows is not consulted either way, so a stray blank station
+  // can no longer smuggle a not-yet-releasable vendor leg into the queue.
   const invReleasable=j=>{
     if((store.invsvc||{})[j.invoice]==='none')return false;
     const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
     return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
   };
-  const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||(!!store.arrived[j.imprint]&&invReleasable(j)));
+  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):!j.station);
   const isRemoved=j=>!!store.removed[j.imprint];
   let list=(listShowAll?all:all.filter(inQueue).filter(j=>!isRemoved(j))).filter(matchesQ);   // search filter (Holly)
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]&&!isRemoved(j)).length;   // parked/removed jobs don't count — not "to schedule"
