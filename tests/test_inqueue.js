@@ -1,8 +1,9 @@
 /* Acceptance test for the Queue/Arrivals visibility fix (2026-07-22, extended 2026-07-22b
-   for in-house post-production legs — see PLAN-inhouse-postpro.md).
+   for in-house post-production legs, and 2026-07-23 round 2 for the Sched-column date field
+   in Queue mode — see PLAN-inhouse-postpro.md).
    Extracts the REAL `inQueue`, `isOut`, `OUTSOURCED`, `invReleasable`, `pptOf`, `realPP`,
-   `isPrintavoPost`, `laneOf`, and `LANES` definitions out of schedule/index.html by
-   regex/brace-balancing and evaluates them as live functions, so this test asserts against
+   `isPrintavoPost`, `exitsOnDate`, `laneOf`, and `LANES` definitions out of schedule/index.html
+   by regex/brace-balancing and evaluates them as live functions, so this test asserts against
    the shipped source — not a reimplementation of it.
    Run: node tests/test_inqueue.js */
 'use strict';
@@ -56,11 +57,12 @@ const realPPConst = extractLine(/const realPP=.*$/m, 'const realPP=');
 const invReleasableConst = extractConst('invReleasable');
 const isPrintavoPostConst = extractLine(/const isPrintavoPost=.*$/m, 'const isPrintavoPost=');
 const inQueueConst = extractLine(/const inQueue=.*$/m, 'const inQueue=');
+const exitsOnDateConst = extractLine(/const exitsOnDate=.*$/m, 'const exitsOnDate=');
 const lanesConst = extractConst('LANES');
 const laneOfConst = extractLine(/const laneOf=.*$/m, 'const laneOf=');
 
 /* ───────── evaluate the extracted source into real, callable functions ───────── */
-function makeInQueue(store, jobs) {
+function makeFns(store, jobs) {
   const factory = new Function('store', 'jobs', `
     ${lanesConst}
     ${laneOfConst}
@@ -71,10 +73,13 @@ function makeInQueue(store, jobs) {
     ${invReleasableConst}
     ${isPrintavoPostConst}
     ${inQueueConst}
-    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP, isPrintavoPost, laneOf, LANES };
+    ${exitsOnDateConst}
+    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP, isPrintavoPost, exitsOnDate, laneOf, LANES };
   `);
-  return factory(store, jobs).inQueue;
+  return factory(store, jobs);
 }
+function makeInQueue(store, jobs) { return makeFns(store, jobs).inQueue; }
+function makeExitsOnDate(store, jobs) { return makeFns(store, jobs).exitsOnDate; }
 
 const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
 
@@ -226,6 +231,67 @@ const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
     "14. Heat Press, Printavo-stamped station, no date -> NOT in queue (press lanes stay out, scope guard)",
     inQueue(heatPress) === false,
     'inQueue(27503 - 2) = ' + inQueue(heatPress)
+  );
+}
+
+/* ───────── assertions 15-18: exitsOnDate (2026-07-23 round 2 — Sched column in Queue mode)
+   Rows that already carry a Printavo station (outsourced, or an in-house post-pro leg
+   Printavo stamped) have no station assignment left to make, so a production DATE is their
+   only exit from the Queue. Normal jobs still graduate on station assignment and are unaffected. ───────── */
+{
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = [];
+  const exitsOnDate = makeExitsOnDate(store, jobs);
+
+  const outsourcedLeg = { imprint: '27155 - 2', invoice: '27155', station: 'Post Production', date: '', status: OUT_STATUS, postProdType: 'Packaging (Bandana)' };
+  check(
+    "15. 27155-2 (outsourced leg) -> exitsOnDate true",
+    exitsOnDate(outsourcedLeg) === true,
+    'exitsOnDate(27155 - 2) = ' + exitsOnDate(outsourcedLeg)
+  );
+
+  const printavoPostLeg = { imprint: '27524 - 2', station: 'Post Production', postProdType: 'Fold + Bag + Barcode', date: '', status: '👕 Blanks to Pull from Inventory 👕' };
+  check(
+    "16. 27524-2 (Printavo-stamped Post Production, in-house) -> exitsOnDate true",
+    exitsOnDate(printavoPostLeg) === true,
+    'exitsOnDate(27524 - 2) = ' + exitsOnDate(printavoPostLeg)
+  );
+
+  const normalUnstationed = { imprint: '99999 - 1', station: '', date: '', status: '👕 Blanks Received 👕' };
+  check(
+    "17. normal unstationed job -> exitsOnDate false (graduates on station assignment instead)",
+    exitsOnDate(normalUnstationed) === false,
+    'exitsOnDate(99999 - 1) = ' + exitsOnDate(normalUnstationed)
+  );
+
+  const jeanAssigned = { imprint: '27365 - 3', station: 'Post Production', postProdType: 'Packaging (Apparel)', date: '', status: '👕 Blanks Received 👕', stationAssigned: true };
+  check(
+    "18. job with stationAssigned:true (Jean assigned it himself) -> exitsOnDate false",
+    exitsOnDate(jeanAssigned) === false,
+    'exitsOnDate(27365 - 3 stationAssigned) = ' + exitsOnDate(jeanAssigned)
+  );
+}
+
+/* ───────── assertion 19: source-consistency guard against the Sched-column alignment bug.
+   The Sched header cell and the row's data-schedule cell must both be UNCONDITIONAL (present
+   in every row/mode, contents varying instead of the whole <td> disappearing), and the expand
+   row's colspan must be the unconditional 19 — a stale/conditional colspan or header is exactly
+   the column-desync bug this change exists to prevent. ───────── */
+{
+  check(
+    "19a. Sched header cell (H('date','Sched')) is no longer wrapped in a listShowAll conditional",
+    !/listShowAll\?H\('date','Sched'\):''/.test(src) && /\$\{H\('date','Sched'\)\}/.test(src),
+    'listShowAll-conditional header still present, or unconditional header missing'
+  );
+  check(
+    "19b. row's data-schedule <td> is no longer wrapped in a listShowAll conditional",
+    !/\$\{listShowAll\?`<td><input type="date" class="schedinput" data-schedule/.test(src),
+    'listShowAll-conditional data-schedule <td> still present'
+  );
+  check(
+    "19c. expand row colspan is the unconditional 19, not conditional on listShowAll",
+    /<td colspan="19">\$\{xPanel\(j\)\}<\/td>/.test(src) && !/colspan="\$\{listShowAll\?19:18\}"/.test(src),
+    'expand row colspan is not the unconditional 19'
   );
 }
 
