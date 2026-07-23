@@ -1390,9 +1390,10 @@ function recordBase(){
 function buildModel(){
   const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
   const useRecords=RENDER_FROM_RECORDS&&!histCsv&&!store.csvText;   // history snapshot + manual import always stay on the feed path
-  let base=useRecords?recordBase():feedBase();
-  ingestRecords(useRecords?feedBase():base);   // Phase B step 2 (SHADOW): persist a record per feed job — always sourced from the feed, even when rendering from records, so records keep learning from the live feed. Write-only.
-  retireRecords();   // Phase B: archive finished records so a records-rendered board drops them (recordBase() already filters !archived)
+  const fb=feedBase();
+  ingestRecords(fb);   // Phase B step 2 (SHADOW): persist a record per feed job — always sourced from the live feed, even when rendering from records, so records keep learning. Write-only. Runs BEFORE recordBase() so a brand-new feed job lands in records THIS cycle, not one refresh late (no one-cycle lag).
+  retireRecords();     // Phase B: archive finished records BEFORE recordBase() reads them, so a just-terminal job drops this cycle too (recordBase() filters !archived)
+  let base=useRecords?recordBase():fb;   // records path now sees this cycle's ingest+retire; feed path is byte-identical to before (base === feedBase())
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
