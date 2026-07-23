@@ -144,6 +144,8 @@
   /* parked = the estimator's gray-out, made explicit: captured but NOT ready to schedule */
   .job.parked{opacity:.55}
   tr.parked td{opacity:.55}
+  /* removed = never production work — dropped out of the queue, not just "not ready yet" */
+  tr.rowremoved td{opacity:.55;background:#fbf3f3}
   .job.ph{background:#fbf7e8;border:1.5px dashed #d9c66a}
   .job.ph .phref{cursor:text;border-bottom:1px dashed #b9a53e;font-style:italic}
   .phuid{font-size:10px;font-weight:700;color:#7a5000;background:rgba(247,190,0,.18);border-radius:4px;padding:0 6px;cursor:pointer;margin-left:4px;white-space:nowrap} /* #15: optional invoice-correlation ID */
@@ -197,6 +199,8 @@
   .job .min input,.chip.qty input{width:48px;font:inherit;border:1px solid var(--yellow);border-radius:4px;padding:0 3px}
   .splitbtn{border:none;background:none;cursor:pointer;font-size:13px;color:var(--grey-text);padding:0 2px}
   .splitbtn:hover{color:#000}
+  .rmbtn{font-family:inherit;font-size:13px;border:1px solid #a12e2e;background:#c23b3b;color:#fff;border-radius:5px;padding:1px 6px;cursor:pointer;margin-left:4px}
+  .rmbtn:hover{background:#a12e2e}
   .job .name{font-size:12px;color:var(--tonal);line-height:1.25;margin:2px 0 4px}
   .job .r3{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .chip{font-size:10px;font-weight:600;padding:1.5px 6px;border-radius:4px;color:#fff;letter-spacing:.02em}
@@ -385,6 +389,9 @@
   footer{padding:14px 26px;color:var(--grey-text);font-size:11.5px}
   body.histmode .sandbox{opacity:.4}
   body.histmode #main{outline:3px solid #1e5f8a;outline-offset:-3px;border-radius:6px}
+  .undotoast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:9999;background:#222;color:#fff;border-radius:8px;padding:10px 14px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.3);display:flex;gap:12px;align-items:center}
+  .undotoast button{font:inherit;font-weight:700;background:none;border:none;color:#8fd0ff;cursor:pointer;padding:0}
+  .undotoast button:hover{color:#fff;text-decoration:underline}
 </style>
 <script src="../estimator/estimate.js"></script>
 </head>
@@ -486,7 +493,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},jobRecords:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},removed:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},jobRecords:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -504,6 +511,24 @@ try{if(localStorage.getItem('jobRecordsFallbackPurge')!=='1'){store.jobRecords={
 });
 const todayISO=()=>new Date().toLocaleDateString('en-CA');
 function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=false;updateChangesBtn();schedPush();}
+// ✕ remove undo toast — rapid clicks must not stack toasts (newest wins; the older removal simply stands)
+let _undoTimer=null,_undoTick=null;
+function showUndoToast(msg,onUndo,secs){
+  secs=secs||5;
+  const old=document.querySelector('.undotoast');if(old)old.remove();
+  if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;}
+  if(_undoTick){clearInterval(_undoTick);_undoTick=null;}
+  let left=secs;
+  const el=document.createElement('div');
+  el.className='undotoast';
+  el.innerHTML=`<span>${msg}</span><button type="button">Undo ${left}…</button>`;
+  document.body.appendChild(el);
+  const btn=el.querySelector('button');
+  const cleanup=()=>{clearTimeout(_undoTimer);clearInterval(_undoTick);_undoTimer=null;_undoTick=null;el.remove();};
+  _undoTick=setInterval(()=>{left--;if(left>0)btn.textContent='Undo '+left+'…';},1000);
+  _undoTimer=setTimeout(cleanup,secs*1000);
+  btn.addEventListener('click',()=>{cleanup();onUndo();});
+}
 
 /* ───────── Shared store (roadmap "multi-user shared state", v1) ─────────
    Planning edits live in the PlanetOps State API under their OWN document
@@ -519,7 +544,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(store));store.exported=f
 const STATE_API='';
 const STATE_KEY=''; // retired: the gate session cookie is the auth; header kept harmless below
 const SHARED_DOC='schedule_board';
-const LOCAL_ONLY=['csvName','csvText','range','exported'];
+const LOCAL_ONLY=['csvName','csvText','range','exported','removed'];  // removed = Jean's private queue curation — never synced to the shared schedule doc
 let _pushT=null,_lastRemoteAt=0;
 const sharingPaused=()=>!!store.csvText;
 const hasLocalEdits=()=>['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','invsvc','statusOv'].some(k=>Object.keys(store[k]||{}).length>0)||(store.placeholders||[]).length>0||(store.errands||[]).length>0;
@@ -1093,9 +1118,11 @@ const _EMPTY_OV={minutesEdit:{},splits:{},alloc:{},stations:{},moves:{},ptype:{}
    only writes them and reports what the feeds dropped. Rendering from records = 2b.
    Console during the shadow: jobRecordsDiag()  →  {droppedActive, dropped:[…]}. */
 let _recordsDirty=false, _recordDiag=null;
+const RETIRE_STATUS_RE=/delivered\s*\/\s*picked/i;  // the ONLY terminal status: "🤝 Delivered / Picked up 🏁" — Shipped/Ready-for-Pickup carry the same 🏁 but are customer-email triggers, not "done for us"
+const RETIRE_STALE_DAYS=30;   // backstop: a dated job this many days past its Prod. Date, never delivered, gets archived anyway
 function _recMeaningfulEqual(a,b){
   if(!a||!b)return false;
-  const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','source','archived'];
+  const F=['imprintId','invoice','nickname','qty','projectType','screens','ink','pallet','postProdType','inkChange','csvDate','csvStation','csvMinutes','prodDue','custDue','status','typeOfWork','source','archived'];
   return F.every(k=>a[k]===b[k]);
 }
 function ingestRecords(base){
@@ -1109,15 +1136,25 @@ function ingestRecords(base){
     const key=j.imprint;if(!key)return;
     feedKeys.add(key);
     const prev=store.jobRecords[key]||null;
+    // Intake carries no scheduling data and no reliable attrs — it contributes
+    // identity/status/gap-fill only, and must NEVER overwrite a good CSV value with
+    // an intake null. A real CSV row stays authoritative for base fields, INCLUDING a
+    // legitimately blank Prod. Date (Jean unscheduling a job in Printavo produces a
+    // real CSV row with an empty date, and the record must follow it). New records
+    // (no prev) have nothing to preserve, so they take the incoming value either way.
+    const keep=!!(j.apiIntake&&prev);
+    const gapStr=(inc,pv)=>keep?(inc||pv||''):(inc||'');
+    const gapNum=(inc,pv)=>{const n=+inc||0;return keep?(n||pv||0):n;};
     const rec={
       imprint:key,
       imprintId:idMap[key]||(prev&&prev.imprintId)||null,
-      invoice:j.invoice||'', nickname:j.nickname||'', qty:+j.qty||0,
-      projectType:j.projectType||'', screens:j.screens||'', ink:j.ink||'',
-      pallet:j.pallet||'', postProdType:j.postProdType||'', inkChange:j.inkChange||'',
-      csvDate:j.date||'', csvStation:j.station||'', csvMinutes:+j.minutes||0,
+      invoice:j.invoice||'', nickname:gapStr(j.nickname,prev&&prev.nickname), qty:gapNum(j.qty,prev&&prev.qty),
+      projectType:gapStr(j.projectType,prev&&prev.projectType), screens:gapStr(j.screens,prev&&prev.screens), ink:gapStr(j.ink,prev&&prev.ink),
+      pallet:gapStr(j.pallet,prev&&prev.pallet), postProdType:gapStr(j.postProdType,prev&&prev.postProdType), inkChange:gapStr(j.inkChange,prev&&prev.inkChange),
+      csvDate:keep?prev.csvDate:(j.date||''), csvStation:keep?prev.csvStation:(j.station||''), csvMinutes:keep?prev.csvMinutes:(+j.minutes||0),
       prodDue:j.prodDue||'', custDue:j.custDue||'',
-      status:j.status||'', source:j.apiIntake?'intake':'csv',
+      status:j.status||(keep&&prev.status)||'', source:keep?prev.source:(j.apiIntake?'intake':'csv'),
+      typeOfWork:(j.typeOfWork||'')||(prev&&prev.typeOfWork)||'',   // only the intake feed carries it; a CSV row (no typeOfWork) must NEVER clear a value already captured from intake — isOut()/Arrivals depends on it
       firstSeen:(prev&&prev.firstSeen)||now, lastFeedSeen:now,
       archived:(prev&&prev.archived)||false,
     };
@@ -1131,14 +1168,66 @@ function ingestRecords(base){
   if(dropped.length)console.log('[jobRecords] '+dropped.length+' active record(s) NOT in the current feed (would have vanished pre-records):',dropped.map(r=>r.imprint).join(', '));
 }
 if(typeof window!=='undefined')window.jobRecordsDiag=()=>_recordDiag;
+/* retireRecords(): a records-rendered board must drop finished work. Only the true
+   terminal status archives a record — Shipped/Ready-for-Pickup stay active (Jean: the 🏁
+   flag is a customer-email trigger, not "done for us"). A dated job that goes stale past
+   RETIRE_STALE_DAYS without ever hitting delivered is archived as a backstop; an unscheduled
+   record (blank csvDate) is never backstop-archived. Never un-archives. */
+function retireRecords(){
+  if(histCsv||store.csvText||!liveCsv)return;  // same guard as ingestRecords — never act on history/manual/fallback data
+  if(!store.jobRecords)return;
+  const cutoff=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date(Date.now()-RETIRE_STALE_DAYS*864e5));
+  Object.values(store.jobRecords).forEach(r=>{
+    if(r.archived)return;
+    if(RETIRE_STATUS_RE.test(r.status||'')){r.archived=Date.now();_recordsDirty=true;}
+    else if(r.csvDate&&r.csvDate<cutoff){r.archived=Date.now();_recordsDirty=true;}
+  });
+}
 
-function buildModel(){
-  const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
+/* ───────── Phase B step 2b (flag-gated): render from records ─────────
+   RENDER_FROM_RECORDS picks buildModel()'s base job list: the feeds (today's
+   behavior) or the persisted records (survives a feed dropout/truncation).
+   Default OFF. ?render=records turns it on and persists per-browser; ?render=feed
+   turns it off and clears; no param keeps whatever was last persisted. Same
+   URL-param-then-localStorage pattern as capacity/index.html's ?mode=jean. */
+let RENDER_FROM_RECORDS=false;
+try{ // storage can throw at load (private browsing / partitioned iframe) — never let the flag kill the render
+  const _renderParam=new URLSearchParams(location.search).get('render');
+  if(_renderParam==='records')localStorage.setItem('sb_render_source','records');
+  else if(_renderParam==='feed')localStorage.removeItem('sb_render_source');
+  RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
+}catch(e){}
+
+/* ───────── Queue ✕ remove button — per-browser VISIBILITY flag, not auth ─────────
+   Anyone who knows the URL param can flip this on in their own browser; it exists
+   only so the ✕ remove control shows up in Jean's browser and stays hidden for
+   everyone else. Default OFF. ?remove=on turns it on and persists per-browser;
+   ?remove=off turns it off and clears; no param keeps whatever was last persisted.
+   Same URL-param-then-localStorage pattern as RENDER_FROM_RECORDS above. */
+let QUEUE_REMOVE=false;
+try{ // storage can throw at load (private browsing / partitioned iframe) — never let the flag kill the render
+  const _removeParam=new URLSearchParams(location.search).get('remove');
+  if(_removeParam==='on')localStorage.setItem('sb_queue_remove','on');
+  else if(_removeParam==='off')localStorage.removeItem('sb_queue_remove');
+  QUEUE_REMOVE=localStorage.getItem('sb_queue_remove')==='on';
+}catch(e){}
+
+/* feedBase(): CSV rows (rowToJob) unioned with live intake (apiToJob) — the base
+   assembly buildModel() has always done. Pulled out unchanged so ingestRecords()
+   can be fed a fresh feed base even when the render itself uses recordBase(). */
+function feedBase(){
   const text=histCsv||store.csvText||liveCsv||document.getElementById('csvdata').textContent.trim();
   const raw=parseCSV(text), hdr=raw[0];
   let base=raw.slice(1).map(r=>rowToJob(r,hdr));
   intakeAdded=0;intakeStale=0;
   if(intakeJobs&&!histCsv&&!store.csvText){   // live mode only — history snapshots + manual imports stay pure
+    // Due dates track the LIVE intake feed, not the stale CSV snapshot. Prod./Cust. Due change in Printavo
+    // after the last export and the CSV lags; the intake feed is a live GraphQL pull, so it is authoritative
+    // for DUE DATES even on invoices where the CSV still wins on Prod. Date/station/minutes. Invoice-level,
+    // non-empty only; falls back to the CSV date when an invoice has aged out of the intake feed.
+    const liveDue={};
+    intakeJobs.forEach(a=>{const m=String(a.imprint).match(/^(\d+)/);if(m&&!liveDue[m[1]])liveDue[m[1]]={prodDue:a.prodDue||'',custDue:a.custDue||''};});
+    base.forEach(j=>{const d=liveDue[j.invoice];if(d){if(d.prodDue)j.prodDue=d.prodDue;if(d.custDue)j.custDue=d.custDue;}});
     const known=new Set(base.map(j=>j.invoice)), seen=new Set();
     const staleCut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
     intakeJobs.forEach(a=>{
@@ -1148,7 +1237,37 @@ function buildModel(){
       seen.add(String(a.imprint));base.push(apiToJob(a));intakeAdded++;
     });
   }
-  ingestRecords(base);   // Phase B step 2 (SHADOW): persist a record per feed job. Write-only — render still uses `base` below.
+  return base;
+}
+/* recordBase(): active job records (store.jobRecords, !archived) mapped to the same
+   shape rowToJob emits, so the override/split/placeholder block downstream is untouched.
+   Records don't carry per-step progress — 'Not Started' is accepted while this path is
+   flag-gated off by default. */
+function recordBase(){
+  return Object.values(store.jobRecords||{}).filter(r=>!r.archived).map(r=>{
+    const m=String(r.imprint).match(/^(\d+)\s*-\s*(\d+)([a-z])?$/i);
+    const j={
+      minutes:+r.csvMinutes||0, qty:+r.qty||0,
+      date:r.csvDate||'', station:r.csvStation||'',
+      imprint:r.imprint, invoice:m?m[1]:r.imprint, impNum:m?m[2]:'', splitLetter:m&&m[3]?m[3].toLowerCase():'',
+      parentKey:m?`${m[1]}-${m[2]}`:r.imprint,
+      nickname:r.nickname||'', prodDue:r.prodDue||'', custDue:r.custDue||'',
+      projectType:r.projectType||'', screens:r.screens||'', inkChange:r.inkChange||'None',
+      ink:r.ink||'', pallet:r.pallet||'', postProdType:r.postProdType||'',
+      steps:API_STEPS.map(s=>({name:s,v:'Not Started'})),
+      status:r.status||'', typeOfWork:r.typeOfWork||'', localSplit:false, moved:false,   // typeOfWork feeds isOut()/Arrivals — must survive the record round-trip
+    };
+    if(r.source==='intake')j.apiIntake=true;
+    return j;
+  });
+}
+
+function buildModel(){
+  const OV=histCsv?_EMPTY_OV:store;   // history = pure snapshot, no live edits applied
+  const useRecords=RENDER_FROM_RECORDS&&!histCsv&&!store.csvText;   // history snapshot + manual import always stay on the feed path
+  let base=useRecords?recordBase():feedBase();
+  ingestRecords(useRecords?feedBase():base);   // Phase B step 2 (SHADOW): persist a record per feed job — always sourced from the feed, even when rendering from records, so records keep learning from the live feed. Write-only.
+  retireRecords();   // Phase B: archive finished records so a records-rendered board drops them (recordBase() already filters !archived)
   jobs=[];
   base.forEach(j=>{
     if(OV.minutesEdit[j.imprint]!=null){j.minutesOrig=j.minutes;j.minutes=OV.minutesEdit[j.imprint];}
@@ -1647,7 +1766,7 @@ function renderBoard(filterLane){
     </section>`:''}
     ${rows}`;
 }
-let listSort={key:null,dir:1},listShowAll=false;
+let listSort={key:null,dir:1},listShowAll=false,showRemoved=false;   // showRemoved: view-only, NOT persisted — resets to false on every page load
 const SORTVAL={
   imprint:j=>j.imprint, nickname:j=>j.nickname.toLowerCase(), date:j=>j.date||'~',
   station:j=>j.station||'~', minutes:j=>j.minutes, qty:j=>j.qty,
@@ -1670,9 +1789,11 @@ function renderList(){
     return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
   };
   const inQueue=j=>!j.placeholder&&!j.station&&(!isOut(j)||(!!store.arrived[j.imprint]&&invReleasable(j)));
-  let list=(listShowAll?all:all.filter(inQueue)).filter(matchesQ);   // search filter (Holly)
-  const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]).length;   // parked jobs don't count — they're captured but NOT ready (estimator gray-out semantics)
-  const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]).length;
+  const isRemoved=j=>!!store.removed[j.imprint];
+  let list=(listShowAll?all:all.filter(inQueue).filter(j=>!isRemoved(j))).filter(matchesQ);   // search filter (Holly)
+  const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]&&!isRemoved(j)).length;   // parked/removed jobs don't count — not "to schedule"
+  const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]&&!isRemoved(j)).length;
+  const rmList=all.filter(j=>inQueue(j)&&isRemoved(j));   // ✕ removed — not production work; shown collapsed at the bottom, restorable
   if(listSort.key&&SORTVAL[listSort.key]){
     const f=SORTVAL[listSort.key];
     list.sort((a,b)=>{const va=f(a),vb=f(b);return (va<vb?-1:va>vb?1:0)*listSort.dir;});
@@ -1685,10 +1806,10 @@ function renderList(){
     // G3: press-check DETAILS — what Jean wants checked (shows on the chip + the Board card)
     +(PCREASONS.some(([k])=>pcVal(j,k))?`<br><input type="text" class="trkinput" style="width:130px;margin-top:2px" data-pcnote="${j.imprint}" value="${((store.pcheck[j.imprint]||{}).note||'').replace(/"/g,'&quot;')}" placeholder="check for what?" title="Press-check details — what the operator should be looking for (front/back, PMS target, migration area…)">`:'');
   const estCell=j=>estBadge(j)||`<span class="pending-note" title="The estimator needs Type · Ink · Colors · Pallet (or a Post-Pro type) before it can chart this job.">needs fields</span>`;
-  const rowFor=j=>j.placeholder
+  const rowFor=(j,mode)=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td><td></td></tr>`
-    :`<tr class="${store.parked[j.imprint]?'parked':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
+    :`<tr class="${store.parked[j.imprint]?'parked':''}${mode==='removed'?' rowremoved':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
@@ -1700,19 +1821,21 @@ function renderList(){
     <td style="white-space:nowrap">${pcCell(j)}</td>
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
-    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button></td>
+    <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="splitbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:(QUEUE_REMOVE?`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`:'')}</td>
     ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
     <td>${statusPill(j)}</td>
     <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?19:18}">${xPanel(j)}</td></tr>`:''}`;
   let rows;
-  if(listShowAll)rows=list.map(rowFor).join('');
+  if(listShowAll)rows=list.map(j=>rowFor(j,isRemoved(j)?'removed':'')).join('');
   else{
     const act=list.filter(j=>!store.parked[j.imprint]),park=list.filter(j=>store.parked[j.imprint]);
     rows=act.map(rowFor).join('')
       +(park.length?`<tr><td colspan="17" style="background:#f7f7f7;font-weight:600;padding:8px 10px;border-top:2px solid #ddd">⏸ NOT READY YET · ${park.length} parked — grayed and out of the to-schedule count (the estimator's gray-out, made explicit). Fill fields anytime; tap ▶ when it's time to schedule.</td></tr>`:'')
-      +park.map(rowFor).join('');
+      +park.map(rowFor).join('')
+      +(showRemoved&&rmList.length?`<tr><td colspan="17" style="background:#fbf3f3;font-weight:600;padding:8px 10px;border-top:2px solid #e0c9c9">✕ REMOVED · ${rmList.length} not production work — out of the queue and out of the count. Tap ↩ to put one back.</td></tr>`:'')
+      +(showRemoved?rmList.map(j=>rowFor(j,'removed')).join(''):'');
   }
   const H=(key,label)=>{
     const on=listSort.key===key;
@@ -1720,7 +1843,7 @@ function renderList(){
   };
   return `<div class="hint" style="margin-bottom:8px">${listShowAll
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
-    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
+    :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''}${rmList.length?` <span id="rmToggle" style="color:#a12e2e;cursor:pointer;text-decoration:underline" title="These are jobs you dismissed as not production work (e.g. a paid invoice with no imprint). Hidden by default — click to show them, where you can restore one with ↩.">✕ ${rmList.length} removed${showRemoved?' (hide)':' (show)'}</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
   <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}<th title="Project manager — the Printavo invoice Owner">PM</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -2624,6 +2747,27 @@ function wireMain(){
       save();renderAll();
     });
   });
+  // ✕ remove (queue → out entirely, 5s undo, restorable from the Removed section) / ↩ restore
+  main.querySelectorAll('[data-remove]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();                     // the row's click-to-expand must not fire
+      const imp=b.dataset.remove;
+      if(!store.removed)store.removed={};
+      store.removed[imp]={ts:Date.now(),by:(store.operator||'')};
+      save();renderAll();
+      showUndoToast('Removed '+imp+' from the queue',()=>{delete store.removed[imp];save();renderAll();},5);
+    });
+  });
+  main.querySelectorAll('[data-restore]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(store.removed)delete store.removed[b.dataset.restore];
+      save();renderAll();
+    });
+  });
+  // ✕ N removed (show/hide) — view state only, not saved; resets to hidden on reload
+  const rmt=document.getElementById('rmToggle');
+  if(rmt)rmt.addEventListener('click',e=>{e.stopPropagation();showRemoved=!showRemoved;renderAll();});
   main.querySelectorAll('[data-unstation]').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
