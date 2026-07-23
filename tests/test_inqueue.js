@@ -1,8 +1,9 @@
-/* Acceptance test for the Queue/Arrivals outsourced-visibility fix (2026-07-22).
-   Extracts the REAL `inQueue`, `isOut`, `OUTSOURCED`, `invReleasable`, `pptOf`, and
-   `realPP` definitions out of schedule/index.html by regex/brace-balancing and evaluates
-   them as live functions, so this test asserts against the shipped source — not a
-   reimplementation of it.
+/* Acceptance test for the Queue/Arrivals visibility fix (2026-07-22, extended 2026-07-22b
+   for in-house post-production legs — see PLAN-inhouse-postpro.md).
+   Extracts the REAL `inQueue`, `isOut`, `OUTSOURCED`, `invReleasable`, `pptOf`, `realPP`,
+   `isPrintavoPost`, `laneOf`, and `LANES` definitions out of schedule/index.html by
+   regex/brace-balancing and evaluates them as live functions, so this test asserts against
+   the shipped source — not a reimplementation of it.
    Run: node tests/test_inqueue.js */
 'use strict';
 const fs = require('fs');
@@ -32,10 +33,15 @@ function extractConst(name) {
   const re = new RegExp('const\\s+' + name + '\\s*=');
   const m = re.exec(src);
   if (!m) throw new Error('const not found in schedule/index.html: ' + name);
+  // Comment-aware (needed for LANES, whose inline /* … */ comment contains an apostrophe —
+  // "Jean's number" — which would otherwise be mistaken for a string-literal open/close by
+  // the plain string scanner below and desync the brace count for the rest of the file).
   let depth = 0, inStr = null, j = m.index + m[0].length;
   for (; j < src.length; j++) {
     const c = src[j];
     if (inStr) { if (c === '\\') { j++; continue; } if (c === inStr) inStr = null; continue; }
+    if (c === '/' && src[j + 1] === '/') { j = src.indexOf('\n', j); if (j === -1) j = src.length; continue; }
+    if (c === '/' && src[j + 1] === '*') { j = src.indexOf('*/', j + 2); j = (j === -1 ? src.length : j + 1); continue; }
     if (c === '"' || c === "'" || c === '`') { inStr = c; continue; }
     if (c === '(' || c === '[' || c === '{') depth++;
     else if (c === ')' || c === ']' || c === '}') depth--;
@@ -48,18 +54,24 @@ const isOutConst = extractLine(/const isOut=.*$/m, 'const isOut=');
 const pptOfConst = extractLine(/const pptOf=.*$/m, 'const pptOf=');
 const realPPConst = extractLine(/const realPP=.*$/m, 'const realPP=');
 const invReleasableConst = extractConst('invReleasable');
+const isPrintavoPostConst = extractLine(/const isPrintavoPost=.*$/m, 'const isPrintavoPost=');
 const inQueueConst = extractLine(/const inQueue=.*$/m, 'const inQueue=');
+const lanesConst = extractConst('LANES');
+const laneOfConst = extractLine(/const laneOf=.*$/m, 'const laneOf=');
 
 /* ───────── evaluate the extracted source into real, callable functions ───────── */
 function makeInQueue(store, jobs) {
   const factory = new Function('store', 'jobs', `
+    ${lanesConst}
+    ${laneOfConst}
     ${outsourcedConst}
     ${isOutConst}
     ${pptOfConst}
     ${realPPConst}
     ${invReleasableConst}
+    ${isPrintavoPostConst}
     ${inQueueConst}
-    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP };
+    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP, isPrintavoPost, laneOf, LANES };
   `);
   return factory(store, jobs).inQueue;
 }
@@ -160,6 +172,60 @@ const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
     '8b. unlabeled outsourced invoice, no sibling labeled yet -> imprint 2 IN QUEUE (legacy release path)',
     inQueue(jobs[1]) === true,
     'inQueue(28100 - 2) = ' + inQueue(jobs[1])
+  );
+}
+
+/* ───────── assertions 9-14: in-house post-production legs (2026-07-22b follow-up to PR #28)
+   Printavo pre-stamps Station="Post Production" on in-house packaging/fold+bag/barcode legs
+   too, hiding them from the Queue the same way it did for outsourced legs. Fix is scoped to
+   the Post Production lane only (isPrintavoPost) — Jean's own queue-assigned station
+   (stationAssigned) must still graduate the job to the board immediately, and press-lane
+   Printavo stations (Auto/Heat/Manual) must stay out (they merely await a date). ───────── */
+{
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = [];
+  const inQueue = makeInQueue(store, jobs);
+
+  const foldBagBarcode = { imprint: '27524 - 2', station: 'Post Production', postProdType: 'Fold + Bag + Barcode', date: '', status: '👕 Blanks to Pull from Inventory 👕' };
+  check(
+    "9. 27524-2, Printavo-stamped Post Production, no date -> IN QUEUE (the bug being fixed)",
+    inQueue(foldBagBarcode) === true,
+    'inQueue(27524 - 2) = ' + inQueue(foldBagBarcode)
+  );
+
+  const packagingApparel = { imprint: '27365 - 3', station: 'Post Production', postProdType: 'Packaging (Apparel)', date: '', status: '👕 Blanks Received 👕' };
+  check(
+    "10. 27365-3, Printavo-stamped Post Production, no date -> IN QUEUE (the bug being fixed)",
+    inQueue(packagingApparel) === true,
+    'inQueue(27365 - 3) = ' + inQueue(packagingApparel)
+  );
+
+  const packagingApparelDated = { ...packagingApparel, date: '2026-07-30' };
+  check(
+    "11. same job once given a production date -> NOT in queue (placed on the board)",
+    inQueue(packagingApparelDated) === false,
+    'inQueue(27365 - 3 dated) = ' + inQueue(packagingApparelDated)
+  );
+
+  const packagingApparelJeanAssigned = { ...packagingApparel, stationAssigned: true };
+  check(
+    "12. same job with stationAssigned:true (Jean assigned Post Production himself) -> NOT in queue (graduation regression guard)",
+    inQueue(packagingApparelJeanAssigned) === false,
+    'inQueue(27365 - 3 stationAssigned) = ' + inQueue(packagingApparelJeanAssigned)
+  );
+
+  const autoPress = { imprint: '27550 - 1', station: 'Auto Press (In Season)', date: '', status: '👕 Blanks to Pull from Inventory 👕' };
+  check(
+    "13. Auto Press, Printavo-stamped station, no date -> NOT in queue (press lanes stay out, scope guard)",
+    inQueue(autoPress) === false,
+    'inQueue(27550 - 1) = ' + inQueue(autoPress)
+  );
+
+  const heatPress = { imprint: '27503 - 2', station: 'Heat Press', date: '', status: '✅ Art / Invoice Approved - Awaiting Payment ✅' };
+  check(
+    "14. Heat Press, Printavo-stamped station, no date -> NOT in queue (press lanes stay out, scope guard)",
+    inQueue(heatPress) === false,
+    'inQueue(27503 - 2) = ' + inQueue(heatPress)
   );
 }
 

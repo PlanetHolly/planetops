@@ -1924,7 +1924,14 @@ function renderList(){
     const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
     return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
   };
-  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):!j.station);
+  // Printavo also pre-stamps a station on IN-HOUSE post-production legs (packaging, fold+bag,
+  // barcode). Jean never made a queue decision on those, so they belong in the Queue to get
+  // their post-pro type and ⏱ time — same bug PR #28 fixed for outsourced work. Scoped to the
+  // POST PRODUCTION lane on purpose: press lanes (Auto/Heat/Manual) carry Printavo stations too
+  // and merely await a date on the board, so they'd be noise here. A station JEAN assigned
+  // (j.stationAssigned) still graduates the job to the board immediately, unchanged.
+  const isPrintavoPost=j=>!j.stationAssigned&&!!laneOf(j.station)&&laneOf(j.station).key==='post';
+  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):(!j.station||isPrintavoPost(j)));
   const isRemoved=j=>!!store.removed[j.imprint];
   let list=(listShowAll?all:all.filter(inQueue).filter(j=>!isRemoved(j))).filter(matchesQ);   // search filter (Holly)
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]&&!isRemoved(j)).length;   // parked/removed jobs don't count — not "to schedule"
