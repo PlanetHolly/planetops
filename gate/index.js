@@ -544,6 +544,7 @@ app.post('/api/shipdeck/void', (req, res) => shipdeckCommand(req, res, 'void'));
 const SHIPBOARD_FEED_URL     = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-feed-k9x2m7q4';
 const SHIPBOARD_MATCH_URL    = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-match-p3v8t2n6';
 const SHIPBOARD_EXTERNAL_URL = 'https://primary-production-079f9.up.railway.app/webhook/shipboard-external-x7k2m9';
+const todayLA = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
 
 app.get('/api/shipboard/feed', async (req, res) => {
   if(!await requireSession(req, res)) return;
@@ -589,13 +590,16 @@ app.post('/api/shipboard/external', async (req, res) => {
   if(!sameOrigin(req)){ res.status(403).json({ error: 'bad origin' }); return; }
   const tracking_code = String(req.body.tracking_code || '').trim();
   const source = String(req.body.source || '').trim().toLowerCase();
+  const arrival_date = String(req.body.arrival_date || '').trim();
   if(!tracking_code) return res.status(400).json({ error: 'tracking_code required' });
   if(source !== 'xps' && source !== 'shipdeck') return res.status(400).json({ error: 'source must be xps or shipdeck' });
+  if(arrival_date && !/^\d{4}-\d{2}-\d{2}$/.test(arrival_date)) return res.status(400).json({ error: 'arrival_date must be YYYY-MM-DD' });
+  if(arrival_date && arrival_date < todayLA()) return res.status(400).json({ error: 'arrival_date cannot be in the past' });
   try {
     const r = await fetch(SHIPBOARD_EXTERNAL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tracking_code, source,
         carrier: String(req.body.carrier || ''), matched_order: String(req.body.matched_order || ''),
-        to_company: String(req.body.to_company || ''), date: String(req.body.date || '') }),
+        to_company: String(req.body.to_company || ''), date: String(req.body.date || ''), arrival_date }),
       signal: AbortSignal.timeout(15000) });
     res.set('Cache-Control', 'no-store, private').status(r.status).json(await r.json());
   } catch (e) { res.status(502).json({ error: 'ship board external unreachable: ' + e.message }); }

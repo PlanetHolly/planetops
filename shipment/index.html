@@ -132,10 +132,16 @@ function bestShipment(j){
   const rows=shipmentsFor(j);
   return rows.find(r=>r.delivered_date)||rows[0]||null;
 }
-function recency(r){return r.label_created||r.est_delivery_date||'';}
+function todayLA(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date());}
+function recency(r){return r.label_created||r.est_delivery_date||r.arrival_date||'';}
 function shipTo(r){return [r.to_company,r.to_name].filter(Boolean).join(' / ')||'—';}
 function archived(r){return !!String(r.archived||'').trim();}
 function delivered(r){return !!String(r.delivered_date||'').trim()||r.status==='delivered';}
+function assumedArrived(r){
+  if(archived(r)||delivered(r))return false;
+  const a=String(r.arrival_date||'').trim();
+  return !!a&&a<todayLA();
+}
 function externalLabel(r){return r.source==='xps'?'XPS':(r.source==='shipdeck'?'Ship Deck':'');}
 function shipmentStatus(r){return r.status||(externalLabel(r)?'shipped_external':'');}
 function cityState(r){return [r.to_city,r.to_state].filter(Boolean).join(', ');}
@@ -192,7 +198,7 @@ function render(){
         <b>${esc(r.tracking_code||'tracking pending')}</b>${r.public_url?` · <a href="${esc(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
         ${externalLabel(r)?` <span class="chip external">Shipped externally · ${esc(externalLabel(r))}</span>`:''}
         <div>${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div>
-        <div class="muted">Box ${esc(r.parcel_dims||'—')} · Landing ${esc(r.est_delivery_date||'—')} · Label date ${esc(r.label_created||'—')} · Transit days ${esc(r.transit_days||'—')} · Delivered ${esc(r.delivered_date||'—')}</div>
+        <div class="muted">Box ${esc(r.parcel_dims||'—')} · Landing ${esc(r.est_delivery_date||'—')} · Expected arrival ${esc(r.arrival_date||'—')} · Label date ${esc(r.label_created||'—')} · Transit days ${esc(r.transit_days||'—')} · Delivered ${esc(r.delivered_date||'—')}</div>
         <div class="muted">Internal · Cost ${money(r.cost)}</div>
       </div>`).join(''):`<div class="muted" style="margin-top:10px">No captured tracking matched yet.</div>`;
       const action=`${url?`<a class="shiplink" href="${esc(url)}" target="_blank" rel="noopener">Ship in Printavo</a>`:''}
@@ -251,10 +257,11 @@ function renderLanes(){
   const rowsWithIndex=state.feed.map((r,i)=>({r,i})).filter(x=>{
     if(!q)return true;
     const r=x.r;
-    const hay=[r.tracking_code,r.carrier,r.to_company,r.to_name,r.matched_order,cityState(r),recency(r),r.delivered_date,r.last_update,r.label_created,r.est_delivery_date].join(' ').toLowerCase();
+    const hay=[r.tracking_code,r.carrier,r.to_company,r.to_name,r.matched_order,cityState(r),recency(r),r.delivered_date,r.last_update,r.label_created,r.est_delivery_date,r.arrival_date].join(' ').toLowerCase();
     return hay.includes(q);
   });
-  const inTransit=rowsWithIndex.filter(x=>!archived(x.r)&&!delivered(x.r));
+  const inTransit=rowsWithIndex.filter(x=>!archived(x.r)&&!delivered(x.r)&&!assumedArrived(x.r));
+  const assumedRows=rowsWithIndex.filter(x=>!archived(x.r)&&!delivered(x.r)&&assumedArrived(x.r));
   const deliveredRows=rowsWithIndex.filter(x=>!archived(x.r)&&delivered(x.r));
   const historyRows=rowsWithIndex.filter(x=>archived(x.r));
   function rowHtml(r,i){
@@ -264,15 +271,16 @@ function renderLanes(){
     return `<tr>
       <td><b>${esc(r.tracking_code||'—')}</b>${r.public_url?` · <a href="${esc(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
         ${ext?`<div><span class="chip external">Shipped externally · ${esc(ext)}</span></div>`:''}
+        ${assumedArrived(r)?`<div><span class="chip">assumed · not confirmed delivered</span></div>`:''}
         <div class="muted">${esc([r.carrier,r.service].filter(Boolean).join(' · ')||'—')}</div>
-        <div class="muted">Box ${esc(r.parcel_dims||'—')} · ${esc(shipmentStatus(r)||'—')}</div>
+        <div class="muted">Box ${esc(r.parcel_dims||'—')} · ${esc(shipmentStatus(r)||'—')} · Expected arrival ${esc(r.arrival_date||'—')}</div>
         <div class="muted">Internal · Cost ${money(r.cost)}</div>
       </td>
       <td>${esc(shipTo(r))}<div class="muted">${esc(cityState(r)||'—')}</div></td>
       <td>${esc(recency(r)||'—')}<div class="muted">Delivered ${esc(r.delivered_date||'—')}</div></td>
       <td><input value="${esc(r.contents||'')}" placeholder="contents in this box…" onblur="saveContents(${i},this.value,this)" onchange="saveContents(${i},this.value,this)"></td>
       <td>${matched?`<span class="chip done">matched to #${esc(matched)}</span>`:`<select id="match-${i}">${opts.replace(`value="${esc(sug)}"`,`value="${esc(sug)}" selected`)}</select> <button class="mini" onclick="confirmMatch(${i},this)">Confirm</button>`}</td>
-      <td>${archived(r)?`<button class="mini" onclick="setArchive(${i},'',this)">Unarchive</button>`:(delivered(r)?`<button class="mini" onclick="setArchive(${i},'TRUE',this)">Archive</button>`:'')}</td>
+      <td>${archived(r)?`<button class="mini" onclick="setArchive(${i},'',this)">Unarchive</button>`:((delivered(r)||assumedArrived(r))?`<button class="mini" onclick="setArchive(${i},'TRUE',this)">Archive</button>`:'')}</td>
     </tr>`;
   }
   function lane(title,items,empty){
@@ -283,6 +291,7 @@ function renderLanes(){
   }
   const showHistory=q||state.historyOpen;
   host.innerHTML=state.feed.length?`${lane('In Transit',inTransit,'No in-transit shipments.')}
+      ${lane('Assumed arrived',assumedRows,'No assumed-arrived shipments waiting for archive.')}
       ${lane('Delivered',deliveredRows,'No delivered shipments waiting for archive.')}
       ${showHistory?lane('History (archived)',historyRows,'No archived shipments.'):''}`:`<div class="empty">No captured tracking rows yet.</div>`;
 }
@@ -354,7 +363,8 @@ function renderExternalForm(){
     <label>Source<select id="ext-source"><option value="xps">XPS Shipper</option><option value="shipdeck">Ship Deck</option></select></label>
     <label>Invoice<select id="ext-inv">${opts}</select></label>
     <label>Customer/company<input id="ext-co" autocomplete="off"></label>
-    <label>Date<input id="ext-date" type="date"></label>
+    <label>Ship date<input id="ext-date" type="date"></label>
+    <label>Expected arrival<input id="ext-arrival" type="date"></label>
     <button class="primary" onclick="logExternal(this)">Log shipment</button>
     <button onclick="toggleExternal()">Cancel</button>
     ${state.extErr?`<div class="err" style="width:100%;margin:0">${esc(state.extErr)}</div>`:''}
@@ -367,14 +377,17 @@ async function logExternal(btn){
   const matched_order=(document.getElementById('ext-inv')||{}).value||'';
   const to_company=(document.getElementById('ext-co')||{}).value||'';
   const date=(document.getElementById('ext-date')||{}).value||'';
+  const arrival=(document.getElementById('ext-arrival')||{}).value||'';
   state.extErr='';
   if(!tracking_code.trim()||!carrier.trim()){state.extErr='Tracking and carrier are required.';renderExternalForm();return;}
+  if(arrival&&arrival<todayLA()){state.extErr='Expected arrival cannot be in the past.';renderExternalForm();return;}
   btn.disabled=true;btn.textContent='logging…';
   try{
     const payload={tracking_code:tracking_code.trim(),carrier:carrier.trim(),source};
     if(matched_order)payload.matched_order=matched_order;
     if(to_company.trim())payload.to_company=to_company.trim();
     if(date)payload.date=date;
+    if(arrival)payload.arrival_date=arrival;
     const r=await fetch('/api/shipboard/external',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json().catch(()=>({}));
