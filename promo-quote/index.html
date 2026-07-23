@@ -122,7 +122,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 
   <main class="layout">
     <section class="panel">
-      <h2>Quote Inputs</h2>
+      <h2 style="display:flex;justify-content:space-between;align-items:center;gap:10px;">Quote Inputs<button type="button" id="clearForm" class="pcBtn sec" style="min-height:30px;padding:5px 11px;font-size:.68rem;">Clear form</button></h2>
       <form class="form" id="quoteForm">
         <div class="field"><label for="itemName">Item / product name (optional - shows on the customer quote)</label><input id="itemName" type="text" placeholder="e.g. 11oz Ceramic Mug"></div>
         <div class="twocol">
@@ -178,6 +178,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
       <section class="panel">
         <h2>Customer comparison - copy multiple prices</h2>
         <div class="form">
+          <div class="field"><label for="basketNote">Note for this option (optional - added to the copy)</label><textarea id="basketNote" rows="3" placeholder="e.g. Quantity: 48 pcs (customer-provided goods). Services included: print, fold &amp; bag, hang tag, inside neck print." style="width:100%;border:1px solid #c9bea8;background:#fff;color:#111;border-radius:6px;padding:8px 10px;font:inherit;resize:vertical;min-height:64px;"></textarea></div>
           <div class="controls">
             <button class="pcBtn" id="addToBasket" type="button">Add current option</button>
             <button class="pcBtn sec" id="copyBasket" type="button">Copy for email</button>
@@ -386,15 +387,16 @@ function renderPriceCheck(){
   out.innerHTML='<span class="flag '+b.cls+'">'+b.label+'</span>'+pcMoney(um)+'/unit ('+pcPct(ur)+')  ·  order '+pcMoney0(om)+' ('+pcPct(orr)+')';
 }
 let CURRENT_QUOTE = null;
-let BASKET = [];
+let BASKET = (()=>{ try{ const t=sessionStorage.getItem('pa_basket_handoff'); if(t){ sessionStorage.removeItem('pa_basket_handoff'); return JSON.parse(t)||[]; } }catch(e){} return []; })();
 const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
 const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
-function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span></div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
-function addToBasket(){ if(!CURRENT_QUOTE) return; BASKET.push(Object.assign({}, CURRENT_QUOTE)); renderBasket(); }
+function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span>'+(l.note?'<br><span class="note" style="white-space:pre-wrap">'+bxEsc(l.note)+'</span>':'')+'</div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
+function addToBasket(){ if(!CURRENT_QUOTE) return; const note=(($('basketNote')||{}).value||'').trim(); BASKET.push(Object.assign({}, CURRENT_QUOTE, {note})); renderBasket(); }
 function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
 function clearBasket(){ BASKET=[]; renderBasket(); }
+function clearForm(){ try{ sessionStorage.setItem('pa_basket_handoff', JSON.stringify(BASKET)); }catch(e){} location.reload(); }
 function bind() {
   setupComplexity();
   const form = $('quoteForm');
@@ -402,6 +404,7 @@ function bind() {
   form.addEventListener('change', calculate);
   $('targetPrice').addEventListener('input', renderPriceCheck);
   $('addToBasket').addEventListener('click', addToBasket);
+  $('clearForm').addEventListener('click', clearForm);
   $('copyBasket').addEventListener('click', copyBasket);
   $('clearBasket').addEventListener('click', clearBasket);
   $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
