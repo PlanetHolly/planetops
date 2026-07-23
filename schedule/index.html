@@ -1924,7 +1924,18 @@ function renderList(){
     const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
     return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
   };
-  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):!j.station);
+  // Printavo also pre-stamps a station on IN-HOUSE post-production legs (packaging, fold+bag,
+  // barcode). Jean never made a queue decision on those, so they belong in the Queue to get
+  // their post-pro type and ⏱ time — same bug PR #28 fixed for outsourced work. Scoped to the
+  // POST PRODUCTION lane on purpose: press lanes (Auto/Heat/Manual) carry Printavo stations too
+  // and merely await a date on the board, so they'd be noise here. A station JEAN assigned
+  // (j.stationAssigned) still graduates the job to the board immediately, unchanged.
+  const isPrintavoPost=j=>!j.stationAssigned&&!!laneOf(j.station)&&laneOf(j.station).key==='post';
+  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):(!j.station||isPrintavoPost(j)));
+  // Rows that already carry a Printavo station don't leave the Queue on station assignment
+  // (there's none left to make) — a production DATE is their only exit, so they need the
+  // Sched field right here. Normal rows still graduate on station and don't.
+  const exitsOnDate=j=>isOut(j)||isPrintavoPost(j);
   const isRemoved=j=>!!store.removed[j.imprint];
   let list=(listShowAll?all:all.filter(inQueue).filter(j=>!isRemoved(j))).filter(matchesQ);   // search filter (Holly)
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]&&!isRemoved(j)).length;   // parked/removed jobs don't count — not "to schedule"
@@ -1958,11 +1969,11 @@ function renderList(){
     <td style="white-space:nowrap">${estCell(j)}</td>
     <td style="text-align:right"><span class="min" data-min="${j.imprint}" title="Scheduling minutes — auto-set when you verify the ⏱ time (click to override)">${j.minutes||0}</span></td>
     <td style="white-space:nowrap"><select data-station="${j.imprint}" title="LAST step — assigning the station sends this job to the Board (it leaves this queue; place its date there, where day capacity is visible)"><option value="">—</option>${LANES.map(l=>`<option value="${l.printavo}" ${laneOf(j.station)===l?'selected':''}>${l.label}</option>`).join('')}</select> <button class="parkbtn" data-park="${j.imprint}" title="${store.parked[j.imprint]?'Mark READY — rejoins the active queue':'Park as NOT READY — grays into the parked section at the bottom, out of the to-schedule count; nothing is lost (the estimator gray-out, made explicit)'}">${store.parked[j.imprint]?'▶':'⏸'}</button>${mode==='removed'?`<button class="splitbtn" data-restore="${j.imprint}" title="Restore ${j.imprint} to the active queue">↩</button>`:(QUEUE_REMOVE?`<button class="rmbtn" data-remove="${j.imprint}" title="Remove from the queue — this isn't production work (e.g. a paid invoice with no imprint that Printavo's scheduler never took either). It drops to the Removed list at the bottom; you get 5 seconds to undo, and can restore it from there any time.">✕</button>`:'')}</td>
-    ${listShowAll?`<td><input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule."></td>`:''}
+    <td>${exitsOnDate(j)?`<input type="date" class="schedinput" data-schedule="${j.imprint}" value="${j.date||''}" title="Set/change the production date — moves it on the board. Clear to unschedule.">`:`<span class="pending" title="This job leaves the Queue when you assign its station — its date is set on the Board once it's there.">—</span>`}</td>
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
     <td>${statusPill(j)}</td>
-    <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="${listShowAll?19:18}">${xPanel(j)}</td></tr>`:''}`;
+    <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="19">${xPanel(j)}</td></tr>`:''}`;
   let rows;
   if(listShowAll)rows=list.map(j=>rowFor(j,isRemoved(j)?'removed':'')).join('');
   else{
@@ -1981,7 +1992,7 @@ function renderList(){
     ?`All ${all.length} jobs, list-shaped — every cell is LIVE. Untick <b>show all</b> to return to the queue.`
     :`<b>TO SCHEDULE — ${queueN} job${queueN===1?'':'s'}.</b>${parkedN?` <span style="color:#888">· ⏸ ${parkedN} parked below (not ready)</span>`:''}${rmList.length?` <span id="rmToggle" style="color:#a12e2e;cursor:pointer;text-decoration:underline" title="These are jobs you dismissed as not production work (e.g. a paid invoice with no imprint). Hidden by default — click to show them, where you can restore one with ↩.">✕ ${rmList.length} removed${showRemoved?' (hide)':' (show)'}</span>`:''} Work left → right: Type · Ink · Colors · Pallet · Post-Pro · strokes → tap the <b>⏱ time</b> to verify (it becomes the job's scheduling minutes + writes to your calculator) → assign the <b>Station</b> last. The row leaves this queue and lands on the Board, ready to place.`}
     <label style="float:right;font-weight:600;cursor:pointer"><input type="checkbox" id="listShowAll" ${listShowAll?'checked':''}> show all</label></div>
-  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${listShowAll?H('date','Sched'):''}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}<th title="Project manager — the Printavo invoice Owner">PM</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr><th></th>${H('imprint','Imprint')}${H('nickname','Nickname')}${H('qty','Qty')}${H('ptype','Type')}${H('ink','Ink')}${H('screens','Colors')}${H('pallet','Pallet')}${H('postpro','Post-Pro')}${H('strokes','Strokes')}<th title="Press check before the run? PMS = Pantone match · MIG = migration watch · 1K+ = high-quantity safety (auto at 1000+ pcs). Any lit = yes; combine freely.">Press ✓</th><th title="Auto-charted time from the fields — tap the chip to verify">⏱ Time</th>${H('minutes','Min')}${H('station','Station')}${H('date','Sched')}${H('prodDue','Prod Due')}${H('custDue','Cust Due')}${H('status','Status')}<th title="Project manager — the Printavo invoice Owner">PM</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ───────── Changes checklist ───────── */
