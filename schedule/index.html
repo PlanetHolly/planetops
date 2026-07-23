@@ -493,7 +493,7 @@ function parseCSV(text){
 
 /* ───────── Sandbox state ───────── */
 const KEY='sbproto_v1';
-const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},removed:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},jobRecords:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
+const defaultStore=()=>({csvName:null,csvText:null,caps:{},moves:{},splits:{},alloc:{},minutesEdit:{},stations:{},placeholders:[],eta:{},tracking:{},method:{},arrived:{},qc:{},pickedup:{},errands:[],ptype:{},pptype:{},attrs:{},strokes:{},pcheck:{},parked:{},removed:{},timeVerified:{},wbFail:{},invsvc:{},statusOv:{},jobRecords:{},_ts:{},operator:null,range:{mode:'week',start:null,end:null},exported:true});
 let store;
 try{store=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){store={};}
 store=Object.assign(defaultStore(),store);
@@ -561,12 +561,18 @@ function setSync(s,msg){
 function schedPush(){
   if(sharingPaused()){setSync('paused');return;}
   clearTimeout(_pushT);
-  _pushT=setTimeout(_doSchedPush,800);
+  _pushT=setTimeout(MERGE_SYNC?_doSchedPushMerge:_doSchedPush,800);
 }
 async function _doSchedPush(){
   _pushT=null;
   try{
     const p=sharedPayload();
+    // Blob-mode push replaces the whole shared doc. During staged rollout a merge-mode device
+    // may have written per-key _ts timestamps; preserve them so this blind push doesn't zero the
+    // merge metadata other devices rely on. (The DATA clobber caveat still stands — documented.)
+    try{const g=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+      if(g.ok){const rem=await g.json();if(rem&&rem._ts&&Object.keys(rem._ts).length)p._ts=rem._ts;}
+    }catch(e){}
     const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(p)});
     if(!r.ok)throw new Error('HTTP '+r.status);
@@ -600,6 +606,7 @@ async function loadSharedStore(){
   }catch(e){setSync('off',String(e));}
 }
 document.addEventListener('visibilitychange',async()=>{
+  if(MERGE_SYNC){if(!document.hidden)_pullMerge(false);return;}
   if(document.hidden||_pushT||sharingPaused())return;   // don't adopt over unpushed local edits
   try{
     const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
@@ -608,6 +615,119 @@ document.addEventListener('visibilitychange',async()=>{
     if(remote&&remote._savedAt&&remote._savedAt>_lastRemoteAt){adoptShared(remote);setSync('ok');renderAll();}
   }catch(e){}
 });
+
+/* ───────── Per-item merge (device-clock) — replaces whole-blob last-write-wins ─────────
+   Flag-gated: default OFF = current whole-blob behavior; ?sync=merge turns it on and persists,
+   ?sync=blob turns it off. When ON, each shared key carries a timestamp in store._ts and sync
+   MERGES remote⊕local per key (newest _ts wins, tombstone-aware) instead of blind-overwriting —
+   so two devices editing DIFFERENT jobs never clobber each other and a stale tab can't wipe the
+   schedule. Ported from the Board's WS-0 merge, adapted to the scheduler's imprint/lane-keyed
+   maps + real tombstones (the scheduler truly deletes keys; the Board never does). Timestamps
+   are device-clock (Jean's ruling: bounded to concurrent same-item edits; server-stamp is a
+   future hardening). Full protection needs every device on the new code — an old-code tab still
+   blind-overwrites until it refreshes. */
+let MERGE_SYNC=false;
+try{const _sp=new URLSearchParams(location.search).get('sync');
+  if(_sp==='merge')localStorage.setItem('sb_sync_merge','1');
+  else if(_sp==='blob')localStorage.removeItem('sb_sync_merge');
+  MERGE_SYNC=localStorage.getItem('sb_sync_merge')==='1';
+}catch(e){}
+const SYNC_KEYED=['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','wbFail','invsvc','statusOv','jobRecords'];
+const SYNC_WHOLE=['placeholders','errands','operator'];
+const _REC_VOLATILE={lastFeedSeen:1,firstSeen:1};   // jobRecords churn fields — excluded so idle renders don't re-stamp a record
+function _valHash(M,k){
+  const v=(store[M]||{})[k];
+  if(M==='jobRecords'&&v&&typeof v==='object'){const o={};for(const kk in v)if(!_REC_VOLATILE[kk])o[kk]=v[kk];return JSON.stringify(o);}
+  return JSON.stringify(v===undefined?null:v);
+}
+let _syncCache={};
+function _reseedSyncCache(){
+  _syncCache={};
+  SYNC_KEYED.forEach(M=>{_syncCache[M]={};const c=store[M]||{};for(const k in c)_syncCache[M][k]=_valHash(M,k);});
+  SYNC_WHOLE.forEach(M=>{_syncCache[M]=JSON.stringify(store[M]===undefined?null:store[M]);});
+}
+function _stampChanged(){
+  const now=Date.now(); store._ts=store._ts||{};
+  SYNC_KEYED.forEach(M=>{
+    store[M]=store[M]||{}; store._ts[M]=store._ts[M]||{}; _syncCache[M]=_syncCache[M]||{};
+    const cur=store[M], cache=_syncCache[M], ts=store._ts[M];
+    for(const k in cur){const h=_valHash(M,k); if(cache[k]!==h){ts[k]=now; cache[k]=h;}}
+    for(const k in cache){if(!(k in cur)){ts[k]=now; delete cache[k];}}   // key gone → tombstone (ts stays, value absent)
+  });
+  SYNC_WHOLE.forEach(M=>{
+    const h=JSON.stringify(store[M]===undefined?null:store[M]);
+    if(_syncCache[M]!==h){store._ts[M]=now; _syncCache[M]=h;}
+  });
+}
+function mergeSharedStores(local,remote){
+  if(!remote||typeof remote!=='object')return false;
+  local._ts=local._ts||{}; const rts=remote._ts||{}; let changed=false;
+  SYNC_KEYED.forEach(M=>{
+    local[M]=local[M]||{}; local._ts[M]=local._ts[M]||{};
+    const rMap=remote[M]||{}, rTs=rts[M]||{}, lTs=local._ts[M], lMap=local[M];
+    const keys=new Set([...Object.keys(lMap),...Object.keys(rMap),...Object.keys(lTs),...Object.keys(rTs)]);
+    keys.forEach(k=>{
+      const rt=rTs[k]||0, lt=lTs[k]||0;
+      const rHas=Object.prototype.hasOwnProperty.call(rMap,k);
+      const lKnown=(k in lTs)||Object.prototype.hasOwnProperty.call(lMap,k);   // ever seen (value or tombstone)
+      if(rt>lt){ if(rHas)lMap[k]=rMap[k]; else delete lMap[k]; lTs[k]=rt; changed=true; }        // remote newer → adopt its state
+      else if(!lKnown&&rHas){ lMap[k]=rMap[k]; lTs[k]=rt; changed=true; }                        // union: a key we never saw
+    });
+  });
+  SYNC_WHOLE.forEach(M=>{
+    const rt=rts[M]||0, lt=(local._ts[M]||0);
+    if(rt>lt){local[M]=remote[M]; local._ts[M]=rt; changed=true;}
+  });
+  return changed;
+}
+function _tombstoneAll(){   // Reset in merge mode: stamp every current key deleted@now so the wipe propagates
+  const now=Date.now(); store._ts=store._ts||{};
+  SYNC_KEYED.forEach(M=>{store._ts[M]=store._ts[M]||{}; for(const k in (store[M]||{}))store._ts[M][k]=now;});
+  SYNC_WHOLE.forEach(M=>{store._ts[M]=now;});
+}
+async function _pullMerge(force){
+  if(sharingPaused())return;
+  if(!force&&(document.hidden||_pushT))return;   // don't merge mid-debounce over unpushed edits
+  try{
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+    if(!r.ok)return;
+    const remote=await r.json();
+    if(remote&&remote._savedAt){
+      _stampChanged();                                    // protect just-made local edits before merging
+      const changed=mergeSharedStores(store,remote);
+      _reseedSyncCache();
+      _lastRemoteAt=Math.max(_lastRemoteAt,remote._savedAt||0);
+      localStorage.setItem(KEY,JSON.stringify(store));
+      setSync('ok'); if(changed)renderAll();
+    }
+  }catch(e){}
+}
+async function _doSchedPushMerge(){
+  _pushT=null;
+  try{
+    _stampChanged();                                      // stamp our edits before merge/push
+    try{const g=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+      if(g.ok){const remote=await g.json(); if(remote&&remote._savedAt){mergeSharedStores(store,remote); _reseedSyncCache();}}
+    }catch(e){}                                            // pull+merge first, so we never clobber a newer remote
+    const p=sharedPayload();
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(p)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    _lastRemoteAt=p._savedAt; setSync('ok'); localStorage.setItem(KEY,JSON.stringify(store));
+  }catch(e){setSync('err',String(e)); _pushT=setTimeout(_doSchedPushMerge,5000);}
+}
+async function loadSharedStoreMerge(){
+  if(sharingPaused()){setSync('paused');return;}
+  _stampChanged();   // capture any pre-load deletions (e.g. a boot-render self-clear) as fresh tombstones vs the early-seeded cache
+  try{
+    const r=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const remote=await r.json();
+    if(remote&&remote._savedAt){mergeSharedStores(store,remote); _reseedSyncCache(); _lastRemoteAt=remote._savedAt||0; localStorage.setItem(KEY,JSON.stringify(store)); setSync('ok'); renderAll();}
+    else{ if(hasLocalEdits())schedPush(); setSync('ok'); }
+  }catch(e){setSync('off',String(e));}
+}
+if(MERGE_SYNC)setInterval(()=>{if(!document.hidden&&!sharingPaused())_pullMerge(false);},60000);
+if(MERGE_SYNC)_reseedSyncCache();   // seed NOW, before boot render/self-heal can silently delete a key the cache never saw
 
 /* ───────── WS-1c: live floor timers on scheduler rows ─────────
    The Board's work-unit labels are `visualId-impIdx` — exactly this app's
@@ -2940,7 +3060,16 @@ document.getElementById('resetBtn').onclick=()=>{
   (async()=>{
     if(shared){
       try{
-        store=defaultStore();
+        if(MERGE_SYNC){
+          try{const g=await fetch(STATE_API+'/api/state/'+SHARED_DOC,{headers:{'x-api-key':STATE_KEY}});
+            if(g.ok){const rem=await g.json();if(rem&&rem._savedAt)mergeSharedStores(store,rem);}
+          }catch(e){}               // pull remote FIRST so tombstones cover keys only other devices hold
+          _tombstoneAll();          // stamp every known key (local ∪ remote) deleted@now
+          const ts=store._ts;       // keep the tombstone timestamps through the wipe
+          store=defaultStore();store._ts=ts;   // so the deletions PROPAGATE instead of being merged back
+        }else{
+          store=defaultStore();
+        }
         await fetch(STATE_API+'/api/state/'+SHARED_DOC,{method:'POST',
           headers:{'Content-Type':'application/json','x-api-key':STATE_KEY},body:JSON.stringify(sharedPayload())});
       }catch(e){/* server unreachable — local reset still proceeds; another device's next push re-seeds */}
@@ -2974,7 +3103,7 @@ renderAll();
 loadMockups();
 loadLiveCsv();
 loadIntakeFeed();
-loadSharedStore();
+if(MERGE_SYNC)loadSharedStoreMerge();else loadSharedStore();
 loadBoardTimers();   // WS-1c: floor timers on rows — refresh every minute while visible
 setInterval(()=>{if(!document.hidden)loadBoardTimers();},60*1000);
 pvStatusList();      // Harden #1: warm the Printavo status cache so ✎ status opens INSTANTLY (no click-time fetch)
