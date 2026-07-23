@@ -96,6 +96,7 @@
 const WEBHOOK = "https://primary-production-079f9.up.railway.app/webhook/bandana-ship-estimate";
 const $ = id => document.getElementById(id);
 const money = n => "$" + Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const RATE_TIMEOUT_MS = 25000;
 
 async function estimate(){
   const qty = parseInt($("qty").value)||0;
@@ -104,17 +105,31 @@ async function estimate(){
   if(qty<1){ showErr("Enter a quantity."); return; }
   if(!/^\d{5}$/.test(zip)){ showErr("Enter a 5-digit ZIP."); return; }
   const btn=$("go"); btn.disabled=true; btn.textContent="Estimating…";
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(), RATE_TIMEOUT_MS);
   try{
     const r = await fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({qty,zip,city:$("city").value.trim(),state:$("state").value.trim()})});
-    if(!r.ok) throw new Error("Rate service returned "+r.status);
+      body:JSON.stringify({qty,zip,city:$("city").value.trim(),state:$("state").value.trim()}),
+      signal: controller.signal});
+    if(!r.ok) throw new Error("temporary");
     const d = await r.json();
     render(d);
-  }catch(e){ showErr("Could not get a rate: "+e.message); }
-  finally{ btn.disabled=false; btn.textContent="Estimate Shipping"; }
+  }catch(e){
+    if(e.name==="AbortError"){
+      showErr("Rates timed out. Submit your quote and we'll price shipping by hand.");
+    } else {
+      showErr("Live shipping rates are temporarily unavailable. Submit your quote and we'll price shipping by hand.");
+    }
+  }
+  finally{ clearTimeout(timeout); btn.disabled=false; btn.textContent="Estimate Shipping"; }
 }
 function showErr(m){ const e=$("err"); e.textContent=m; e.style.display="block"; $("out").style.display="none"; }
 function render(d){
+  if(d && (d.ok===false || (d.ship_cost_buffered==null && d.reason_public))){
+    if(d.carrier_messages) console.debug("Shipping rate carrier messages", d.carrier_messages);
+    showErr(d.reason_public || "Live shipping rates are temporarily unavailable. Submit your quote and we'll price shipping by hand.");
+    return;
+  }
   if(d.ship_cost_buffered==null){ showErr("No Ground rate returned for that destination."); return; }
   $("buffered").textContent = money(d.ship_cost_buffered);
   $("raw").innerHTML = "UPS Ground (our rate): <b>"+money(d.ground_rate)+"</b> × 1.15 cushion";
