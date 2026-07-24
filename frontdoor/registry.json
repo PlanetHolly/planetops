@@ -122,6 +122,18 @@
               "access": "open",
               "dataSource": "Board state + n8n /webhook/shipment-* (EasyPost)",
               "icon": "📦"
+            },
+            {
+              "id": "archive",
+              "kind": "surface",
+              "name": "Project Archive",
+              "blurb": "Completed projects · full history · reprint reference",
+              "type": "live-app",
+              "url": "../archive/",
+              "status": "wip",
+              "access": "open",
+              "dataSource": "Board state (/api/state) + tracking sheet (/api/shipboard/feed), read-only",
+              "icon": "🗄️"
             }
           ]
         },

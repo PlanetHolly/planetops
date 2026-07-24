@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Archive</title>
+<style>
+  :root{--yellow:#F7BE00;--black:#231F20;--line:#e3e3e3;--text:#555;--muted:#777;--bg:#f5f5f4;--white:#fff;--green:#2e7d32;--blue:#1565C0;--orange:#a85f00;--red:#b3261e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--black);padding:18px}
+  h1{font-size:22px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px;max-width:980px;line-height:1.45}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--white);border-radius:6px;padding:7px 12px}
+  button:hover{background:#faf6e8}
+  input{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--white)}
+  input.search{width:min(560px,100%)}
+  .stamp,.muted{color:var(--muted);font-size:12px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{display:inline-block;font-size:11px;background:#eee;border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .chip.done{background:#ddf2e2;color:#1a7a3d}
+  .chip.warn{background:#fff2cf;color:#765200;border:1px solid #ebcf7a}
+  .chip.miss{background:#fbe4e1;color:var(--red);border:1px solid #efb5ae}
+  table.q{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.q th{background:#f0efed;text-align:left;padding:8px 12px;font-size:12px;color:var(--muted)}
+  .qrow{border-top:1px solid #eee;cursor:pointer}
+  .qrow:hover{background:#faf6e8}
+  .qrow td{padding:10px 12px;font-size:13px;vertical-align:middle}
+  .jobn{font-family:'Barlow Condensed',Impact,sans-serif;font-weight:900;font-size:16px;letter-spacing:.02em}
+  .exp{background:#fbfbf9;border-top:1px solid #eee}
+  .exp td{padding:16px 18px}
+  .summary{display:grid;gap:14px}
+  .section{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .section h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:var(--text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+  .kv{font-size:13px;line-height:1.35}
+  .kv b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:1px}
+  .smalltbl{width:100%;border-collapse:collapse;font-size:13px}
+  .smalltbl th{text-align:left;color:var(--muted);font-size:11px;padding:5px 6px;background:#f7f7f5}
+  .smalltbl td{padding:6px;border-top:1px solid #eee;vertical-align:top}
+  .note{font-size:13px;line-height:1.45;white-space:pre-wrap}
+  .empty{color:var(--muted);padding:34px;text-align:center;font-size:14px;background:var(--white);border:1px solid var(--line);border-radius:10px}
+  .link{color:var(--blue)}
+  a{color:var(--blue)}
+  .statusline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .trackbox{border:1px solid var(--line);border-radius:8px;padding:9px;margin-top:8px;background:#fff}
+  .trackbox b{font-size:14px}
+  @media (max-width:760px){
+    body{padding:12px}
+    table.q th:nth-child(3),table.q td:nth-child(3),table.q th:nth-child(5),table.q td:nth-child(5){display:none}
+    .exp td{padding:12px}
+  }
+</style>
+</head>
+<body>
+<h1>Project Archive</h1>
+<div class="sub">Completed projects only. This page assembles archive summaries from the existing Board state and captured shipment feed during render.</div>
+<div class="toolbar">
+  <button onclick="loadArchive()">Refresh</button>
+  <input class="search" id="search" placeholder="Search invoice, customer, PM, status, tracking, city, date..." oninput="state.search=this.value;render()">
+  <span id="stamp" class="stamp"></span>
+</div>
+<div class="stats" id="stats"></div>
+<table class="q" id="qtbl"><thead><tr>
+  <th>Invoice</th><th>Customer</th><th>PM</th><th>Exit</th><th>Completed</th><th>Status</th>
+</tr></thead><tbody id="qbody"></tbody></table>
+<div class="empty" id="empty" style="display:none">No completed projects matched.</div>
+
+<script>
+const state={jobs:[],feed:[],open:null,search:'',stateErr:'',feedErr:'',loadedAt:null};
+
+async function loadArchive(){
+  const stamp=document.getElementById('stamp');
+  stamp.textContent='loading...';
+  state.stateErr='';
+  state.feedErr='';
+  try{
+    const r=await fetch('/api/state',{credentials:'same-origin'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const doc=await r.json();
+    state.jobs=((doc&&doc.jobs)||[]).filter(j=>j&&((j.archived)||j.station==='done'));
+  }catch(e){
+    state.jobs=[];
+    state.stateErr='Could not reach /api/state: '+e.message;
+  }
+  try{
+    const r=await fetch('/api/shipboard/feed',{credentials:'same-origin'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    state.feed=Array.isArray(d)?d:((d&&d.rows)||[]);
+  }catch(e){
+    state.feed=[];
+    state.feedErr='Could not reach /api/shipboard/feed: '+e.message;
+  }
+  state.loadedAt=new Date();
+  stamp.textContent=(state.jobs.length)+' completed project'+(state.jobs.length===1?'':'s')+' loaded · '+state.loadedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  render();
+}
+
+function escHtml(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function norm(s){return String(s??'').trim();}
+function lower(s){return norm(s).toLowerCase();}
+function fmtDate(v){
+  if(!v)return '';
+  const d=new Date(v);
+  if(!isFinite(d.getTime()))return norm(v);
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+}
+function fmtDateTime(v){
+  if(!v)return '';
+  const d=new Date(v);
+  if(!isFinite(d.getTime()))return norm(v);
+  return d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+}
+function fmtMs(ms){
+  const n=Number(ms)||0;
+  if(n<=0)return '0:00';
+  const s=Math.floor(n/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  if(h>0)return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  return String(m).padStart(1,'0')+':'+String(sec).padStart(2,'0');
+}
+function qtyOf(j){return (j.workUnits||[]).reduce((a,w)=>a+(+w.qty||0),0);}
+function rowsFor(j){return state.feed.filter(r=>norm(r.matched_order)===String(j.number));}
+function archivedNumbers(){return new Set(state.jobs.map(j=>String(j.number)));}
+function unmatchedRows(){
+  const nums=archivedNumbers();
+  return state.feed.filter(r=>norm(r.matched_order)&&!nums.has(norm(r.matched_order)));
+}
+function completionTs(j){
+  const hist=(j.stationHistory||[]).filter(h=>h&&(h.to==='done'||h.to==='shipping'||h.from==='shipping'));
+  const last=hist.slice(-1)[0];
+  const wuDates=(j.workUnits||[]).flatMap(w=>(w.stageHistory||[]).map(h=>h.completedAt));
+  const timerDates=Object.values(j.projectTimers||{}).map(t=>t&&t.completedAt);
+  const candidates=[last&&last.ts,...wuDates,...timerDates,j.dueDate]
+    .map(x=>new Date(x).getTime())
+    .filter(x=>Number.isFinite(x)&&x>0);
+  return candidates.length?Math.max(...candidates):0;
+}
+function exitLabel(j){
+  const dm=lower(j.deliveryMethod);
+  const cs=lower(j.completionState);
+  if(cs==='pickup'||dm==='pickup')return 'Picked up';
+  if(cs==='delivery'||dm==='delivery')return 'Delivered';
+  if(dm==='ship')return 'Shipped';
+  return cs||dm||'Complete';
+}
+function exitClass(j){
+  const dm=lower(j.deliveryMethod), cs=lower(j.completionState);
+  if(dm==='pickup'||cs==='pickup'||dm==='delivery'||cs==='delivery')return 'done';
+  if(dm==='ship')return 'warn';
+  return '';
+}
+function linkForJob(j){
+  if(j.printavoUrl)return j.printavoUrl;
+  if(j.workorderUrl)return j.workorderUrl;
+  if(j.printavoId)return 'https://www.printavo.com/invoices/'+encodeURIComponent(j.printavoId);
+  return '';
+}
+function statusText(j){
+  return [j.printavoStatus,j.station,j.archived?'archived':''].filter(Boolean).join(' · ')||'done';
+}
+function jobHay(j,shipRows){
+  return [
+    j.number,j.customer,j.pm,statusText(j),exitLabel(j),j.deliveryMethod,j.completionState,j.dueDate,j.dueDateLabel,
+    ...shipRows.flatMap(r=>[r.tracking_code,r.carrier,r.to_city,r.to_state,r.arrival_date,r.delivered_date,r.label_created,r.matched_order])
+  ].join(' ').toLowerCase();
+}
+function sortedJobs(){
+  return state.jobs.slice().sort((a,b)=>{
+    const at=new Date(completionTs(a)).getTime()||0;
+    const bt=new Date(completionTs(b)).getTime()||0;
+    return bt-at;
+  });
+}
+
+function render(){
+  const body=document.getElementById('qbody');
+  const q=lower(state.search);
+  const rows=sortedJobs().filter(j=>!q||jobHay(j,rowsFor(j)).includes(q));
+  document.getElementById('qtbl').style.display=rows.length?'':'none';
+  document.getElementById('empty').style.display=rows.length?'none':'block';
+  document.getElementById('stats').innerHTML=[
+    '<span class="chip done">'+escHtml(state.jobs.length)+' completed projects</span>',
+    '<span class="chip warn">unmatched sheet rows: '+escHtml(unmatchedRows().length)+'</span>',
+    state.stateErr?'<span class="chip miss">'+escHtml(state.stateErr)+'</span>':'',
+    state.feedErr?'<span class="chip miss">'+escHtml(state.feedErr)+'</span>':''
+  ].filter(Boolean).join('');
+  body.innerHTML=rows.map(j=>rowHtml(j)).join('');
+}
+
+function rowHtml(j){
+  const inv=String(j.number);
+  const open=state.open===inv;
+  const url=linkForJob(j);
+  const shipRows=rowsFor(j);
+  const trackingChip=shipRows.length?'<span class="chip done">'+escHtml(shipRows.length)+' tracking row'+(shipRows.length===1?'':'s')+'</span>':'';
+  const invKey=encodeURIComponent(inv);
+  return `<tr class="qrow" onclick="toggleKey('${escHtml(invKey)}')">
+    <td class="jobn">${url?`<a class="link" href="${escHtml(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">#${escHtml(inv)}</a>`:'#'+escHtml(inv)}</td>
+    <td>${escHtml(j.customer||'')}</td>
+    <td>${escHtml(j.pm||'')}</td>
+    <td><span class="chip ${escHtml(exitClass(j))}">${escHtml(exitLabel(j))}</span></td>
+    <td>${escHtml(fmtDate(completionTs(j))||j.dueDateLabel||'')}</td>
+    <td><div class="statusline"><span class="chip">${escHtml(statusText(j))}</span>${trackingChip}</div></td>
+  </tr>${open?`<tr class="exp"><td colspan="6">${summaryHtml(j,shipRows)}</td></tr>`:''}`;
+}
+
+function summaryHtml(j,shipRows){
+  return `<div class="summary">
+    <div class="section">
+      <h2>Project</h2>
+      <div class="grid">
+        <div class="kv"><b>Invoice</b>${jobLinkHtml(j)}</div>
+        <div class="kv"><b>Customer</b>${escHtml(j.customer||'')}</div>
+        <div class="kv"><b>PM</b>${escHtml(j.pm||'')}</div>
+        <div class="kv"><b>Exit method</b>${escHtml(exitLabel(j))}</div>
+        <div class="kv"><b>Completion/archive date</b>${escHtml(fmtDateTime(completionTs(j))||'')}</div>
+        <div class="kv"><b>Status</b>${escHtml(statusText(j))}</div>
+        <div class="kv"><b>Due date</b>${escHtml(j.dueDateLabel||fmtDate(j.dueDate)||'')}</div>
+        <div class="kv"><b>Pieces</b>${escHtml(qtyOf(j))}</div>
+      </div>
+    </div>
+    ${productionHtml(j)}
+    ${blanksHtml(j)}
+    ${qcHtml(j)}
+    ${shippingHtml(j,shipRows)}
+    ${timersHtml(j)}
+  </div>`;
+}
+function jobLinkHtml(j){
+  const url=linkForJob(j);
+  const label='#'+String(j.number||'');
+  return url?`<a href="${escHtml(url)}" target="_blank" rel="noopener">${escHtml(label)}</a>`:escHtml(label);
+}
+function productionHtml(j){
+  const rows=(j.workUnits||[]).map(w=>{
+    const imps=(w.pressRunSessions||[]).reduce((a,r)=>a+(+r.impressions||0),0);
+    const stageRows=(w.stageHistory||[]).map(h=>`${escHtml(h.stage||'stage')} ${escHtml(fmtMs(h.elapsedMs))}${h.operator?' · '+escHtml(h.operator):''}${h.completedAt?' · '+escHtml(fmtDate(h.completedAt)):''}`).join('<br>');
+    return `<tr>
+      <td>${escHtml(w.categoryLabel||w.category||'')}</td>
+      <td>${escHtml(w.placement||'')}</td>
+      <td>${escHtml(w.design||'')}</td>
+      <td>${escHtml(w.inkType||'')}</td>
+      <td>${escHtml(w.screens||'')}</td>
+      <td>${escHtml(w.qty||'')}</td>
+      <td>${escHtml(imps)}</td>
+      <td>${stageRows||'<span class="muted">no stages logged</span>'}</td>
+      <td>${escHtml(w.runNotes||'not captured (pre-Aug 2026)')}</td>
+      <td>${escHtml(w.inksUsed||'not captured (pre-Aug 2026)')}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="section"><h2>Production</h2>${rows?`<table class="smalltbl"><tr><th>Category</th><th>Placement</th><th>Design</th><th>Ink</th><th>Screens</th><th>Qty</th><th>Impressions</th><th>Stage timers</th><th>Run notes</th><th>Inks used</th></tr>${rows}</table>`:'<div class="muted">No work units recorded.</div>'}</div>`;
+}
+function blanksHtml(j){
+  const list=(j.blanksList||[]).map((b,i)=>`<tr><td>${escHtml(i+1)}</td><td>${escHtml(b.description||'')}</td><td>${escHtml(b.color||'')}</td><td>${escHtml(b.qty||'')}</td><td>${escHtml((j.blanksCount||{})[i]??'')}</td></tr>`).join('');
+  const sessions=(j.blanksCheckInSessions||[]).map(s=>`<tr><td>${escHtml(fmtDateTime(s.ts||s.completedAt||s.startedAt)||'')}</td><td>${escHtml(s.operator||'')}</td><td>${escHtml(s.type||'partial')}</td><td>${escHtml(s.note||'')}</td></tr>`).join('');
+  return `<div class="section"><h2>Blanks</h2>
+    <div class="grid" style="margin-bottom:8px"><div class="kv"><b>Blanks note</b><div class="note">${escHtml(j.blanksNote||'')}</div></div></div>
+    ${list?`<table class="smalltbl"><tr><th>#</th><th>Description</th><th>Color</th><th>Expected</th><th>Counted</th></tr>${list}</table>`:'<div class="muted">No blanks list recorded.</div>'}
+    <div style="height:8px"></div>
+    ${sessions?`<table class="smalltbl"><tr><th>Date</th><th>Operator</th><th>Type</th><th>Note</th></tr>${sessions}</table>`:'<div class="muted">No blanks check-in sessions recorded.</div>'}
+  </div>`;
+}
+function qcHtml(j){
+  const qc=j.qcChecks||{};
+  const checks=Object.keys(qc).filter(k=>typeof qc[k]==='boolean').map(k=>`<span class="chip ${qc[k]?'done':'miss'}">${escHtml(k)}: ${qc[k]?'yes':'no'}</span>`).join(' ');
+  return `<div class="section"><h2>QC</h2>
+    <div class="statusline">${checks||'<span class="muted">No QC checks recorded.</span>'}</div>
+    <div class="grid" style="margin-top:8px">
+      <div class="kv"><b>QC operator</b>${escHtml(qc.qcOperator||'')}</div>
+      <div class="kv"><b>QC completed</b>${escHtml(fmtDateTime(qc.qcCompletedAt)||'')}</div>
+      <div class="kv"><b>QC notes</b><div class="note">${escHtml(j.qcNotes||'')}</div></div>
+    </div>
+  </div>`;
+}
+function shippingHtml(j,shipRows){
+  const dm=lower(j.deliveryMethod), cs=lower(j.completionState);
+  let content='';
+  if(dm==='pickup'||cs==='pickup'){
+    content='<span class="chip done">Picked up</span>';
+  }else if(dm==='delivery'||cs==='delivery'){
+    content='<span class="chip done">Delivered (no carrier)</span>';
+  }else if(shipRows.length){
+    content=shipRows.map(r=>`<div class="trackbox">
+      <b>${escHtml(r.tracking_code||'tracking pending')}</b>${r.public_url?` · <a href="${escHtml(r.public_url)}" target="_blank" rel="noopener">Track</a>`:''}
+      <div>${escHtml([r.carrier,r.service].filter(Boolean).join(' · ')||'carrier not recorded')}</div>
+      <div class="muted">Delivered ${escHtml(r.delivered_date||'—')} · Arrival ${escHtml(r.arrival_date||'—')} · ${escHtml([r.to_city,r.to_state].filter(Boolean).join(', '))}</div>
+    </div>`).join('');
+  }else{
+    content='<span class="chip miss">no tracking row matched</span>';
+  }
+  return `<div class="section"><h2>Shipping</h2>${content}</div>`;
+}
+function timersHtml(j){
+  const project=Object.entries(j.projectTimers||{}).map(([k,t])=>`<tr><td>${escHtml(k)}</td><td>${escHtml(t&&t.state||'')}</td><td>${escHtml(fmtMs(t&&t.elapsedMs))}</td><td>${escHtml(t&&t.operator||'')}</td><td>${escHtml(fmtDateTime(t&&t.completedAt)||'')}</td></tr>`).join('');
+  const wus=(j.workUnits||[]).map(w=>{
+    const histTotal=(w.stageHistory||[]).reduce((a,h)=>a+(+h.elapsedMs||0),0);
+    return `<tr><td>${escHtml(w.label||w.placement||'')}</td><td>${escHtml(w.category||'')}</td><td>${escHtml(fmtMs(histTotal))}</td><td>${escHtml(fmtMs(w.timer&&w.timer.elapsedMs))}</td></tr>`;
+  }).join('');
+  return `<div class="section"><h2>Timers</h2>
+    ${project?`<table class="smalltbl"><tr><th>Project timer</th><th>State</th><th>Elapsed</th><th>Operator</th><th>Completed</th></tr>${project}</table>`:'<div class="muted">No project timers recorded.</div>'}
+    <div style="height:8px"></div>
+    ${wus?`<table class="smalltbl"><tr><th>Work unit</th><th>Category</th><th>Stage total</th><th>Current timer</th></tr>${wus}</table>`:'<div class="muted">No work unit timers recorded.</div>'}
+  </div>`;
+}
+function toggleKey(invKey){
+  const inv=decodeURIComponent(String(invKey||''));
+  state.open=state.open===inv?null:inv;
+  render();
+}
+
+loadArchive();
+</script>
+</body>
+</html>
