@@ -80,31 +80,44 @@
       </div>
 
       <form id="mediaForm" class="panel">
-        <div class="section-title">Tags</div>
+        <div class="section-title">Printavo Invoice</div>
+        <div class="form-grid">
+          <label>Invoice #
+            <input id="visualId" name="visualId" inputmode="numeric" pattern="\\d{1,9}" autocomplete="off" required>
+          </label>
+          <label>Load
+            <button id="loadInvoiceBtn" type="button">Load</button>
+          </label>
+          <label class="full">Group
+            <select id="lineGroup" name="lineGroup" disabled required></select>
+          </label>
+          <label>Line Item
+            <select id="lineItem" name="lineItem" disabled required></select>
+          </label>
+          <label>Imprint
+            <select id="imprint" name="imprint" disabled></select>
+          </label>
+        </div>
+
+        <div class="section-title" style="margin-top:14px">Verified Fields</div>
         <div class="form-grid">
           <label>Brand
             <input id="brand" name="brand" autocomplete="organization">
           </label>
           <label>SKU
-            <select id="sku" name="sku"><option value="">No SKU</option></select>
-          </label>
-          <label>Group
-            <select id="group" name="group" required></select>
-          </label>
-          <label>Category
-            <select id="cat" name="cat" required></select>
+            <input id="sku" name="sku">
           </label>
           <label>Color
-            <select id="color" name="color" required></select>
+            <input id="blankColor" name="blankColor">
           </label>
-          <label>Fabric
-            <input id="fabric" name="fabric">
+          <label>Method
+            <input id="method" name="method">
           </label>
-          <label>Print Method
-            <input id="print_method" name="print_method">
+          <label>Ink Type
+            <input id="inkType" name="inkType">
           </label>
-          <label>Source ID
-            <input id="sourceId" name="sourceId">
+          <label>Template
+            <select id="template" name="template"></select>
           </label>
           <label class="full">Description
             <textarea id="description" name="description"></textarea>
@@ -133,9 +146,15 @@
   <script>
     const $ = sel => document.querySelector(sel);
     const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    let options = { skus: {} };
+    let invoiceData = null;
+    let selectedGroup = null;
+    let selectedLineItem = null;
+    let selectedImprint = null;
     let selectedDataUrl = "";
+    let contentHash = "";
+    let previewFilename = "";
     let previewTimer = null;
+    const templates = ["Not sure", ...Array.from({ length: 21 }, (_, i) => `Template ${String(i + 1).padStart(2, "0")}`)];
 
     async function api(url, opts = {}) {
       const r = await fetch(url, { headers: { "Content-Type": "application/json", ...(opts.headers || {}) }, ...opts });
@@ -144,47 +163,86 @@
       return data;
     }
 
-    function fillSelect(el, values, first) {
-      el.innerHTML = `${first ? `<option value="">${esc(first)}</option>` : ""}${values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("")}`;
+    function fillSelect(el, rows, first, labeler = v => v) {
+      el.innerHTML = `${first ? `<option value="">${esc(first)}</option>` : ""}${rows.map(v => `<option value="${esc(v.value ?? v)}">${esc(labeler(v))}</option>`).join("")}`;
     }
 
     function formPayload() {
       return {
+        source: "printavo",
+        visualId: $("#visualId").value,
+        lineGroupId: selectedGroup?.groupId || "",
+        lineItemId: selectedLineItem?.lineItemId || "",
+        imprintId: selectedImprint?.imprintId || "",
         brand: $("#brand").value,
         sku: $("#sku").value,
-        group: $("#group").value,
-        cat: $("#cat").value,
-        color: $("#color").value,
-        fabric: $("#fabric").value,
-        print_method: $("#print_method").value,
+        blank_color: $("#blankColor").value,
+        method: $("#method").value,
+        ink_type: $("#inkType").value,
+        template: $("#template").value,
         description: $("#description").value,
-        sourceId: $("#sourceId").value,
+        contentHash,
         ext: selectedDataUrl.match(/^data:image\/(jpeg|jpg|png|webp)/)?.[1]?.replace("jpeg", "jpg") || "jpg"
       };
     }
 
-    function applySkuDefaults() {
-      const sku = $("#sku").value;
-      const row = options.skus[sku];
-      if (!row) return;
-      if (!$("#fabric").value) $("#fabric").value = row.material || "";
-      if (!$("#print_method").value) $("#print_method").value = row.default_print_method || "";
+    function canPreview(p) {
+      return p.visualId && p.lineGroupId && p.lineItemId && p.brand && p.blank_color && contentHash;
+    }
+
+    function refreshSelection() {
+      selectedGroup = invoiceData?.groups.find(g => g.groupId === $("#lineGroup").value) || null;
+      selectedLineItem = selectedGroup?.lineItems.find(li => li.lineItemId === $("#lineItem").value) || null;
+      selectedImprint = selectedGroup?.imprints.find(im => im.imprintId === $("#imprint").value) || null;
+      $("#brand").value = invoiceData?.nickname || selectedGroup?.nickname || "";
+      $("#sku").value = selectedLineItem?.sku || "";
+      $("#blankColor").value = selectedLineItem?.color || "";
+      $("#method").value = selectedLineItem?.method || "";
+      $("#inkType").value = selectedImprint?.inkType || "";
       updatePreview();
+    }
+
+    function renderInvoicePickers() {
+      const groups = invoiceData?.groups || [];
+      fillSelect($("#lineGroup"), groups.map(g => ({ value: g.groupId, label: `Group ${g.groupPosition ?? ""} · ${g.nickname || invoiceData.nickname || "No nickname"}` })), "Choose group", x => x.label);
+      $("#lineGroup").disabled = !groups.length;
+      if (groups.length === 1) $("#lineGroup").value = groups[0].groupId;
+      renderGroupChildren();
+    }
+
+    function renderGroupChildren() {
+      selectedGroup = invoiceData?.groups.find(g => g.groupId === $("#lineGroup").value) || null;
+      const lineItems = selectedGroup?.lineItems || [];
+      const imprints = selectedGroup?.imprints || [];
+      fillSelect($("#lineItem"), lineItems.map(li => ({ value: li.lineItemId, label: `${li.sku || "No SKU"} · ${li.color || "No color"} · ${li.method || "No method"}` })), "Choose line item", x => x.label);
+      fillSelect($("#imprint"), imprints.map(im => ({ value: im.imprintId, label: `Imprint ${im.imprintPosition ?? ""} · ${im.inkType || "Ink unmapped"}` })), imprints.length ? "Choose imprint" : "No imprint", x => x.label);
+      $("#lineItem").disabled = !lineItems.length;
+      $("#imprint").disabled = !imprints.length;
+      if (lineItems.length === 1) $("#lineItem").value = lineItems[0].lineItemId;
+      if (imprints.length === 1) $("#imprint").value = imprints[0].imprintId;
+      refreshSelection();
+    }
+
+    async function sha256File(file) {
+      const bytes = await file.arrayBuffer();
+      const hash = await crypto.subtle.digest("SHA-256", bytes);
+      return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     async function updatePreview() {
       clearTimeout(previewTimer);
       previewTimer = setTimeout(async () => {
         const p = formPayload();
-        if (!p.group || !p.cat || !p.color) {
-          $("#filenamePreview").textContent = "Select tags to preview.";
+        if (!canPreview(p)) {
+          $("#filenamePreview").textContent = contentHash ? "Load invoice and choose a line item to preview." : "Select a photo to compute its hash.";
           $("#submitBtn").disabled = true;
           return;
         }
         try {
           const data = await api("/api/media/preview", { method: "POST", body: JSON.stringify(p) });
+          previewFilename = data.filename;
           $("#filenamePreview").textContent = data.filename;
-          $("#submitBtn").disabled = !selectedDataUrl;
+          $("#submitBtn").disabled = !selectedDataUrl || !selectedLineItem || (!!(selectedGroup?.imprints || []).length && !selectedImprint);
         } catch (e) {
           $("#filenamePreview").textContent = e.message;
           $("#submitBtn").disabled = true;
@@ -192,14 +250,18 @@
       }, 180);
     }
 
-    function useFile(file) {
+    async function useFile(file) {
       if (!file) return;
+      contentHash = "";
+      previewFilename = "";
+      $("#submitBtn").disabled = true;
+      $("#filenamePreview").textContent = "Computing image hash...";
+      contentHash = await sha256File(file);
       const reader = new FileReader();
       reader.onload = () => {
         selectedDataUrl = String(reader.result || "");
         $("#imagePreview").src = selectedDataUrl;
         $("#imagePreview").style.display = "block";
-        if (!$("#sourceId").value) $("#sourceId").value = file.name.replace(/\.[^.]+$/, "");
         updatePreview();
       };
       reader.readAsDataURL(file);
@@ -219,15 +281,29 @@
       }
     }
 
+    async function loadInvoice() {
+      $("#status").textContent = "Loading invoice...";
+      $("#loadInvoiceBtn").disabled = true;
+      try {
+        invoiceData = await api("/api/media/invoice", { method: "POST", body: JSON.stringify({ visualId: $("#visualId").value }) });
+        renderInvoicePickers();
+        $("#status").textContent = `Loaded invoice ${invoiceData.visualId}`;
+      } catch (e) {
+        invoiceData = null;
+        selectedGroup = selectedLineItem = selectedImprint = null;
+        $("#lineGroup").innerHTML = "";
+        $("#lineItem").innerHTML = "";
+        $("#imprint").innerHTML = "";
+        $("#lineGroup").disabled = $("#lineItem").disabled = $("#imprint").disabled = true;
+        $("#status").textContent = e.message;
+        updatePreview();
+      } finally {
+        $("#loadInvoiceBtn").disabled = false;
+      }
+    }
+
     async function init() {
-      options = await api("/api/media/options");
-      fillSelect($("#group"), options.groups);
-      fillSelect($("#cat"), options.cats);
-      fillSelect($("#color"), options.colors, "Choose color");
-      $("#sku").innerHTML = `<option value="">No SKU</option>` + Object.keys(options.skus).sort().map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
-      $("#group").value = "Bandanas";
-      $("#cat").value = "Bandanas";
-      $("#color").value = "Natural";
+      fillSelect($("#template"), templates);
       updatePreview();
       loadRecent();
     }
@@ -242,8 +318,14 @@
       $("#dropZone").classList.remove("drag");
       useFile(e.dataTransfer.files[0]);
     });
-    document.querySelectorAll("input, select, textarea").forEach(el => el.addEventListener("input", updatePreview));
-    $("#sku").addEventListener("change", applySkuDefaults);
+    $("#loadInvoiceBtn").addEventListener("click", loadInvoice);
+    $("#visualId").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); loadInvoice(); } });
+    $("#lineGroup").addEventListener("change", renderGroupChildren);
+    $("#lineItem").addEventListener("change", refreshSelection);
+    $("#imprint").addEventListener("change", refreshSelection);
+    ["brand", "sku", "blankColor", "method", "inkType", "template", "description"].forEach(id => {
+      $("#" + id).addEventListener("input", updatePreview);
+    });
     $("#mediaForm").addEventListener("submit", async e => {
       e.preventDefault();
       $("#status").textContent = "Submitting...";
@@ -251,14 +333,15 @@
       $("#result").style.display = "none";
       try {
         const data = await api("/api/media/intake", { method: "POST", body: JSON.stringify({ ...formPayload(), photo: selectedDataUrl }) });
-        $("#result").innerHTML = `<strong>${esc(data.asset.filename)}</strong><br><span class="sub">${data.duplicate ? "Already existed; returned existing record." : "Queued locally for the Media Center sink."} Sink: ${esc(data.sink)}.</span>`;
+        const mismatch = previewFilename && data.asset.filename !== previewFilename;
+        $("#result").innerHTML = `<strong>${esc(data.asset.filename)}</strong><br><span class="sub">${data.duplicate ? "Already existed; returned existing record." : "Queued locally for the Media Center sink."} Sink: ${esc(data.sink)}.${mismatch ? " Server filename differed from preview." : ""}</span>`;
         $("#result").style.display = "block";
         $("#status").textContent = "Saved";
         await loadRecent();
       } catch (err) {
         $("#status").textContent = err.message;
       } finally {
-        $("#submitBtn").disabled = !selectedDataUrl;
+        updatePreview();
       }
     });
 

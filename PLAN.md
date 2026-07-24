@@ -1,52 +1,76 @@
-# Plan: The Real Gate — put the PlanetOps app behind a team PIN (Railway-assumed)
-_Round 2 — revised after Codex rounds 1 (26 findings) and 2 (7 findings); arbiter substitutions noted in §Decisions_
+# Plan: Media Center — Printavo-as-source-of-truth intake redesign
+_Locked via grill — by Claude + Holly, 2026-07-22 · rev.4 (post Codex round 3)_
 
 ## Goal
-Make the PlanetOps web app genuinely private — not publicly findable — behind a single team PIN, while keeping a small public tier working (email-signature images embedded in live emails; customer-facing pages), and shipping self-watching (health, alerting, one-click repair) from day one. Hosting assumption under review: a small Railway service. The business owner (Holly, non-technical) decides hosting AFTER this review.
-
-## URGENT pre-work surfaced by review (independent of hosting choice)
-Round 1 confirmed the CURRENT public site already leaks credentials. These are **Phase-2 prerequisites, sequenced before or with the gate**, and treated as already-compromised:
-- **P0-1** `index.html` + `schedule/index.html` embed the live `STATE_API_KEY` in public page source; `state-api` has CORS `*`. → Rotate the key; move state-api calls behind the gate's server-side proxy; restrict CORS to the gate origin; remove client-side `x-api-key` use.
-- **P0-2** ShipStation API key+secret ride the shared state payload back to any browser holding P0-1's key. → Move ShipStation creds server-side (gate env vars / proxy); scrub them from stored state in Postgres; rotate the ShipStation credentials.
-- **P0-3** `clock/report.html` AND `clock/admin.html` (same pattern, admin.html:67-69) accept the admin key as `?k=` (leaks via history/screenshots/referrers). → Replace with httpOnly scoped-cookie or POST-only token exchange at the gate; rotate any existing timesheets admin keys; remove query-string admin auth everywhere.
-- **P0-4** Every n8n/Railway webhook the public pages call directly is publicly invokable. → Inventory all webhooks; classify: (a) sensitive/internal → server-side auth/rate limits or proxying through the gate; (b) **deliberately public** (e.g. ship-estimate's n8n quote webhook) → anonymous-abuse controls: strict input validation, per-IP + global rate limits, timeouts, logging, alerts.
-- **P0-5** Assume everything ever published to github.io (HTML/JS/keys) is compromised: at cutover, rotate ALL secrets that ever appeared in the public tree (state key, webhook tokens), per the rotation runbook — inventory every consumer BEFORE revoking.
+Replace the vision-guessing intake path with a deterministic one keyed on the Printavo **invoice number**. When a photographer drops a photo of a completed bandana, they enter the invoice # (always physically on the job), pick which line item (and imprint, if more than one) the photo shows, and the system fills ground-truth brand / SKU / blank-color / method / ink-type from Printavo, composes the published filename via the unchanged `gate/media/name.js`, and appends one idempotent row to the append-only index Sheet. No photo-vision on this new lane. The 338-photo backlog is untouched (stays vision-draft). Build stays shadow-gated exactly as today — nothing external is written until Holly wires the sink.
 
 ## Approach
-1. **New Railway service `frontdoor-gate`** (Express, sibling of state-api):
-   - `POST /gate` — CSRF-tokened login form; checks `ENTRY_PIN` → creates a server-side session (see §Sessions) and sets the cookie `httpOnly; Secure; SameSite=Lax; Path=/` with Max-Age to end of current Pacific workday. Session id regenerated on every successful PIN entry (fixation guard). Expiry validated server-side per request.
-   - **Sessions = one Postgres table** (`gate_sessions`: sid, scope, expires_at, created_ip) in the DB we already run — gives revoke-one and revoke-all. (Arbiter substitution: Codex suggested a session table or Redis; Postgres chosen — already owned, one fewer service.)
-   - **Auth middleware runs before ALL static routes** — direct navigation to any non-public path 302s to the gate. Tested by walking every registry URL unauthenticated.
-   - **Static serving** of the repo tree behind that middleware; Railway auto-deploys from the private GitHub repo. **Pre-verified on a staging service that Railway's GitHub app deploys the repo AFTER it flips private** (hard prerequisite).
-   - **PUBLIC allowlist** (no cookie): `/signature/*`, `/rush/*`, `/bandana-templates/*`, `/ship-estimate/*`, `/healthz`, `/health-public`. Implementation hardened per review: decode + normalize `new URL(req.originalUrl).pathname`, reject encoded slashes/backslashes/dot-segments/dotfiles, resolve the filesystem path and require it to remain under the exact allowlisted directory; case-sensitive exact prefixes; no redirects across the boundary. **Each public page's full network-request set audited and included** (root-relative asset deps), with tests for traversal/encoding/casing tricks. **Public directories are publish-only**: a CI/deploy test denylists unexpected content landing in them (dotfiles, source files, CSV/JSON dumps, oversized/high-res internal assets) so a future save into `/bandana-templates/` can't silently publish something private.
-   - **Protected route map is server-side and independent of registry UI labels** — includes `/planetiq/*`, `/clock/admin.html`, `/clock/report.html`, and any future **same-origin** `access:"pin"` path. The registry's `access` field is display-only; the server map is authoritative. External `access:"pin"` tiles (the Google-Sheets links) CANNOT be route-protected — the **Drive-sharing audit is a prerequisite for those tiles remaining visible**, and until it passes they carry a "protected by Drive permissions, not the PIN" label.
-   - **FINANCE zone**: separate short-lived scoped session (own cookie, narrow Path, ~60-min idle re-entry), unlocked by `FINANCE_PIN` via the same CSRF-tokened POST. Honesty note: the finance PIN protects PAGES; Google-Drive-linked sheets are protected by Drive sharing, which gets its own audit — the plan does not claim the PIN secures Drive docs.
-   - **Brute force**: `app.set('trust proxy', 1)`; per-IP limiter (10/15min) AND a global failure circuit breaker (e.g. 50 failures/hour → lock the gate for 15 min + alert both thresholds to 🚨 System Alerts). Because the global lockout is itself a DoS lever, it comes with an **operator repair path**: a warning alert BEFORE hard lockout, a documented lockout reset (Railway env `LOCKOUT_RESET` bump or restart), and emergency PIN rotation steps in the runbook — existing team sessions stay valid through a lockout. `ENTRY_PIN` minimum 6–8 digits or a word-style team code; forced rotation after a lockout alert.
-   - **Caching**: `Cache-Control: no-store, private` + `Vary: Cookie` on every gated response — applied by middleware BEFORE static serving, and verified by a **response-header test across gated HTML/JS/CSS/JSON/images including 304 responses**; long-cache only public immutable assets.
-2. **Frontdoor UI**: replace placeholder gate with the real CSRF-tokened POST; remove `enterPin` from registry.json; **registry URL validation** — tiles only open same-origin paths or an approved external-domain list (docs.google.com), so a bad registry edit can't send the team to a lookalike.
-3. **Self-watching** (day one):
-   - `/healthz` = pure service liveness (no dependencies). `/readyz` (gated `/frontdoor/status.html` backing) = per-dependency checks: DB, static tree freshness (deployed commit vs repo HEAD), state-api, key webhooks.
-   - **`/health-public`** = unauthenticated, minimal, plain-language ("Planet Apparel app: OK / having trouble — the team has been alerted") so a broken gate never hides the status itself.
-   - n8n heartbeat (5-min, Eastern-cron caveat) posts what+why to 🚨 System Alerts; **structured auth events** (failed PINs, lockouts, denied-path attempts, allowlist hits, webhook failures, last state save) feed plain-language status cards: *what broke / who's affected / what to click.*
-   - **Timed rollback runbook** written for a non-technical operator: exact steps, expected propagation times, covering all three layers (Railway rollback; repo re-public → Pages resurrects old URLs in minutes; signature/URL restores).
-4. **Cutover — inventory is a HARD pre-deploy gate, not a step**:
-   0. (Prerequisite) Full external-consumer inventory of `planetholly.github.io/planetops/*` — email signatures, Automations.io, n8n, bookmarks, Drive docs, Dropbox CLAUDE.mds — reviewed and signed off by Holly BEFORE anything flips. Signatures get a dedicated stable public origin and are updated before Pages dies (email clients request old URLs indefinitely).
-   1. Deploy gate on staging → verify private-repo autodeploy → production deploy. Old github.io untouched.
-   2. Walk every registry surface through the gate, authenticated and unauthenticated.
-   3. Execute P0 rotations (state key, ShipStation, webhook tokens) with consumers updated in the same window.
-   4. Update public-tier references → flip repo private → Pages dies → announce one URL + PIN → migrate bookmarks.
-   5. Rollback = the timed runbook above — with one correction from review: after the P0 rotations, simply re-publicizing the repo would resurrect pages whose embedded keys/webhooks are now dead. **Rollback therefore means: push a maintenance/redirect page to the old Pages tree (pointing at the gate URL), never a naive re-public** — old secrets are not restored.
+
+### 0. Pre-build field verification (do FIRST, before coding the mapper)
+Run the exact planned GraphQL against **one real completed bandana invoice** via the printavo-proxy and confirm these fields resolve as assumed — the repo proves some only indirectly: `LineItem.category.name` (method), `lineItemGroup.id` + `.position`, `lineItem.id` + item position, `imprint.id` + `.position` + `.details` (🎨 ink type), `status.type` (INVOICE), and `nickname`. If any field name differs, adjust the mapper spec before implementation.
+
+### 1. New server lookup endpoint `POST /api/media/invoice` (in `gate/media.js`)
+- Input `{ visualId }`, **validated `^\d{1,9}$` and rejected otherwise** before any use.
+- Build the GraphQL for the **validated-numeric** visualId. **Prefer a query `variable`; if the printavo-proxy does not forward `variables` (repo usage only shows `{ query }`), interpolate the already strictly-validated `^\d{1,9}$` numeric** — injection-safe because a pure integer cannot carry GraphQL syntax. Call the proxy with an **`AbortSignal.timeout` (~8s)**.
+- **Per-session/IP rate limiter** + **short-TTL in-memory cache** (e.g. 60s keyed by visualId) so a shared-session browser hammering **Load** can't burn the proxy's 10 req/5s budget.
+- Query **both** `invoices(query:)` and `quotes(query:)`; keep only the record whose `visualId` **exactly** matches. **Precedence: require an INVOICE-type record** (`status.type == INVOICE`) — a completed-project photo must map to a real order. **Reject quote-only records** (a quote-stage visualId ⇒ same "not found" block path). Fail **closed** on any proxy error, ambiguity, or no exact INVOICE match ⇒ HTTP 4xx, no fallback.
+- **Return shape mirrors the real Printavo model — `lineItemGroup` is the join boundary; `imprints` and `lineItems` are SIBLING collections under the group, NOT nested.** Response: `[{ groupId, groupPosition, nickname, lineItems:[{ lineItemId, itemPosition, sku(itemNumber), color, method(LineItem.category.name) }], imprints:[{ imprintId, imprintPosition, inkType(parsed 🎨 from imprint.details) }] }]`. **`method` rides the line item (`category.name`); the imprint carries only `inkType`** (imprint has `typeOfWork`/`details`, not `category`). **`nickname` (brand) is returned at record level.** Persist **stable `group.id` / `lineItem.id` / `imprint.id` plus positions** — positions alone are weak provenance (invoice edits reorder them).
+
+### 2. Intake page rewrite (`media/index.html`)
+- Invoice # field + **Load** → validate → **group picker** (auto-selected when one group) → within the group, **line-item picker** (SKU/color, auto when one) **and** **imprint picker** (method/ink-type, auto when one). Both are siblings of the group, chosen independently.
+- Auto-filled **editable** fields (brand, SKU, color, method, ink-type) pre-filled from the selected line item + imprint, overridable; optional **template** `<select>` (21 catalog + "Not sure"); optional **description**.
+- **Client computes `SHA-256(imageBytes)` after photo selection** and sends it as `contentHash`; the filename preview and submit stay disabled until it exists. **The preview is advisory only — on submit the server returns the authoritative final filename (from server-recomputed image bytes); the UI shows that and flags any mismatch with its preview.**
+- Live filename preview via `POST /api/media/preview` (always passed `contentHash`).
+
+### 3. Filename composition (unchanged `name.js`)
+- **Printavo lane ignores any client `sourceId`.** The server forces `sourceId = SHA-256(imageBytes).slice(0,8)` and passes it explicitly — **no `rawSourceId-hashPrefix` concat** on this lane. name.js is **not modified** (never enters its fallback).
+- Tokens: `brand`←record `nickname`, `printMethod`←selected line item's `method`(`category.name`) + selected imprint's `inkType` (method-only if no imprint selected/parsable), `color`←selected `LineItem.color`, `fabric`←blank when Printavo doesn't give it, `sourceId`←8-hex image hash. Matches the proven 54-file convention (`…-polyester-379a6832.jpg`).
+
+### 4. Vocab authority (resolve the validator conflict)
+- On the Printavo lane, **Printavo values are authoritative and BYPASS the local `skus.json` / `colors.json` allowlist validators** (`gate/media.js:61` currently rejects unknowns — that must not reject a real Printavo value). Keep soft slug-normalization; a value with no local mapping is tagged `unmapped` (logged), never rejected. The legacy manual/vision lane keeps its allowlist.
+
+### 5. Submit-time server re-verification (trust boundary)
+- **`/api/media/intake` does NOT trust the client's claimed Printavo facts.** On submit, the server re-loads the `visualId` (or uses its trusted TTL-cached lookup from Load), **verifies the submitted `group.id` / `lineItem.id` / `imprint.id` actually exist** in that invoice, and **computes `edited_fields` server-side** by diffing the submitted brand/SKU/color/method/ink-type against the server's Printavo facts. If the invoice doesn't resolve to an INVOICE-type record or the IDs don't exist ⇒ reject (no forged `source=printavo` rows). The server-recomputed facts are what get persisted; client values only stand where flagged in `edited_fields`.
+
+### 6. Persistence + migrations (`gate/media.js`)
+- Replace reliance on `CREATE TABLE IF NOT EXISTS` with explicit **`ALTER TABLE … ADD COLUMN IF NOT EXISTS`** for every new field, and update all INSERT / SELECT / public-row paths.
+- New columns: `invoice_visualid`, `line_group_id`, `line_group_position`, `line_item_id`, `line_item_position`, `imprint_id`, `imprint_position`, `sku`, `blank_color`, `method`, `ink_type`, `brand_nickname`, `template`, `description`, `content_hash`, `filename`, `source`(=`printavo`), `edited_fields`, `printavo_snapshot`(the raw resolved facts), `created_at`.
+- **Satisfy the existing `NOT NULL` legacy columns** (`asset_group`, `cat`, `color` at `gate/media.js:197`): Printavo-lane inserts always write `asset_group='Bandanas'`, `cat='Bandanas'`, `color=blank_color` — no constraint migration needed, no legacy SELECT/public-row path breaks.
+
+### 7. Sink payload + idempotency
+- Define a **versioned v2 sink payload** carrying the new machineColumns (the current `sinkPayload` at `media.js:155` sends `group/cat/fabric/default_ink/source_id` — mismatched). Version it so gate + the n8n append workflow are updated **together**.
+- **The sink must be idempotent on `content_hash`** (a persistent ledger / upsert / update-if-exists) **before acknowledging** — Sheet read-then-append alone is NOT retry-safe under an uncertain POST. Human columns `Used?` / `Publish?` / `Notes` are **omitted** from the payload (never machine-written).
+
+### 8. Observability
+- Emit structured events for: Printavo lookup status (found-invoice / quote-rejected / not-found / proxy-error), ambiguous/multi-imprint selection, ink-parse confidence (parsed vs unmapped), and dead-letter/undelivered sink rows. Extend `/api/media/outbox/stats` to expose these counts **before the sink is turned on**.
+
+### 9. Shadow gate preserved
+- `MEDIA_SINK_URL` unset and `MEDIA_DRIVE_ENABLED=false` remain defaults; the new lane queues locally and writes nothing external until Holly configures the sink and the n8n workflow.
 
 ## Key decisions & tradeoffs
-- **Server-side sessions in Postgres** (not stateless cookie — Codex R1; not Redis — arbiter: one fewer service).
-- **PIN + limiter + circuit breaker** instead of logins — owner's locked simplicity requirement; the seam for per-person logins later is the session table itself.
-- **One origin behind the gate + explicit public allowlist** vs keeping Pages for the public tier — chosen for one-place-to-watch; the signature assets get their stability from the allowlist and the pre-cutover reference update.
-- **Managed-alternative comparison (mandated by review, decided by Holly):** Cloudflare Access (one-time PIN per email or shared policy) in front of Railway would replace most custom auth code and its brute-force surface, at the cost of a second vendor, per-user email friction (conflicts with the locked "one team PIN, no logins"), and DNS/domain setup. This comparison ships in the findings report as a decision input — not silently decided either way.
+- **Invoice # sole key; block on not-found AND on quote-only; no fallback.** Every new-lane row is a Printavo INVOICE-verified record.
+- **Photo → group → (line item, imprint) siblings, picked at intake.** Mirrors the real Printavo shape (imprints and line items are siblings under a `lineItemGroup`, not nested); positions persisted so no false FK is implied. Keeps `inkType` deterministic; method-only token when no imprint selected.
+- **sourceId = server-only 8-hex image-bytes hash; invoice # in the Sheet, not the filename.** Consistent with the 54 indexed files, no internal id in a public URL, idempotent on identical re-drop.
+- **Brand ← `nickname`** (matches proven convention + existing name.js collapse). Tradeoff: nicknames can be messy.
+- **name.js NOT rewritten** — server always supplies sourceId, so the buggy metadata-hash fallback is unreachable.
+- **Auto-fields editable, with per-row `edited_fields` provenance** so verified vs. edited rows stay auditable.
+- **Printavo overrides local vocab on this lane** — real Printavo SKUs/colors are never rejected by the allowlist.
+- **Template optional, Sheet-only** (no filename slot; manual capture — no per-order source exists).
+- **Product Master join dropped for v1**; human `Publish?` checkbox is the sole gate to the public Pages repo.
+- **Sink idempotency on content_hash**, not read-then-append, is the durability contract.
 
 ## Risks / open questions
-- Full webhook inventory size unknown until P0-4 runs.
-- Railway private-repo autodeploy assumed but unverified until the staging test (hard prerequisite).
-- Drive-sharing audit may surface publicly-shared sheets (separate remediation).
+- **printavo-proxy is an unauthenticated public webhook** + WAF workaround (complexity cap 25k, 10 req/5s). Mitigated by numeric-only visualId, limiter, TTL cache, timeout, fail-closed — but the lane hard-depends on it.
+- **Ink-type parse is free-text** (`imprint.details` emoji block). Mitigated by imprint-granular selection + `unmapped` tagging, but a malformed details block yields method-only naming.
+- **Image-bytes hash is exact** — re-encoding/resizing the same photo yields a new hash ⇒ new filename ("same photo" = same bytes). Accepted.
+- **EXIF/GPS stripping** is NOT part of v1 intake (photos sit in Postgres BYTEA, shadow-gated); it MUST be handled at the eventual public-Pages publish step, before any image reaches the public repo.
+- **n8n append workflow** (v2 payload, content-hash upsert) is Holly's build; the gate side ships shadow-gated and inert until then.
 
-## Out of scope
-Individual logins (seam preserved via session table) · live tile status · invoice/document search · deploying stranded file:// apps · Printavo/n8n integration changes beyond the webhook-auth pass.
+## Out of scope (v1)
+- Product Master join / Publicize gate; fabric enrichment beyond Printavo.
+- Any vision/AI naming on the new lane; re-keying the 338 backlog (stays vision-draft).
+- Ink **colors** (only ink type + method captured).
+- Template auto-fill (no per-order source exists).
+- Non-bandana streams (apparel/promo), v2 sub-cuts.
+- The actual public-Pages publish push + EXIF stripping (separate, human-gated step).
+- Wiring the live sink (Holly's hands; build stays shadow-gated).

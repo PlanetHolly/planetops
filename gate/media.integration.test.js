@@ -56,7 +56,10 @@ function makeFakePool(name) {
   const ASSET_RETURNING = [
     'id', 'content_hash', 'filename', 'mime', 'brand', 'sku', 'asset_group', 'cat', 'color',
     'fabric', 'print_method', 'default_ink', 'description', 'source_id', 'status',
-    'drive_view_url', 'drive_download_url', 'pages_url', 'created_at', 'updated_at'
+    'drive_view_url', 'drive_download_url', 'pages_url', 'created_at', 'updated_at',
+    'invoice_visualid', 'line_group_id', 'line_group_position', 'line_item_id',
+    'line_item_position', 'imprint_id', 'imprint_position', 'blank_color', 'method',
+    'ink_type', 'brand_nickname', 'template', 'source', 'edited_fields', 'printavo_snapshot'
   ];
   const project = (row, cols) => Object.fromEntries(cols.map(c => [c, row[c]]));
 
@@ -66,6 +69,7 @@ function makeFakePool(name) {
 
     if (/^CREATE TABLE IF NOT EXISTS media_assets \(/.test(sql)) return { rows: [], rowCount: 0 };
     if (/^CREATE TABLE IF NOT EXISTS media_outbox \(/.test(sql)) return { rows: [], rowCount: 0 };
+    if (/^ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS /.test(sql)) return { rows: [], rowCount: 0 };
 
     // Transaction wrapping (intake INSERT + enqueue run on one client) — the
     // fake is single-store, so these are no-ops here.
@@ -93,7 +97,11 @@ function makeFakePool(name) {
           id: ++state.seqA, content_hash, filename, mime, photo, brand, sku, asset_group, cat, color,
           fabric, print_method, default_ink, description, source_id,
           status: 'pending_sink', drive_view_url: null, drive_download_url: null, pages_url: null,
-          created_at: now, updated_at: now
+          created_at: now, updated_at: now, invoice_visualid: null, line_group_id: null,
+          line_group_position: null, line_item_id: null, line_item_position: null,
+          imprint_id: null, imprint_position: null, blank_color: null, method: null,
+          ink_type: null, brand_nickname: null, template: null, source: 'manual',
+          edited_fields: null, printavo_snapshot: null
         };
         state.assets.push(row);
       }
@@ -195,13 +203,13 @@ async function main() {
   const appA = express();
   appA.use(express.json({ limit: '35mb' }));               // mirrors gate/index.js:32
   appA.use(mediaRouter(poolA, allowSession));
-  const srvA = appA.listen(0);
+  const srvA = appA.listen(0, '127.0.0.1');
 
   const poolD = makeFakePool('deny');
   const appD = express();
   appD.use(express.json({ limit: '35mb' }));
   appD.use(mediaRouter(poolD, denySession));
-  const srvD = appD.listen(0);
+  const srvD = appD.listen(0, '127.0.0.1');
 
   await new Promise(r => setImmediate(r));
   const baseA = `http://127.0.0.1:${srvA.address().port}`;

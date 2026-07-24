@@ -7,6 +7,7 @@ const {
   normalizeAssetInput,
   filenameFor,
   sha256,
+  parseInkType,
   processOutboxOnce
 } = mediaRouter._internals;
 
@@ -32,6 +33,11 @@ async function expectThrows(fn, pattern) {
   assert.equal(sha256(jpeg).length, 64);
 
   await expectThrows(() => decodePhoto(dataUrl('image/jpeg', Buffer.from('not a jpeg'))), /does not match/);
+
+  assert.deepEqual(
+    parseInkType('📍Location: Front Print 📏Imprint: 20" wide 🎨Ink Type: Plastisol 🎁Finishing: None  ✨ Up to...'),
+    { inkType: 'Plastisol', confidence: 'parsed' }
+  );
 
   const withSku = normalizeAssetInput({
     brand: 'June Shine',
