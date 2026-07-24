@@ -1,0 +1,218 @@
+{
+  "PL2216": {
+    "material": "Cotton",
+    "size": "22\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "PL2219": {
+    "material": "Cotton",
+    "size": "22\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "PL2222": {
+    "material": "Cotton",
+    "size": "22\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "US2116": {
+    "material": "Cotton",
+    "size": "21\"",
+    "shape": "Square",
+    "made_in_usa": true,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "US2119": {
+    "material": "Cotton",
+    "size": "21\"",
+    "shape": "Square",
+    "made_in_usa": true,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "US2121": {
+    "material": "Cotton",
+    "size": "21\"",
+    "shape": "Square",
+    "made_in_usa": true,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "ORG2416": {
+    "material": "Organic Cotton",
+    "size": "24\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "ORG2419": {
+    "material": "Organic Cotton",
+    "size": "24\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "ORG2424": {
+    "material": "Organic Cotton",
+    "size": "24\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "OV2722": {
+    "material": "Organic Cotton",
+    "size": "27\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "DIG22": {
+    "material": "Fine Sateen Cotton",
+    "size": "22\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "DIGCR25": {
+    "material": "Cotton/Rayon",
+    "size": "22x25\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "CUSTOMDIGBAN": {
+    "material": "Made-to-order",
+    "size": "Custom",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "DIGFS22": {
+    "material": "Fine Sateen Cotton",
+    "size": "22\"",
+    "shape": "Square",
+    "made_in_usa": true,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "TRIBAN22": {
+    "material": "Cotton",
+    "size": "22x22x31\"",
+    "shape": "Triangle",
+    "made_in_usa": false,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "USTRIBAN22": {
+    "material": "Cotton",
+    "size": "22x22x31\"",
+    "shape": "Triangle",
+    "made_in_usa": true,
+    "default_print_method": "Screen-Printed",
+    "default_ink": "Plastisol"
+  },
+  "DIGTRISC": {
+    "material": "Cotton",
+    "size": "Triangle",
+    "shape": "Triangle",
+    "made_in_usa": true,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "SUB1": {
+    "material": "Polyester",
+    "size": "Full",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Sublimated",
+    "default_ink": "Dye-sub"
+  },
+  "SUB2": {
+    "material": "Polyester",
+    "size": "Full",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Sublimated",
+    "default_ink": "Dye-sub"
+  },
+  "SUB27": {
+    "material": "Polyester",
+    "size": "27\"",
+    "shape": "Square",
+    "made_in_usa": false,
+    "default_print_method": "Sublimated",
+    "default_ink": "Dye-sub"
+  },
+  "SUBTRI": {
+    "material": "Polyester",
+    "size": "Triangle",
+    "shape": "Triangle",
+    "made_in_usa": false,
+    "default_print_method": "Sublimated",
+    "default_ink": "Dye-sub"
+  },
+  "BELBAN2": {
+    "material": "Belly Band",
+    "size": "12x2\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "BELBAN3": {
+    "material": "Belly Band",
+    "size": "12x3\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "BELBAN2STA": {
+    "material": "Belly Band",
+    "size": "12x2\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "BELBAN3STA": {
+    "material": "Belly Band",
+    "size": "12x3\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "BELBAN2CUS": {
+    "material": "Belly Band",
+    "size": "12x2\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  },
+  "BELBAN3CUS": {
+    "material": "Belly Band",
+    "size": "12x3\"",
+    "shape": "Accessory",
+    "made_in_usa": false,
+    "default_print_method": "Digitally Printed",
+    "default_ink": "Digital"
+  }
+}

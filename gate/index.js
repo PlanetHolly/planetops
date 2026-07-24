@@ -32,9 +32,13 @@ const { readyzResponse } = require('./feed/readiness');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);                       // Railway sits behind a proxy
+// Global 10mb limit; /api/feed/intake and /api/media/intake each carry their
+// own route-scoped large-body parser (feed/intake.js, media.js) — bypass the
+// global JSON parser for both so their parsers see the raw body.
 const globalJson = express.json({ limit: '10mb' });
 function shouldBypassGlobalJson(req) {
-  return String(req.path || '').replace(/\/+$/, '').toLowerCase() === '/api/feed/intake';
+  const p = String(req.path || '').replace(/\/+$/, '').toLowerCase();
+  return p === '/api/feed/intake' || p === '/api/media/intake';
 }
 app.use((req, res, next) => (shouldBypassGlobalJson(req) ? next() : globalJson(req, res, next)));
 app.use(express.urlencoded({ extended: false }));
@@ -380,6 +384,7 @@ app.post(['/api/state', '/api/state/:key'], async (req, res) => {
 app.use(require('./graphics')(pool, requireSession));
 app.use(require('./feed/intake')(pool, requireSession, { hmac, timingEq, sameOrigin, alert, loadSession }));
 app.use(require('./feed/views')(pool, requireSession, requireFinanceSession));   // Build #6a: gated reads — /api/feed/incoming + /api/feed/ledger + finance-gated review queue
+app.use(require('./media')(pool, requireSession));
 
 /* ── Home summary: the ONE endpoint the front-door home reads ───────────────
    v1 = gate health + state-api probe + registry STALE/WIP notices + finance

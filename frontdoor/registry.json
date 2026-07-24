@@ -523,6 +523,17 @@
               "icon": "🖼️"
             },
             {
+              "id": "media-center",
+              "kind": "surface",
+              "name": "Media Center",
+              "blurb": "Drop completed project photos, tag them, and queue the Media Center index sink",
+              "type": "tool",
+              "url": "../media/",
+              "status": "wip",
+              "access": "open",
+              "icon": "🏷️"
+            },
+            {
               "id": "art-namer",
               "kind": "surface",
               "name": "Art Namer",
