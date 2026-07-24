@@ -1353,6 +1353,24 @@ function feedBase(){
     const liveDue={};
     intakeJobs.forEach(a=>{const m=String(a.imprint).match(/^(\d+)/);if(m&&!liveDue[m[1]])liveDue[m[1]]={prodDue:a.prodDue||'',custDue:a.custDue||''};});
     base.forEach(j=>{const d=liveDue[j.invoice];if(d){if(d.prodDue)j.prodDue=d.prodDue;if(d.custDue)j.custDue=d.custDue;}});
+    // Printavo's per-imprint TYPE OF WORK ("Outsource" / "In-House Production") rides the intake
+    // feed only — the Power Scheduler CSV has no such column — and CSV wins at invoice level, so a
+    // CSV-known invoice would otherwise reach the Queue with the field blank and invReleasable
+    // would have nothing but Post-Pro labels to go on. Copy it across per imprint, but ONLY when
+    // intake and the CSV agree on the invoice's ENTIRE set of imprint keys: PS ordinals are a
+    // lifetime counter (they survive delete/re-create) and can drift from the API's, and a partial
+    // match would stamp "vendor leg" on the wrong imprint and hide real in-house work. On drift the
+    // whole invoice is left blank, which falls back to the pre-existing label-based behaviour.
+    const towByInv={};
+    intakeJobs.forEach(a=>{const m=String(a.imprint).match(/^(\d+)\s*-\s*(\d+)/);if(!m)return;(towByInv[m[1]]=towByInv[m[1]]||{})[m[1]+'-'+m[2]]=String(a.typeOfWork||'');});
+    const csvKeysByInv={};
+    base.forEach(j=>{(csvKeysByInv[j.invoice]=csvKeysByInv[j.invoice]||new Set()).add(j.parentKey);});
+    base.forEach(j=>{
+      const t=towByInv[j.invoice];if(!t||j.typeOfWork)return;
+      const keys=csvKeysByInv[j.invoice];
+      if(keys.size!==Object.keys(t).length||[...keys].some(k=>t[k]===undefined))return;   // ordinal drift — don't guess
+      j.typeOfWork=t[j.parentKey]||'';
+    });
     const known=new Set(base.map(j=>j.invoice)), seen=new Set();
     const staleCut=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
     intakeJobs.forEach(a=>{
@@ -1754,11 +1772,19 @@ function invGroup(inv,rows){
   const rep=rows.find(j=>!store.arrived[j.imprint])||rows[0];
   const labeled=[...new Set(rows.filter(j=>realPP(pptOf(j))).map(j=>ppLabel(pptOf(j))))];
   const svcNone=(store.invsvc||{})[inv]==='none';
+  // Every imprint on the invoice is Type of Work = "Outsource" in Printavo → there is no in-house
+  // leg to schedule, so the Queue skips the whole invoice (invReleasable, below). Read off ALL the
+  // invoice's outsourced imprints, not just the rows in this date bucket, so a split arrival can't
+  // make a mixed invoice look vendor-only.
+  const invSibs=jobs.filter(x=>x.invoice===inv&&isOut(x));
+  const vendorOnly=!!invSibs.length&&invSibs.every(x=>/outsourc/i.test(x.typeOfWork||''))&&!labeled.length;
   const svcTag=svcNone
     ?`<span class="chip" style="background:#9aa1ab" title="Ships direct from the vendor — never joins the queue; closes straight to history on arrival.">📪 no 2nd service</span><button class="splitbtn" data-invsvc="${inv}|" title="Undo — this invoice DOES need an in-house leg">↩</button>`
     :labeled.length
       ?`<span class="chip out" title="The labeled in-house imprint(s) are already in the QUEUE — no need to wait for arrival. The vendor leg (no label) stays here and closes to history once it arrives.">🔧 in-house after arrival: ${labeled.join(' · ')}</span>`
-      :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — until one is, everything on this invoice is already in the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
+      :vendorOnly
+        ?`<span class="chip" style="background:#9aa1ab" title="Every imprint on this invoice is Type of Work = Outsource in Printavo, so there is no in-house leg — it never joins the queue and closes to history on arrival. If it does need one, add the in-house imprint in Printavo.">📦 vendor-only · no in-house leg</span>`
+        :`<span class="chip" style="background:#c9a23a" title="No imprint is labeled with a Post-Pro service yet — until one is, everything on this invoice is already in the queue to get labeled there.">🔧 in-house leg TBD</span><button class="splitbtn" data-invsvc="${inv}|none" title="No in-house service needed (rare — e.g. ships direct from vendor). On arrival it closes to history without queueing.">no 2nd service?</button>`;
   return `<div class="invgrp">
     <div class="invhead"><b>Invoice ${inv}</b> <span class="invnick">${escHtml(rep.nickname||'')}</span><span class="dcount">· ${rows.length} imprint${rows.length>1?'s':''}</span> ${svcTag}</div>
     <div data-invbar="${inv}">${etaBar(rep)}</div>
@@ -1912,17 +1938,27 @@ function renderList(){
   // an arrival stamp (see the "📦 landed" badge below). invReleasable still governs WHICH
   // outsourced imprints are eligible at all: an invoice marked "no 2nd service" never
   // releases (ships direct from the vendor, closes to history on arrival instead), and when
-  // any sibling imprint on the invoice carries a real Post-Pro label, unlabeled siblings
-  // (the pure vendor leg, e.g. the `-1` print) stay in Arrivals only — only the labeled
-  // in-house leg (e.g. `-2` packaging) reaches the queue. If NONE of an invoice's siblings
-  // is labeled yet, all of them release (legacy flow — labeling happens once it's in the
-  // queue). For outsourced jobs, invReleasable is the ENTIRE gate — Printavo's pre-stamped
-  // (or blank) station on these rows is not consulted either way, so a stray blank station
-  // can no longer smuggle a not-yet-releasable vendor leg into the queue.
+  // any sibling imprint on the invoice is an IN-HOUSE LEG, the pure vendor legs stay in
+  // Arrivals only — only the in-house leg (e.g. `-2` packaging) reaches the queue.
+  // An in-house leg is identified two ways (2026-07-24): Printavo's per-imprint Type of Work
+  // reading "In-House Production" — the authoritative signal, straight off the invoice — or a
+  // real Post-Pro label (the original signal, and still what a label Jean sets in the queue
+  // means). Type of Work also closes the case Jean hit on 25414: an invoice whose imprints are
+  // ALL "Outsource" has no in-house work at all, so nothing on it belongs in the queue — it
+  // waits in Arrivals and closes to history on arrival, the same end state as "no 2nd service"
+  // but detected automatically instead of toggled by hand. If Printavo tells us nothing (no
+  // Type of Work anywhere on the invoice, no labels), all siblings release — the legacy flow,
+  // where labeling happens once it's in the queue. For outsourced jobs, invReleasable is the
+  // ENTIRE gate — Printavo's pre-stamped (or blank) station on these rows is not consulted
+  // either way, so a stray blank station can no longer smuggle a vendor leg into the queue.
+  const vendorTow=j=>/outsourc/i.test(j.typeOfWork||'');
+  const inHouseLeg=j=>/in[\s_-]*house/i.test(j.typeOfWork||'')||realPP(pptOf(j));
   const invReleasable=j=>{
     if((store.invsvc||{})[j.invoice]==='none')return false;
     const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
-    return sibs.some(x=>realPP(pptOf(x)))?realPP(pptOf(j)):true;
+    if(sibs.some(inHouseLeg))return inHouseLeg(j);
+    if(sibs.length&&sibs.every(vendorTow))return false;   // every imprint is vendor work — no in-house leg exists
+    return true;
   };
   // Printavo also pre-stamps a station on IN-HOUSE post-production legs (packaging, fold+bag,
   // barcode). Jean never made a queue decision on those, so they belong in the Queue to get

@@ -39,4 +39,39 @@ run(`ingestRecords([{imprint:'99003 - 2',invoice:'99003',qty:10,date:'',station:
 t('E. outsourced STATUS still classifies via the status fallback', run(`isOut(recordBase().find(j=>j.imprint==='99003 - 2'))`)===true);
 t('F. _recMeaningfulEqual tracks typeOfWork (change != equal)', run(`_recMeaningfulEqual({typeOfWork:'a'},{typeOfWork:'b'})`)===false);
 
+/* ───────── G-J (2026-07-24): feedBase() copies Printavo's per-imprint Type of Work from the
+   intake feed onto CSV rows. The CSV has no such column and wins at invoice level, so without
+   this the Queue's vendor-leg gate would go blind on every CSV-known invoice. The copy is
+   all-or-nothing per invoice: PS imprint ordinals can drift from the API's, so a partial key
+   match must leave the whole invoice blank rather than mislabel a leg. ───────── */
+vm.runInContext('var intakeAdded=0,intakeStale=0;var document={getElementById:()=>({textContent:""})};',ctx);
+[grabFn('parseCSV'),grabFn('rowToJob'),grabFn('apiToJob'),grabFn('feedBase')].forEach(c=>vm.runInContext(c,ctx));
+const CSV2=[
+ '"Minutes","Quantity","Prod. Date","Station","Imprint","Post Production Type"',
+ '"0","257","","","25414 - 1","N/A"',
+ '"0","257","","","25414 - 2","N/A"',
+ '"0","100","","","27260 - 1","N/A"',
+ '"0","100","","","27260 - 2","N/A"',
+ '"0","50","","","27900 - 1","N/A"',
+ '"0","50","","","27900 - 4","N/A"'      // PS ordinal 4 vs the API's 2 — the drift case
+].join('\n');
+const INTAKE2=[
+ {imprint:'25414 - 1',typeOfWork:'Outsource',qty:257},
+ {imprint:'25414 - 2',typeOfWork:'In-House Production',qty:257},
+ {imprint:'27260 - 1',typeOfWork:'Outsource',qty:100},
+ {imprint:'27260 - 2',typeOfWork:'Outsource',qty:100},
+ {imprint:'27900 - 1',typeOfWork:'Outsource',qty:50},
+ {imprint:'27900 - 2',typeOfWork:'In-House Production',qty:50}
+];
+run('store={};histCsv=null;liveCsv='+JSON.stringify(CSV2)+';intakeJobs='+JSON.stringify(INTAKE2)+';');
+const fb=run('feedBase()'), fbBy=k=>fb.find(j=>j.imprint===k);
+t('G. CSV row 25414-1 picks up typeOfWork "Outsource" from intake', fbBy('25414 - 1').typeOfWork==='Outsource');
+t('G. CSV row 25414-2 picks up "In-House Production"', fbBy('25414 - 2').typeOfWork==='In-House Production');
+t('H. all-vendor invoice 27260 stamped on both rows', fbBy('27260 - 1').typeOfWork==='Outsource'&&fbBy('27260 - 2').typeOfWork==='Outsource');
+t('I. ordinal drift (27900: CSV 1/4 vs API 1/2) leaves the WHOLE invoice unstamped, no guessing',
+  !fbBy('27900 - 1').typeOfWork&&!fbBy('27900 - 4').typeOfWork);
+run('store={csvText:'+JSON.stringify(CSV2)+'};');
+const fbImp=run('feedBase()');
+t('J. manual CSV import stays pure — no intake overlay at all', fbImp.find(j=>j.imprint==='25414 - 2').typeOfWork===undefined);
+
 console.log('');console.log(pass+' passed, '+fail+' failed');process.exit(fail?1:0);
