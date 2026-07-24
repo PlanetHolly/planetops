@@ -54,6 +54,8 @@ const outsourcedConst = extractLine(/const OUTSOURCED=.*$/m, 'const OUTSOURCED='
 const isOutConst = extractLine(/const isOut=.*$/m, 'const isOut=');
 const pptOfConst = extractLine(/const pptOf=.*$/m, 'const pptOf=');
 const realPPConst = extractLine(/const realPP=.*$/m, 'const realPP=');
+const vendorTowConst = extractLine(/const vendorTow=.*$/m, 'const vendorTow=');
+const inHouseLegConst = extractLine(/const inHouseLeg=.*$/m, 'const inHouseLeg=');
 const invReleasableConst = extractConst('invReleasable');
 const isPrintavoPostConst = extractLine(/const isPrintavoPost=.*$/m, 'const isPrintavoPost=');
 const inQueueConst = extractLine(/const inQueue=.*$/m, 'const inQueue=');
@@ -70,11 +72,13 @@ function makeFns(store, jobs) {
     ${isOutConst}
     ${pptOfConst}
     ${realPPConst}
+    ${vendorTowConst}
+    ${inHouseLegConst}
     ${invReleasableConst}
     ${isPrintavoPostConst}
     ${inQueueConst}
     ${exitsOnDateConst}
-    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP, isPrintavoPost, exitsOnDate, laneOf, LANES };
+    return { inQueue, isOut, OUTSOURCED, invReleasable, pptOf, realPP, isPrintavoPost, exitsOnDate, laneOf, LANES, vendorTow, inHouseLeg };
   `);
   return factory(store, jobs);
 }
@@ -292,6 +296,110 @@ const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
     "19c. expand row colspan is the unconditional 19, not conditional on listShowAll",
     /<td colspan="19">\$\{xPanel\(j\)\}<\/td>/.test(src) && !/colspan="\$\{listShowAll\?19:18\}"/.test(src),
     'expand row colspan is not the unconditional 19'
+  );
+}
+
+/* ───────── assertions 20-25: Printavo's per-imprint TYPE OF WORK (2026-07-24).
+   Jean's report on invoice 25414 — imprint 1 is a complete outsource, imprint 2 is the in-house
+   packaging leg, and BOTH were showing in the queue because neither carried a Post-Pro label yet.
+   Type of Work names the in-house leg directly, and an invoice whose imprints are ALL "Outsource"
+   (27260, 27417) has no in-house work at all, so none of it belongs in the queue. ───────── */
+{
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = [
+    { imprint: '25414 - 1', invoice: '25414', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' },
+    { imprint: '25414 - 2', invoice: '25414', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'In-House Production' },
+  ];
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    "20a. 25414-2 (Type of Work = In-House Production, no Post-Pro label yet) -> IN QUEUE",
+    inQueue(jobs[1]) === true,
+    'inQueue(25414 - 2) = ' + inQueue(jobs[1])
+  );
+  check(
+    "20b. 25414-1 (Type of Work = Outsource, in-house sibling exists) -> NOT in queue (the bug Jean reported)",
+    inQueue(jobs[0]) === false,
+    'inQueue(25414 - 1) = ' + inQueue(jobs[0])
+  );
+}
+{
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = ['1', '2', '3', '4'].map(n => ({ imprint: '27260 - ' + n, invoice: '27260', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' }));
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    '21. 27260 — every imprint Type of Work = Outsource, no in-house leg -> NONE in queue (Arrivals only)',
+    jobs.every(j => inQueue(j) === false),
+    'inQueue map = ' + jobs.map(j => j.imprint + ':' + inQueue(j)).join(', ')
+  );
+}
+{
+  const store = { arrived: {}, invsvc: {}, pptype: { '26504 - 4': 'Packaging (Merch)' } };
+  const jobs = ['1', '2', '3'].map(n => ({ imprint: '26504 - ' + n, invoice: '26504', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' }));
+  jobs.push({ imprint: '26504 - 4', invoice: '26504', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'In-House Production' });
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    '22a. 26504-4 (the one in-house leg of three vendor legs) -> IN QUEUE',
+    inQueue(jobs[3]) === true,
+    'inQueue(26504 - 4) = ' + inQueue(jobs[3])
+  );
+  check(
+    '22b. 26504-1..3 (vendor legs) -> NOT in queue',
+    jobs.slice(0, 3).every(j => inQueue(j) === false),
+    'inQueue map = ' + jobs.slice(0, 3).map(j => j.imprint + ':' + inQueue(j)).join(', ')
+  );
+}
+{
+  // A Post-Pro label Jean sets in the queue still names an in-house leg even when Printavo's
+  // Type of Work says "Outsource" on every imprint — the label is the human override.
+  const store = { arrived: {}, invsvc: {}, pptype: { '28200 - 2': 'Fold + Bag' } };
+  const jobs = [
+    { imprint: '28200 - 1', invoice: '28200', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' },
+    { imprint: '28200 - 2', invoice: '28200', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' },
+  ];
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    '23a. label set by hand on an all-Outsource invoice -> that imprint IS in the queue',
+    inQueue(jobs[1]) === true,
+    'inQueue(28200 - 2) = ' + inQueue(jobs[1])
+  );
+  check(
+    '23b. its unlabeled vendor sibling stays out',
+    inQueue(jobs[0]) === false,
+    'inQueue(28200 - 1) = ' + inQueue(jobs[0])
+  );
+}
+{
+  // No Type of Work anywhere (CSV-only invoice, ordinal drift bailout) -> legacy release, unchanged.
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = [
+    { imprint: '28300 - 1', invoice: '28300', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: '' },
+    { imprint: '28300 - 2', invoice: '28300', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A' },
+  ];
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    '24. invoice with no Type of Work and no labels -> BOTH still release (legacy fallback intact)',
+    inQueue(jobs[0]) === true && inQueue(jobs[1]) === true,
+    'inQueue map = ' + jobs.map(j => j.imprint + ':' + inQueue(j)).join(', ')
+  );
+}
+{
+  // The in-house leg that isn't outsourced-classified at all (normal status, no Type of Work)
+  // travels the normal queue path; its vendor siblings must still be blocked.
+  const store = { arrived: {}, invsvc: {}, pptype: {} };
+  const jobs = [
+    { imprint: '28400 - 1', invoice: '28400', station: '', date: '', status: OUT_STATUS, postProdType: 'N/A', typeOfWork: 'Outsource' },
+    { imprint: '28400 - 2', invoice: '28400', station: '', date: '', status: '👕 Blanks Received 👕', postProdType: 'N/A', typeOfWork: '' },
+  ];
+  const inQueue = makeInQueue(store, jobs);
+  check(
+    '25a. non-outsourced in-house sibling -> IN QUEUE via the normal unstationed path',
+    inQueue(jobs[1]) === true,
+    'inQueue(28400 - 2) = ' + inQueue(jobs[1])
+  );
+  check(
+    '25b. its vendor sibling -> NOT in queue',
+    inQueue(jobs[0]) === false,
+    'inQueue(28400 - 1) = ' + inQueue(jobs[0])
   );
 }
 
