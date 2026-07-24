@@ -85,7 +85,7 @@
     <div class="big"><span class="amt" id="buffered">—</span><span class="cap">shipping to charge (incl. 15%)</span></div>
     <div class="sub-rate" id="raw"></div>
     <div class="meta" id="meta"></div>
-    <h3 id="fasterHdr" style="display:none">Faster options (with 15% cushion)</h3>
+    <h3 id="fasterHdr" style="display:none">Other options (with 15% cushion)</h3>
     <table id="faster"></table>
   </div>
 
@@ -146,11 +146,13 @@ function render(d){
     "<span><b>"+d.n_boxes+"</b> box"+(d.n_boxes>1?"es":"")+"</span>"+
     (d.ground_delivery_days?"<span><b>"+d.ground_delivery_days+"</b>-day ground</span>":"")+
     (boxes?"<span>"+boxes+"</span>":"");
-  const exp = (d.expedited||[]).slice(0,6);
+  // Cap the faster/similar options at 6, but the alternate ground (USPS Ground Advantage) always rides at the bottom.
+  const all = d.expedited||[];
+  const exp = all.filter(s=>!s.is_alt_ground).slice(0,6).concat(all.filter(s=>s.is_alt_ground));
   const t=$("faster");
   if(exp.length){
     $("fasterHdr").style.display="block";
-    t.innerHTML = exp.map(s=>"<tr><td>"+(s.carrier||"")+" "+s.service+(s.delivery_days?" ("+s.delivery_days+"-day)":"")+
+    t.innerHTML = exp.map(s=>"<tr><td>"+(s.carrier||"")+" "+(s.label||s.service)+(s.delivery_days?" ("+s.delivery_days+"-day)":"")+
       "</td><td class='r'><b>"+money(s.rate_buffered!=null?s.rate_buffered:s.rate*1.15)+"</b></td></tr>").join("");
   } else { $("fasterHdr").style.display="none"; t.innerHTML=""; }
   $("out").style.display="block";
