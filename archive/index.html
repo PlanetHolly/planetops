@@ -163,7 +163,7 @@ function statusText(j){
 }
 function jobHay(j,shipRows){
   return [
-    j.number,j.customer,j.pm,statusText(j),exitLabel(j),j.deliveryMethod,j.completionState,j.dueDate,j.dueDateLabel,
+    j.number,j.customer,pmName(j),statusText(j),exitLabel(j),j.deliveryMethod,j.completionState,j.dueDate,j.dueDateLabel,
     ...shipRows.flatMap(r=>[r.tracking_code,r.carrier,r.to_city,r.to_state,r.arrival_date,r.delivered_date,r.label_created,r.matched_order])
   ].join(' ').toLowerCase();
 }
@@ -200,13 +200,14 @@ function rowHtml(j){
   return `<tr class="qrow" onclick="toggleKey('${escHtml(invKey)}')">
     <td class="jobn">${url?`<a class="link" href="${escHtml(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">#${escHtml(inv)}</a>`:'#'+escHtml(inv)}</td>
     <td>${escHtml(j.customer||'')}</td>
-    <td>${escHtml(j.pm||'')}</td>
+    <td>${escHtml(pmName(j))}</td>
     <td><span class="chip ${escHtml(exitClass(j))}">${escHtml(exitLabel(j))}</span></td>
     <td>${escHtml(fmtDate(completionTs(j))||j.dueDateLabel||'')}</td>
     <td><div class="statusline"><span class="chip">${escHtml(statusText(j))}</span>${trackingChip}</div></td>
   </tr>${open?`<tr class="exp"><td colspan="6">${summaryHtml(j,shipRows)}</td></tr>`:''}`;
 }
 
+function pmName(j){const p=j&&j.pm;return p?(typeof p==='object'?(p.name||p.email||''):p):'';}
 function summaryHtml(j,shipRows){
   return `<div class="summary">
     <div class="section">
@@ -214,7 +215,7 @@ function summaryHtml(j,shipRows){
       <div class="grid">
         <div class="kv"><b>Invoice</b>${jobLinkHtml(j)}</div>
         <div class="kv"><b>Customer</b>${escHtml(j.customer||'')}</div>
-        <div class="kv"><b>PM</b>${escHtml(j.pm||'')}</div>
+        <div class="kv"><b>PM</b>${escHtml(pmName(j))}</div>
         <div class="kv"><b>Exit method</b>${escHtml(exitLabel(j))}</div>
         <div class="kv"><b>Completion/archive date</b>${escHtml(fmtDateTime(completionTs(j))||'')}</div>
         <div class="kv"><b>Status</b>${escHtml(statusText(j))}</div>
