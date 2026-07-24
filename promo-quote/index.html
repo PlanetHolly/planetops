@@ -124,7 +124,10 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
     <section class="panel">
       <h2 style="display:flex;justify-content:space-between;align-items:center;gap:10px;">Quote Inputs<button type="button" id="clearForm" class="pcBtn sec" style="min-height:30px;padding:5px 11px;font-size:.68rem;">Clear form</button></h2>
       <form class="form" id="quoteForm">
-        <div class="field"><label for="customerName">Customer / project name (internal - for the quote log)</label><input id="customerName" type="text" placeholder="e.g. Vail Resorts - Puff Tote"></div>
+        <div class="twocol">
+          <div class="field"><label for="customerName">Customer / project name (internal - for the quote log)</label><input id="customerName" type="text" placeholder="e.g. Vail Resorts - Puff Tote"></div>
+          <div class="field"><label for="quotedBy">Quoted by (initials - remembered)</label><input id="quotedBy" type="text" placeholder="e.g. HT"></div>
+        </div>
         <div class="field"><label for="itemName">Item / product name (optional - shows on the customer quote)</label><input id="itemName" type="text" placeholder="e.g. 11oz Ceramic Mug"></div>
         <div class="twocol">
           <div class="field"><label for="vendorCost">Vendor unit cost</label><input id="vendorCost" type="number" min="0" step="0.01" value="2.23"></div>
@@ -207,7 +210,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         <h2 style="display:flex;justify-content:space-between;align-items:center;gap:10px;">Quote Log<button type="button" id="saveQuote" class="pcBtn" style="min-height:30px;padding:5px 11px;font-size:.68rem;">Save this quote</button></h2>
         <div class="rows">
           <div id="quoteLogList"></div>
-          <div class="note" style="margin-top:8px;">Saved in this browser on this computer only. Date and customer name are captured so you can find a quote later; Load reopens it with the same inputs and margin %.</div>
+          <div class="note" style="margin-top:8px;">Every save also writes to the shared team log (Google Sheet). This in-desk list is your own saves on this computer; Load reopens one with the same inputs and margin %. <a href="https://docs.google.com/spreadsheets/d/1TimkE9zfKrjw6XY8QhhG6-z7oQD7sRzMqvG72t5YzNE/edit" target="_blank" rel="noopener">Open the full team log &rarr;</a></div>
         </div>
       </section>
       <div class="provenance">Provenance: Promo Pricing Model - Holly's design, Fable formalized spec v1, as-of 2026-07-15. Formula: Price = Landed Cost / (1 - SP%). Small-order class floor applies under 250 pieces. No cap; verify-market flag at SP% >= 65%.</div>
@@ -432,12 +435,24 @@ function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); nav
 function clearBasket(){ BASKET=[]; renderBasket(); }
 function clearForm(){ try{ sessionStorage.setItem('pa_basket_handoff', JSON.stringify(BASKET)); }catch(e){} location.reload(); }
 const LOG_KEY='pa_promo_quote_log';
+const QUOTED_BY_KEY='pa_promo_quoted_by';
+const LOG_WEBHOOK='https://primary-production-079f9.up.railway.app/webhook/promo-quote-log';
 function loadLog(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY))||[]; }catch(e){ return []; } }
 function persistLog(){ try{ localStorage.setItem(LOG_KEY, JSON.stringify(QUOTE_LOG)); }catch(e){} }
 let QUOTE_LOG = loadLog();
 function todayStamp(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function saveQuoteToLog(){ if(!CURRENT_QUOTE) return; const cust=(($('customerName')||{}).value||'').trim()||'(no name)'; QUOTE_LOG.unshift(Object.assign({ ts:Date.now(), date:todayStamp(), customer:cust }, CURRENT_QUOTE)); persistLog(); renderLog(); const btn=$('saveQuote'); if(btn){ const o=btn.textContent; btn.textContent='Saved!'; setTimeout(()=>{ btn.textContent=o; },1400); } }
-function renderLog(){ const el=$('quoteLogList'); if(!el) return; if(!QUOTE_LOG.length){ el.innerHTML='<div class="basketEmpty">No saved quotes yet. Build a quote, then click Save this quote.</div>'; return; } el.innerHTML=QUOTE_LOG.map((q,i)=>'<div class="basketRow"><div><b>'+bxEsc(q.customer)+'</b> <span class="note">'+bxEsc(q.date)+'</span><br><span class="note">'+bxEsc(q.label)+'  ·  '+Number(q.qty).toLocaleString('en-US')+' pcs  ·  '+bkM2(q.unitPrice)+' ea  ·  '+bkM0(q.total)+'  ·  '+Number(q.sp).toFixed(1)+'% SP</span></div><div style="display:flex;gap:6px;align-items:center;"><button class="pcBtn sec" data-load="'+i+'" style="min-height:28px;padding:3px 9px;font-size:.66rem;">Load</button><button class="bx" data-del="'+i+'" title="Remove">✕</button></div></div>').join(''); }
+function postQuoteToSheet(entry){
+  try{
+    const c=entry.inputs||{};
+    fetch(LOG_WEBHOOK, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+      ts:new Date().toISOString(), date:entry.date, quotedBy:entry.quotedBy||'', customer:entry.customer,
+      item:entry.label, qty:entry.qty, unitPrice:entry.unitPrice, total:entry.total,
+      sp:entry.sp, baseSp:entry.baseSp, classLabel:entry.classLabel, vendorCost:Number(c.vendorCost)||0
+    })}).catch(()=>{});
+  }catch(e){}
+}
+function saveQuoteToLog(){ if(!CURRENT_QUOTE) return; const cust=(($('customerName')||{}).value||'').trim()||'(no name)'; const qb=(($('quotedBy')||{}).value||'').trim(); try{ localStorage.setItem(QUOTED_BY_KEY, qb); }catch(e){} const entry=Object.assign({ ts:Date.now(), date:todayStamp(), customer:cust, quotedBy:qb }, CURRENT_QUOTE); QUOTE_LOG.unshift(entry); persistLog(); postQuoteToSheet(entry); renderLog(); const btn=$('saveQuote'); if(btn){ const o=btn.textContent; btn.textContent='Saved!'; setTimeout(()=>{ btn.textContent=o; },1400); } }
+function renderLog(){ const el=$('quoteLogList'); if(!el) return; if(!QUOTE_LOG.length){ el.innerHTML='<div class="basketEmpty">No saved quotes yet. Build a quote, then click Save this quote.</div>'; return; } el.innerHTML=QUOTE_LOG.map((q,i)=>'<div class="basketRow"><div><b>'+bxEsc(q.customer)+'</b> <span class="note">'+bxEsc(q.date)+(q.quotedBy?' · '+bxEsc(q.quotedBy):'')+'</span><br><span class="note">'+bxEsc(q.label)+'  ·  '+Number(q.qty).toLocaleString('en-US')+' pcs  ·  '+bkM2(q.unitPrice)+' ea  ·  '+bkM0(q.total)+'  ·  '+Number(q.sp).toFixed(1)+'% SP</span></div><div style="display:flex;gap:6px;align-items:center;"><button class="pcBtn sec" data-load="'+i+'" style="min-height:28px;padding:3px 9px;font-size:.66rem;">Load</button><button class="bx" data-del="'+i+'" title="Remove">✕</button></div></div>').join(''); }
 function loadQuoteFromLog(i){ const q=QUOTE_LOG[i]; if(!q||!q.inputs) return; const n=q.inputs; const set=(id,v)=>{ const el=$(id); if(el!=null&&v!=null) el.value=v; }; set('itemName',n.itemName); set('customerName',n.customerName); set('vendorCost',n.vendorCost); set('qty',n.qty); set('setupFee',n.setupFee); set('freightAmount',n.freightAmount); if(n.freightMode)$('freightMode').value=n.freightMode; if(n.productClass)$('productClass').value=n.productClass; set('customPct',n.customPct); COMPLEXITY.forEach(item=>{ const cb=$('cx_'+item.id); if(cb) cb.checked=(n.complexity||[]).indexOf(item.id)>-1; }); calculate(); window.scrollTo({top:0,behavior:'smooth'}); }
 function bind() {
   setupComplexity();
@@ -452,6 +467,7 @@ function bind() {
   $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
   $('saveQuote').addEventListener('click', saveQuoteToLog);
   $('quoteLogList').addEventListener('click', e => { const l=e.target.closest('[data-load]'); if(l){ loadQuoteFromLog(Number(l.dataset.load)); return; } const d=e.target.closest('[data-del]'); if(d){ QUOTE_LOG.splice(Number(d.dataset.del), 1); persistLog(); renderLog(); } });
+  try{ const qb=localStorage.getItem(QUOTED_BY_KEY); if(qb!=null && $('quotedBy')) $('quotedBy').value=qb; }catch(e){}
   renderBasket();
   renderLog();
   calculate();
