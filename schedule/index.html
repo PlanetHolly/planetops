@@ -303,6 +303,9 @@
   .csched{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
   .csched select{font:inherit;font-size:11.5px;max-width:120px;border:1.5px solid var(--yellow);border-radius:5px;padding:2px 3px;background-color:#fffdf2}
   .lane-head{cursor:pointer;user-select:none}
+  /* Unscheduled-pool station blocks are always open (the whole section collapses as a unit), so
+     their heads must not look clickable the way the day rows' collapsible ones do. */
+  .lane-static .lane-head{cursor:default}
   .lane-head .chev{font-size:11px}
   .lane.lclosed .chev{transform:rotate(-90deg)}
   .histdiv{font-family:'Barlow Condensed';font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--grey-text);margin:14px 0 6px}
@@ -1963,6 +1966,27 @@ function renderPickups(){
     ${logged.length?`<div class="histdiv">Done — log</div>${logged.map(hrow).join('')}`:''}
   </section>`;
 }
+/* The unscheduled pool, split by STATION (Jean 2026-07-27). Everything here already carries a
+   station — that's what released it from the Queue — so a flat list buried the one fact that
+   decides where it can land. Same `.lane` card the day rows use, in the same LANES order, so the
+   pool reads like the days below it; no capacity bar, because an undated job has no day to fill.
+   Sorting inside each station is the pool's existing order (parked last, then soonest prod-due).
+   A station string Printavo carries that matches no lane still gets its own block rather than
+   vanishing — grouping must never drop a row. */
+function poolLanes(un){
+  const blocks=LANES.map(lane=>{
+    const rows=un.filter(j=>laneOf(j.station)===lane);
+    if(!rows.length)return '';
+    const mins=rows.reduce((a,j)=>a+(+j.minutes||0),0);
+    return `<div class="lane lane-static"><div class="lane-head"><span class="lane-name">${lane.label}</span>
+      <span class="lane-status">${rows.length} job${rows.length>1?'s':''} · ${mins} min waiting for a date</span></div>
+      <div class="cardgrid">${rows.map(jobCard).join('')}</div></div>`;
+  }).join('');
+  const other=un.filter(j=>!laneOf(j.station));
+  return blocks+(other.length?`<div class="lane lane-static"><div class="lane-head"><span class="lane-name">Other station</span>
+      <span class="lane-status">${other.length} job${other.length>1?'s':''} · station Printavo sent doesn't match a lane — set it on the card</span></div>
+      <div class="cardgrid">${other.map(jobCard).join('')}</div></div>`:'');
+}
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
   const un=unscheduled.filter(j=>inBoardPool(j)&&matchesQ(j)).sort((a,b)=>{
@@ -1973,8 +1997,8 @@ function renderBoard(filterLane){
     ${!filterLane?arrivalsSection(false):''}
     ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
       <div class="drhead" id="unschToggle" title="Click to collapse/expand"><span class="chev">▾</span><span class="dname">Unscheduled · ${un.length}</span>
-        <span class="dcount">soonest prod-due first · these are through the Queue — details, ⏱ time and station are set, all that's left is the DATE. ⚡ = closest day to due with room.</span></div>
-      <div class="drbody"><div class="cardgrid">${un.map(jobCard).join('')}</div></div>
+        <span class="dcount">grouped by station, soonest prod-due first · these are through the Queue — details, ⏱ time and station are set, all that's left is the DATE. ⚡ = closest day to due with room.</span></div>
+      <div class="drbody">${poolLanes(un)}</div>
     </section>`:''}
     ${rows}`;
 }
