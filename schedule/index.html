@@ -1200,6 +1200,66 @@ const EXPECT={'Packaging (Bandana)':'count → pull extras → QC → pack & shi
 const ppLabel=v=>v==='Packaging (Bandana)'?'Packaging (Merch)':v;
 const pptOf=j=>store.pptype[j.imprint]||j.postProdType;
 const realPP=v=>!!v&&v!=='N/A';
+
+/* ═══════ THE STAGE GATE — one definition, read by BOTH the Queue and the Board ═══════
+   Jean's flow has exactly two stages and a job is in EXACTLY ONE of them:
+     Stage 1, QUEUE   — the job's details, ⏱ time and station get filled in.
+     Stage 2, BOARD   — the enriched job waits in the unscheduled pool for a production date.
+   These predicates used to live inside renderList(), so only the Queue consulted them and the
+   Board's unscheduled pool was the much looser `!j.date` — which put an un-enriched job on BOTH
+   surfaces at once (Jean, 2026-07-27, `27401 - 1`: still in the Queue awaiting its time/station,
+   already sitting in the Board pool). Hoisted here so the Board pool can be defined as the exact
+   COMPLEMENT of the Queue. Defining it any other way (say, also demanding minutes>0) would open a
+   gap where a job is in neither stage and disappears entirely — the complement is what guarantees
+   every job is always visible in exactly one place.
+
+   QUEUE membership (2026-07-22): normal jobs are in the queue while they have no station.
+   Outsourced jobs with a real in-house leg (G1 invReleasable) enter the Queue and Arrivals AT THE
+   SAME TIME, from the moment they appear, so a packaging time can be set before the goods land —
+   they stay in the queue until they're given a production date (placed on the board). ✓ arrived no
+   longer gates queue entry for them; it remains only an arrival stamp (the "📦 landed" badge).
+   invReleasable governs WHICH outsourced imprints are eligible at all: an invoice marked "no 2nd
+   service" never releases (ships direct from the vendor, closes to history on arrival instead), and
+   when any sibling imprint on the invoice is an IN-HOUSE LEG, the pure vendor legs stay in Arrivals
+   only — only the in-house leg (e.g. `-2` packaging) reaches the queue. An in-house leg is
+   identified two ways (2026-07-24): Printavo's per-imprint Type of Work reading "In-House
+   Production" — the authoritative signal, straight off the invoice — or a real Post-Pro label (the
+   original signal, and still what a label Jean sets in the queue means). Type of Work also closes
+   the case Jean hit on 25414: an invoice whose imprints are ALL "Outsource" has no in-house work at
+   all, so nothing on it belongs in the queue — it waits in Arrivals and closes to history on
+   arrival, the same end state as "no 2nd service" but detected automatically instead of toggled by
+   hand. If Printavo tells us nothing (no Type of Work anywhere on the invoice, no labels), all
+   siblings release — the legacy flow, where labeling happens once it's in the queue. For outsourced
+   jobs, invReleasable is the ENTIRE gate — Printavo's pre-stamped (or blank) station on these rows
+   is not consulted either way, so a stray blank station can't smuggle a vendor leg into the queue. */
+const vendorTow=j=>/outsourc/i.test(j.typeOfWork||'');
+const inHouseLeg=j=>/in[\s_-]*house/i.test(j.typeOfWork||'')||realPP(pptOf(j));
+const invReleasable=j=>{
+  if((store.invsvc||{})[j.invoice]==='none')return false;
+  const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
+  if(sibs.some(inHouseLeg))return inHouseLeg(j);
+  if(sibs.length&&sibs.every(vendorTow))return false;   // every imprint is vendor work — no in-house leg exists
+  return true;
+};
+/* Printavo also pre-stamps a station on IN-HOUSE post-production legs (packaging, fold+bag,
+   barcode). Jean never made a queue decision on those, so they belong in the Queue to get their
+   post-pro type and ⏱ time — same bug PR #28 fixed for outsourced work. Scoped to the POST
+   PRODUCTION lane on purpose: press lanes (Auto/Heat/Manual) carry Printavo stations too and merely
+   await a date on the board, so they'd be noise here. A station JEAN assigned (j.stationAssigned)
+   still graduates the job to the board immediately, unchanged. */
+const isPrintavoPost=j=>!j.stationAssigned&&!!laneOf(j.station)&&laneOf(j.station).key==='post';
+const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):(!j.station||isPrintavoPost(j)));
+/* Rows that already carry a Printavo station don't leave the Queue on station assignment (there's
+   none left to make) — a production DATE is their only exit, so they need the Sched field in the
+   Queue itself. Normal rows still graduate on station and don't. */
+const exitsOnDate=j=>isOut(j)||isPrintavoPost(j);
+/* ✕ removed = Jean's ruling that this isn't production work at all (a paid invoice with no imprint
+   Printavo's scheduler never took either). It leaves BOTH stages, not just the Queue — the Board
+   pool honours this too as of 2026-07-27. It stays restorable from the Queue's Removed section. */
+const isRemoved=j=>!!(store.removed||{})[j.imprint];
+/* Stage 2 — the Board's unscheduled pool: enriched, undated, and not the vendor legs that live in
+   Arrivals. Exactly the jobs the Queue has released. */
+const inBoardPool=j=>!j.date&&!isOut(j)&&!inQueue(j)&&!isRemoved(j);
 function rowToJob(r,hdr){
   const g=name=>{const i=hdr.indexOf(name);return i>=0?(r[i]||''):'';};
   const imp=g('Imprint').trim();
@@ -1905,7 +1965,7 @@ function renderPickups(){
 }
 function renderBoard(filterLane){
   const rows=dateRange().map(d=>dayRow(d,filterLane)).join('');
-  const un=unscheduled.filter(j=>!isOut(j)&&matchesQ(j)).sort((a,b)=>{
+  const un=unscheduled.filter(j=>inBoardPool(j)&&matchesQ(j)).sort((a,b)=>{
     const pa=store.parked[a.imprint]?1:0,pb=store.parked[b.imprint]?1:0;
     if(pa!==pb)return pa-pb;                       // parked (not ready) sink to the bottom of the pool
     return (a.prodDue||'9999')<(b.prodDue||'9999')?-1:1;});
@@ -1913,7 +1973,7 @@ function renderBoard(filterLane){
     ${!filterLane?arrivalsSection(false):''}
     ${!filterLane&&un.length?`<section class="dayrow ${collapsedUnsch?'closed':''}" style="border-style:dashed">
       <div class="drhead" id="unschToggle" title="Click to collapse/expand"><span class="chev">▾</span><span class="dname">Unscheduled · ${un.length}</span>
-        <span class="dcount">soonest prod-due first · Jean's flow: assign station (expand the row) → set minutes → pick the date last. ⚡ = closest day to due with room.</span></div>
+        <span class="dcount">soonest prod-due first · these are through the Queue — details, ⏱ time and station are set, all that's left is the DATE. ⚡ = closest day to due with room.</span></div>
       <div class="drbody"><div class="cardgrid">${un.map(jobCard).join('')}</div></div>
     </section>`:''}
     ${rows}`;
@@ -1930,49 +1990,6 @@ const SORTVAL={
 };
 function renderList(){
   const all=[...jobs];
-  // QUEUE mode (2026-07-22): normal jobs enter the queue when they have no station.
-  // Outsourced jobs with a real in-house leg (G1 invReleasable, below) enter the Queue and
-  // Arrivals AT THE SAME TIME, from the moment they appear, so a packaging time can be set
-  // before the goods land — they stay in the queue until they're given a production date
-  // (placed on the board). ✓ arrived no longer gates queue entry for them; it remains only
-  // an arrival stamp (see the "📦 landed" badge below). invReleasable still governs WHICH
-  // outsourced imprints are eligible at all: an invoice marked "no 2nd service" never
-  // releases (ships direct from the vendor, closes to history on arrival instead), and when
-  // any sibling imprint on the invoice is an IN-HOUSE LEG, the pure vendor legs stay in
-  // Arrivals only — only the in-house leg (e.g. `-2` packaging) reaches the queue.
-  // An in-house leg is identified two ways (2026-07-24): Printavo's per-imprint Type of Work
-  // reading "In-House Production" — the authoritative signal, straight off the invoice — or a
-  // real Post-Pro label (the original signal, and still what a label Jean sets in the queue
-  // means). Type of Work also closes the case Jean hit on 25414: an invoice whose imprints are
-  // ALL "Outsource" has no in-house work at all, so nothing on it belongs in the queue — it
-  // waits in Arrivals and closes to history on arrival, the same end state as "no 2nd service"
-  // but detected automatically instead of toggled by hand. If Printavo tells us nothing (no
-  // Type of Work anywhere on the invoice, no labels), all siblings release — the legacy flow,
-  // where labeling happens once it's in the queue. For outsourced jobs, invReleasable is the
-  // ENTIRE gate — Printavo's pre-stamped (or blank) station on these rows is not consulted
-  // either way, so a stray blank station can no longer smuggle a vendor leg into the queue.
-  const vendorTow=j=>/outsourc/i.test(j.typeOfWork||'');
-  const inHouseLeg=j=>/in[\s_-]*house/i.test(j.typeOfWork||'')||realPP(pptOf(j));
-  const invReleasable=j=>{
-    if((store.invsvc||{})[j.invoice]==='none')return false;
-    const sibs=jobs.filter(x=>x.invoice===j.invoice&&isOut(x));
-    if(sibs.some(inHouseLeg))return inHouseLeg(j);
-    if(sibs.length&&sibs.every(vendorTow))return false;   // every imprint is vendor work — no in-house leg exists
-    return true;
-  };
-  // Printavo also pre-stamps a station on IN-HOUSE post-production legs (packaging, fold+bag,
-  // barcode). Jean never made a queue decision on those, so they belong in the Queue to get
-  // their post-pro type and ⏱ time — same bug PR #28 fixed for outsourced work. Scoped to the
-  // POST PRODUCTION lane on purpose: press lanes (Auto/Heat/Manual) carry Printavo stations too
-  // and merely await a date on the board, so they'd be noise here. A station JEAN assigned
-  // (j.stationAssigned) still graduates the job to the board immediately, unchanged.
-  const isPrintavoPost=j=>!j.stationAssigned&&!!laneOf(j.station)&&laneOf(j.station).key==='post';
-  const inQueue=j=>!j.placeholder&&!j.date&&(isOut(j)?invReleasable(j):(!j.station||isPrintavoPost(j)));
-  // Rows that already carry a Printavo station don't leave the Queue on station assignment
-  // (there's none left to make) — a production DATE is their only exit, so they need the
-  // Sched field right here. Normal rows still graduate on station and don't.
-  const exitsOnDate=j=>isOut(j)||isPrintavoPost(j);
-  const isRemoved=j=>!!store.removed[j.imprint];
   let list=(listShowAll?all:all.filter(inQueue).filter(j=>!isRemoved(j))).filter(matchesQ);   // search filter (Holly)
   const queueN=all.filter(j=>inQueue(j)&&!store.parked[j.imprint]&&!isRemoved(j)).length;   // parked/removed jobs don't count — not "to schedule"
   const parkedN=all.filter(j=>inQueue(j)&&store.parked[j.imprint]&&!isRemoved(j)).length;
