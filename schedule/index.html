@@ -1378,12 +1378,13 @@ function retireRecords(){
    Default OFF. ?render=records turns it on and persists per-browser; ?render=feed
    turns it off and clears; no param keeps whatever was last persisted. Same
    URL-param-then-localStorage pattern as capacity/index.html's ?mode=jean. */
-let RENDER_FROM_RECORDS=false;
+let RENDER_FROM_RECORDS=true;   // FLIP 2026-07-27: persisted records are now the TEAM-DEFAULT render base — they survive feed truncation + the slow leak (46 active records held vs a live feed on 7/27) and, unlike a URL param, reach the front-door-embedded page (params don't). Tri-state now: no stored pref = ON (records); ?render=feed opts a device back to the feed base and PERSISTS it ('feed', was a key-removal that didn't stick); ?render=records opts back in. history-snapshot + manual-import still use the feed path (the useRecords guard in buildModel). Storage throw leaves the initial ON.
 try{ // storage can throw at load (private browsing / partitioned iframe) — never let the flag kill the render
   const _renderParam=new URLSearchParams(location.search).get('render');
   if(_renderParam==='records')localStorage.setItem('sb_render_source','records');
-  else if(_renderParam==='feed')localStorage.removeItem('sb_render_source');
-  RENDER_FROM_RECORDS=localStorage.getItem('sb_render_source')==='records';
+  else if(_renderParam==='feed')localStorage.setItem('sb_render_source','feed');
+  const _stored=localStorage.getItem('sb_render_source');
+  RENDER_FROM_RECORDS=_stored===null?true:_stored==='records';
 }catch(e){}
 
 /* ───────── Queue ✕ remove button — per-browser VISIBILITY flag, not auth ─────────
