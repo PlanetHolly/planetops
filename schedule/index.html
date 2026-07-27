@@ -634,11 +634,12 @@ document.addEventListener('visibilitychange',async()=>{
    are device-clock (Jean's ruling: bounded to concurrent same-item edits; server-stamp is a
    future hardening). Full protection needs every device on the new code — an old-code tab still
    blind-overwrites until it refreshes. */
-let MERGE_SYNC=false;
+let MERGE_SYNC=true;   // FLIP 2026-07-27: per-item merge is now the TEAM DEFAULT — a records-authoritative board (RENDER flip) needs blob-wipe protection, and Printavo (today's backup) goes away at cutover. Tri-state now: no stored pref = ON; ?sync=blob opts a device out and PERSISTS the opt-out ('0', was a key-removal that didn't stick); ?sync=merge opts back in ('1'). Storage throw (partitioned iframe) leaves the initial ON.
 try{const _sp=new URLSearchParams(location.search).get('sync');
   if(_sp==='merge')localStorage.setItem('sb_sync_merge','1');
-  else if(_sp==='blob')localStorage.removeItem('sb_sync_merge');
-  MERGE_SYNC=localStorage.getItem('sb_sync_merge')==='1';
+  else if(_sp==='blob')localStorage.setItem('sb_sync_merge','0');
+  const _stored=localStorage.getItem('sb_sync_merge');
+  MERGE_SYNC=_stored===null?true:_stored==='1';
 }catch(e){}
 const SYNC_KEYED=['caps','moves','splits','alloc','minutesEdit','stations','eta','tracking','method','arrived','qc','pickedup','ptype','pptype','attrs','strokes','pcheck','parked','timeVerified','wbFail','invsvc','statusOv','jobRecords'];
 const SYNC_WHOLE=['placeholders','errands','operator'];
