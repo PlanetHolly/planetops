@@ -1052,15 +1052,40 @@ const MOCKUP_WEBHOOK='https://primary-production-079f9.up.railway.app/webhook/sc
 const CSV_FEED='https://primary-production-079f9.up.railway.app/webhook/schedule-csv';
 let liveCsv=null,liveName=null,livePulledAt=null;
 let histCsv=null,histDate=null;   // history playback: a past-date snapshot, read-only
+let _csvGuard=null;   // last live-feed truncation-guard decision — inspect via window.csvGuardDiag()
+/* csvTruncationVerdict(): the Railway exporter intermittently truncates — a ~7KB/23-row export
+   instead of a healthy ~32KB/82-row one (Imperva/Xvfb race, root cause is Holly's repo). A
+   truncated CSV that reaches feedBase()/ingestRecords() blanks the dates of every record it lists,
+   corrupting the board's own memory (proven live 2026-07-28: Unscheduled jumped 5→29 on both
+   feed- and records-render). This rejects a live feed whose data-row count collapsed vs the last
+   ACCEPTED feed. RELATIVE, not absolute, so it adapts to any shop size; only a >50% single-cycle
+   cliff trips it — healthy day-to-day variation is far smaller, and truncation is bimodal at
+   ~25-30% of healthy. Growth always passes; with no baseline yet (cold start) the first feed is
+   accepted and becomes the baseline, which then self-corrects upward on the next healthy feed. */
+function csvTruncationVerdict(newRows,lastGoodRows){
+  if(!lastGoodRows||lastGoodRows<=0)return{accept:true,reason:'no baseline yet'};
+  if(newRows<lastGoodRows*0.5)return{accept:false,reason:'rows '+newRows+' < 50% of last-good '+lastGoodRows};
+  return{accept:true,reason:'ok'};
+}
 async function loadLiveCsv(){
   try{
     const r=await fetch(CSV_FEED);const d=await r.json();
     if(d&&d.ok&&d.csv&&/Imprint/.test(d.csv.split('\n')[0])){
+      const newRows=d.csv.trim().split(/\r?\n/).filter(l=>l.trim()).length-1;   // data rows, minus the header
+      const lastGood=+(localStorage.getItem('sb_csv_lastgood_rows')||0);
+      const v=csvTruncationVerdict(newRows,lastGood);
+      _csvGuard={at:Date.now(),name:d.name,newRows:newRows,lastGood:lastGood,accepted:v.accept,reason:v.reason};
+      if(!v.accept){
+        console.warn('[csvGuard] REJECTED live feed '+d.name+' — '+v.reason+' — holding last-good, not ingesting');
+        return;   // keep the prior liveCsv; a truncated feed must NEVER reach feedBase()/ingestRecords()
+      }
       liveCsv=d.csv;liveName=d.name;livePulledAt=d.pulledAt||null;
+      try{localStorage.setItem('sb_csv_lastgood_rows',String(newRows));}catch(e){}   // ratchet the baseline on accept only
       renderAll();loadMockups();
     }
   }catch(e){/* feed unreachable — embedded/imported data stays */}
 }
+if(typeof window!=='undefined')window.csvGuardDiag=()=>_csvGuard;
 /* ── live intake feed: schedulable jobs straight from the OFFICIAL Printavo API (n8n intake-feed
    webhook — cutover Step 1). Invoices the Power Scheduler CSV doesn't carry yet land in the
    unscheduled pool without waiting for an export. Merge is INVOICE-level union: if the CSV knows
