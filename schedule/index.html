@@ -347,7 +347,10 @@
      fr track) → blank + choppy in the queue. max-height works in a cell and a div alike. JS sets the
      px target from scrollHeight so the ease matches the real content height. A panel with no state
      class renders at natural height (incidental re-render, no animation); .exp-anim / .exp-closed
-     hold it at 0 while opening / closing. will-change hints the compositor to keep it smooth. */
+     hold it at 0 while opening / closing. will-change hints the compositor to keep it smooth.
+     grid-column:1/-1 makes the wrapper span the full BOARD CARD grid the way xPanel used to — without
+     it the wrapper lands in the card's first 56px column and the panel reads as blank (no-op in a <td>). */
+  .exp{grid-column:1/-1;width:100%}
   .exp-in{overflow:hidden;transition:max-height .26s cubic-bezier(.4,0,.2,1);will-change:max-height}
   .exp-in.exp-anim,.exp-in.exp-closed{max-height:0}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
