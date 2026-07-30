@@ -342,13 +342,14 @@
   .tablewrap table{overflow:visible}   /* table's own overflow:hidden (corner rounding) KILLS position:sticky — the wrap clips the corners instead */
   .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
-  /* smooth expand/collapse (queue rows + board cards): grid-rows 0fr↔1fr animates height with no
-     JS measuring; min-height:0 lets the inner track actually collapse. Panels render .open (1fr)
-     so an incidental re-render shows them open with no animation; the just-opened one renders at
-     0fr and JS adds .open next frame → it eases in. Close eases out then the row is removed. */
-  .exp{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.4,0,.2,1)}
-  .exp.open{grid-template-rows:1fr}
-  .exp>.exp-in{overflow:hidden;min-height:0}
+  /* smooth expand/collapse (queue rows + board cards): animate a MEASURED max-height. grid-rows
+     0fr↔1fr looked cleaner but silently collapses to 0 inside a <td> (table cells can't resolve the
+     fr track) → blank + choppy in the queue. max-height works in a cell and a div alike. JS sets the
+     px target from scrollHeight so the ease matches the real content height. A panel with no state
+     class renders at natural height (incidental re-render, no animation); .exp-anim / .exp-closed
+     hold it at 0 while opening / closing. will-change hints the compositor to keep it smooth. */
+  .exp-in{overflow:hidden;transition:max-height .26s cubic-bezier(.4,0,.2,1);will-change:max-height}
+  .exp-in.exp-anim,.exp-in.exp-closed{max-height:0}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
   .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
   .estchip.near{background:#fdf3d0;border:1.5px solid #d9b74a;color:#6b5000}
@@ -1224,7 +1225,7 @@ function capFor(lane,date,isOT){
 let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null,searchQ='';
 let _justOpened=null,_closing=new Set();   // expand/collapse animation state (see .exp CSS)
 // wrap a detail panel so it can animate open/closed; render .open unless it's mid-open or mid-close
-const expWrap=(imp,html)=>`<div class="exp${(_justOpened===imp||_closing.has(imp))?'':' open'}"><div class="exp-in">${html}</div></div>`;
+const expWrap=(imp,html)=>{const s=_justOpened===imp?' exp-anim':(_closing.has(imp)?' exp-closed':'');return `<div class="exp"><div class="exp-in${s}">${html}</div></div>`;};
 // Live search filter (Holly 2026-07-16): typing an invoice # pulls up ALL its imprints across
 // the board/queue. Empty = show everything. Matches invoice, imprint label, or nickname.
 function matchesQ(j){
@@ -2363,17 +2364,25 @@ function openLightbox(imp){
   document.addEventListener('keydown',esc);
   document.body.appendChild(ov);
 }
-// expand: render collapsed, then let the next frame ease it open (wireMain adds .open).
+// expand: render the panel held at 0 (.exp-anim), then next frame set max-height to its measured
+// content height so it eases open; clear the cap once the transition ends so it can reflow freely.
 function openExpand(imp){ expanded.add(imp); _justOpened=imp; renderAll(); }
-// collapse: ease the panel shut, then remove the row/panel from the DOM once the transition ends.
-function closeExpand(imp,panel){
-  if(!panel){ expanded.delete(imp); renderAll(); return; }
-  _closing.add(imp); panel.classList.remove('open');
-  setTimeout(()=>{ _closing.delete(imp); expanded.delete(imp); renderAll(); }, 270);
+// collapse: lock the panel at its current height, then ease it to 0; drop the row/panel after.
+function closeExpand(imp,inr){
+  if(!inr){ expanded.delete(imp); renderAll(); return; }
+  _closing.add(imp);
+  inr.style.maxHeight=inr.scrollHeight+'px';
+  requestAnimationFrame(()=>{ inr.style.maxHeight='0px'; });
+  setTimeout(()=>{ _closing.delete(imp); expanded.delete(imp); renderAll(); }, 300);
 }
 function wireMain(){
-  // just-opened panel renders at 0fr; add .open next frame so the 0fr→1fr transition actually plays
-  if(_justOpened){const w=main.querySelector('.exp:not(.open)');if(w)requestAnimationFrame(()=>w.classList.add('open'));_justOpened=null;}
+  // the just-opened panel renders at max-height:0 (.exp-anim); measure its real height and ease to it
+  if(_justOpened){
+    const inr=main.querySelector('.exp-in.exp-anim');
+    if(inr){const h=inr.scrollHeight;requestAnimationFrame(()=>{inr.style.maxHeight=h+'px';});
+      inr.addEventListener('transitionend',()=>{inr.classList.remove('exp-anim');inr.style.maxHeight='';},{once:true});}
+    _justOpened=null;
+  }
   // arrivals collapse (board view)
   const at=document.getElementById('arrToggle');
   if(at)at.addEventListener('click',e=>{
@@ -2426,7 +2435,7 @@ function wireMain(){
       if(e.target.closest('input,select,a,button,.mock,.min,[data-qty],.xpanel,.qcchip'))return;
       const imp=tr.dataset.limp;
       if(_closing.has(imp))return;
-      if(expanded.has(imp))closeExpand(imp,tr.nextElementSibling&&tr.nextElementSibling.querySelector('.exp'));
+      if(expanded.has(imp))closeExpand(imp,tr.nextElementSibling&&tr.nextElementSibling.querySelector('.exp-in'));
       else openExpand(imp);
     });
   });
@@ -2467,7 +2476,7 @@ function wireMain(){
       if(e.target.closest('button,input,select,a,.min,.cap,[data-qty],.xpanel,.phref,.rec,.etabar'))return;
       const imp=el.dataset.imp;
       if(_closing.has(imp))return;
-      if(expanded.has(imp))closeExpand(imp,el.querySelector('.exp'));
+      if(expanded.has(imp))closeExpand(imp,el.querySelector('.exp-in'));
       else openExpand(imp);
     });
   });
