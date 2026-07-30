@@ -1588,7 +1588,12 @@ function dateRange(){
 
 /* ───────── Recommendation (Jean's habit: on the due date, or the closest earlier day with room) ───────── */
 function usedMin(lane,d){return jobs.filter(x=>x.date===d&&laneOf(x.station)===lane).reduce((a,x)=>a+x.minutes,0);}
-function freeMin(lane,d){const isOT=jobs.some(x=>x.date===d&&/\(OT\)/.test(x.station));return capFor(lane,d,isOT)-usedMin(lane,d);}
+// OT-day detection reads the ORIGINAL (feed) station, not the override-rendered one: Queue graduation / station-assign
+// rewrites a job's station to the generic LANES[auto].printavo ("Auto Press (In Season)"), which would silently strip a
+// Printavo OT day back to the 420 cap (showing e.g. 90% OT days as 150%+). j.stationOrig holds the pre-override station
+// (stamped in buildModel where the override is applied); with no override it's undefined and this falls back to station.
+// Same one-token fix at the two other isOT sites (dayRow, dayFullness).
+function freeMin(lane,d){const isOT=jobs.some(x=>x.date===d&&/\(OT\)/.test(x.stationOrig||x.station));return capFor(lane,d,isOT)-usedMin(lane,d);}
 function recommendFor(j){
   const lane=laneOf(j.station);
   if(!lane||!j.minutes)return null;
@@ -1830,7 +1835,7 @@ function dayChips(dayJobs,isOT,date){
 function dayRow(d,filterLane){
   const dayJobs=jobs.filter(j=>j.date===d&&(!filterLane||laneOf(j.station)===filterLane)&&matchesQ(j));
   if(searchQ&&!dayJobs.length)return '';                    // during search, hide days with no match
-  const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+  const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.stationOrig||j.station));
   const lanes=(filterLane?[filterLane]:LANES).map(l=>laneBlock(l,dayJobs,isOT,d)).join('');
   const total=dayJobs.reduce((a,j)=>a+j.minutes,0);
   const closed=!searchQ&&collapsedDays.has(d);              // search auto-expands the day
@@ -2206,7 +2211,7 @@ function renderCalendar(){
      Shipping minutes hide a full Auto Press. Tooltip carries every working lane's used/cap. */
   const laneAbbr=l=>l.label.split(' ').map(w=>w[0]).join('');
   const dayFullness=d=>{
-    const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.station));
+    const isOT=jobs.some(j=>j.date===d&&/\(OT\)/.test(j.stationOrig||j.station));
     const per=LANES.map(l=>{
       const used=jobs.filter(j=>j.date===d&&laneOf(j.station)===l).reduce((a,j)=>a+j.minutes,0);
       const cap=capFor(l,d,isOT);
