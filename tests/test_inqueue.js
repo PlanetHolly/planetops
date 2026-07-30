@@ -294,7 +294,7 @@ const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
   );
   check(
     "19c. expand row colspan is the unconditional 19, not conditional on listShowAll",
-    /<td colspan="19">\$\{xPanel\(j\)\}<\/td>/.test(src) && !/colspan="\$\{listShowAll\?19:18\}"/.test(src),
+    /<tr class="xrow"><td colspan="19">/.test(src) && !/colspan="\$\{listShowAll\?19:18\}"/.test(src),
     'expand row colspan is not the unconditional 19'
   );
 }
