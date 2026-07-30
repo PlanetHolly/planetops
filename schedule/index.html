@@ -354,6 +354,8 @@
   #drawerBody .xpanel{flex-direction:column;gap:14px}          /* stack mock / meta / details down the narrow drawer */
   #drawerBody .xpanel>*{width:100%;min-width:0}
   tr.drawer-active>td{background:#eef4fb}                        /* highlight the queue row whose detail is open */
+  #drawerBody [data-stslot]{display:block;margin-top:8px}       /* status picker drops BELOW the current status (room in the narrow drawer, per Jean) */
+  #drawerBody [data-stslot] select{width:100%;padding:6px;font:inherit;border:1.5px solid var(--grey-line);border-radius:6px}
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
   .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
   .estchip.near{background:#fdf3d0;border:1.5px solid #d9b74a;color:#6b5000}
@@ -2392,6 +2394,9 @@ function wireMain(){
        else closeDrawer();   // the open project fell out of the list (e.g. scheduled/removed) → close
      } else dr.setAttribute('aria-hidden','true');
    }}
+  // controls that live in the detail panel (xPanel) now render inside the drawer, which is OUTSIDE
+  // #main — so their handlers must query #main AND the drawer body. qa() spans both.
+  const qa=sel=>{const b=document.getElementById('drawerBody');return[...main.querySelectorAll(sel),...(b?b.querySelectorAll(sel):[])];};
   // arrivals collapse (board view)
   const at=document.getElementById('arrToggle');
   if(at)at.addEventListener('click',e=>{
@@ -2458,7 +2463,7 @@ function wireMain(){
   const lsa=document.getElementById('listShowAll');
   if(lsa)lsa.addEventListener('change',()=>{listShowAll=lsa.checked;renderAll();});
   // mockup → 90% lightbox
-  main.querySelectorAll('.mock').forEach(m=>{
+  qa('.mock').forEach(m=>{
     m.addEventListener('click',e=>{
       e.stopPropagation();
       const imp=m.dataset.mimp||(m.closest('.job')&&m.closest('.job').dataset.imp);
@@ -2617,19 +2622,19 @@ function wireMain(){
   });
   // G2: invoice status picker — loads Printavo's live status list, updates every
   // imprint of the invoice in-app, and writes back to Printavo immediately.
-  main.querySelectorAll('[data-stchg]').forEach(btn=>{
+  qa('[data-stchg]').forEach(btn=>{
     btn.addEventListener('click',async e=>{
       e.stopPropagation();
       if(histCsv)return;   // read-only history snapshot
       const inv=btn.dataset.stchg;
-      let slot=main.querySelector(`[data-stslot="${inv}"]`);
+      let slot=document.querySelector(`[data-stslot="${inv}"]`);
       if(!slot||slot.querySelector('select'))return;
       slot.textContent=' loading statuses…';
       const list=await pvStatusList();
       // A WS-0 merge can legitimately renderAll() while we were awaiting Printavo, which
       // replaces #main and leaves the node above detached. Re-resolve against the live DOM
       // or the dropdown gets appended to an orphan and never appears.
-      slot=main.querySelector(`[data-stslot="${inv}"]`)||slot;
+      slot=document.querySelector(`[data-stslot="${inv}"]`)||slot;
       if(!list.length){slot.innerHTML=' <span class="pending">⚠ could not load Printavo statuses — try again</span>';return;}
       slot.innerHTML='';
       const sel=document.createElement('select');
@@ -2701,7 +2706,7 @@ function wireMain(){
       sendWriteback(j,imp);
     });
   });
-  main.querySelectorAll('.strkbtn').forEach(b=>{
+  qa('.strkbtn').forEach(b=>{
     b.addEventListener('click',e=>{
       e.stopPropagation();
       const [imp,n]=b.dataset.strk.split('|');
@@ -2744,7 +2749,7 @@ function wireMain(){
     });
   });
   // G4: production-notes reader — the details block, big and readable
-  main.querySelectorAll('[data-noteexp]').forEach(btn=>{
+  qa('[data-noteexp]').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
       const src=main.querySelector(`[data-notesrc="${btn.dataset.noteexp}"]`);
