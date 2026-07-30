@@ -1105,6 +1105,17 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadIntake
 let mockMap={};
 const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function mockEntry(j){return mockMap[j.invoice]||null;}
+// Imprint placement (Front-center / Inside Neck / Right Sleeve …) parsed from the Printavo
+// imprint DETAILS text already fetched for the expanded panel. Matches the "📍Placement:" line
+// only — NOT the "🎲Placement #:" ordinal line (the colon sits after "#", so "Placement:" won't match it).
+// Blank details (e.g. an unlabeled post-pro imprint) → '' and nothing renders. Same imprint-ordinal
+// assumption the expanded panel and autofillAttrs already rely on — no new risk.
+function placementOf(j){
+  const e=mockEntry(j),d=e&&e.imprints&&e.imprints[(+j.impNum||1)-1];
+  if(!d||!d.details)return '';
+  const m=d.details.match(/Placement:\s*([^\r\n]+)/i);
+  return m?m[1].trim():'';
+}
 /* ── #5: auto-fill imprint attributes the CSV export came in without (Printavo scheduler
    fields unset — export says "Select Project Status" / N/A / 0). Sources, in order:
    (a) the invoice's own imprint details via the mockups webhook ("Ink: 2 Color, Plastisol Ink"),
@@ -2061,7 +2072,7 @@ function renderList(){
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td><td></td></tr>`
     :`<tr class="${store.parked[j.imprint]?'parked':''}${mode==='removed'?' rowremoved':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
-    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
+    <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${placementOf(j)?`<br><span class="movednote" style="background:#eef2ff;color:#33559a" title="Imprint placement — from this imprint's details in Printavo (📍Placement). Blank means the PM didn't label it (common on post-production imprints).">📍 ${escHtml(placementOf(j))}</span>`:''}${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><select data-aink="${j.imprint}" title="Step 2 — Ink / application type"><option value="">—</option>${['Plastisol','Waterbase','Discharge','Waterbase Discharge','Heat Applied - Apparel','Heat Applied - Hat'].map(t=>`<option ${j.ink===t?'selected':''}>${t}</option>`).join('')}</select></td>
