@@ -292,11 +292,8 @@ const OUT_STATUS = '👕 Awaiting Goods (Outsourced - In Production)👕';
     !/\$\{listShowAll\?`<td><input type="date" class="schedinput" data-schedule/.test(src),
     'listShowAll-conditional data-schedule <td> still present'
   );
-  check(
-    "19c. expand row colspan is the unconditional 19, not conditional on listShowAll",
-    /<tr class="xrow"><td colspan="19">/.test(src) && !/colspan="\$\{listShowAll\?19:18\}"/.test(src),
-    'expand row colspan is not the unconditional 19'
-  );
+  // (was 19c: expand-row colspan guard — removed 2026-07-30 when the inline expand row was
+  //  replaced by the right-side detail drawer; there is no longer an .xrow to guard.)
 }
 
 /* ───────── assertions 20-25: Printavo's per-imprint TYPE OF WORK (2026-07-24).
