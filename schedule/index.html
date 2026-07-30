@@ -337,7 +337,7 @@
   td{padding:7px 10px;border-bottom:1px solid var(--grey-line);font-size:12.5px;vertical-align:middle}
   td.custcol{background:#f2f2f2;color:#000;font-weight:700}
   tr:last-child td{border-bottom:none}
-  .tablewrap{overflow-x:auto;border-radius:10px;cursor:grab}   /* unboxed 7/30: no max-height → the list flows with the page (natural up/down); horizontal stays scrollable + grab-to-pan */
+  .tablewrap{overflow:auto;border-radius:10px;cursor:grab}   /* 7/30: height set by sizeTableWrap() to fill the viewport → ONE full-screen scroll region (not a cramped box) with the header still frozen; horizontal stays scrollable + grab-to-pan */
   .tablewrap.panning{cursor:grabbing;user-select:none}
   .tablewrap table{overflow:visible}   /* table's own overflow:hidden (corner rounding) KILLS position:sticky — the wrap clips the corners instead */
   .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
@@ -2885,6 +2885,11 @@ function wireMain(){
   // live only for the duration of a drag, so nothing accumulates across re-renders.
   (tw=>{
     if(!tw)return;
+    // Fill the viewport from the table's top edge down to the bottom → the scroll box IS the
+    // screen (no cramped inset), and the header stays frozen at its top (sticky within the box).
+    // No magic offset: measure the top live, so it's correct regardless of the chrome above it.
+    if(!window._sizeTW){window._sizeTW=()=>{const t=document.querySelector('.tablewrap');if(t)t.style.height=Math.max(220,window.innerHeight-t.getBoundingClientRect().top-16)+'px';};window.addEventListener('resize',window._sizeTW);}
+    window._sizeTW();
     tw.addEventListener('mousedown',e=>{
       if(e.button!==0||e.target.closest('input,select,textarea,button,a,label,[contenteditable]'))return;
       const sx=e.pageX,sl=tw.scrollLeft;let moved=false;
