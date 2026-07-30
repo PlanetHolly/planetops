@@ -1207,7 +1207,7 @@ function sideMeta(s){
   const side=el("div","meta-side");
   // fires-when
   const p1=el("div","panel");
-  p1.innerHTML='<h3>Fires when</h3><div class="fires">'+esc(s.firesWhen||"—")+'</div>'+
+  p1.innerHTML='<h3>Fires when</h3><div class="sheetnote" style="margin-top:-4px;margin-bottom:10px">The status change that sets this off.</div><div class="fires">'+esc(s.firesWhen||"—")+'</div>'+
     '<div class="sheetnote">'+esc(s.sentByRule||"")+'</div>';
   side.appendChild(p1);
 
@@ -1232,6 +1232,7 @@ function sideMeta(s){
   });
   const cads=[...cadMap.values()].sort((a,b)=>a.ord-b.ord||a.step-b.step);
   const pc=el("div","panel"); pc.appendChild(el("h3","","Cadence"));
+  pc.appendChild(el("div","sheetnote", "When the follow-ups go out, and to whom."));
   if(cads.length){
     cads.forEach(c=>{
       const tiers=[...c.tiers].sort((a,b)=>tierRank(a)-tierRank(b)).join("/");
@@ -1261,6 +1262,7 @@ function sideMeta(s){
 
   if(uniqTps.length){
     const p2=el("div","panel"); p2.appendChild(el("h3","","Sent by"));
+    p2.appendChild(el("div","sheetnote", "How it's delivered — auto-sent, or drafted for a person to send."));
     const ll=el("div","linklist");
     uniqTps.forEach(t=>{
       const a=el("div","lnk");
@@ -1650,154 +1652,1584 @@ function renderJourneyTimeline(app, ct){
   app.appendChild(tl);
 }
 
-/* ─── STATUS SIMULATOR (target-taxonomy preview) ─── */
-// PREVIEW of the 7/9+7/11 target taxonomy (source: Status_Cleanup_2026-07/taxonomy_mock.html).
-// NOT live in Printavo yet — training + rename guide. Swap back to live once the migration lands.
-const SIM_TARGET=[
- {ph:"Quote & Chase",comms:"silent",badge:"RENAME",name:"New — Review & Quote",was:"Quote",note:"the working/draft state",scripts:[]},
- {ph:"Quote & Chase",comms:"silent",badge:"NEW",name:"In Conversation",was:"",note:"pre-quote working state; stale-nudge D10",scripts:[]},
- {ph:"Quote & Chase",comms:"timed",badge:"NEW",name:"Waiting on Customer",was:"",note:"ONE generic wait; ladder 3 bumps → park; ABSORBS Info Requested",scripts:["^ot_waiting_bump_1", "^ot_waiting_bump_2", "^ot_waiting_bump_3", "^ot_waiting_park"]},
- {ph:"Quote & Chase",comms:"silent",badge:"RETIRE",name:"Info Requested",was:"📨 Info Requested",note:"→ folded into Waiting on Customer",scripts:[]},
- {ph:"Quote & Chase",comms:"silent",badge:"NEW",name:"In Our Court",was:"",note:"provisional 'keep and see'",scripts:[]},
- {ph:"Quote & Chase",comms:"timed",badge:"NEW",name:"Sample Pack Purchased → Samples Sent",was:"",note:"the samples journey; arrival check-in on a timer",scripts:["^ot_sample_shipped", "^ot_sample_arrival_checkin"]},
- {ph:"Quote & Chase",comms:"customer",badge:"RENAME",name:"Concierge — Quote Sent",was:"Quote Sent (Manually)",note:"drafts + watchdog + Chat notify",scripts:["^ot_quote_sent"]},
- {ph:"Quote & Chase",comms:"customer",badge:"RENAME",name:"Auto-Chase 1–4",was:"chase 1/2/3/4",note:"timed sends into one thread (+1/+2/+6 wd)",scripts:["^ot_quote_sent", "^ot_chase_2", "^ot_chase_3", "^ot_chase_final"]},
- {ph:"Quote & Chase",comms:"internal",badge:"SPLIT",name:"Quote Declined — Update Needed / — Lost",was:"🚫 Quote Declined",note:"AI-classifies from decline reason; PM alert",scripts:["^ot_quote_declined_alert"]},
- {ph:"Quote & Chase",comms:"customer",badge:"RENAME",name:"Quote Approved — Ready for Mockup",was:"✅ Quote Approved",note:"confirmation into thread",scripts:["^ot_quote_approved_confirmation"]},
- {ph:"Quote & Chase",comms:"silent",badge:"KILL",name:"REVISED Quote Approval · 3× (active care) · QBO Export Testing · Pre-Approval Payment Export",was:"",note:"QBO test after One Thread; Pre-Approval confirm w/ Kelly",scripts:[]},
- {ph:"Art & Approval",comms:"silent",badge:"RENAME",name:"Art — In-House (Luis)",was:"Art In-House",note:"pre-approval art — WHERE visible on board (2-split, Holly)",scripts:[]},
- {ph:"Art & Approval",comms:"silent",badge:"RENAME",name:"Art — Seps.io",was:"Art (Seps.io)",note:"pre-approval art; Digitizing folds in here",scripts:[]},
- {ph:"Art & Approval",comms:"silent",badge:"NEW",name:"Files Being Reworked — Seps.io",was:"",note:"POST-payment: production files need redo → back to Seps.io",scripts:[]},
- {ph:"Art & Approval",comms:"customer",badge:"KEEP",name:"Art/Order — Ready for Approval (Terms Only)",was:"",note:"art + approve button into thread",scripts:["^ot_terms_art_approval"]},
- {ph:"Art & Approval",comms:"customer",badge:"KEEP",name:"Art/Invoice Approval Sent (+ Follow Up)",was:"",note:"per lane: drafts vs auto-send",scripts:["^ot_art_invoice_approval"]},
- {ph:"Art & Approval",comms:"customer",badge:"KEEP",name:"Revised Art/Invoice Approval Sent",was:"",note:"drop the ALL-CAPS 'REVISED'",scripts:["^ot_revised_art_invoice_approval"]},
- {ph:"Art & Approval",comms:"internal",badge:"SPLIT",name:"Art/Invoice Declined — Update Needed / — Lost",was:"🚫 Art / Invoice Declined",note:"same 2-flavor split as quotes",scripts:["^ot_art_declined_alert"]},
- {ph:"Art & Approval",comms:"customer",badge:"KEEP",name:"Approved — Awaiting Payment",was:"",note:"pay button into thread",scripts:["^ot_pay_button_touch"]},
- {ph:"Art & Approval",comms:"silent",badge:"NEW",name:"Approved — No Payment Required",was:"",note:"terms customers; auto → Paid/Terms",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"RENAME",name:"Paid / Terms — Ready for Production",was:"Paid / Terms - Blanks To Order",note:"means CONVERTED; fires NOTHING; QB export starts here",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"internal",badge:"NEW",name:"Back to PM — Update Needed",was:"",note:"something was flagged; PM updates, then it returns to the right status",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"NEW",name:"Need to Order Blanks",was:"",note:"apparel pre-action (old 'Blanks To Order' reborn)",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"NEW",name:"Need to Send PO (Outsourced)",was:"",note:"#out pre-action",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"internal",badge:"RENAME",name:"Bandanas to Pull from In-House Inventory",was:"Blanks to Pull from Inventory",note:"SCHEDULER TRIGGER + Email Malia QC",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"internal",badge:"NEW",name:"Bandanas to Pull from In-House Inventory — Ship to Bear Designz",was:"",note:"pull bandana blanks + ship to Bear (we ship to Bear on order now)",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"internal",badge:"RENAME",name:"Awaiting Blanks — Ordered",was:"Awaiting Blanks",note:"SCHEDULER TRIGGER + Email Malia QC · ⚠ Jean conflict",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"NEW",name:"Awaiting DTF Transfers",was:"",note:"named material hold",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"NEW",name:"Awaiting DTF Transfers — Blanks Received",was:"",note:"DTF blind-spot: blanks in, transfers still out",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"NEW",name:"Awaiting DTF Transfers — Blanks Counted / Ready for Production",was:"",note:"2nd DTF sub-status — blanks counted, transfers still out",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"internal",badge:"NEW",name:"QC Passed (standalone)",was:"replaces both FOH Check statuses (they die)",note:"bounce-back: logs QC, autofills PlanetOps, returns to prior status; #in→scheduler+Luis / #out→PO",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"KILL",name:"Rush — Scheduled, QC Pending",was:"",note:"handled via cadence compression (D12), not a status",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"KILL",name:"In Prep — Films & Screens",was:"",note:"simultaneous with blanks arrival — a status would lie",scripts:[]},
- {ph:"Paid & Pre-Production",comms:"silent",badge:"KEEP",name:"Blanks Partially Received / Received / Counted In",was:"",note:"all distinct; safety scheduler-add on Counted In",scripts:[]},
- {ph:"Production Floor",comms:"silent",badge:"NEW",name:"Next Up (Queued for Production)",was:"",note:"'next up to bat' — the app queues it + the team sees what's next",scripts:[]},
- {ph:"Production Floor",comms:"silent",badge:"KEEP",name:"In Production",was:"🚧 In Production",note:"= ACTIVELY being produced (Holly clarified)",scripts:[]},
- {ph:"Production Floor",comms:"silent",badge:"KEEP",name:"Production On Hold · Ready for Post · In Post · Ready to Package",was:"",note:"one owner each; all customer-silent",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"NEW",name:"PO Sent — Awaiting Vendor Acceptance (Outsourced)",was:"",note:"soft follow-up if silent",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"RENAME",name:"Vendor Producing (Outsourced)",was:"Awaiting Goods (Outsourced – In Production)",note:"hands-off #out (promo, rarely apparel); returns just for QC",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"NEW",name:"Ready for Pickup at Vendor (Outsourced)",was:"",note:"sticky until pickup",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"NEW",name:"Out for Service (Outsourced — Sewing)",was:"",note:"Tina; needs pickup/ship coordination",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"NEW",name:"Out for Service (Outsourced — Embroidery)",was:"",note:"Bear Designz; needs coordination",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"NEW",name:"Out for Service (Outsourced — Screen Print)",was:"",note:"Bear Designz 6+ color; needs coordination",scripts:[]},
- {ph:"Outsourced lane",comms:"internal",badge:"KEEP",name:"In Transit to PA (Outsourced)",was:"",note:"Jean notice; app holds arrival date",scripts:[]},
- {ph:"Outsourced lane",comms:"silent",badge:"KEEP",name:"Goods Partially Received / Received / Counted In — QC Completed",was:"",note:"all distinct",scripts:[]},
- {ph:"Fulfillment & Done",comms:"customer",badge:"KEEP",name:"Order Ready for Pickup",was:"",note:"notice into thread: ready to pick up (hours + invoice)",scripts:["^ot_ready_for_pickup_notice"]},
- {ph:"Fulfillment & Done",comms:"customer",badge:"KEEP",name:"Order Ready for Delivery",was:"",note:"notice into thread: asks customer for delivery date/time",scripts:["^ot_ready_for_delivery_notice"]},
- {ph:"Fulfillment & Done",comms:"customer",badge:"KEEP",name:"Order Shipped",was:"",note:"tracking# in body; auto-advances to Delivered",scripts:["^ot_shipped_tracking"]},
- {ph:"Fulfillment & Done",comms:"customer",badge:"KEEP",name:"Delivered / Picked Up",was:"",note:"the SINGLE terminal; review request fires",scripts:[]},
- {ph:"Fulfillment & Done",comms:"internal",badge:"KEEP",name:"Waiting for ShipBob Labels",was:"",note:"UN-killed; DWC internal flow",scripts:[]},
- {ph:"Fulfillment & Done",comms:"silent",badge:"KILL",name:"Need it Again?",was:"🚀 Need it Again?",note:"retention runs off Streak now; 96 live orders → Delivered",scripts:[]},
- {ph:"Fulfillment & Done",comms:"silent",badge:"KEEP",name:"Archived Quote / Archived Options",was:"",note:"dead-quote terminals",scripts:[]},
+/* ─── STATUS SIMULATOR (live training tool) ─── */
+// Generated 2026-07-30. Generated from live_statuses_FINAL_2026-07-27.json, build_status_reference.py REF, composer_workflow.json Config.NUDGE_TRIGGERS, resolver.js, taxonomy_mock.html.
+const SIM_FALLBACK_STATUSES = [
+  {
+    "id": "390316",
+    "name": "Quote",
+    "type": "QUOTE",
+    "color": "#6FB6F2"
+  },
+  {
+    "id": "548869",
+    "name": "🗣️ In Conversation",
+    "type": "QUOTE",
+    "color": "#6FB6F2"
+  },
+  {
+    "id": "548870",
+    "name": "⏳ Waiting on Customer",
+    "type": "QUOTE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548871",
+    "name": "🎾 In Our Court",
+    "type": "QUOTE",
+    "color": "#6FB6F2"
+  },
+  {
+    "id": "548872",
+    "name": "📌 Follow-Up Pre-Quote (Streak Task)",
+    "type": "QUOTE",
+    "color": "#E84FA8"
+  },
+  {
+    "id": "548006",
+    "name": "🛒 Sample Pack – Prep & Ship",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "548873",
+    "name": "🛒 Sample Pack Purchased → Samples Sent",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "428338",
+    "name": "📮 Quote Approval - Drafted, Ready To Send",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "548874",
+    "name": "📮 Quote 1st Check In - Drafted, Ready To Send",
+    "type": "QUOTE",
+    "color": "#1E7BD1"
+  },
+  {
+    "id": "548875",
+    "name": "📮 Quote 2nd Check In - Drafted, Ready To Send",
+    "type": "QUOTE",
+    "color": "#1663B0"
+  },
+  {
+    "id": "548876",
+    "name": "📮 Quote 3rd Check In - Drafted, Ready To Send",
+    "type": "QUOTE",
+    "color": "#0F4C8C"
+  },
+  {
+    "id": "548987",
+    "name": "📮 Quote Revised - Drafted, Ready To Send",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "390317",
+    "name": "🚀 Quote Approval - Auto Sent ",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "433065",
+    "name": "🚀 Quote 1st Check In - Auto Sent ",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "433066",
+    "name": "🚀 Quote 2nd Check In - Auto Sent ",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "433067",
+    "name": "🚀 Quote 3rd Check In - Auto Sent",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "427399",
+    "name": "🚀Quote Revised - Auto Sent ",
+    "type": "QUOTE",
+    "color": "#9AADBD"
+  },
+  {
+    "id": "548877",
+    "name": "📌 Quote Sent Manually (Streak Task)",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "427398",
+    "name": "✏️ Quote Declined — Update Needed",
+    "type": "QUOTE",
+    "color": "#E2445C"
+  },
+  {
+    "id": "548878",
+    "name": "❌ Quote Declined — Lost",
+    "type": "QUOTE",
+    "color": "#AEA38E"
+  },
+  {
+    "id": "390318",
+    "name": "✅ Quote Approved — Ready for Mockup",
+    "type": "QUOTE",
+    "color": "#00C875"
+  },
+  {
+    "id": "427405",
+    "name": "🎨 Art — In-House",
+    "type": "QUOTE",
+    "color": "#C5A9EF"
+  },
+  {
+    "id": "427406",
+    "name": "🎨 Art — Seps.io",
+    "type": "QUOTE",
+    "color": "#C5A9EF"
+  },
+  {
+    "id": "548879",
+    "name": "🖼️ Mockup Options — Awaiting Feedback",
+    "type": "QUOTE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548880",
+    "name": "🛠️ Files Being Reworked — Seps.io",
+    "type": "QUOTE",
+    "color": "#C5A9EF"
+  },
+  {
+    "id": "464181",
+    "name": "Pre-Approval Payment Export",
+    "type": "QUOTE",
+    "color": "#C9C4BA"
+  },
+  {
+    "id": "427878",
+    "name": "📮→️🚀 Art/Order — Ready for Approval (Terms Only) ",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "390319",
+    "name": "📮→️🚀 Art / Invoice Approval Sent",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "483858",
+    "name": "📮→️🚀 Follow Up — Art / Invoice Approval Sent",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "427879",
+    "name": "📮→️🚀 Revised Art / Invoice Approval Sent ",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "427880",
+    "name": "✏️ Art/Invoice Declined — Update Needed ",
+    "type": "QUOTE",
+    "color": "#E2445C"
+  },
+  {
+    "id": "548881",
+    "name": "❌ Art/Invoice Declined — Lost",
+    "type": "QUOTE",
+    "color": "#AEA38E"
+  },
+  {
+    "id": "390320",
+    "name": "💰 Approved — Awaiting Payment",
+    "type": "INVOICE",
+    "color": "#F9D724"
+  },
+  {
+    "id": "548882",
+    "name": "✅ Approved — No Payment Required",
+    "type": "INVOICE",
+    "color": "#00C875"
+  },
+  {
+    "id": "427882",
+    "name": "▶️ Paid / Terms — Ready for Production",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "548883",
+    "name": "\t⚠️ Back to PM — Update Needed",
+    "type": "INVOICE",
+    "color": "#E2445C"
+  },
+  {
+    "id": "548884",
+    "name": "📝 Need to Order Apparel",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548885",
+    "name": "🔻 Need to Order Bandanas",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548886",
+    "name": "🔻📦 Bandanas Pull & Ship (Bear Designz)",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "428346",
+    "name": "🏠 Bandanas to Pull   from In-House Inventory",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "454916",
+    "name": "⏳ Awaiting Blanks — Ordered",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "428347",
+    "name": "📥 Blanks Partially Received ",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "427884",
+    "name": "📥 Blanks Received - Not Checked In",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "428348",
+    "name": "🔢 Blanks Counted In — Ready for Production",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "548888",
+    "name": "🚛 Awaiting DTF Transfers",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548889",
+    "name": "🚛 Awaiting DTF Transfers — Blanks Received",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548890",
+    "name": "🚛 Awaiting DTF Transfers — Blanks Counted / Ready",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548891",
+    "name": "✅ QC Passed ",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "548892",
+    "name": "🔜 Next Up (Queued for Production)",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "390322",
+    "name": "🖨️ In Production",
+    "type": "INVOICE",
+    "color": "#9C69E7"
+  },
+  {
+    "id": "390328",
+    "name": "⏸️ Production On Hold",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "427885",
+    "name": "➡️ Ready for Post Production ",
+    "type": "INVOICE",
+    "color": "#9C69E7"
+  },
+  {
+    "id": "483386",
+    "name": "🧵 In Post Production",
+    "type": "INVOICE",
+    "color": "#9C69E7"
+  },
+  {
+    "id": "390323",
+    "name": "📦 Production Completed — Ready to Package",
+    "type": "INVOICE",
+    "color": "#9C69E7"
+  },
+  {
+    "id": "548887",
+    "name": "📤 Need to Send PO (Outsourced)",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548893",
+    "name": "📤 PO Sent — In Production (Outsourced)",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "548985",
+    "name": "📍 Ready at Vendor (Outsourced)",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "548894",
+    "name": "🪡 Out for Service (Outsourced — Sewing)",
+    "type": "INVOICE",
+    "color": "#9AADBD"
+  },
+  {
+    "id": "548895",
+    "name": "🧶 Out for Service (Outsourced — Embroidery)",
+    "type": "INVOICE",
+    "color": "#9AADBD"
+  },
+  {
+    "id": "548896",
+    "name": "🖌️ Out for Service (Outsourced — Screen Print)",
+    "type": "INVOICE",
+    "color": "#9AADBD"
+  },
+  {
+    "id": "541429",
+    "name": "🚚 In Transit to PA (Outsourced)",
+    "type": "INVOICE",
+    "color": "#9AADBD"
+  },
+  {
+    "id": "467925",
+    "name": "📥 Goods Partially Received ",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "467926",
+    "name": "📥 Goods Received",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "467927",
+    "name": "🔢 Goods Counted In — Ready for Post Production ",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
+    "id": "485579",
+    "name": "🏷️ Production Completed — Waiting for ShipBob ",
+    "type": "INVOICE",
+    "color": "#F79A45"
+  },
+  {
+    "id": "390324",
+    "name": "🛍️ Order Ready for Pickup",
+    "type": "INVOICE",
+    "color": "#394759"
+  },
+  {
+    "id": "427877",
+    "name": "🚙 Order Ready for Delivery",
+    "type": "INVOICE",
+    "color": "#394759"
+  },
+  {
+    "id": "390325",
+    "name": "✈️ Order Shipped",
+    "type": "INVOICE",
+    "color": "#394759"
+  },
+  {
+    "id": "431010",
+    "name": "🏁 Delivered / Picked Up",
+    "type": "INVOICE",
+    "color": "#00C875"
+  },
+  {
+    "id": "427400",
+    "name": "🗄️ Archived Quote",
+    "type": "QUOTE",
+    "color": "#AEA38E"
+  },
+  {
+    "id": "428340",
+    "name": " 📁 Archived Options 📁",
+    "type": "QUOTE",
+    "color": "#AEA38E"
+  }
 ];
-const SIM_TPHASES=["Quote & Chase","Art & Approval","Paid & Pre-Production","Production Floor","Outsourced lane","Fulfillment & Done"];
-const SIM_COMMS={customer:{ic:"📨",lab:"Customer touch",col:"#065f46",bg:"#d1fae5"},timed:{ic:"⏱",lab:"Timed",col:"#92400e",bg:"#fef3c7"},internal:{ic:"❗",lab:"Internal",col:"#991b1b",bg:"#fee2e2"},silent:{ic:"🔇",lab:"Silent",col:"#475569",bg:"#e2e8f0"}};
-const SIM_BADGE={NEW:"#6a1b9a",RENAME:"#1565c0",KEEP:"#2e7d32",SPLIT:"#00838f",KILL:"#c62828",RETIRE:"#8d6e63"};
-function simStampNote(comms){
-  if(comms==="customer") return "Per the lane: Auto-Chase auto-sends it into the customer thread; Concierge lands a ready-to-send draft in the rep's inbox plus a Chat nudge.";
-  if(comms==="timed") return "Fires later on a clock (waiting bumps, sample arrival) once the cadence engine is built — not the instant this status is set.";
-  return "";
+
+const SIM_OVERLAY = {
+  "390316": {
+    "id": "390316",
+    "phase": "Quote & Chase",
+    "description": "A fresh inquiry or quote being built.",
+    "flavor": "nudge",
+    "automation": "None — the manual starting point.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "QUOTE_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "3 business days of no movement → the owner gets nudged.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "New quote has been untouched for 3 business days.",
+        "suggestion": "Big one. Draft's ready below — give Summit a quick call, then send.",
+        "buttons": [
+          {
+            "label": "Review draft",
+            "kind": "link"
+          },
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "390317": {
+    "id": "390317",
+    "phase": "Quote & Chase",
+    "description": "Quote approval sent — the auto-chase starts here.",
+    "flavor": "customer",
+    "automation": "automations.io #1150 auto-sends the quote + approval request. 🔴 never delete.",
+    "scriptCodes": [
+      "^ot_quote_sent"
+    ]
+  },
+  "390318": {
+    "id": "390318",
+    "phase": "Quote & Chase",
+    "description": "Customer approved the quote.",
+    "flavor": "internal",
+    "automation": "Printavo auto-moves here on approval. One Thread confirmation.",
+    "scriptCodes": [
+      "^ot_quote_approved_confirmation"
+    ]
+  },
+  "390319": {
+    "id": "390319",
+    "phase": "Art & Approval",
+    "description": "Approval + invoice sent to the customer.",
+    "flavor": "customer",
+    "automation": "Native: request approval + email. Draft → 10-min auto-send.",
+    "scriptCodes": [
+      "^ot_art_invoice_approval"
+    ]
+  },
+  "390320": {
+    "id": "390320",
+    "phase": "Art & Approval",
+    "description": "Approved; waiting on payment.",
+    "flavor": "customer",
+    "automation": "Native: request 100% + email (no-terms). Pay nudge +2 h if still unpaid.",
+    "scriptCodes": [
+      "^ot_pay_button_touch"
+    ]
+  },
+  "390322": {
+    "id": "390322",
+    "phase": "Production Floor",
+    "description": "On the press / being decorated.",
+    "flavor": "internal",
+    "automation": "Auto-set by the 'printing started' work-step.",
+    "scriptCodes": []
+  },
+  "390323": {
+    "id": "390323",
+    "phase": "Production Floor",
+    "description": "Made; ready to pack.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "390324": {
+    "id": "390324",
+    "phase": "Fulfillment & Done",
+    "description": "Ready for customer pickup.",
+    "flavor": "customer",
+    "automation": "Native: email customer + request 100% payment.",
+    "scriptCodes": [
+      "^ot_ready_for_pickup_notice"
+    ]
+  },
+  "390325": {
+    "id": "390325",
+    "phase": "Fulfillment & Done",
+    "description": "Shipped.",
+    "flavor": "customer",
+    "automation": "Native: email customer + request 100% payment.",
+    "scriptCodes": [
+      "^ot_shipped_tracking"
+    ]
+  },
+  "390328": {
+    "id": "390328",
+    "phase": "Production Floor",
+    "description": "Paused.",
+    "flavor": "internal",
+    "automation": "Auto-set by the 'printing pause' work-step.",
+    "scriptCodes": []
+  },
+  "427398": {
+    "id": "427398",
+    "phase": "Quote & Chase",
+    "description": "Customer declined; needs a revision.",
+    "flavor": "nudge",
+    "automation": "Printavo auto-moves here on decline. Internal PM alert.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "DECLINED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Customer declined and this account still needs a human save attempt.",
+        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
+        "buttons": [
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "427399": {
+    "id": "427399",
+    "phase": "Quote & Chase",
+    "description": "A revised quote, auto-sent, that re-enters the chase. NEW name for 427399. 🔴 never delete (chase start-trigger).",
+    "flavor": "customer",
+    "automation": "Native emails the revised quote. Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.”",
+    "scriptCodes": [
+      "^ot_quote_revised"
+    ]
+  },
+  "427400": {
+    "id": "427400",
+    "phase": "Fulfillment & Done",
+    "description": "Dead-quote storage.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "427405": {
+    "id": "427405",
+    "phase": "Art & Approval",
+    "description": "Artwork being created in-house.",
+    "flavor": "internal",
+    "automation": "📨 Native email to Luis on entry.",
+    "scriptCodes": []
+  },
+  "427406": {
+    "id": "427406",
+    "phase": "Art & Approval",
+    "description": "Artwork outsourced to Seps.io.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "427877": {
+    "id": "427877",
+    "phase": "Fulfillment & Done",
+    "description": "Ready to deliver.",
+    "flavor": "customer",
+    "automation": "Native: email customer + request 100% payment.",
+    "scriptCodes": [
+      "^ot_ready_for_delivery_notice"
+    ]
+  },
+  "427878": {
+    "id": "427878",
+    "phase": "Art & Approval",
+    "description": "Approval request for terms customers.",
+    "flavor": "nudge",
+    "automation": "Native: request approval. One Thread drafts, then auto-sends in 10 min if untouched.",
+    "scriptCodes": [
+      "^ot_terms_art_approval"
+    ],
+    "nudge": {
+      "trigger": "APPROVAL_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Approval draft is ready for PM review.",
+        "suggestion": "Approval email's drafted. Review and send.",
+        "buttons": [
+          {
+            "label": "Open draft",
+            "kind": "link"
+          },
+          {
+            "label": "Edit",
+            "kind": "link"
+          },
+          {
+            "label": "Don't send",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "427879": {
+    "id": "427879",
+    "phase": "Art & Approval",
+    "description": "A revised approval sent.",
+    "flavor": "customer",
+    "automation": "Native: request approval + email. Draft → 10-min auto-send.",
+    "scriptCodes": [
+      "^ot_revised_art_invoice_approval"
+    ]
+  },
+  "427880": {
+    "id": "427880",
+    "phase": "Art & Approval",
+    "description": "Art or invoice declined; needs an update.",
+    "flavor": "nudge",
+    "automation": "Printavo auto-moves here on decline. Internal PM alert.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "DECLINED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Customer declined and this account still needs a human save attempt.",
+        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
+        "buttons": [
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "427882": {
+    "id": "427882",
+    "phase": "Paid & Pre-Production",
+    "description": "Paid; ready to build.",
+    "flavor": "nudge",
+    "automation": "5 native automations at once: FoH email (Holly + Malia), Jean (blanks), Luis (prep), daily-sales tracker, and adds the job to the Power Scheduler.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "ORDER_CONVERTED",
+      "chatKey": "WON",
+      "chatName": "Won",
+      "chatEmoji": "💰",
+      "chatColor": "#0FB477",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Order entered the approved/paid production-ready moment.",
+        "suggestion": "Approved and paid — it is a real order now. Prep for production: confirm blanks, art, and due date. Priority build — flag it in the schedule.",
+        "buttons": [
+          {
+            "label": "Open in Printavo",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "427884": {
+    "id": "427884",
+    "phase": "Paid & Pre-Production",
+    "description": "Blanks arrived but not yet counted in.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "427885": {
+    "id": "427885",
+    "phase": "Production Floor",
+    "description": "Ready for finishing.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "428338": {
+    "id": "428338",
+    "phase": "Quote & Chase",
+    "description": "First quote send — the draft is ready; the PM reviews and sends it.",
+    "flavor": "nudge",
+    "automation": "Native: attaches the approve/pay button. One Thread drafts the quote email.",
+    "scriptCodes": [
+      "^ot_quote_sent"
+    ],
+    "nudge": {
+      "trigger": "QUOTE_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Quote draft is ready for PM review.",
+        "suggestion": "Quote's drafted. Give it a personal read, then send.",
+        "buttons": [
+          {
+            "label": "Open draft",
+            "kind": "link"
+          },
+          {
+            "label": "Edit",
+            "kind": "link"
+          },
+          {
+            "label": "Don't send",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "428340": {
+    "id": "428340",
+    "phase": "Fulfillment & Done",
+    "description": "Archived quote-option storage.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "428346": {
+    "id": "428346",
+    "phase": "Paid & Pre-Production",
+    "description": "Stock confirmed; pull bandanas and decorate in-house.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "428347": {
+    "id": "428347",
+    "phase": "Paid & Pre-Production",
+    "description": "Some blanks have arrived.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "428348": {
+    "id": "428348",
+    "phase": "Paid & Pre-Production",
+    "description": "Counted and ready.",
+    "flavor": "internal",
+    "automation": "Auto-set by the 'blanks completed' work-step.",
+    "scriptCodes": []
+  },
+  "431010": {
+    "id": "431010",
+    "phase": "Fulfillment & Done",
+    "description": "Complete.",
+    "flavor": "customer",
+    "automation": "Kicks a review request — #annual accounts only.",
+    "scriptCodes": [
+      "^ot_review_request"
+    ]
+  },
+  "433065": {
+    "id": "433065",
+    "phase": "Quote & Chase",
+    "description": "Automatic follow-ups on the timer.",
+    "flavor": "customer",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "scriptCodes": [
+      "^ot_chase_2"
+    ]
+  },
+  "433066": {
+    "id": "433066",
+    "phase": "Quote & Chase",
+    "description": "Automatic follow-ups on the timer.",
+    "flavor": "customer",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "scriptCodes": [
+      "^ot_chase_3"
+    ]
+  },
+  "433067": {
+    "id": "433067",
+    "phase": "Quote & Chase",
+    "description": "Automatic follow-ups on the timer.",
+    "flavor": "customer",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "scriptCodes": [
+      "^ot_chase_final"
+    ]
+  },
+  "454916": {
+    "id": "454916",
+    "phase": "Paid & Pre-Production",
+    "description": "Blanks ordered, waiting on arrival.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "464181": {
+    "id": "464181",
+    "phase": "Outside Customer Flow",
+    "description": "The sanctioned QBO pre-payment export lever.",
+    "flavor": "internal",
+    "automation": "Kept — load-bearing for QuickBooks. Do not touch.",
+    "scriptCodes": []
+  },
+  "467925": {
+    "id": "467925",
+    "phase": "Outsourced lane",
+    "description": "Some outsourced goods arrived.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "467926": {
+    "id": "467926",
+    "phase": "Outsourced lane",
+    "description": "Outsourced goods arrived.",
+    "flavor": "internal",
+    "automation": "Native email to the order owner.",
+    "scriptCodes": []
+  },
+  "467927": {
+    "id": "467927",
+    "phase": "Outsourced lane",
+    "description": "Counted; ready for finishing.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "483386": {
+    "id": "483386",
+    "phase": "Production Floor",
+    "description": "In finishing.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "483858": {
+    "id": "483858",
+    "phase": "Art & Approval",
+    "description": "Follow-up on a pending approval.",
+    "flavor": "customer",
+    "automation": "Native: email customer + PM. Draft → 10-min auto-send.",
+    "scriptCodes": [
+      "^ot_art_invoice_followup"
+    ]
+  },
+  "485579": {
+    "id": "485579",
+    "phase": "Fulfillment & Done",
+    "description": "Done; awaiting ShipBob fulfillment.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "541429": {
+    "id": "541429",
+    "phase": "Outsourced lane",
+    "description": "Goods shipping back to us.",
+    "flavor": "internal",
+    "automation": "📨 Native email to Jean.",
+    "scriptCodes": []
+  },
+  "548006": {
+    "id": "548006",
+    "phase": "Quote & Chase",
+    "description": "A sample-pack order to prep and ship.",
+    "flavor": "customer",
+    "automation": "Auto-sends the sample confirmation.",
+    "scriptCodes": [
+      "^ot_sample_shipped"
+    ]
+  },
+  "548869": {
+    "id": "548869",
+    "phase": "Quote & Chase",
+    "description": "Live back-and-forth with the customer.",
+    "flavor": "nudge",
+    "automation": "Silent while active; a Stale nudge fires after 3 business days of quiet.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "IN_CONVERSATION_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "3 business days of no customer reply → the owner gets nudged.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Live conversation has been quiet for 3 business days.",
+        "suggestion": "Chat with Summit stalled. Draft's ready — a call would help too.",
+        "buttons": [
+          {
+            "label": "Review draft",
+            "kind": "link"
+          },
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548870": {
+    "id": "548870",
+    "phase": "Quote & Chase",
+    "description": "Customer asked for time — the ball is on their side.",
+    "flavor": "internal",
+    "automation": "Waiting-bump ladder +3 / +5 / +7 working days, then parks.",
+    "scriptCodes": []
+  },
+  "548871": {
+    "id": "548871",
+    "phase": "Quote & Chase",
+    "description": "The ball is on us to move it forward.",
+    "flavor": "internal",
+    "automation": "Stale nudge after 3 business days.",
+    "scriptCodes": []
+  },
+  "548872": {
+    "id": "548872",
+    "phase": "Quote & Chase",
+    "description": "PM has a task to finish before a quote goes out.",
+    "flavor": "nudge",
+    "automation": "PM nudge on the set date / recurring every 7 bd.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "FOLLOW_UP_DUE",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "PM follow-up date is due; repeats every 7 business days until the owner moves it.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "PM-set follow-up is due.",
+        "suggestion": "Your follow-up on Summit Trading Co is due. Do it or move the order.",
+        "buttons": [
+          {
+            "label": "Open",
+            "kind": "link"
+          },
+          {
+            "label": "Snooze",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548873": {
+    "id": "548873",
+    "phase": "Quote & Chase",
+    "description": "Samples have shipped to the buyer.",
+    "flavor": "customer",
+    "automation": "Sample check-in ladder +3 / +2 / +5 bd drafted to the PM; 3rd no-reply → chat Shara.",
+    "scriptCodes": [
+      "^ot_sample_arrival_checkin"
+    ]
+  },
+  "548874": {
+    "id": "548874",
+    "phase": "Quote & Chase",
+    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "flavor": "nudge",
+    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "scriptCodes": [
+      "^ot_chase_2"
+    ],
+    "nudge": {
+      "trigger": "QUOTE_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Quote draft is ready for PM review.",
+        "suggestion": "Quote's drafted. Give it a personal read, then send.",
+        "buttons": [
+          {
+            "label": "Open draft",
+            "kind": "link"
+          },
+          {
+            "label": "Edit",
+            "kind": "link"
+          },
+          {
+            "label": "Don't send",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548875": {
+    "id": "548875",
+    "phase": "Quote & Chase",
+    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "flavor": "nudge",
+    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "scriptCodes": [
+      "^ot_chase_3"
+    ],
+    "nudge": {
+      "trigger": "QUOTE_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Quote draft is ready for PM review.",
+        "suggestion": "Quote's drafted. Give it a personal read, then send.",
+        "buttons": [
+          {
+            "label": "Open draft",
+            "kind": "link"
+          },
+          {
+            "label": "Edit",
+            "kind": "link"
+          },
+          {
+            "label": "Don't send",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548876": {
+    "id": "548876",
+    "phase": "Quote & Chase",
+    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "flavor": "nudge",
+    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "scriptCodes": [
+      "^ot_chase_final"
+    ],
+    "nudge": {
+      "trigger": "QUOTE_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Quote draft is ready for PM review.",
+        "suggestion": "Quote's drafted. Give it a personal read, then send.",
+        "buttons": [
+          {
+            "label": "Open draft",
+            "kind": "link"
+          },
+          {
+            "label": "Edit",
+            "kind": "link"
+          },
+          {
+            "label": "Don't send",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548877": {
+    "id": "548877",
+    "phase": "Quote & Chase",
+    "description": "PM sent a quote outside the flow; a Streak task tracks the follow-up.",
+    "flavor": "internal",
+    "automation": "PM nudge.",
+    "scriptCodes": []
+  },
+  "548878": {
+    "id": "548878",
+    "phase": "Quote & Chase",
+    "description": "Declined and dead.",
+    "flavor": "nudge",
+    "automation": "Nudge system auto-archives T2/T3; T1 / Retention get a call card.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "DECLINED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Customer declined and this account still needs a human save attempt.",
+        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
+        "buttons": [
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548879": {
+    "id": "548879",
+    "phase": "Art & Approval",
+    "description": "Mockup sent, waiting on customer feedback.",
+    "flavor": "nudge",
+    "automation": "Stale nudge on day 5.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "MOCKUP_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "5 business days of no movement → the owner gets nudged.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "No customer feedback on the mockup by day 5.",
+        "suggestion": "No word on the mockup in 5 days. Call Summit.",
+        "buttons": [
+          {
+            "label": "Review draft",
+            "kind": "link"
+          },
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548880": {
+    "id": "548880",
+    "phase": "Art & Approval",
+    "description": "Files being fixed by Seps.io.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548881": {
+    "id": "548881",
+    "phase": "Art & Approval",
+    "description": "Declined and dead.",
+    "flavor": "nudge",
+    "automation": "Nudge system auto-archives (non-retention).",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "DECLINED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Customer declined and this account still needs a human save attempt.",
+        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
+        "buttons": [
+          {
+            "label": "Call",
+            "kind": "link"
+          },
+          {
+            "label": "Open",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548882": {
+    "id": "548882",
+    "phase": "Art & Approval",
+    "description": "Approved, no payment needed (terms / DWC).",
+    "flavor": "nudge",
+    "automation": "None — moves straight to production.",
+    "scriptCodes": [],
+    "nudge": {
+      "trigger": "ORDER_CONVERTED",
+      "chatKey": "WON",
+      "chatName": "Won",
+      "chatEmoji": "💰",
+      "chatColor": "#0FB477",
+      "ruleText": "On entry, the owner gets a draft/nudge card.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Order entered the approved/paid production-ready moment.",
+        "suggestion": "Approved and paid — it is a real order now. Prep for production: confirm blanks, art, and due date. Priority build — flag it in the schedule.",
+        "buttons": [
+          {
+            "label": "Open in Printavo",
+            "kind": "link"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false
+      }
+    }
+  },
+  "548883": {
+    "id": "548883",
+    "phase": "Paid & Pre-Production",
+    "description": "Kicked back to the PM for a fix.",
+    "flavor": "internal",
+    "automation": "Internal PM alert.",
+    "scriptCodes": []
+  },
+  "548884": {
+    "id": "548884",
+    "phase": "Paid & Pre-Production",
+    "description": "Apparel blanks to order (apparel is always ordered).",
+    "flavor": "silent",
+    "automation": "None — PM action.",
+    "scriptCodes": []
+  },
+  "548885": {
+    "id": "548885",
+    "phase": "Paid & Pre-Production",
+    "description": "In-house bandana stock is short; order more.",
+    "flavor": "silent",
+    "automation": "None — PM action.",
+    "scriptCodes": []
+  },
+  "548886": {
+    "id": "548886",
+    "phase": "Paid & Pre-Production",
+    "description": "Pull bandanas from stock and ship to Bear to decorate.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548887": {
+    "id": "548887",
+    "phase": "Paid & Pre-Production",
+    "description": "An outsourced order that needs its purchase order sent to the vendor before production can start.",
+    "flavor": "internal",
+    "automation": "Internal working state — no customer email, no notification.",
+    "scriptCodes": []
+  },
+  "548888": {
+    "id": "548888",
+    "phase": "Paid & Pre-Production",
+    "description": "Waiting on DTF transfers.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548889": {
+    "id": "548889",
+    "phase": "Paid & Pre-Production",
+    "description": "DTF pending, blanks in.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548890": {
+    "id": "548890",
+    "phase": "Paid & Pre-Production",
+    "description": "DTF pending, blanks counted.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548891": {
+    "id": "548891",
+    "phase": "Paid & Pre-Production",
+    "description": "Quality check passed.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548892": {
+    "id": "548892",
+    "phase": "Production Floor",
+    "description": "Queued to run next.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548893": {
+    "id": "548893",
+    "phase": "Outsourced lane",
+    "description": "PO sent; the vendor is producing.",
+    "flavor": "silent",
+    "automation": "None — tracked as a Streak task.",
+    "scriptCodes": []
+  },
+  "548894": {
+    "id": "548894",
+    "phase": "Outsourced lane",
+    "description": "Out at a sewing vendor.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548895": {
+    "id": "548895",
+    "phase": "Outsourced lane",
+    "description": "Out at an embroidery vendor.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548896": {
+    "id": "548896",
+    "phase": "Outsourced lane",
+    "description": "Out at a screen-print vendor.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548985": {
+    "id": "548985",
+    "phase": "Outsourced lane",
+    "description": "Done at the vendor; awaiting our local pickup.",
+    "flavor": "silent",
+    "automation": "None.",
+    "scriptCodes": []
+  },
+  "548987": {
+    "id": "548987",
+    "phase": "Quote & Chase",
+    "description": "A revised quote (e.g. a new quantity) drafted for the PM to send. NEW.",
+    "flavor": "customer",
+    "automation": "Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.”",
+    "scriptCodes": [
+      "^ot_quote_revised"
+    ]
+  }
+};
+
+const SIM_PHASES=["Quote & Chase","Art & Approval","Paid & Pre-Production","Production Floor","Outsourced lane","Fulfillment & Done","Outside Customer Flow"];
+const SIM_FLAVOR={customer:{ic:"📨",lab:"Customer email",col:"#065f46",bg:"#d1fae5"},nudge:{ic:"🔔",lab:"PM nudge",col:"#1d4ed8",bg:"#dbeafe"},internal:{ic:"⚙️",lab:"Internal",col:"#475569",bg:"#e2e8f0"},silent:{ic:"🔇",lab:"No notification",col:"#475569",bg:"#e2e8f0"},start:{ic:"🚀",lab:"Start trigger",col:"#991b1b",bg:"#fee2e2"}};
+const SIM_STATUS_PROXY="https://primary-production-079f9.up.railway.app/webhook/printavo-proxy";
+const SIM_STATUS_CACHE="cc_sim_statuses_v2";
+const SIM_CACHE_MS=60*60*1000;
+let SIM_STATUS_STATE=null;
+function simOrderMap(){ const m={}; SIM_FALLBACK_STATUSES.forEach((s,i)=>m[String(s.id)]=i); return m; }
+function simStatusColor(s){ return /^#[0-9A-Fa-f]{6}$/.test(String(s&&s.color||"")) ? s.color : "#C9C4BA"; }
+function simStatusPhase(s){ return (SIM_OVERLAY[String(s.id)]&&SIM_OVERLAY[String(s.id)].phase) || (String(s.type)==="QUOTE"?"Quote & Chase":"Paid & Pre-Production"); }
+function simParseCache(){
+  try{ const raw=sessionStorage.getItem(SIM_STATUS_CACHE); if(!raw) return null; const parsed=JSON.parse(raw); if(!parsed || Date.now()-(+parsed.t||0)>SIM_CACHE_MS || !Array.isArray(parsed.statuses)) return null; return parsed.statuses; }catch(e){ return null; }
+}
+function simWriteCache(statuses){ try{ sessionStorage.setItem(SIM_STATUS_CACHE, JSON.stringify({t:Date.now(),statuses:statuses})); }catch(e){} }
+async function simFetchLiveStatuses(){
+  const cached=simParseCache();
+  if(cached && cached.length) return {statuses:cached, source:"cache"};
+  const query='query Statuses($after:String){ statuses(first:25, after:$after){ pageInfo{ endCursor hasNextPage } edges{ node{ id name type color } } } }';
+  let after=null, out=[];
+  for(let guard=0; guard<10; guard++){
+    const res=await fetch(SIM_STATUS_PROXY,{method:"POST",mode:"cors",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:query,variables:{after:after}})});
+    if(!res.ok) throw new Error("Printavo proxy returned "+res.status);
+    const json=await res.json();
+    const page=json && json.data && json.data.statuses;
+    if(!page || !Array.isArray(page.edges)) throw new Error("Printavo proxy response did not include statuses");
+    page.edges.forEach(e=>{ if(e&&e.node&&e.node.id) out.push({id:String(e.node.id),name:String(e.node.name||""),type:String(e.node.type||""),color:simStatusColor(e.node)}); });
+    if(!(page.pageInfo&&page.pageInfo.hasNextPage)) break;
+    after=page.pageInfo.endCursor;
+  }
+  if(!out.length) throw new Error("Printavo proxy returned no statuses");
+  const order=simOrderMap();
+  out.sort((a,b)=>(order[a.id]??9999)-(order[b.id]??9999) || a.name.localeCompare(b.name));
+  simWriteCache(out);
+  return {statuses:out, source:"live"};
+}
+async function simStatuses(){
+  if(SIM_STATUS_STATE) return SIM_STATUS_STATE;
+  try{ SIM_STATUS_STATE=await simFetchLiveStatuses(); }
+  catch(e){ console.warn("[simulator] using fallback statuses", e); SIM_STATUS_STATE={statuses:SIM_FALLBACK_STATUSES.slice(), source:"fallback", error:e.message||String(e)}; }
+  return SIM_STATUS_STATE;
 }
 function simEnsureCss(){
   if($("simcss")) return;
   const st=document.createElement("style"); st.id="simcss";
-  st.textContent=".simbanner{margin:14px 0 8px;padding:11px 14px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:10px;font-size:13.5px;color:#1e3a5f;line-height:1.5}"+
-   ".simpick{margin:12px 0 4px}.simsel{font:inherit;font-size:15px;padding:11px 14px;border:1px solid #d7dbe3;border-radius:10px;background:#fff;min-width:min(460px,100%);color:#1f2430;cursor:pointer}"+
-   ".simhd{margin:16px 0 10px;padding:14px 16px;border:1px solid #e6e8ee;border-radius:12px;background:#fafbfc}.simname{font-weight:800;font-size:18px;color:#1f2430;line-height:1.35}"+
-   ".simact{font-size:11px;font-weight:800;color:#fff;padding:2px 8px;border-radius:4px;vertical-align:middle;margin-left:6px;letter-spacing:.03em}"+
-   ".simwas{font-size:13px;color:#6b7280;margin-top:4px}.simwas b{color:#374151}.simmeta{font-size:12.5px;color:#6b7280;margin-top:5px}"+
-   ".simchip{font-weight:700;font-size:12px;padding:2px 9px;border-radius:999px;white-space:nowrap}"+
-   ".simfires{display:flex;align-items:center;gap:10px;margin:10px 0 2px;flex-wrap:wrap}.simbadge{font-weight:800;font-size:12px;letter-spacing:.03em;color:#065f46;background:#d1fae5;padding:4px 11px;border-radius:999px;white-space:nowrap}"+
-   ".simscript{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#374151}.simtag{font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}"+
-   ".simstamp{font-size:13.5px;color:#374151;background:#f3f4f6;border-radius:10px;padding:11px 14px;margin:7px 0 4px;line-height:1.55}.simstamp b{color:#1f2430}"+
-   ".simnone{padding:16px 18px;border:1px solid #e6e8ee;border-radius:12px;background:#fff;margin-top:10px}.simnt{font-weight:800;font-size:15.5px;color:#1f2430;margin-bottom:6px}.simnb{font-size:14px;color:#4b5563;line-height:1.6}"+
-   ".simcad{margin:12px 0 6px;padding:13px 16px;border:1px solid #e6e8ee;border-radius:12px;background:#fbfcfe}.simcadname{font-weight:800;font-size:14.5px;color:#1f2430;margin-bottom:4px}.simcadhow{font-size:13px;color:#4b5563;line-height:1.55;margin-bottom:8px}"+
-   ".simcadstep{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px dashed #e6e8ee;font-size:13px}.scstep{font-family:ui-monospace,Menlo,monospace;color:#374151}.scwait{color:#1f2430;font-weight:700;white-space:nowrap;text-align:right}.scq{color:#b45309;font-weight:800}.simcadfoot{font-size:12px;color:#6b7280;margin-top:9px;font-style:italic;line-height:1.5}"+
-   ".simgap{margin:8px 0 4px;padding:12px 15px;border:1px solid #fcd34d;border-left:4px solid #f59e0b;background:#fffbeb;border-radius:10px;font-size:13.5px;color:#78350f;line-height:1.55}.simgap b{color:#92400e}";
+  st.textContent=".simpick{margin:12px 0 4px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.simsel{font:inherit;font-size:15px;padding:11px 14px;border:1px solid #d7dbe3;border-radius:10px;background:#fff;min-width:min(520px,100%);color:#1f2430;cursor:pointer}"+
+   ".simsrc{font-size:12.5px;color:#6b7280}.simsrc.warn{color:#92400e;background:#fffbeb;border:1px solid #fcd34d;border-radius:999px;padding:4px 10px}"+
+   ".simhd{margin:16px 0 10px;padding:16px;border:1px solid #e6e8ee;border-radius:10px;background:#fafbfc}.simtop{display:flex;align-items:flex-start;gap:12px}.simswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34);margin-top:3px;flex:none}.simname{font-weight:800;font-size:19px;color:#1f2430;line-height:1.3}.simphase{font-size:12.5px;color:#6b7280;margin-top:4px}.simchip{font-weight:750;font-size:12px;padding:2px 9px;border-radius:999px;white-space:nowrap;margin-left:6px}"+
+   ".simblock{border:1px solid #e6e8ee;border-radius:10px;background:#fff;margin:10px 0;padding:15px 16px}.simlabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:850;color:#6b7280;margin-bottom:6px}.simbody{font-size:14px;color:#374151;line-height:1.58}.simbody b{color:#1f2430}.simcode{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#374151;background:#f3f4f6;border-radius:999px;padding:3px 8px;display:inline-block;margin:4px 4px 0 0}.simtag{font-size:11px;font-weight:750;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}.simfires{display:flex;align-items:center;gap:9px;margin:11px 0 4px;flex-wrap:wrap}"+
+   ".simrule{display:grid;gap:8px;margin-top:10px}.simline{font-size:13.5px;color:#374151;background:#f8fafc;border:1px solid #e6e8ee;border-radius:9px;padding:10px 12px}.simline b{color:#1f2430}.simnever{color:#991b1b;font-weight:850}"+
+   ".simmock{--c:#2D97F1;--c-soft:#eef6ff;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,.08);overflow:hidden;margin-top:12px;max-width:620px}.simmocktop{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #e4e7ec;background:#fbfcfd}.simmocktop .disc{width:30px;height:30px;flex:none}.simmocktop .who{font-size:13px;font-weight:750;color:#1b1f24}.simmocktop .who small{display:block;font-weight:500;color:#697585;font-size:11.5px;margin-top:1px}.simmocktop .to{margin-left:auto;font-size:11.5px;color:#697585;text-align:right}.simmocktop .to b{color:#1b1f24}.simcard{padding:15px 16px 4px}.simcardh{display:flex;align-items:center;gap:9px;margin:0 0 10px}.simcardh .em{font-size:16px}.simcardh .cat{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}.simcardh .pill{margin-left:auto;font-size:11px;font-weight:750;background:var(--c-soft);color:var(--c);padding:2px 8px;border-radius:20px}.simproj{font-size:16.5px;font-weight:800;margin:0 0 3px;color:#1b1f24}.simproj .id{color:#697585;font-weight:650;font-family:ui-monospace,Menlo,monospace;font-size:13px}.simwhy{font-size:14px;color:#1b1f24;margin:8px 0 0;display:flex;gap:8px;align-items:flex-start}.simwhy .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#697585;flex:none;width:74px;padding-top:2px}.simsugg{background:var(--c-soft);border-left:3px solid var(--c);border-radius:0 8px 8px 0;padding:9px 12px;margin:12px 0 4px;font-size:14px;color:#1b1f24}.simsugg .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c);display:block;margin-bottom:2px}.simbtns{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}.simbtn{font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid #d2d7df;background:#fff;color:#1b1f24;cursor:default}.simbtn.primary{background:var(--c);border-color:var(--c);color:#fff}";
   document.head.appendChild(st);
 }
-// Cadence per timed automation: name, how it works, the steps we KNOW, and a gap
-// call-out where a timing was never decided (so Holly can rule on it as she reviews).
-const SIM_CADENCE={
- "Auto-Chase 1–4":{name:"Auto-Chase ladder",how:"Timed reminders into the same email thread while a quote sits unapproved. A reply stops it (flips to 'In Conversation'); a PM moving the status also stops it. After the last step the quote is archived.",steps:[{label:"^ot_quote_sent",wait:"day 0 (the quote)"},{label:"^ot_chase_2",wait:"+1 working day"},{label:"^ot_chase_3",wait:"+2 working days"},{label:"^ot_chase_final",wait:"+6 working days, then archive"}],gap:null},
- "Waiting on Customer":{name:"Waiting ladder",how:"Gentle bumps while we wait on the customer for something specific (art, info, a decision). A reply stops it (flips to 'In Conversation'); a PM status move stops it; after the 3rd bump with no reply it parks and stops nudging.",steps:[{label:"^ot_waiting_bump_1",wait:"?"},{label:"^ot_waiting_bump_2",wait:"?"},{label:"^ot_waiting_bump_3",wait:"?"},{label:"^ot_waiting_park",wait:"after bump 3, still no reply"}],gap:"The bump spacing was never decided (ruling R2). How many days between each bump? A gentle default would be +2 / +3 / +5 working days, then park — but it is your call."},
- "Sample Pack Purchased → Samples Sent":{name:"Samples journey",how:"Two emails: the shipped notice goes out by hand (Shara types the tracking), then the arrival check-in fires on a timer.",steps:[{label:"^ot_sample_shipped",wait:"sent by hand (no timer)"},{label:"^ot_sample_arrival_checkin",wait:"+3 days after shipped"}],gap:null},
- "Approved — Awaiting Payment":{name:"Pay-button nudge",how:"If a customer approves the artwork but does not pay, one reminder with the pay button goes out. A reply, or the payment landing, stops it.",steps:[{label:"^ot_pay_button_touch",wait:"+2 hours after art approval, if still unpaid"}],gap:null},
- "In Conversation":{name:"In-Conversation (a live reply)",how:"Where an order lands after the customer replies — no automated sends, because a human is talking to them. Optionally the PM is nudged if the thread then goes quiet.",steps:[{label:"PM stale-nudge",wait:"?"}],gap:"How many quiet days in 'In Conversation' before we nudge the PM to follow up? (ruling R4 — undecided. Recommendation: nudge the PM only, never auto-re-engage the customer.)"}
-};
+function simNudgeGlyph(color){
+  return '<svg class="disc" viewBox="0 0 26 26" aria-label="nudge"><circle cx="13" cy="13" r="13" fill="#111418"/><g transform="translate(3.4 3.4) scale(0.8)" fill="none" stroke="'+esc(color||"#2D97F1")+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13 v-8.2 a1.5 1.5 0 0 1 3 0 v7.2"/><path d="M11 11.7 v-2.2 a1.5 1.5 0 0 1 3 0 v2.5"/><path d="M14 10.6 a1.5 1.5 0 0 1 3 0 v1.4"/><path d="M17 11.5 a1.5 1.5 0 0 1 3 0 v4.5 a6 6 0 0 1 -6 6 h-1 a6 6 0 0 1 -5 -2.7 c-.3 -.5 -1.4 -2.4 -3.3 -5.7 a1.5 1.5 0 0 1 .5 -2 a1.87 1.87 0 0 1 2.3 .3 l1.5 1.4"/></g></svg>';
+}
+function simRenderNudgeCard(out, nudge){
+  const ex=nudge.example||{};
+  const mock=el("div","simmock"); mock.style.setProperty("--c", nudge.chatColor||"#2D97F1"); mock.style.setProperty("--c-soft", "color-mix(in srgb, "+(nudge.chatColor||"#2D97F1")+" 12%, white)");
+  mock.innerHTML='<div class="simmocktop">'+simNudgeGlyph(nudge.chatColor)+'<div class="who">Nudges<small>'+esc(nudge.chatName)+' · example</small></div><div class="to">to <b>Shara</b></div></div>'+
+    '<div class="simcard"><div class="simcardh"><span class="em">'+esc(nudge.chatEmoji||"")+'</span><span class="cat">'+esc(nudge.chatName||"Nudge")+'</span><span class="pill">'+esc(ex.tierBadge||"T1")+'</span></div>'+
+    '<p class="simproj">'+esc(ex.projectName||"Summit Trading Co")+' <span class="id">#'+esc(ex.visualId||"27612")+'</span></p>'+
+    '<p class="simwhy"><span class="k">Why</span><span>'+esc(ex.why||"")+'</span></p>'+
+    '<div class="simsugg"><span class="k">Suggestion</span>'+esc(ex.stub?"Coming with the sample lane. ":"")+esc(ex.suggestion||"")+'</div></div>'+
+    '<div class="simbtns">'+(ex.buttons||[]).map((b,i)=>'<span class="simbtn '+(i===0?'primary':'')+'">'+esc(b.label||"Open")+'</span>').join("")+'<span class="simbtn">Done</span></div>';
+  out.appendChild(mock);
+}
+function simRender(out, status){
+  const row=SIM_OVERLAY[String(status.id)]||{phase:simStatusPhase(status),description:"Live Printavo status.",flavor:"silent",automation:"No mapped automation.",scriptCodes:[]};
+  const fl=SIM_FLAVOR[row.flavor]||SIM_FLAVOR.silent;
+  const hd=el("div","simhd");
+  hd.innerHTML='<div class="simtop"><span class="simswatch" style="background:'+esc(simStatusColor(status))+'"></span><div><div class="simname">'+esc(status.name)+'</div><div class="simphase">'+esc(row.phase)+' · '+esc(status.type||"")+' <span class="simchip" style="color:'+fl.col+';background:'+fl.bg+'">'+fl.ic+' '+esc(fl.lab)+'</span></div></div></div>';
+  out.appendChild(hd);
+  out.appendChild(el("div","simblock",'<div class="simlabel">What it is</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">The status in plain English.</div><div class="simbody">'+esc(row.description)+'</div>'));
+  const connected=el("div","simblock");
+  let html='<div class="simlabel">What\'s connected</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What the system does when an order sits here — an email, a nudge, or nothing.</div><div class="simbody">';
+  if(row.flavor==="customer") html+='<b>Sends the customer an email automatically.</b> '+esc(row.automation||"");
+  else if(row.flavor==="nudge") html+='<b>No customer email fires here. The one thing connected is a PM nudge.</b> '+esc(row.automation||"");
+  else if(row.flavor==="start") html+='<b>Manual start point.</b> '+esc(row.automation||"");
+  else html+='<b>Internal working state.</b> No customer email, no notification. '+esc(row.automation||"");
+  if(/^🚀/.test(status.name) && !/never delete/i.test(row.automation||"")) html+=' <span class="simnever">Red rule: never delete.</span>';
+  html+='</div>';
+  if(row.scriptCodes&&row.scriptCodes.length) html+='<div class="simfires">'+row.scriptCodes.map(c=>'<span class="simcode">'+esc(c)+'</span>').join("")+'</div>';
+  if(row.nudge) html+='<div class="simrule"><div class="simline"><b>Rule:</b> '+esc(row.nudge.ruleText)+'</div><div class="simline"><b>Chat:</b> '+esc(row.nudge.chatEmoji+' '+row.nudge.chatName)+'</div></div>';
+  connected.innerHTML=html; out.appendChild(connected);
+  if(row.nudge) simRenderNudgeCard(out,row.nudge);
+  if(row.flavor==="customer"){
+    (row.scriptCodes||[]).forEach(code=>{
+      const live=DATA.scripts.find(x=>x.code===code && x.publishStatus==="live");
+      const banner=el("div","simfires");
+      banner.innerHTML='<span class="simcode">'+esc(code)+'</span>'+(live?'':'<span class="simtag">not in the live script feed</span>');
+      out.appendChild(banner);
+      if(live) renderEmailFrame(out, live);
+    });
+  }
+}
+function simPaintPicker(app, state){
+  const statuses=state.statuses||[];
+  const pick=el("div","simpick");
+  const sel=document.createElement("select"); sel.id="simSel"; sel.className="simsel";
+  sel.appendChild(new Option("Choose a status ("+statuses.length+")", ""));
+  SIM_PHASES.forEach(ph=>{
+    const items=statuses.filter(s=>simStatusPhase(s)===ph);
+    if(!items.length) return;
+    const og=document.createElement("optgroup"); og.label=ph;
+    items.forEach(s=>og.appendChild(new Option(s.name, String(s.id))));
+    sel.appendChild(og);
+  });
+  pick.appendChild(sel);
+  const source=el("span","simsrc"+(state.source==="fallback"?" warn":""), state.source==="fallback"?"Showing last-known board" : state.source==="cache"?"Using cached live board" : "Live Printavo board");
+  pick.appendChild(source); app.appendChild(pick);
+  const out=el("div",""); out.id="simOut"; app.appendChild(out);
+  sel.addEventListener("change",()=>{ out.innerHTML=""; const status=statuses.find(s=>String(s.id)===sel.value); if(status) simRender(out,status); });
+}
 function renderSimulator(app){
   simEnsureCss();
   setCrumb([["Command Center","#/"],["Status Simulator",null]]);
-  app.appendChild(sectionHead("Status Simulator","PREVIEW of the new status taxonomy. Pick a status to see its new name, what it was called, and the email or automation attached."));
-  app.appendChild(el("div","simbanner","🔭 <b>Preview — target taxonomy (the 7/9 + 7/11 redesign).</b> These statuses are not live in Printavo yet — they land in the next day or two. This is the training + rename guide: each shows what it was called (Formerly:) and the One Thread script/automation attached. Switches to live once the migration lands."));
-  const pick=el("div","simpick");
-  const sel=document.createElement("select"); sel.id="simSel"; sel.className="simsel";
-  sel.appendChild(new Option("— choose a status ("+SIM_TARGET.length+") —",""));
-  SIM_TPHASES.forEach(ph=>{
-    const items=SIM_TARGET.map((r,i)=>({r,i})).filter(x=>x.r.ph===ph);
-    if(!items.length) return;
-    const og=document.createElement("optgroup"); og.label=ph;
-    items.forEach(x=>og.appendChild(new Option(((x.r.badge==="KILL"||x.r.badge==="RETIRE")?"✗ ":"")+x.r.name, String(x.i))));
-    sel.appendChild(og);
-  });
-  pick.appendChild(sel); app.appendChild(pick);
-  const out=el("div",""); out.id="simOut"; app.appendChild(out);
-  sel.addEventListener("change",()=>{ out.innerHTML=""; const v=sel.value; if(v==="") return; simRender(out, SIM_TARGET[+v]); });
-}
-function simRender(out, row){
-  const cm=SIM_COMMS[row.comms]||SIM_COMMS.silent;
-  const hd=el("div","simhd");
-  hd.innerHTML='<div class="simname">'+esc(row.name)+'<span class="simact" style="background:'+(SIM_BADGE[row.badge]||"#555")+'">'+esc(row.badge)+'</span></div>'+
-    (row.was?'<div class="simwas">Formerly: <b>'+esc(row.was)+'</b></div>':'')+
-    '<div class="simmeta">'+esc(row.ph)+' · <span class="simchip" style="color:'+cm.col+';background:'+cm.bg+'">'+cm.ic+' '+esc(cm.lab)+'</span></div>';
-  out.appendChild(hd);
-  if(row.badge==="KILL"||row.badge==="RETIRE"){
-    out.appendChild(el("div","simnone",'<div class="simnt">✗ Retiring — do not recreate in Printavo</div><div class="simnb">'+esc(row.note||"Being removed in the new taxonomy.")+'</div>'));
-    return;
-  }
-  const cad=SIM_CADENCE[row.name];
-  if(cad){
-    const box=el("div","simcad");
-    let h='<div class="simcadname">🗓️ '+esc(cad.name)+'</div><div class="simcadhow">'+esc(cad.how)+'</div>';
-    cad.steps.forEach(function(s){ var q=(s.wait==="?"); h+='<div class="simcadstep"><span class="scstep">'+esc(s.label)+'</span><span class="'+(q?"scwait scq":"scwait")+'">'+esc(q?"⚠ not set":s.wait)+'</span></div>'; });
-    h+='<div class="simcadfoot">Every timed touch fires only Mon to Fri, 9am to 4pm PT (skips US holidays). A customer reply, or a PM moving the status, stops it.</div>';
-    box.innerHTML=h; out.appendChild(box);
-    if(cad.gap) out.appendChild(el("div","simgap",'<b>⚠️ Decision needed — '+esc(cad.name)+':</b> '+esc(cad.gap)));
-  }
-  const live=(row.scripts||[]).map(code=>({code, s:DATA.scripts.find(x=>x.code===code && x.publishStatus==="live")}));
-  if(live.length){
-    const note=simStampNote(row.comms);
-    out.appendChild(el("div","simstamp",'<b>What happens:</b> '+esc(note||"")+((note&&row.note)?"  ·  ":"")+esc(row.note||"")));
-    live.forEach(o=>{
-      const banner=el("div","simfires");
-      banner.innerHTML='<span class="simbadge">'+cm.ic+' '+esc(o.code)+'</span>'+(o.s?'':'<span class="simtag">drafted — not yet live</span>');
-      out.appendChild(banner);
-      if(o.s) renderEmailFrame(out, o.s);
-    });
-    return;
-  }
-  let title,body;
-  if(row.comms==="internal"){ title="❗ Internal alert — not a customer email"; body=row.note||"A teammate is pinged; the customer is untouched."; }
-  else if(row.comms==="silent"){ title="🔇 Silent — system only"; body=row.note||"No customer message — scheduler, QuickBooks, or PlanetOps log only."; }
-  else { title="— Customer-facing, no script mapped yet"; body=row.note||"This status is a customer touch, but no One Thread script is attached to it yet."; }
-  out.appendChild(el("div","simnone",'<div class="simnt">'+esc(title)+'</div><div class="simnb">'+esc(body)+'</div>'));
+  app.appendChild(sectionHead("Status Simulator","Pick a live Printavo status to see what it is and what automation is connected."));
+  app.appendChild(el("div","simblock",'<div class="simbody">Loading live Printavo statuses...</div>'));
+  simStatuses().then(state=>{ app.innerHTML=""; setCrumb([["Command Center","#/"],["Status Simulator",null]]); app.appendChild(sectionHead("Status Simulator","Pick a live Printavo status to see what it is and what automation is connected.")); simPaintPicker(app,state); });
 }
 
 /* ─────────────────────────── AUTOMATIONS ─────────────────────────── */
