@@ -342,17 +342,18 @@
   .tablewrap table{overflow:visible}   /* table's own overflow:hidden (corner rounding) KILLS position:sticky — the wrap clips the corners instead */
   .tablewrap thead th{position:sticky;top:0;z-index:3;box-shadow:0 2px 0 var(--grey-line)}   /* frozen header — border-bottom doesn't stick under border-collapse, the shadow stands in */
   .xrow td{background:#fbfbfc;border-bottom:2px solid var(--grey-line)}
-  /* smooth expand/collapse (queue rows + board cards): animate a MEASURED max-height. grid-rows
-     0fr↔1fr looked cleaner but silently collapses to 0 inside a <td> (table cells can't resolve the
-     fr track) → blank + choppy in the queue. max-height works in a cell and a div alike. JS sets the
-     px target from scrollHeight so the ease matches the real content height. A panel with no state
-     class renders at natural height (incidental re-render, no animation); .exp-anim / .exp-closed
-     hold it at 0 while opening / closing. will-change hints the compositor to keep it smooth.
-     grid-column:1/-1 makes the wrapper span the full BOARD CARD grid the way xPanel used to — without
-     it the wrapper lands in the card's first 56px column and the panel reads as blank (no-op in a <td>). */
-  .exp{grid-column:1/-1;width:100%}
-  .exp-in{overflow:hidden;transition:max-height .26s cubic-bezier(.4,0,.2,1);will-change:max-height}
-  .exp-in.exp-anim,.exp-in.exp-closed{max-height:0}
+  /* ── project detail DRAWER — slides in from the right (replaced the old inline expand) ── */
+  #drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.16);opacity:0;pointer-events:none;transition:opacity .26s ease;z-index:60}
+  #drawerOverlay.on{opacity:1;pointer-events:auto}
+  #detailDrawer{position:fixed;top:0;right:0;height:100vh;width:420px;max-width:94vw;background:var(--white);box-shadow:-6px 0 26px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);z-index:61;display:flex;flex-direction:column}
+  #detailDrawer.on{transform:translateX(0)}
+  .drawer-head{position:sticky;top:0;display:flex;justify-content:flex-end;padding:6px 8px;background:var(--white);border-bottom:1px solid var(--grey-line)}
+  #drawerX{border:none;background:none;font-size:24px;line-height:1;cursor:pointer;color:var(--grey-text);padding:0 9px;border-radius:6px}
+  #drawerX:hover{background:var(--grey-bg);color:var(--tonal)}
+  #drawerBody{overflow-y:auto;padding:12px 14px;flex:1}
+  #drawerBody .xpanel{flex-direction:column;gap:14px}          /* stack mock / meta / details down the narrow drawer */
+  #drawerBody .xpanel>*{width:100%;min-width:0}
+  tr.drawer-active>td{background:#eef4fb}                        /* highlight the queue row whose detail is open */
   .estchip{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.02em;border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;margin-left:2px}
   .estchip.prop{background:#fff;border:1.5px dashed #b98a00;color:#8a6500}
   .estchip.near{background:#fdf3d0;border:1.5px solid #d9b74a;color:#6b5000}
@@ -440,6 +441,8 @@
 <div id="histbanner" style="display:none;background:#1e5f8a;color:#fff;padding:7px 26px;font-size:13px;font-weight:600"></div>
 <nav id="tabs"></nav>
 <main id="main"></main>
+<div id="drawerOverlay"></div>
+<aside id="detailDrawer" aria-hidden="true"><div class="drawer-head"><button id="drawerX" title="Close (Esc)">×</button></div><div id="drawerBody"></div></aside>
 <div id="estWrap" style="display:none;height:calc(100vh - 210px);min-height:560px">
   <iframe id="estFrame" title="Project Estimator" style="width:100%;height:100%;border:0"></iframe>
 </div>
@@ -1225,10 +1228,8 @@ function capFor(lane,date,isOT){
 }
 
 /* ───────── Model ───────── */
-let jobs=[],fam={},unscheduled=[],arrivals=[],expanded=new Set(),collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null,searchQ='';
-let _justOpened=null,_closing=new Set();   // expand/collapse animation state (see .exp CSS)
-// wrap a detail panel so it can animate open/closed; render .open unless it's mid-open or mid-close
-const expWrap=(imp,html)=>{const s=_justOpened===imp?' exp-anim':(_closing.has(imp)?' exp-closed':'');return `<div class="exp"><div class="exp-in${s}">${html}</div></div>`;};
+let jobs=[],fam={},unscheduled=[],arrivals=[],collapsedDays=new Set(),etaEditing=new Set(),trkEditing=new Set(),arrEditing=new Set(),collapsedArrDates=new Set(),collapsedUnsch=true,expandedLanes=new Set(),pkEditing=new Set(),highlightImp=null,searchQ='';
+let drawerImp=null;   // imprint whose right-side detail drawer is open (null = closed)
 // Live search filter (Holly 2026-07-16): typing an invoice # pulls up ALL its imprints across
 // the board/queue. Empty = show everything. Matches invoice, imprint label, or nickname.
 function matchesQ(j){
@@ -1642,7 +1643,7 @@ function jobCard(j){
   const split=j.splitLetter?`<span class="splitnote">Split ${splitNum} of ${sibs}</span>${j.localSplit?`<button class="ddbtn ${dd?'on':''}" data-dd="${j.imprint}" title="Mark this split as reserved for DOUBLE DRYING (second pass through the dryer)">${dd?'✓ double dry':'dry ×2?'}</button>`:''}`:'';
   const moved=j.moved?`<span class="movednote">moved · was ${fmtShort(j.origDate)}</span>`:'';
   const canSplit=!j.splitLetter;
-  const isX=expanded.has(j.imprint);
+  const isX=drawerImp===j.imprint;   // card highlight while its detail drawer is open
   const late=j.date&&j.prodDue&&j.date>j.prodDue;
   const qtyChip=j.localSplit
     ?`<span class="chip qty editable" data-qty="${j.imprint}" title="Click to rebalance this split's quantity">${j.qty} pcs</span>`
@@ -1679,7 +1680,6 @@ function jobCard(j){
     <div class="ccust"><span class="due cust" title="Customer due">CUST ${fmtShort(j.custDue)}</span></div>
     <div class="cship">${shipChip(j)}</div>
     ${(!_invBarMode&&(isOut(j)||/Heat Applied/i.test(j.ink)))?etaBar(j):''}
-    ${isX?expWrap(j.imprint,xPanel(j)):''}
   </div>`;
 }
 /* G1: while rendering rows inside an invoice group, per-row eta bars are
@@ -2075,7 +2075,7 @@ function renderList(){
   const rowFor=(j,mode)=>j.placeholder
     ?`<tr><td>⏳</td><td><b>PLACEHOLDER</b></td><td>${j.nickname}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       <td style="text-align:right"><span class="min" data-min="${j.imprint}">${j.minutes}</span></td><td>${j.station}</td><td>${fmtShort(j.date)}</td><td></td><td class="custcol"></td><td>Scheduled Placeholder</td><td></td></tr>`
-    :`<tr class="${store.parked[j.imprint]?'parked':''}${mode==='removed'?' rowremoved':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to expand details (design, files, Printavo link)">
+    :`<tr class="${store.parked[j.imprint]?'parked':''}${mode==='removed'?' rowremoved':''}${drawerImp===j.imprint?' drawer-active':''}" data-limp="${j.imprint.replace(/"/g,'&quot;')}"${j.moved?' style="background:#f4f9ff"':''} title="Click the row to open its detail panel (design, files, Printavo link)">
     <td>${mockTile(j,'sm')}</td><td><b>${j.imprint}</b>${j.apiIntake?'<br><span class="movednote" style="background:#eef7ee;color:#1c7c2a">⚡ API</span>':''}${isOut(j)&&store.arrived[j.imprint]?`<br><span class="movednote arrivedn" title="Outsourced print, landed ${fmtShort(store.arrived[j.imprint])} — schedule its in-house leg (usually Post-Pro)">📦 landed ${fmtShort(store.arrived[j.imprint])}</span>`:''}${(e=>e&&e.invUrl?` <a class="trk" href="${e.invUrl}" target="_blank" rel="noopener" title="Open invoice in Printavo">↗</a>`:'')(mockEntry(j))}${j.splitLetter?'<br><span class="splitnote">Split '+(j.splitLetter.charCodeAt(0)-96)+' of '+fam[j.parentKey]+'</span>':''}${store.parked[j.imprint]?'<br><span class="movednote" style="background:#eee;color:#666">⏸ parked</span>':''}</td><td>${j.nickname}</td>
     <td style="text-align:right">${j.qty}</td>
     <td><select data-ptype="${j.imprint}" title="Step 1 — Project Type"><option value="">—</option>${['Bandana','Apparel','Promo'].map(t=>`<option ${j.projectType===t?'selected':''}>${t}</option>`).join('')}</select></td>
@@ -2092,7 +2092,7 @@ function renderList(){
     <td>${fmtShort(j.prodDue)}</td>
     <td class="custcol">${fmtShort(j.custDue)}</td>
     <td>${statusPill(j)}</td>
-    <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>${expanded.has(j.imprint)?`<tr class="xrow"><td colspan="19">${expWrap(j.imprint,xPanel(j))}</td></tr>`:''}`;
+    <td>${(()=>{const p=pmFor(j);return !p?'<span class="pending">—</span>':(p.isBot?'<span class="pending" title="Owner is a system account — reassign in Printavo">⚠ none</span>':escHtml(p.name));})()}</td></tr>`;
   let rows;
   if(listShowAll)rows=list.map(j=>rowFor(j,isRemoved(j)?'removed':'')).join('');
   else{
@@ -2369,23 +2369,29 @@ function openLightbox(imp){
 }
 // expand: render the panel held at 0 (.exp-anim), then next frame set max-height to its measured
 // content height so it eases open; clear the cap once the transition ends so it can reflow freely.
-function openExpand(imp){ expanded.add(imp); _justOpened=imp; renderAll(); }
-// collapse: lock the panel at its current height, then ease it to 0; drop the row/panel after.
-function closeExpand(imp,inr){
-  if(!inr){ expanded.delete(imp); renderAll(); return; }
-  _closing.add(imp);
-  inr.style.maxHeight=inr.scrollHeight+'px';
-  requestAnimationFrame(()=>{ inr.style.maxHeight='0px'; });
-  setTimeout(()=>{ _closing.delete(imp); expanded.delete(imp); renderAll(); }, 300);
+function openDrawer(imp){ drawerImp=imp; renderAll(); }   // wireMain slides it in + fills the body
+function closeDrawer(){
+  if(drawerImp===null)return;
+  drawerImp=null;
+  const dr=document.getElementById('detailDrawer'),ov=document.getElementById('drawerOverlay');
+  if(dr)dr.classList.remove('on'); if(ov)ov.classList.remove('on');   // slide out now, don't wait on the re-render
+  renderAll();
 }
 function wireMain(){
-  // the just-opened panel renders at max-height:0 (.exp-anim); measure its real height and ease to it
-  if(_justOpened){
-    const inr=main.querySelector('.exp-in.exp-anim');
-    if(inr){const h=inr.scrollHeight;requestAnimationFrame(()=>{inr.style.maxHeight=h+'px';});
-      inr.addEventListener('transitionend',()=>{inr.classList.remove('exp-anim');inr.style.maxHeight='';},{once:true});}
-    _justOpened=null;
-  }
+  // detail drawer lives outside #main so a re-render never wipes it — keep its body in sync with the
+  // open project, slide it in/out, and bind the close controls once.
+  {const dr=document.getElementById('detailDrawer'),ov=document.getElementById('drawerOverlay'),bd=document.getElementById('drawerBody');
+   if(dr&&bd){
+     if(!window._drawerBound){window._drawerBound=true;
+       const xb=document.getElementById('drawerX'); if(xb)xb.addEventListener('click',closeDrawer);
+       if(ov)ov.addEventListener('click',closeDrawer);
+       document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawerImp!==null)closeDrawer();});}
+     if(drawerImp!==null){
+       const j=jobs.find(x=>x.imprint===drawerImp);
+       if(j){bd.innerHTML=xPanel(j);dr.classList.add('on');if(ov)ov.classList.add('on');dr.setAttribute('aria-hidden','false');}
+       else closeDrawer();   // the open project fell out of the list (e.g. scheduled/removed) → close
+     } else dr.setAttribute('aria-hidden','true');
+   }}
   // arrivals collapse (board view)
   const at=document.getElementById('arrToggle');
   if(at)at.addEventListener('click',e=>{
@@ -2437,9 +2443,7 @@ function wireMain(){
     tr.addEventListener('click',e=>{
       if(e.target.closest('input,select,a,button,.mock,.min,[data-qty],.xpanel,.qcchip'))return;
       const imp=tr.dataset.limp;
-      if(_closing.has(imp))return;
-      if(expanded.has(imp))closeExpand(imp,tr.nextElementSibling&&tr.nextElementSibling.querySelector('.exp-in'));
-      else openExpand(imp);
+      if(drawerImp===imp)closeDrawer(); else openDrawer(imp);
     });
   });
   // sortable list headers
@@ -2478,9 +2482,7 @@ function wireMain(){
       if(el.classList.contains('ph'))return;
       if(e.target.closest('button,input,select,a,.min,.cap,[data-qty],.xpanel,.phref,.rec,.etabar'))return;
       const imp=el.dataset.imp;
-      if(_closing.has(imp))return;
-      if(expanded.has(imp))closeExpand(imp,el.querySelector('.exp-in'));
-      else openExpand(imp);
+      if(drawerImp===imp)closeDrawer(); else openDrawer(imp);
     });
   });
   main.querySelectorAll('.dayrow').forEach(row=>{
