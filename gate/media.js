@@ -57,6 +57,31 @@ function normalizeSku(raw) {
   return cleanText(raw, 80).toUpperCase();
 }
 
+// Printavo carries the decoration METHOD in category.name, NOT the product type
+// — a bandana and a tee both read "Screen Printing" (verified live 2026-07-31).
+// So group is a best-GUESS: Bandanas if the method names bandanas or the SKU is
+// a known bandana SKU; Promo if the method is "Promo"; else Apparel. cat
+// (garment type) is not in Printavo at all → left blank for the human to pick
+// on non-bandana groups. Both surface as confirm-dropdowns; the server
+// validates the pick (resolveVocab) and records overrides in edited_fields.
+const BANDANA_METHOD_RE = /bandanas?\s*$/i;
+function derivePrintavoGroupCat(method, sku) {
+  const m = cleanText(method, 120);
+  const s = normalizeSku(sku);
+  if (BANDANA_METHOD_RE.test(m) || SKU_SET.has(s)) return { group: 'Bandanas', cat: 'Bandanas' };
+  if (/^promo$/i.test(m)) return { group: 'Promo', cat: '' };
+  return { group: 'Apparel', cat: '' };
+}
+
+// Resolve a submitted vocab value: blank → the derived default; valid → itself;
+// non-blank invalid → 400 (blocks a forged group/cat from ever entering a row).
+function resolveVocab(submitted, set, fallback, label) {
+  const s = cleanText(submitted, 120);
+  if (!s) return fallback;
+  if (set.has(s)) return s;
+  throw Object.assign(new Error(`invalid ${label}`), { status: 400 });
+}
+
 function normalizeAssetInput(body, photoInfo) {
   const sku = normalizeSku(body.sku);
   if (sku && !SKU_SET.has(sku)) throw Object.assign(new Error('unknown sku'), { status: 400 });
@@ -96,11 +121,13 @@ function normalizePrintavoAssetInput(body, photoInfo) {
   const method = cleanText(body.method || body.print_method, 120);
   const inkType = cleanText(body.ink_type || body.inkType || body.default_ink, 120);
   const printMethod = [method, inkType].filter(Boolean).join(' ');
+  const sku = normalizeSku(body.sku);
+  const derived = derivePrintavoGroupCat(method, sku);
   return {
     brand: cleanText(body.brand, 180),
-    sku: normalizeSku(body.sku),
-    group: 'Bandanas',
-    cat: 'Bandanas',
+    sku,
+    group: resolveVocab(body.group, GROUP_SET, derived.group, 'group'),
+    cat: resolveVocab(body.cat, CAT_SET, derived.cat, 'category'),
     color: cleanText(body.blank_color || body.color, 120),
     blank_color: cleanText(body.blank_color || body.color, 120),
     fabric: '',
@@ -318,19 +345,27 @@ function resolvePrintavoSelection(invoice, body) {
     imprint = group.imprints.find(im => im.imprintId === imprintId);
     if (!imprint) throw Object.assign(new Error('selected imprint is not on this invoice'), { status: 400 });
   }
+  // group/cat aren't Printavo facts — group is guessed, cat is human-picked for
+  // non-bandana groups. Seed them as the "fact" defaults so an unchanged submit
+  // stays out of edited_fields and a human override is recorded like any other.
+  const gc = derivePrintavoGroupCat(lineItem.method, lineItem.sku);
   const facts = {
     brand: invoice.nickname || group.nickname,
     sku: lineItem.sku,
     blank_color: lineItem.color,
     method: lineItem.method,
-    ink_type: imprint?.inkType || ''
+    ink_type: imprint?.inkType || '',
+    group: gc.group,
+    cat: gc.cat
   };
   const submitted = {
     brand: cleanText(body.brand, 180),
     sku: normalizeSku(body.sku),
     blank_color: cleanText(body.blank_color || body.color, 120),
     method: cleanText(body.method || body.print_method, 120),
-    ink_type: cleanText(body.ink_type || body.inkType || body.default_ink, 120)
+    ink_type: cleanText(body.ink_type || body.inkType || body.default_ink, 120),
+    group: cleanText(body.group, 80),
+    cat: cleanText(body.cat, 120)
   };
   const editedFields = Object.keys(facts).filter(k => submitted[k] && submitted[k] !== facts[k]);
   return {
@@ -343,7 +378,9 @@ function resolvePrintavoSelection(invoice, body) {
       sku: editedFields.includes('sku') ? submitted.sku : facts.sku,
       blank_color: editedFields.includes('blank_color') ? submitted.blank_color : facts.blank_color,
       method: editedFields.includes('method') ? submitted.method : facts.method,
-      ink_type: editedFields.includes('ink_type') ? submitted.ink_type : facts.ink_type
+      ink_type: editedFields.includes('ink_type') ? submitted.ink_type : facts.ink_type,
+      group: editedFields.includes('group') ? submitted.group : facts.group,
+      cat: editedFields.includes('cat') ? submitted.cat : facts.cat
     },
     editedFields
   };
@@ -782,7 +819,9 @@ function mediaRouter(pool, requireSession) {
           sku: selected.final.sku,
           blank_color: selected.final.blank_color,
           method: selected.final.method,
-          ink_type: selected.final.ink_type
+          ink_type: selected.final.ink_type,
+          group: selected.final.group,
+          cat: selected.final.cat
         };
         input = normalizePrintavoAssetInput(printavoBody, { ext: photo.ext, hash: contentHash });
         if (input.sku && !SKU_SET.has(input.sku)) event('printavo_unmapped_sku', { visualId, sku: input.sku });
@@ -946,6 +985,7 @@ mediaRouter._internals = {
   sha256,
   normalizeAssetInput,
   normalizePrintavoAssetInput,
+  derivePrintavoGroupCat,
   filenameFor,
   sinkPayload,
   processOutboxOnce,

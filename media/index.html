@@ -116,6 +116,12 @@
           <label>Ink Type
             <input id="inkType" name="inkType">
           </label>
+          <label>Group
+            <select id="group" name="group"></select>
+          </label>
+          <label>Category
+            <select id="cat" name="cat"></select>
+          </label>
           <label>Template
             <select id="template" name="template"></select>
           </label>
@@ -154,6 +160,11 @@
     let contentHash = "";
     let previewFilename = "";
     let previewTimer = null;
+    // group is guessed server-side, cat is human-picked for non-bandana groups.
+    // Track whether the human touched either so a preview refresh can pre-fill
+    // the server's guess WITHOUT clobbering a deliberate pick.
+    let groupTouched = false;
+    let catTouched = false;
     const templates = ["Not sure", ...Array.from({ length: 21 }, (_, i) => `Template ${String(i + 1).padStart(2, "0")}`)];
 
     async function api(url, opts = {}) {
@@ -179,6 +190,8 @@
         blank_color: $("#blankColor").value,
         method: $("#method").value,
         ink_type: $("#inkType").value,
+        group: $("#group").value,
+        cat: $("#cat").value,
         template: $("#template").value,
         description: $("#description").value,
         contentHash,
@@ -199,6 +212,9 @@
       $("#blankColor").value = selectedLineItem?.color || "";
       $("#method").value = selectedLineItem?.method || "";
       $("#inkType").value = selectedImprint?.inkType || "";
+      // A new line item means a fresh guess — let the next preview re-fill.
+      groupTouched = false;
+      catTouched = false;
       updatePreview();
     }
 
@@ -242,6 +258,11 @@
           const data = await api("/api/media/preview", { method: "POST", body: JSON.stringify(p) });
           previewFilename = data.filename;
           $("#filenamePreview").textContent = data.filename;
+          // Reflect the server's group/cat guess into the dropdowns unless the
+          // human has deliberately picked (the server is the sole deriver — no
+          // client-side rule to drift).
+          if (!groupTouched && data.input?.group) $("#group").value = data.input.group;
+          if (!catTouched) $("#cat").value = data.input?.cat || "";
           $("#submitBtn").disabled = !selectedDataUrl || !selectedLineItem || (!!(selectedGroup?.imprints || []).length && !selectedImprint);
         } catch (e) {
           $("#filenamePreview").textContent = e.message;
@@ -304,6 +325,11 @@
 
     async function init() {
       fillSelect($("#template"), templates);
+      try {
+        const opts = await api("/api/media/options");
+        fillSelect($("#group"), opts.groups || []);
+        fillSelect($("#cat"), (opts.cats || []).map(c => ({ value: c, label: c })), "Choose category", x => x.label);
+      } catch (e) { /* vocab is best-effort; the server still validates on submit */ }
       updatePreview();
       loadRecent();
     }
@@ -326,6 +352,8 @@
     ["brand", "sku", "blankColor", "method", "inkType", "template", "description"].forEach(id => {
       $("#" + id).addEventListener("input", updatePreview);
     });
+    $("#group").addEventListener("change", () => { groupTouched = true; updatePreview(); });
+    $("#cat").addEventListener("change", () => { catTouched = true; updatePreview(); });
     $("#mediaForm").addEventListener("submit", async e => {
       e.preventDefault();
       $("#status").textContent = "Submitting...";

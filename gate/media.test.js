@@ -5,6 +5,9 @@ const mediaRouter = require('./media.js');
 const {
   decodePhoto,
   normalizeAssetInput,
+  normalizePrintavoAssetInput,
+  derivePrintavoGroupCat,
+  resolvePrintavoSelection,
   filenameFor,
   sha256,
   parseInkType,
@@ -79,6 +82,50 @@ async function expectThrows(fn, pattern) {
     cat: 'Bandanas',
     color: 'Skyblue'
   }, { ext: 'jpg', hash: sha256(jpeg) }), /invalid color/);
+
+  // ── Phase 1: 3-category invoice lane (group guessed, cat human-picked) ──────
+  // Printavo category.name is the METHOD not the product type (verified live):
+  // group is a best-guess, cat is left blank for the human on non-bandana groups.
+  assert.deepEqual(derivePrintavoGroupCat('Screen Printed Bandanas', 'ORG2417'), { group: 'Bandanas', cat: 'Bandanas' }, 'bandana by category suffix');
+  assert.deepEqual(derivePrintavoGroupCat('Screen Printing', 'PL2219'), { group: 'Bandanas', cat: 'Bandanas' }, 'bandana by known SKU inside the Screen Printing catch-all');
+  assert.deepEqual(derivePrintavoGroupCat('Screen Printing', '3001'), { group: 'Apparel', cat: '' }, 'Bella tee in the Screen Printing catch-all is Apparel, not Bandana');
+  assert.deepEqual(derivePrintavoGroupCat('Heat Applied Products', '18500'), { group: 'Apparel', cat: '' }, 'Gildan hoodie');
+  assert.deepEqual(derivePrintavoGroupCat('Embroidery', 'K540LS'), { group: 'Apparel', cat: '' }, 'polo');
+  assert.deepEqual(derivePrintavoGroupCat('Promo', 'BGR8'), { group: 'Promo', cat: '' }, 'promo');
+
+  // normalizePrintavoAssetInput derives group/cat and validates a submitted pick
+  const appAsset = normalizePrintavoAssetInput({ brand: 'Acme', sku: '18500', method: 'Heat Applied Products', color: 'Navy' }, { ext: 'jpg', hash: sha256(jpeg) });
+  assert.equal(appAsset.group, 'Apparel');
+  assert.equal(appAsset.cat, '');
+  assert.equal(appAsset.method, 'Heat Applied Products');
+  const banAsset = normalizePrintavoAssetInput({ sku: 'PL2219', method: 'Screen Printing', color: 'Black' }, { ext: 'jpg', hash: sha256(jpeg) });
+  assert.equal(banAsset.group, 'Bandanas');
+  assert.equal(banAsset.cat, 'Bandanas');
+  const picked = normalizePrintavoAssetInput({ sku: '18500', method: 'Heat Applied Products', cat: 'Hoodies & Fleece' }, { ext: 'jpg', hash: sha256(jpeg) });
+  assert.equal(picked.cat, 'Hoodies & Fleece', 'valid human cat pick is kept');
+  const regrouped = normalizePrintavoAssetInput({ sku: 'BGR8', method: 'Screen Printing', group: 'Promo' }, { ext: 'jpg', hash: sha256(jpeg) });
+  assert.equal(regrouped.group, 'Promo', 'valid human group override is kept');
+  // forged group/cat outside the vocab is rejected (400), never lands in a row
+  await expectThrows(() => normalizePrintavoAssetInput({ sku: '18500', method: 'Heat Applied Products', group: 'Garbage' }, { ext: 'jpg', hash: sha256(jpeg) }), /invalid group/);
+  await expectThrows(() => normalizePrintavoAssetInput({ sku: '18500', method: 'Heat Applied Products', cat: 'Nope' }, { ext: 'jpg', hash: sha256(jpeg) }), /invalid category/);
+
+  // resolvePrintavoSelection: group/cat defaults + override provenance in edited_fields
+  const apparelInvoice = {
+    nickname: 'Acme Co',
+    groups: [{
+      groupId: 'g1', groupPosition: 0, nickname: 'Acme Co',
+      imprints: [],
+      lineItems: [{ lineItemId: 'li1', itemPosition: 0, sku: '18500', color: 'Navy', method: 'Heat Applied Products' }]
+    }]
+  };
+  const unchanged = resolvePrintavoSelection(apparelInvoice, { lineGroupId: 'g1', lineItemId: 'li1', group: 'Apparel' });
+  assert.equal(unchanged.final.group, 'Apparel');
+  assert.equal(unchanged.final.cat, '');
+  assert.ok(!unchanged.editedFields.includes('group'), 'unchanged group guess is not an edit');
+  assert.ok(!unchanged.editedFields.includes('cat'), 'blank cat is not an edit');
+  const catFilled = resolvePrintavoSelection(apparelInvoice, { lineGroupId: 'g1', lineItemId: 'li1', group: 'Apparel', cat: 'Hoodies & Fleece' });
+  assert.equal(catFilled.final.cat, 'Hoodies & Fleece');
+  assert.ok(catFilled.editedFields.includes('cat'), 'human-filled cat is recorded in edited_fields');
 
   const pool = { query: async () => { throw new Error('pool should not be touched when sink url is unset'); } };
   const prevUrl = process.env.MEDIA_SINK_URL;
