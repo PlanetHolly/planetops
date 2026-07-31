@@ -58,9 +58,8 @@ ok('stall statuses have Streak factor and end game', () => {
 });
 
 ok('end game contract names archive and Missed Opportunity flow', () => {
-  const rows = ['548869', '548870', '548872', '548873'].map(id => SIM_OVERLAY[id]).filter(o => o.endGame);
+  const rows = ['390316', '548869', '548870', '548872'].map(id => SIM_OVERLAY[id]).filter(o => o.endGame);
   assert(rows.length > 0);
-  const preQuoteIds = new Set(['548869', '548870', '548872']);
   const bad = rows.filter(row => {
     const endGame = row.endGame;
     return !endGame ||
@@ -73,20 +72,18 @@ ok('end game contract names archive and Missed Opportunity flow', () => {
       !/Draft chat/.test(endGame.text) ||
       !/Archived Quote \(427400\)/.test(endGame.text) ||
       !/Close Date/.test(endGame.text) ||
-      !/Close Date is NOT stamped here/i.test(endGame.text) ||
-      !/stamped by a trigger on the Archived Quote \(427400\) status/i.test(endGame.text) ||
       !/T1/.test(endGame.text) ||
-      endGame.archiveScript !== (preQuoteIds.has(String(row.id)) ? '^ot_missed_opportunity' : '^ot_chase_final') ||
+      endGame.archiveScript !== '^ot_missed_opportunity' ||
       !endGame.missedOppScript ||
       endGame.missedOppScript.name !== 'Missed Opportunity email' ||
-      (preQuoteIds.has(String(row.id)) ? endGame.missedOppScript.source !== 'CC script ^ot_missed_opportunity' : endGame.missedOppScript.source !== 'Printavo template') ||
+      endGame.missedOppScript.source !== 'CC script ^ot_missed_opportunity' ||
       endGame.missedOppScript.t1Only !== true;
   });
   assert.deepStrictEqual(bad.map(o => o.id), []);
 });
 
 ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
-  const ids = ['548869', '548870', '548872'];
+  const ids = ['390316', '548869', '548870', '548872'];
   ids.forEach(id => {
     const endGame = SIM_OVERLAY[id].endGame;
     assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
@@ -99,15 +96,11 @@ ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
   });
 });
 
-ok('Samples Sent end game remains on chase final and Printavo Missed Opportunity', () => {
-  const endGame = SIM_OVERLAY['548873'].endGame;
-  assert.strictEqual(endGame.archiveScript, '^ot_chase_final');
-  assert.strictEqual(Object.prototype.hasOwnProperty.call(endGame, 'archiveScriptPreview'), false);
-  assert.deepStrictEqual(endGame.missedOppScript, {
-    name: 'Missed Opportunity email',
-    source: 'Printavo template',
-    t1Only: true
-  });
+ok('reviewed quote end games do not use chase final', () => {
+  const reviewed = ['390316', '390317', '433065', '433066', '433067', '427399', '427398', '548878', '548869', '548870', '548872', '548876', '548877', '548987'];
+  const bad = reviewed.filter(id => JSON.stringify(SIM_OVERLAY[id].endGame || {}).includes('^ot_chase_final'));
+  assert.deepStrictEqual(bad, []);
+  assert.strictEqual(SIM_OVERLAY['390316'].endGame.archiveScript, '^ot_missed_opportunity');
 });
 
 ok('archive-notice script is rendered as a Draft chat draft, not an auto-send', () => {
@@ -208,11 +201,14 @@ ok('word bump appears nowhere in overlay or simulator render text', () => {
 ok('sample-pack statuses match approved display contract', () => {
   const prep = SIM_OVERLAY['548006'];
   assert.match(prep.nudge.ruleText, /2 days/);
-  assert.strictEqual(prep.endGame, '');
-  assert.match(prep.automation, /Streak box and thread/i);
+  assert.match(prep.endGame.text, /never archived/i);
+  assert.match(prep.streakFactor, /matched by EMAIL/i);
+  assert.match(prep.streakFactor, /sample pack" column/i);
 
   const sent = SIM_OVERLAY['548873'];
-  assert.strictEqual(sent.timed, true);
+  assert.strictEqual(sent.flavor, 'nudge');
+  assert.match(sent.automation, /PM NUDGE/i);
+  assert.match(sent.streakFactor, /any customer reply stops/i);
   assert(sent.scriptCodes.includes('^ot_sample_shipped'));
   assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin'));
   assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
@@ -221,7 +217,53 @@ ok('sample-pack statuses match approved display contract', () => {
 });
 
 ok('timed statuses expose clock-ready flag', () => {
-  assert.strictEqual(SIM_OVERLAY['548873'].timed, true);
+  assert.strictEqual(SIM_OVERLAY['548873'].timed, false);
+});
+
+ok('review sessions 6, 8, and 9 simulator overrides are represented', () => {
+  const revised = SIM_OVERLAY['548987'];
+  assert.strictEqual(nudgeTypeLabel('548987'), '📮 Draft nudge');
+  assert.strictEqual(revised.scriptPreviews['^ot_quote_revised'].code, '^ot_quote_revised');
+  assert.match(revised.scriptPreviews['^ot_quote_revised'].subject, /revised quote is ready/i);
+
+  const manual = SIM_OVERLAY['548877'];
+  assert.match(manual.endGame.text, /30 days/i);
+  assert.match(manual.endGame.text, /archive-notice email is DRAFTED/i);
+  assert.match(manual.endGame.text, /never auto-archived/i);
+
+  const updateNeeded = SIM_OVERLAY['427398'];
+  assert.match(updateNeeded.automation, /ACTION REQUIRED/);
+  assert.match(updateNeeded.automation, /move the status/i);
+  assert.match(updateNeeded.endGame.text, /Revised/i);
+  assert.doesNotMatch(updateNeeded.endGame.text, /Archived Quote \(427400\)|archive-notice email/i);
+
+  const declinedLost = SIM_OVERLAY['548878'];
+  assert.strictEqual(declinedLost.flavor, 'customer');
+  assert.strictEqual(declinedLost.scriptPreviews['^ot_declined_lost'].code, '^ot_declined_lost');
+  assert.match(declinedLost.automation, /no nudge/i);
+  assert.match(declinedLost.endGame.text, /auto-send \^ot_declined_lost/i);
+  assert.match(declinedLost.endGame.text, /Archived Quote \(427400\)/);
+});
+
+ok('auto-chase lane end games are hands-off auto-sent missed opportunity archive notices', () => {
+  ['390317', '433065', '433066', '433067', '427399'].forEach(id => {
+    const endGame = SIM_OVERLAY[id].endGame;
+    assert(endGame);
+    assert.match(endGame.text, /AUTO-SENT/);
+    assert.match(endGame.text, /hands-off/i);
+    assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+    assert.strictEqual(endGame.archiveSendMode, 'AUTO-SENT');
+    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
+  });
+});
+
+ok('every Missed Opportunity end game text includes the T1 plus new-customer gate', () => {
+  const bad = Object.values(SIM_OVERLAY).filter(row => {
+    const endGame = row.endGame;
+    if (!endGame || !endGame.missedOppScript) return false;
+    return !/T1 AND new customers only/i.test(endGame.text || '') || !/return customers are handled by the retention pipeline/i.test(endGame.text || '');
+  });
+  assert.deepStrictEqual(bad.map(row => row.id), []);
 });
 
 ok('simulator render does not emit Command Center side-card markers', () => {
@@ -244,6 +286,39 @@ ok('customer-email statuses render clean script previews with Copy and Edit cont
   assert.match(sim, /copyText\(s\.bodyText\|\|""/);
   assert.match(sim, /Edit in Sheet →/);
   assert.match(sim, /Copy uses the canonical send copy \(bodyText\)\. Edit opens the exact Sheet row — Holly-only\./);
+});
+
+ok('script previews expose signature labels from approve-pay button rule', () => {
+  const sim = simulatorSource();
+  assert.match(sim, /function simScriptUsesApprovePayButton/);
+  assert.match(sim, /function simSignatureLabel/);
+  assert.match(sim, /simpvsignature/);
+  assert.match(sim, /Signature: /);
+  assert.match(sim, /Emails with an approve\/pay button use the Simple signature/);
+  assert.match(sim, /Cross Sell lookbook signature/);
+
+  function expectedSignature(preview) {
+    const code = String(preview.code || '');
+    const body = String(preview.bodyText || '');
+    return /\[QUOTE LINK\]/i.test(body) || /(?:quote_(?:sent|revised)|chase|approval|approve|pay|terms)/i.test(code)
+      ? 'Simple'
+      : 'Cross Sell';
+  }
+
+  const previews = [];
+  Object.values(SIM_OVERLAY).forEach(row => {
+    Object.values(row.scriptPreviews || {}).forEach(preview => previews.push(preview));
+    if (row.endGame && row.endGame.archiveScriptPreview) previews.push(row.endGame.archiveScriptPreview);
+  });
+  assert(previews.length > 0);
+  previews.forEach(preview => assert(expectedSignature(preview)));
+
+  const missed = previews.filter(preview => preview.code === '^ot_missed_opportunity');
+  assert(missed.length > 0);
+  missed.forEach(preview => assert.strictEqual(expectedSignature(preview), 'Cross Sell'));
+  assert.strictEqual(expectedSignature(SIM_OVERLAY['548878'].scriptPreviews['^ot_declined_lost']), 'Cross Sell');
+  assert.strictEqual(expectedSignature(SIM_OVERLAY['427398'].scriptPreviews['^ot_quote_revised']), 'Simple');
+  assert.strictEqual(expectedSignature(SIM_OVERLAY['548987'].scriptPreviews['^ot_quote_revised']), 'Simple');
 });
 
 ok('auto-send connected text names one auto lane and avoids mechanism cards', () => {

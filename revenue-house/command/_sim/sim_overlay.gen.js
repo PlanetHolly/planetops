@@ -467,11 +467,17 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
-      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
-      "archiveScript": "^ot_chase_final",
+      "text": "30 days no movement → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat. Then the PM moves the order to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks off the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
-        "source": "Printavo template",
+        "source": "CC script ^ot_missed_opportunity",
         "t1Only": true
       }
     },
@@ -485,7 +491,23 @@ const SIM_OVERLAY = {
     "automation": "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send. 🔴 never delete.",
     "scriptCodes": [
       "^ot_quote_sent"
-    ]
+    ],
+    "endGame": {
+      "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    }
   },
   "390318": {
     "id": "390318",
@@ -564,20 +586,30 @@ const SIM_OVERLAY = {
   "427398": {
     "id": "427398",
     "phase": "Quote & Chase",
-    "description": "Customer declined; needs a revision.",
+    "description": "Customer clicked Decline with a note and the quote needs a revision. Open troubleshoot: this reliably lands here only when the customer clicked Decline with a note; usually they just reply.",
     "flavor": "nudge",
-    "automation": "Printavo auto-moves here on decline. PM alert.",
-    "scriptCodes": [],
+    "automation": "DRAFTS a generic \"your updated quote is here\" email with the approve link/button, then posts an ACTION REQUIRED nudge to the 📮 Draft chat: (1) here's the change the customer asked for, (2) the revision draft is in your inbox - send or edit+send, then (3) move the status to one of the Revised Quote statuses.",
+    "scriptCodes": [
+      "^ot_quote_revised"
+    ],
+    "scriptPreviews": {
+      "^ot_quote_revised": {
+        "code": "^ot_quote_revised",
+        "name": "Updated Quote",
+        "subject": "your updated quote is here",
+        "bodyText": "Hi [FIRST NAME],\n\nYour updated quote is ready to review. If everything is correct, click the approve button and we'll move to the next phase - creating your mockup. Or just reply to this email and let us know any updates you'd like.\n\n[QUOTE LINK]"
+      }
+    },
     "nudge": {
       "trigger": "DECLINED",
-      "chatKey": "STALE",
-      "chatName": "Stale Status",
-      "chatEmoji": "🐌",
-      "chatColor": "#F0932B",
-      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry, ACTION REQUIRED in the Draft chat: send or edit+send the revision draft, then move the status to a Revised Quote status.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "Customer declined and this account still needs a human save attempt.",
+        "why": "ACTION REQUIRED: customer asked for a change; revision draft is ready.",
         "buttons": [
           {
             "label": "Open in Streak",
@@ -593,9 +625,12 @@ const SIM_OVERLAY = {
         "stub": false,
         "customerName": "Summit Trading Co",
         "contactName": "Jessica Ramos",
-        "statusName": "Customer declined; needs a revision.",
+        "statusName": "Quote Declined - Update Needed",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
+    },
+    "endGame": {
+      "text": "No archive here - the PM makes the requested change and moves the order to a Revised status (Quote Revised - Drafted or Quote Revised - Auto Sent)."
     }
   },
   "427399": {
@@ -606,7 +641,23 @@ const SIM_OVERLAY = {
     "automation": "Native emails the revised quote. Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.”",
     "scriptCodes": [
       "^ot_quote_revised"
-    ]
+    ],
+    "endGame": {
+      "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    }
   },
   "427400": {
     "id": "427400",
@@ -875,6 +926,22 @@ const SIM_OVERLAY = {
     "scriptCodes": [
       "^ot_chase_2"
     ],
+    "endGame": {
+      "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    },
     "timed": true
   },
   "433066": {
@@ -886,6 +953,22 @@ const SIM_OVERLAY = {
     "scriptCodes": [
       "^ot_chase_3"
     ],
+    "endGame": {
+      "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    },
     "timed": true
   },
   "433067": {
@@ -895,8 +978,24 @@ const SIM_OVERLAY = {
     "flavor": "customer",
     "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
     "scriptCodes": [
-      "^ot_chase_final"
+      "^ot_missed_opportunity"
     ],
+    "endGame": {
+      "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    },
     "timed": true
   },
   "454916": {
@@ -978,12 +1077,14 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "A new sample-pack order holding spot while the PM gets the samples ready to ship.",
     "flavor": "customer",
-    "automation": "Generic order-confirmation email only at order time. Mark's automation drops every new sample-pack order here as the prep-and-ship holding spot. There is a Streak box and thread. PM nudge if it is still in Prep & Ship after 2 days.",
+    "automation": "Generic order-confirmation email only at order time: we've got your sample pack request, we'll send it within 48 hours, and reply with any color/sample notes. Mark's automation drops every new sample-pack order here as the prep-and-ship holding spot. PM nudge if it is still in Prep & Ship after 2 days.",
     "scriptCodes": [],
-    "streakFactor": "The sample-pack box lives in Streak (project name, owner, sample-pack thread). The 2-day ship nudge watches the status age so samples do not sit unshipped.",
-    "endGame": "",
+    "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. Holly's Streak \"sample pack\" column marks that a sample pack was purchased on whichever box it joins.",
+    "endGame": {
+      "text": "This status is never archived; archiving happens at the next status (Samples Sent)."
+    },
     "timed": false,
-    "copyNote": "Copy being revised: Thanks for your sample pack request - we're excited. We'll send it within 48 hours unless it's a weekend. Note any specific colors/samples on your order or reply here. Expect tracking within 48h.",
+    "copyNote": "Generic confirmation: we've got your sample pack request, we'll send it within 48 hours unless it's a weekend, and reply with any specific colors or samples if they were not noted on the order.",
     "nudge": {
       "trigger": "SAMPLE_PREP_SHIP_STALLED",
       "chatKey": "STALE",
@@ -1052,7 +1153,7 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner, and sometimes no quote # yet). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows the pre-quote conversation has gone quiet.",
     "endGame": {
-      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
         "code": "^ot_missed_opportunity",
@@ -1077,7 +1178,7 @@ const SIM_OVERLAY = {
     "scriptCodes": [],
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
-      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
         "code": "^ot_missed_opportunity",
@@ -1168,7 +1269,7 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
-      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
         "code": "^ot_missed_opportunity",
@@ -1188,25 +1289,25 @@ const SIM_OVERLAY = {
     "id": "548873",
     "phase": "Quote & Chase",
     "description": "Samples have shipped; the PM has a draft to fill with tracking number and estimated arrival, then the timed check-in ladder runs if there is no reply.",
-    "flavor": "customer",
-    "automation": "Draft only first: PM fills tracking # + estimated arrival date, then sends. After that, the +3 / +2 / +5 day sample check-in ladder runs if no one replies. Custom T1 follow-ups get kicked to Follow-Up Pre-Quote (Streak Task).",
+    "flavor": "nudge",
+    "automation": "Draft only on entry: PM fills tracking # + estimated arrival date, then sends. After that, the +3 / +2 / +5 day sample-pack check-in ladder is a PM NUDGE, not an auto-send: \"you got your pack, do your check-in.\" Custom T1 follow-ups get kicked to Follow-Up Pre-Quote (Streak Task).",
     "scriptCodes": [
       "^ot_sample_shipped",
       "^ot_sample_arrival_checkin",
       "^ot_sample_arrival_checkin_plus2",
       "^ot_sample_arrival_checkin_plus5"
     ],
-    "streakFactor": "The sample-pack box lives in Streak and mirrors the Printavo status. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any reply stops the timed check-ins.",
+    "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any customer reply stops the check-ins. Holly's Streak \"sample pack\" column marks it.",
     "endGame": {
-      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
-      "archiveScript": "^ot_chase_final",
+      "text": "30 days in the status → archive-notice email is DRAFTED; it never archives automatically. The PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "Printavo template",
         "t1Only": true
       }
     },
-    "timed": true,
+    "timed": false,
     "copyNote": "Copy being revised: sample arrival check-in needs two paths - ask for quantity, art, and needed-by date if they have not given project info yet; otherwise just ask which sample they want.",
     "nudge": {
       "trigger": "SAMPLE_SENT_STALLED",
@@ -1214,10 +1315,10 @@ const SIM_OVERLAY = {
       "chatName": "Stale Status",
       "chatEmoji": "🐌",
       "chatColor": "#F0932B",
-      "ruleText": "After the +3 / +2 / +5 day check-in ladder, no reply → nudge the PM; custom T1 follow-ups move to Follow-Up Pre-Quote (Streak Task).",
+      "ruleText": "+3 / +2 / +5 day check-in ladder → PM nudge, not auto-send; any customer reply stops it.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "Timed ladder ended with no reply",
+        "why": "Sample pack check-in: you got your pack, do your check-in.",
         "buttons": [
           {
             "label": "Open in Streak",
@@ -1331,7 +1432,7 @@ const SIM_OVERLAY = {
     "flavor": "nudge",
     "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
-      "^ot_chase_final"
+      "^ot_quote_sent"
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
@@ -1377,28 +1478,20 @@ const SIM_OVERLAY = {
   "548877": {
     "id": "548877",
     "phase": "Quote & Chase",
-    "description": "PM sent a quote outside the flow; a Streak task tracks the follow-up.",
-    "flavor": "internal",
-    "automation": "PM nudge.",
-    "scriptCodes": []
-  },
-  "548878": {
-    "id": "548878",
-    "phase": "Quote & Chase",
-    "description": "Declined and dead.",
+    "description": "The PM's comfort-zone status - custom dates/info gathered and managed on their Streak tasks.",
     "flavor": "nudge",
-    "automation": "Nudge system flags T2/T3 for the archive path; T1 / Retention get a call card.",
+    "automation": "No customer email. PM nudge only, mimicking Follow-Up Pre-Quote (Streak Task): if there is no movement for 14 days, the owner gets nudged in the 🐌 Stale chat.",
     "scriptCodes": [],
     "nudge": {
-      "trigger": "DECLINED",
+      "trigger": "QUOTE_SENT_MANUAL_STALLED",
       "chatKey": "STALE",
       "chatName": "Stale Status",
       "chatEmoji": "🐌",
       "chatColor": "#F0932B",
-      "ruleText": "On entry, the owner gets nudged if the order needs a human save attempt.",
+      "ruleText": "Quote Sent Manually (Streak Task): no movement for 14 days → the owner gets nudged; repeats forever until moved out.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "Customer declined and this account still needs a human save attempt.",
+        "why": "Quiet for 14 days",
         "buttons": [
           {
             "label": "Open in Streak",
@@ -1414,8 +1507,53 @@ const SIM_OVERLAY = {
         "stub": false,
         "customerName": "Summit Trading Co",
         "contactName": "Jessica Ramos",
-        "statusName": "Declined and dead.",
-        "totalDays": "Box age: 12 days / days in status: 3 days"
+        "statusName": "Quote Sent Manually (Streak Task)",
+        "totalDays": "Box age: 32 days / days in status: 14 days"
+      }
+    },
+    "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
+    "endGame": {
+      "text": "No movement for 30 days → archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat. The status is never auto-archived. The 14-day nudge recurs forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    },
+    "timed": false
+  },
+  "548878": {
+    "id": "548878",
+    "phase": "Quote & Chase",
+    "description": "Customer clicked decline and said this project is not moving forward.",
+    "flavor": "customer",
+    "automation": "Auto-sends a gracious customer email, no nudge, then moves the order to Archived Quote (427400).",
+    "scriptCodes": [
+      "^ot_declined_lost"
+    ],
+    "scriptPreviews": {
+      "^ot_declined_lost": {
+        "code": "^ot_declined_lost",
+        "name": "Declined Lost",
+        "subject": "thanks for letting us know",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us know this project isn't moving forward, and thank you for considering us. If anything else comes up down the road, keep us in mind - we handle custom apparel, embroidery, and promo products all in one place. We're here whenever you're ready.\n"
+      }
+    },
+    "endGame": {
+      "text": "On entry, auto-send ^ot_declined_lost, then move to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
+      "archiveScript": "^ot_declined_lost",
+      "archiveSendMode": "AUTO-SENT",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
       }
     }
   },
@@ -1661,12 +1799,67 @@ const SIM_OVERLAY = {
   "548987": {
     "id": "548987",
     "phase": "Quote & Chase",
-    "description": "A revised quote (e.g. a new quantity) drafted for the PM to send. NEW.",
-    "flavor": "customer",
-    "automation": "Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.”",
+    "description": "A revised quote, drafted for the PM to send, after the customer replied asking for an update.",
+    "flavor": "nudge",
+    "automation": "Drafts the new ^ot_quote_revised script and nudges the PM in the 📮 Draft chat. Cadence is 1 / 2 / 5 working days, then a recurring 5-day nudge; it resets on any customer reply and keeps going until moved out.",
     "scriptCodes": [
       "^ot_quote_revised"
-    ]
+    ],
+    "scriptPreviews": {
+      "^ot_quote_revised": {
+        "code": "^ot_quote_revised",
+        "name": "Quote Revised",
+        "subject": "your revised quote is ready",
+        "bodyText": "Hi [FIRST NAME],\n\nYour adjusted quote is ready to review. If everything is correct, click the approve button and we'll move to the next phase - creating your mockup. Or just reply to this email and let us know any updates you'd like.\n\n[QUOTE LINK]"
+      }
+    },
+    "cadence": "Quote Revised - Drafted: +1wd / +2wd / +5wd check-in nudges, then recurring +5wd nudge. Resets on any customer reply and continues until moved out.",
+    "nudge": {
+      "trigger": "QUOTE_REVISED_DRAFT_READY",
+      "chatKey": "DRAFT",
+      "chatName": "Draft",
+      "chatEmoji": "📮",
+      "chatColor": "#2D97F1",
+      "ruleText": "On entry and then 1 / 2 / 5 working days, then recurring 5-day nudge until moved out; resets on any customer reply.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Revised quote draft is ready for PM review.",
+        "buttons": [
+          {
+            "label": "Open in Streak",
+            "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "visualId": "27612",
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
+        "statusName": "Quote Revised - Drafted",
+        "totalDays": "Box age: 16 days / days in status: 5 days"
+      }
+    },
+    "streakFactor": "The nudge watches Streak's Last Email Date - both outgoing and incoming; any customer reply resets the 1 / 2 / 5 / recurring 5-day cadence.",
+    "endGame": {
+      "text": "30 days IN the status → archive-notice email is DRAFTED (^ot_missed_opportunity), not auto-send. The PM is pinged in the 📮 Draft chat to send it and move the status. The Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "CC script ^ot_missed_opportunity",
+        "t1Only": true
+      }
+    },
+    "timed": false
   }
 };
 
