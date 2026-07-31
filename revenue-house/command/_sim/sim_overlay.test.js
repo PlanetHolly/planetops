@@ -405,6 +405,83 @@ ok('the simulator renderer cannot leave a blank page on a throw', () => {
   assert.match(body, /\.catch\(/, 'renderSimulator must catch: it clears app.innerHTML before painting');
 });
 
+// Holly, 2026-07-31 (Printavo Auto 10): the end game was one dense paragraph holding
+// three separate things. It must render as labelled rows in the What's-Connected
+// "Rule: / Chat:" style - "the rule in bold colon and then the summary".
+ok('every end game is structured as labelled rows, not one paragraph', () => {
+  const ids = Object.keys(SIM_OVERLAY).filter(id => SIM_OVERLAY[id].endGame);
+  assert.ok(ids.length >= 19, 'expected at least 19 end games, got ' + ids.length);
+  const bad = ids.filter(id => {
+    const rows = SIM_OVERLAY[id].endGame.rows;
+    return !Array.isArray(rows) || !rows.length ||
+      rows.some(r => !r || typeof r.label !== 'string' || !r.label.trim() ||
+                     typeof r.body !== 'string' || !r.body.trim());
+  });
+  assert.deepStrictEqual(bad, [], 'end games missing well-formed rows');
+});
+
+ok('end game rows carry the three categories wherever an archive route exists', () => {
+  // Statuses that actually archive must spell out Close Date + Missed Opportunity
+  // separately, so the causality is readable rather than buried mid-paragraph.
+  const archiving = Object.keys(SIM_OVERLAY).filter(id => {
+    const e = SIM_OVERLAY[id].endGame;
+    return e && Array.isArray(e.rows) && !e.rows.some(r => r.label === 'No archive here');
+  });
+  assert.ok(archiving.length >= 12, 'expected the archiving lanes, got ' + archiving.length);
+  archiving.forEach(id => {
+    const labels = SIM_OVERLAY[id].endGame.rows.map(r => r.label);
+    ['Stalls at', 'What happens', 'Close Date', 'Missed Opportunity email']
+      .forEach(l => assert.ok(labels.includes(l), id + ' end game is missing the "' + l + '" row'));
+  });
+});
+
+ok('end game rows state WHO stamps the Close Date, not just that it happens', () => {
+  // Holly: "how would I ever reach there if no one puts it there?" - the draft lanes
+  // must say the PM moving the order is what triggers the stamp.
+  ['548869', '548870', '548872', '548873', '548877', '548987', '548876'].forEach(id => {
+    const cd = SIM_OVERLAY[id].endGame.rows.find(r => r.label === 'Close Date');
+    assert.ok(cd, id + ' has no Close Date row');
+    assert.match(cd.body, /PM moving the order/i, id + ' Close Date row must name who causes the stamp');
+    assert.match(cd.body, /Archived Quote \(427400\)/, id + ' Close Date row must name the status');
+  });
+});
+
+ok('end game rows never reintroduce bullets or run-on paragraphs', () => {
+  // "we're not doing bullet" - and no row should be a wall of text again.
+  Object.keys(SIM_OVERLAY).filter(id => SIM_OVERLAY[id].endGame).forEach(id => {
+    SIM_OVERLAY[id].endGame.rows.forEach(r => {
+      assert.doesNotMatch(r.body, /^\s*[-*•]/, id + '/' + r.label + ' starts with a bullet');
+      assert.ok(r.body.length <= 340, id + '/' + r.label + ' row is ' + r.body.length + ' chars - too long to scan');
+    });
+  });
+});
+
+ok('the end game renderer emits the Rule/Chat chip style and keeps a text fallback', () => {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const i = index.indexOf('function simRenderEndGame');
+  assert.ok(i > -1);
+  const fn = index.slice(i, i + 1400);
+  assert.match(fn, /endGame\.rows/, 'renderer must consume endGame.rows');
+  assert.match(fn, /simline/, 'renderer must reuse the simline chip style');
+  assert.match(fn, /endGame\.text/, 'renderer must keep the plain-text fallback');
+});
+
+ok('rows and the legacy text agree on the Quote auto-archive carve-out', () => {
+  const q = SIM_OVERLAY['390316'].endGame;
+  const what = q.rows.find(r => r.label === 'What happens');
+  assert.match(what.body, /archived AUTOMATICALLY/);
+  assert.match(what.body, /ONLY status that auto-archives/);
+  const mo = q.rows.find(r => r.label === 'Missed Opportunity email');
+  assert.match(mo.body, /^None\b/, 'Quote must state plainly that there is no Missed Opportunity email');
+  // and no other status may claim the auto-archive carve-out in its rows
+  Object.keys(SIM_OVERLAY).filter(id => id !== '390316' && SIM_OVERLAY[id].endGame).forEach(id => {
+    const blob = JSON.stringify(SIM_OVERLAY[id].endGame.rows);
+    assert.doesNotMatch(blob, /archived AUTOMATICALLY/, id + ' must not auto-archive');
+  });
+});
+
+
+
 for (const [name, fn] of tests) {
   try {
     fn();

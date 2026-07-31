@@ -2140,6 +2140,24 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days with no movement. In practice an order should almost never get here."
+          },
+          {
+                "label": "What happens",
+                "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email, and no final PM nudge — the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the ONLY status that auto-archives; every other stall status drafts a notice and pings the PM."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped on arrival in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "None. This is the placeholder every new Printavo entry lands in, not a quote lane, so no archive notice and no Missed Opportunity email go out."
+          }
+    ],
       "text": "30 days no movement \u2192 the order is archived AUTOMATICALLY into Archived Quote (427400). No customer email, and no final PM nudge either: the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the placeholder every new Printavo entry lands in, not a quote lane, so there is no archive notice and no Missed Opportunity email. In practice an order should almost never reach 30 days here. This is the ONLY status that auto-archives; every other stall status drafts an archive notice and pings the PM instead."
     },
     "timed": false
@@ -2154,6 +2172,24 @@ const SIM_OVERLAY = {
       "^ot_quote_sent"
     ],
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "The auto-chase runs itself on +1 / +2 / +5 working days. It stalls when the customer never replies."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is AUTO-SENT — no draft, no PM ping, this lane is hands-off. The order then moves itself to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2291,6 +2327,16 @@ const SIM_OVERLAY = {
       }
     },
     "endGame": {
+      "rows": [
+          {
+                "label": "No archive here",
+                "body": "This status never archives."
+          },
+          {
+                "label": "What happens",
+                "body": "The PM makes the requested change, then moves the order to a Revised status (📮 Quote Revised - Drafted or 🚀 Quote Revised - Auto Sent)."
+          }
+    ],
       "text": "No archive here - the PM makes the requested change and moves the order to a Revised status (Quote Revised - Drafted or Quote Revised - Auto Sent)."
     }
   },
@@ -2304,6 +2350,24 @@ const SIM_OVERLAY = {
       "^ot_quote_revised"
     ],
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "The auto-chase runs itself on +1 / +2 / +5 working days. It stalls when the customer never replies."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is AUTO-SENT — no draft, no PM ping, this lane is hands-off. The order then moves itself to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2504,6 +2568,16 @@ const SIM_OVERLAY = {
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
+      "rows": [
+          {
+                "label": "No archive here",
+                "body": "This is a mid-ladder step, not an ending."
+          },
+          {
+                "label": "What happens",
+                "body": "Auto-advances to the next check-in draft after the ladder interval. The end game lives at 📮 Quote 3rd Check In."
+          }
+    ],
       "text": "Auto-advances to the next check-in draft after the ladder interval."
     },
     "nudge": {
@@ -2588,6 +2662,24 @@ const SIM_OVERLAY = {
       "^ot_chase_2"
     ],
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "The auto-chase runs itself on +1 / +2 / +5 working days. It stalls when the customer never replies."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is AUTO-SENT — no draft, no PM ping, this lane is hands-off. The order then moves itself to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2615,6 +2707,24 @@ const SIM_OVERLAY = {
       "^ot_chase_3"
     ],
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "The auto-chase runs itself on +1 / +2 / +5 working days. It stalls when the customer never replies."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is AUTO-SENT — no draft, no PM ping, this lane is hands-off. The order then moves itself to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2642,6 +2752,24 @@ const SIM_OVERLAY = {
       "^ot_missed_opportunity"
     ],
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "The auto-chase runs itself on +1 / +2 / +5 working days. It stalls when the customer never replies."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is AUTO-SENT — no draft, no PM ping, this lane is hands-off. The order then moves itself to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2744,6 +2872,16 @@ const SIM_OVERLAY = {
     ],
     "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. Holly's Streak \"sample pack\" column marks that a sample pack was purchased on whichever box it joins.",
     "endGame": {
+      "rows": [
+          {
+                "label": "No archive here",
+                "body": "This status is never archived."
+          },
+          {
+                "label": "What happens",
+                "body": "Archiving happens at the next status, 🛒 Sample Pack Purchased → Samples Sent."
+          }
+    ],
       "text": "This status is never archived; archiving happens at the next status (Samples Sent)."
     },
     "timed": false,
@@ -2815,6 +2953,28 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner, and sometimes no quote # yet). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows the pre-quote conversation has gone quiet.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days with no movement."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Nudge",
+                "body": "The 3-day nudge keeps running forever until the order is moved out. There is no safe status."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2840,6 +3000,28 @@ const SIM_OVERLAY = {
     "scriptCodes": [],
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days with no movement."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Nudge",
+                "body": "The 7-day nudge keeps running forever until the order is moved out. There is no safe status."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2931,6 +3113,28 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days with no movement."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Nudge",
+                "body": "The 14-day nudge keeps running forever until the order is moved out. There is no safe status."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -2961,6 +3165,28 @@ const SIM_OVERLAY = {
     ],
     "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any customer reply stops the check-ins. Holly's Streak \"sample pack\" column marks it.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days in the status."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Nudge",
+                "body": "The sample check-in nudge keeps running forever until the order is moved out. There is no safe status."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "30 days in the status → archive-notice email is DRAFTED; it never archives automatically. The PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "missedOppScript": {
@@ -3012,6 +3238,16 @@ const SIM_OVERLAY = {
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
+      "rows": [
+          {
+                "label": "No archive here",
+                "body": "This is a mid-ladder step, not an ending."
+          },
+          {
+                "label": "What happens",
+                "body": "Auto-advances to the next check-in draft after the ladder interval. The end game lives at 📮 Quote 3rd Check In."
+          }
+    ],
       "text": "Auto-advances to the next check-in draft after the ladder interval."
     },
     "nudge": {
@@ -3055,6 +3291,16 @@ const SIM_OVERLAY = {
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
+      "rows": [
+          {
+                "label": "No archive here",
+                "body": "This is a mid-ladder step, not an ending."
+          },
+          {
+                "label": "What happens",
+                "body": "Auto-advances to the next check-in draft after the ladder interval. The end game lives at 📮 Quote 3rd Check In."
+          }
+    ],
       "text": "Auto-advances to the next check-in draft after the ladder interval."
     },
     "nudge": {
@@ -3098,6 +3344,24 @@ const SIM_OVERLAY = {
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "5 working days after the 3rd check-in draft."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own. From here the PM moves it to 🗄️ Archived Quote (427400) or takes it manual."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "5 working days after the 3rd check-in draft → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat → move it to Archived Quote (427400) or take it manual. No auto-send.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -3175,6 +3439,28 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days with no movement."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Nudge",
+                "body": "The 14-day nudge keeps running forever until the order is moved out. There is no safe status."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "No movement for 30 days → archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat. The status is never auto-archived. The 14-day nudge recurs forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -3209,6 +3495,24 @@ const SIM_OVERLAY = {
       }
     },
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "Nothing stalls — this fires on entry, as soon as the order lands here."
+          },
+          {
+                "label": "What happens",
+                "body": "^ot_declined_lost is AUTO-SENT (the gracious close), then the order moves to 🗄️ Archived Quote (427400)."
+          },
+          {
+                "label": "Close Date",
+                "body": "Stamped when the order lands in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "On entry, auto-send ^ot_declined_lost, then move to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_declined_lost",
       "archiveSendMode": "AUTO-SENT",
@@ -3507,6 +3811,24 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The nudge watches Streak's Last Email Date - both outgoing and incoming; any customer reply resets the 1 / 2 / 5 / recurring 5-day cadence.",
     "endGame": {
+      "rows": [
+          {
+                "label": "Stalls at",
+                "body": "30 days in the status."
+          },
+          {
+                "label": "What happens",
+                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+          },
+          {
+                "label": "Close Date",
+                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+          },
+          {
+                "label": "Missed Opportunity email",
+                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+    ],
       "text": "30 days IN the status → archive-notice email is DRAFTED (^ot_missed_opportunity), not auto-send. The PM is pinged in the 📮 Draft chat to send it and move the status. The Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_missed_opportunity",
       "archiveScriptPreview": {
@@ -3606,10 +3928,28 @@ function simRenderNudgeCard(out, nudge){
 }
 function simRenderEndGame(out, endGame){
   const block=el("div","simblock");
-  block.innerHTML='<div class="simlabel">End game</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What happens if it stalls — the archive route.</div><div class="simbody">'+esc(endGame.text||"")+'</div>';
+  // Holly, 2026-07-31: the end game was one dense paragraph holding three separate
+  // things (what happens at the stall / the Close Date / the Missed Opportunity email).
+  // Render it as labelled rows in the same "Rule: / Chat:" chip style as What's
+  // Connected — "the rule in bold colon and then the summary of what action happens".
+  const rows=Array.isArray(endGame.rows)?endGame.rows.filter(r=>r&&r.label&&r.body):[];
+  let body;
+  if(rows.length){
+    body='<div class="simrule">'+rows.map(function(r){
+      return '<div class="simline"><b>'+esc(r.label)+':</b> '+esc(r.body)+'</div>';
+    }).join("")+'</div>';
+  } else {
+    body='<div class="simbody">'+esc(endGame.text||"")+'</div>';
+  }
+  block.innerHTML='<div class="simlabel">End game</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What happens if it stalls — the archive route.</div>'+body;
   out.appendChild(block);
 
-  if(endGame.missedOppScript){
+  // The standalone "Missed Opportunity email" card used to sit here. Once the end game
+  // became labelled rows it said nothing the "Missed Opportunity email:" row doesn't,
+  // so it was pure clutter directly under it. Data (endGame.missedOppScript) is kept;
+  // only the duplicate block is gone. Fallback: if a status somehow has the script but
+  // no rows, still surface it rather than dropping the fact silently.
+  if(endGame.missedOppScript && !(Array.isArray(endGame.rows) && endGame.rows.length)){
     const m=endGame.missedOppScript;
     const item=el("div","simblock",'<div class="simlabel">'+esc(m.name||"Missed Opportunity email")+'</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">'+esc((m.source||"Printavo template")+(m.t1Only?" · T1 AND new customers only":"")+" · no live preview")+'</div>');
     out.appendChild(item);
