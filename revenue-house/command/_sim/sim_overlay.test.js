@@ -114,9 +114,20 @@ ok('Quote placeholder end game sends no email and just moves to Archived Quote',
   assert.strictEqual(endGame.archiveScript, undefined);
   assert.strictEqual(endGame.archiveScriptPreview, undefined);
   assert.strictEqual(endGame.missedOppScript, undefined);
+  // Holly 2026-07-31, confirmed: auto-archive, no email, and NO final PM nudge -
+  // the 3-day nudge has already fired ~10 times by day 30 so one more adds nothing.
+  assert.match(endGame.text, /archived AUTOMATICALLY/);
   assert.match(endGame.text, /no customer email/i);
+  assert.match(endGame.text, /no final PM nudge/i);
   assert.match(endGame.text, /Archived Quote \(427400\)/);
   assert.match(endGame.text, /no archive notice and no Missed Opportunity email/i);
+  // 390316 is the ONLY auto-archiving status; every other stall status drafts + pings.
+  assert.match(endGame.text, /ONLY status that auto-archives/);
+  const otherStallIds = ['548869', '548870', '548872', '548873', '548877', '548987'];
+  otherStallIds.forEach(id => {
+    const t = (SIM_OVERLAY[id].endGame || {}).text || '';
+    assert.doesNotMatch(t, /archived AUTOMATICALLY/, id + ' must not auto-archive');
+  });
   assert.doesNotMatch(SIM_OVERLAY['390316'].description, /fresh inquiry/i);
   assert.match(SIM_OVERLAY['390316'].description, /new order/i);
 });

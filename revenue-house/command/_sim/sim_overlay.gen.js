@@ -467,7 +467,7 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
-      "text": "30 days no movement \u2192 no customer email goes out. This is the placeholder for new entries, not a quote lane, so there is no archive notice and no Missed Opportunity email. The order simply moves to Archived Quote (427400)."
+      "text": "30 days no movement \u2192 the order is archived AUTOMATICALLY into Archived Quote (427400). No customer email, and no final PM nudge either: the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the placeholder every new Printavo entry lands in, not a quote lane, so there is no archive notice and no Missed Opportunity email. In practice an order should almost never reach 30 days here. This is the ONLY status that auto-archives; every other stall status drafts an archive notice and pings the PM instead."
     },
     "timed": false
   },
