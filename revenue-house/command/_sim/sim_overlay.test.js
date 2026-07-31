@@ -76,7 +76,7 @@ ok('end game contract names archive and Missed Opportunity flow', () => {
       !/Archived Quote \(427400\)/.test(endGame.text) ||
       !/Close Date/.test(endGame.text) ||
       !/T1/.test(endGame.text) ||
-      endGame.archiveScript !== '^ot_missed_opportunity' ||
+      endGame.archiveScript !== '^ot_archive_notice' ||
       !endGame.missedOppScript ||
       endGame.missedOppScript.name !== 'Missed Opportunity email' ||
       endGame.missedOppScript.source !== 'CC script ^ot_missed_opportunity' ||
@@ -89,9 +89,9 @@ ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
   const ids = ['548869', '548870', '548872'];
   ids.forEach(id => {
     const endGame = SIM_OVERLAY[id].endGame;
-    assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+    assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
     assert(endGame.archiveScriptPreview);
-    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
+    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
     assert(endGame.archiveScriptPreview.subject && endGame.archiveScriptPreview.subject.trim());
     assert(endGame.archiveScriptPreview.bodyText && endGame.archiveScriptPreview.bodyText.trim());
     assert.doesNotMatch(endGame.archiveScriptPreview.bodyText, /bandana/i);
@@ -103,7 +103,7 @@ ok('reviewed quote end games do not use chase final', () => {
   const reviewed = ['390316', '390317', '433065', '433066', '433067', '427399', '427398', '548878', '548869', '548870', '548872', '548876', '548877', '548987'];
   const bad = reviewed.filter(id => JSON.stringify(SIM_OVERLAY[id].endGame || {}).includes('^ot_chase_final'));
   assert.deepStrictEqual(bad, []);
-  assert.strictEqual(SIM_OVERLAY['548869'].endGame.archiveScript, '^ot_missed_opportunity');
+  assert.strictEqual(SIM_OVERLAY['548869'].endGame.archiveScript, '^ot_archive_notice');
 });
 
 ok('Quote placeholder end game sends no email and just moves to Archived Quote', () => {
@@ -205,9 +205,9 @@ ok('draft-chase end games advance until 3rd draft archive notice', () => {
   const endGame = SIM_OVERLAY['548876'].endGame;
   assert.match(endGame.text, /5 working days after the 3rd check-in draft/i);
   assert.match(endGame.text, /No auto-send/i);
-  assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+  assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
   assert(endGame.archiveScriptPreview);
-  assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
+  assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
 });
 
 ok('nudge examples have no suggestion and no Snooze, include Done, and include contact name', () => {
@@ -291,15 +291,15 @@ ok('review sessions 6, 8, and 9 simulator overrides are represented', () => {
   assert.match(declinedLost.endGame.text, /Archived Quote \(427400\)/);
 });
 
-ok('auto-chase lane end games are hands-off auto-sent missed opportunity archive notices', () => {
+ok('auto-chase lane end games are hands-off auto-sent archive notices', () => {
   ['390317', '433065', '433066', '433067', '427399'].forEach(id => {
     const endGame = SIM_OVERLAY[id].endGame;
     assert(endGame);
     assert.match(endGame.text, /AUTO-SENT/);
     assert.match(endGame.text, /hands-off/i);
-    assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+    assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
     assert.strictEqual(endGame.archiveSendMode, 'AUTO-SENT');
-    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
+    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
   });
 });
 
@@ -359,9 +359,14 @@ ok('script previews expose signature labels from approve-pay button rule', () =>
   assert(previews.length > 0);
   previews.forEach(preview => assert(expectedSignature(preview)));
 
-  const missed = previews.filter(preview => preview.code === '^ot_missed_opportunity');
-  assert(missed.length > 0);
-  missed.forEach(preview => assert.strictEqual(expectedSignature(preview), 'Cross Sell'));
+  // The archive notice carries no approve/pay button, so it takes the Cross Sell
+  // lookbook signature. ^ot_missed_opportunity is no longer previewed as an archive
+  // notice at all (option a, 2026-07-31) - it is the separate +2wk touch.
+  const archiveNotices = previews.filter(preview => preview.code === '^ot_archive_notice');
+  assert(archiveNotices.length > 0, 'expected archive-notice previews');
+  archiveNotices.forEach(preview => assert.strictEqual(expectedSignature(preview), 'Cross Sell'));
+  assert.strictEqual(previews.filter(p => p.code === '^ot_missed_opportunity').length, 0,
+    'the Missed Opportunity script must not be previewed as an archive notice');
   assert.strictEqual(expectedSignature(SIM_OVERLAY['548878'].scriptPreviews['^ot_declined_lost']), 'Cross Sell');
   assert.strictEqual(expectedSignature(SIM_OVERLAY['427398'].scriptPreviews['^ot_quote_revised']), 'Simple');
   assert.strictEqual(expectedSignature(SIM_OVERLAY['548987'].scriptPreviews['^ot_quote_revised']), 'Simple');
@@ -478,6 +483,38 @@ ok('rows and the legacy text agree on the Quote auto-archive carve-out', () => {
     const blob = JSON.stringify(SIM_OVERLAY[id].endGame.rows);
     assert.doesNotMatch(blob, /archived AUTOMATICALLY/, id + ' must not auto-archive');
   });
+});
+
+
+
+ok('the archive notice and the Missed Opportunity email are never the same script', () => {
+  // Holly 2026-07-31, option (a). Splitting the end game into rows exposed that the
+  // archive notice and the +2wk Missed Opportunity touch were both ^ot_missed_opportunity,
+  // i.e. the same customer would have received the same email twice. They are two
+  // different jobs: "we're setting this aside" now, "let's work together on something
+  // else" two weeks later. This guard stops them collapsing back together.
+  Object.keys(SIM_OVERLAY).forEach(id => {
+    const e = SIM_OVERLAY[id].endGame;
+    if (!e || !e.archiveScript || !e.missedOppScript) return;
+    const missed = String(e.missedOppScript.source || '').replace(/^CC script\s+/, '');
+    assert.notStrictEqual(e.archiveScript, missed,
+      id + ' sends the same script as both the archive notice and the Missed Opportunity email');
+    if (e.archiveScriptPreview) {
+      assert.notStrictEqual(e.archiveScriptPreview.code, missed,
+        id + ' previews the Missed Opportunity script as its archive notice');
+    }
+  });
+});
+
+ok('the archive notice copy closes the quote and does not cross-sell', () => {
+  const p = SIM_OVERLAY['548869'].endGame.archiveScriptPreview;
+  assert.strictEqual(p.code, '^ot_archive_notice');
+  assert.match(p.bodyText, /setting it aside/i);
+  // it must not drift into the Missed Opportunity job
+  assert.doesNotMatch(p.bodyText, /work with you on something else/i);
+  assert.doesNotMatch(p.bodyText, /promo products/i);
+  // and it stays non-bandana, the reason ^ot_chase_final was retired
+  assert.doesNotMatch(p.bodyText, /bandana/i);
 });
 
 

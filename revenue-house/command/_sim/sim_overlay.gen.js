@@ -518,12 +518,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
@@ -696,12 +696,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
@@ -1008,12 +1008,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
@@ -1053,12 +1053,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
@@ -1098,12 +1098,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
@@ -1303,12 +1303,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -1350,12 +1350,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -1463,12 +1463,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -1515,7 +1515,7 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "30 days in the status → archive-notice email is DRAFTED; it never archives automatically. The PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "Printavo template",
@@ -1690,12 +1690,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "5 working days after the 3rd check-in draft → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat → move it to Archived Quote (427400) or take it manual. No auto-send.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       }
     },
     "nudge": {
@@ -1789,12 +1789,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "No movement for 30 days → archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat. The status is never auto-archived. The 14-day nudge recurs forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2157,12 +2157,12 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "30 days IN the status → archive-notice email is DRAFTED (^ot_missed_opportunity), not auto-send. The PM is pinged in the 📮 Draft chat to send it and move the status. The Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
+      "archiveScript": "^ot_archive_notice",
       "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+        "code": "^ot_archive_notice",
+        "name": "Archive notice",
+        "subject": "setting your [PROJECT NAME] aside for now",
+        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
       },
       "missedOppScript": {
         "name": "Missed Opportunity email",
