@@ -58,7 +58,10 @@ ok('stall statuses have Streak factor and end game', () => {
 });
 
 ok('end game contract names archive and Missed Opportunity flow', () => {
-  const rows = ['390316', '548869', '548870', '548872'].map(id => SIM_OVERLAY[id]).filter(o => o.endGame);
+  // 390316 (Quote) is deliberately excluded: it is the placeholder for every new
+  // Printavo entry, not a quote lane, so it has no archive notice and no Missed
+  // Opportunity email. See 'Quote placeholder end game sends no email' below.
+  const rows = ['548869', '548870', '548872'].map(id => SIM_OVERLAY[id]).filter(o => o.endGame);
   assert(rows.length > 0);
   const bad = rows.filter(row => {
     const endGame = row.endGame;
@@ -83,7 +86,7 @@ ok('end game contract names archive and Missed Opportunity flow', () => {
 });
 
 ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
-  const ids = ['390316', '548869', '548870', '548872'];
+  const ids = ['548869', '548870', '548872'];
   ids.forEach(id => {
     const endGame = SIM_OVERLAY[id].endGame;
     assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
@@ -100,7 +103,39 @@ ok('reviewed quote end games do not use chase final', () => {
   const reviewed = ['390316', '390317', '433065', '433066', '433067', '427399', '427398', '548878', '548869', '548870', '548872', '548876', '548877', '548987'];
   const bad = reviewed.filter(id => JSON.stringify(SIM_OVERLAY[id].endGame || {}).includes('^ot_chase_final'));
   assert.deepStrictEqual(bad, []);
-  assert.strictEqual(SIM_OVERLAY['390316'].endGame.archiveScript, '^ot_missed_opportunity');
+  assert.strictEqual(SIM_OVERLAY['548869'].endGame.archiveScript, '^ot_missed_opportunity');
+});
+
+ok('Quote placeholder end game sends no email and just moves to Archived Quote', () => {
+  const endGame = SIM_OVERLAY['390316'].endGame;
+  assert(endGame && typeof endGame.text === 'string' && endGame.text.trim());
+  // Quote 390316 is the catch-all landing spot for every new Printavo entry.
+  // Nothing customer-facing is ever sent from it, so the stall route is a bare move.
+  assert.strictEqual(endGame.archiveScript, undefined);
+  assert.strictEqual(endGame.archiveScriptPreview, undefined);
+  assert.strictEqual(endGame.missedOppScript, undefined);
+  assert.match(endGame.text, /no customer email/i);
+  assert.match(endGame.text, /Archived Quote \(427400\)/);
+  assert.match(endGame.text, /no archive notice and no Missed Opportunity email/i);
+  assert.doesNotMatch(SIM_OVERLAY['390316'].description, /fresh inquiry/i);
+  assert.match(SIM_OVERLAY['390316'].description, /new order/i);
+});
+
+ok('Sample Pack Prep & Ship is bound to the live ^sample_confirm script', () => {
+  const row = SIM_OVERLAY['548006'];
+  // The CC serves ^sample_confirm live/auto-send on 548006; the Simulator used to
+  // show "No script for this status" because scriptCodes was empty.
+  assert.deepStrictEqual(row.scriptCodes, ['^sample_confirm']);
+  assert.strictEqual(row.copyNote, undefined);
+});
+
+ok('retired Command Center scripts are not referenced anywhere in the Simulator', () => {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  ['^sample_sent', '^ot_waiting_bump_1', '^ot_waiting_bump_2', '^ot_waiting_bump_3', '^ot_chase_final']
+    .forEach(code => {
+      assert.ok(!JSON.stringify(SIM_OVERLAY).includes(code), `overlay still references ${code}`);
+      assert.ok(!index.includes(code), `index.html still references ${code}`);
+    });
 });
 
 ok('archive-notice script is rendered as a Draft chat draft, not an auto-send', () => {
@@ -330,6 +365,33 @@ ok('auto-send connected text names one auto lane and avoids mechanism cards', ()
   assert.match(sim, /switch it from drafting to auto-send/);
   assert.doesNotMatch(sim, /autoChip\s*\(/);
   assert.doesNotMatch(sim, /TOUCHPOINTS col J|autoLevel/);
+});
+
+ok('every SIM_* / sim* symbol the simulator uses is actually declared in index.html', () => {
+  // Regression guard for fa4f118, which deleted a block of top-level simulator
+  // declarations (SIM_PHASES, SIM_FLAVOR, SIM_STATUS_PROXY, SIM_STATUS_CACHE,
+  // SIM_CACHE_MS, SIM_STATUS_STATE, simOrderMap, simStatusColor). Nothing failed
+  // loudly: simStatuses() swallowed the ReferenceError into the fallback branch and
+  // renderSimulator's .then() had no .catch(), so the page went blank and the
+  // data-only harness still passed 24/24.
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  // Strip string literals first: DOM ids and CSS class names like "simOut"/"simSel"
+  // live inside quotes and are not JS bindings.
+  const code = index
+    .replace(/"(?:[^"\\\n]|\\.)*"/g, '""')
+    .replace(/'(?:[^'\\\n]|\\.)*'/g, "''");
+  const used = new Set([...code.matchAll(/\b(SIM_[A-Z0-9_]+|sim[A-Z][A-Za-z0-9]*)\b/g)].map(m => m[1]));
+  const declared = new Set([...code.matchAll(/\b(?:const|let|var|function|async function)\s+(SIM_[A-Z0-9_]+|sim[A-Z][A-Za-z0-9]*)\b/g)].map(m => m[1]));
+  const missing = [...used].filter(n => !declared.has(n)).sort();
+  assert.deepStrictEqual(missing, [], 'used but never declared: ' + missing.join(', '));
+});
+
+ok('the simulator renderer cannot leave a blank page on a throw', () => {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const i = index.indexOf('function renderSimulator');
+  assert.ok(i > -1, 'renderSimulator not found');
+  const body = index.slice(i, i + 1600);
+  assert.match(body, /\.catch\(/, 'renderSimulator must catch: it clears app.innerHTML before painting');
 });
 
 for (const [name, fn] of tests) {

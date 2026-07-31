@@ -432,9 +432,9 @@ const SIM_OVERLAY = {
   "390316": {
     "id": "390316",
     "phase": "Quote & Chase",
-    "description": "A fresh inquiry or quote being built.",
+    "description": "Every new entry in Printavo lands here. Despite the name it is not a quote being chased; it means a new order that still needs to be built.",
     "flavor": "nudge",
-    "automation": "Manual starting point. It rarely sits here; the 3-day PM nudge is only a safety net so a new quote never falls through the cracks.",
+    "automation": "The catch-all landing spot for every new Printavo entry, so nothing customer-facing is sent from here. It rarely sits here; the 3-day PM nudge is only a safety net so a new order never falls through the cracks.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "QUOTE_STALLED",
@@ -467,19 +467,7 @@ const SIM_OVERLAY = {
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
-      "text": "30 days no movement → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat. Then the PM moves the order to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks off the Close Date.",
-      "archiveScript": "^ot_missed_opportunity",
-      "archiveScriptPreview": {
-        "code": "^ot_missed_opportunity",
-        "name": "Missed Opportunity",
-        "subject": "a note on your [PROJECT NAME]",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
-      },
-      "missedOppScript": {
-        "name": "Missed Opportunity email",
-        "source": "CC script ^ot_missed_opportunity",
-        "t1Only": true
-      }
+      "text": "30 days no movement \u2192 no customer email goes out. This is the placeholder for new entries, not a quote lane, so there is no archive notice and no Missed Opportunity email. The order simply moves to Archived Quote (427400)."
     },
     "timed": false
   },
@@ -1078,13 +1066,14 @@ const SIM_OVERLAY = {
     "description": "A new sample-pack order holding spot while the PM gets the samples ready to ship.",
     "flavor": "customer",
     "automation": "Generic order-confirmation email only at order time: we've got your sample pack request, we'll send it within 48 hours, and reply with any color/sample notes. Mark's automation drops every new sample-pack order here as the prep-and-ship holding spot. PM nudge if it is still in Prep & Ship after 2 days.",
-    "scriptCodes": [],
+    "scriptCodes": [
+      "^sample_confirm"
+    ],
     "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. Holly's Streak \"sample pack\" column marks that a sample pack was purchased on whichever box it joins.",
     "endGame": {
       "text": "This status is never archived; archiving happens at the next status (Samples Sent)."
     },
     "timed": false,
-    "copyNote": "Generic confirmation: we've got your sample pack request, we'll send it within 48 hours unless it's a weekend, and reply with any specific colors or samples if they were not noted on the order.",
     "nudge": {
       "trigger": "SAMPLE_PREP_SHIP_STALLED",
       "chatKey": "STALE",
