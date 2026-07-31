@@ -1049,10 +1049,16 @@ const SIM_OVERLAY = {
     "streakFactor": "The box lives in Streak (project name, owner, and sometimes no quote # yet). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows the pre-quote conversation has gone quiet.",
     "endGame": {
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
-      "archiveScript": "^ot_chase_final",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
-        "source": "Printavo template",
+        "source": "CC script ^ot_missed_opportunity",
         "t1Only": true
       }
     },
@@ -1068,10 +1074,16 @@ const SIM_OVERLAY = {
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
-      "archiveScript": "^ot_chase_final",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
-        "source": "Printavo template",
+        "source": "CC script ^ot_missed_opportunity",
         "t1Only": true
       }
     },
@@ -1153,10 +1165,16 @@ const SIM_OVERLAY = {
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
     "endGame": {
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
-      "archiveScript": "^ot_chase_final",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
-        "source": "Printavo template",
+        "source": "CC script ^ot_missed_opportunity",
         "t1Only": true
       }
     },

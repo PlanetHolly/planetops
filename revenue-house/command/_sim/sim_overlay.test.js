@@ -43,6 +43,7 @@ ok('stall statuses have Streak factor and end game', () => {
 ok('end game contract names archive and Missed Opportunity flow', () => {
   const rows = Object.values(SIM_OVERLAY).filter(o => o.endGame);
   assert(rows.length > 0);
+  const preQuoteIds = new Set(['548869', '548870', '548872']);
   const bad = rows.filter(row => {
     const endGame = row.endGame;
     return !endGame ||
@@ -58,13 +59,38 @@ ok('end game contract names archive and Missed Opportunity flow', () => {
       !/Close Date is NOT stamped here/i.test(endGame.text) ||
       !/stamped by a trigger on the Archived Quote \(427400\) status/i.test(endGame.text) ||
       !/T1/.test(endGame.text) ||
-      endGame.archiveScript !== '^ot_chase_final' ||
+      endGame.archiveScript !== (preQuoteIds.has(String(row.id)) ? '^ot_missed_opportunity' : '^ot_chase_final') ||
       !endGame.missedOppScript ||
       endGame.missedOppScript.name !== 'Missed Opportunity email' ||
-      endGame.missedOppScript.source !== 'Printavo template' ||
+      (preQuoteIds.has(String(row.id)) ? endGame.missedOppScript.source !== 'CC script ^ot_missed_opportunity' : endGame.missedOppScript.source !== 'Printavo template') ||
       endGame.missedOppScript.t1Only !== true;
   });
   assert.deepStrictEqual(bad.map(o => o.id), []);
+});
+
+ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
+  const ids = ['548869', '548870', '548872'];
+  ids.forEach(id => {
+    const endGame = SIM_OVERLAY[id].endGame;
+    assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+    assert(endGame.archiveScriptPreview);
+    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
+    assert(endGame.archiveScriptPreview.subject && endGame.archiveScriptPreview.subject.trim());
+    assert(endGame.archiveScriptPreview.bodyText && endGame.archiveScriptPreview.bodyText.trim());
+    assert.doesNotMatch(endGame.archiveScriptPreview.bodyText, /bandana/i);
+    assert.doesNotMatch(endGame.archiveScriptPreview.bodyText, /quote/i);
+  });
+});
+
+ok('Samples Sent end game remains on chase final and Printavo Missed Opportunity', () => {
+  const endGame = SIM_OVERLAY['548873'].endGame;
+  assert.strictEqual(endGame.archiveScript, '^ot_chase_final');
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(endGame, 'archiveScriptPreview'), false);
+  assert.deepStrictEqual(endGame.missedOppScript, {
+    name: 'Missed Opportunity email',
+    source: 'Printavo template',
+    t1Only: true
+  });
 });
 
 ok('archive-notice script is rendered as a Draft chat draft, not an auto-send', () => {
