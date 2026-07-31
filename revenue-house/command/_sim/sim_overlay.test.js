@@ -29,6 +29,14 @@ function nudgeExample(id) {
   return SIM_OVERLAY[id] && SIM_OVERLAY[id].nudge && SIM_OVERLAY[id].nudge.example;
 }
 
+function nudgeTypeLabel(id) {
+  const row = SIM_OVERLAY[id];
+  const key = String(row && row.nudge && row.nudge.chatKey || '').toUpperCase();
+  if (key === 'DRAFT') return '📮 Draft nudge';
+  if (key === 'STALE') return '🐌 Stale nudge';
+  return 'PM nudge';
+}
+
 ok('coverage of all live status ids still holds', () => {
   const missing = board.filter(s => {
     const row = SIM_OVERLAY[String(s.id)];
@@ -50,7 +58,7 @@ ok('stall statuses have Streak factor and end game', () => {
 });
 
 ok('end game contract names archive and Missed Opportunity flow', () => {
-  const rows = Object.values(SIM_OVERLAY).filter(o => o.endGame);
+  const rows = ['548869', '548870', '548872', '548873'].map(id => SIM_OVERLAY[id]).filter(o => o.endGame);
   assert(rows.length > 0);
   const preQuoteIds = new Set(['548869', '548870', '548872']);
   const bad = rows.filter(row => {
@@ -124,6 +132,43 @@ ok('Follow-Up Pre-Quote nudge is 14 days', () => {
 
 ok('In Conversation says before an official quote', () => {
   assert.match(SIM_OVERLAY['548869'].description, /before an official quote/i);
+});
+
+ok('draft-chase nudge labels and connected text describe draft auto-advance lane', () => {
+  const draftIds = ['428338', '548874', '548875', '548876'];
+  draftIds.forEach(id => {
+    const row = SIM_OVERLAY[id];
+    assert.strictEqual(row.flavor, 'nudge');
+    assert.strictEqual(nudgeTypeLabel(id), '📮 Draft nudge');
+    assert.match(row.automation, /auto-advance/i);
+    assert.match(row.automation, /\+1/);
+    assert.match(row.automation, /never auto-send/i);
+    assert.match(row.cadence, /\+1wd/i);
+    assert.match(row.cadence, /Draft-mode/i);
+  });
+  assert.strictEqual(nudgeTypeLabel('548869'), '🐌 Stale nudge');
+
+  const sim = simulatorSource();
+  assert.match(sim, /function simNudgeTypeLabel/);
+  assert.match(sim, /key==="DRAFT"\) return "📮 Draft nudge"/);
+  assert.match(sim, /key==="STALE"\) return "🐌 Stale nudge"/);
+  assert.match(sim, /function simFlavorChipLabel/);
+  assert.doesNotMatch(sim, /fl\.ic\+'\s+'\+esc\(fl\.lab\)/);
+});
+
+ok('draft-chase end games advance until 3rd draft archive notice', () => {
+  ['428338', '548874', '548875'].forEach(id => {
+    const endGame = SIM_OVERLAY[id].endGame;
+    assert.match(endGame.text, /Auto-advances to the next check-in draft/i);
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(endGame, 'archiveScript'), false);
+  });
+
+  const endGame = SIM_OVERLAY['548876'].endGame;
+  assert.match(endGame.text, /5 working days after the 3rd check-in draft/i);
+  assert.match(endGame.text, /No auto-send/i);
+  assert.strictEqual(endGame.archiveScript, '^ot_missed_opportunity');
+  assert(endGame.archiveScriptPreview);
+  assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_missed_opportunity');
 });
 
 ok('nudge examples have no suggestion and no Snooze, include Done, and include contact name', () => {

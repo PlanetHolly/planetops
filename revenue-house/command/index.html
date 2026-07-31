@@ -2457,12 +2457,16 @@ const SIM_OVERLAY = {
   "428338": {
     "id": "428338",
     "phase": "Quote & Chase",
-    "description": "First quote send — the draft is ready; the PM reviews and sends it.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Native: attaches the approve/pay button. One Thread drafts the quote email.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_quote_sent"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -2910,12 +2914,16 @@ const SIM_OVERLAY = {
   "548874": {
     "id": "548874",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_2"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -2949,12 +2957,16 @@ const SIM_OVERLAY = {
   "548875": {
     "id": "548875",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_3"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -2988,12 +3000,23 @@ const SIM_OVERLAY = {
   "548876": {
     "id": "548876",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_final"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "5 working days after the 3rd check-in draft → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat → move it to Archived Quote (427400) or take it manual. No auto-send.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      }
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -3329,6 +3352,19 @@ let SIM_STATUS_STATE=null;
 function simOrderMap(){ const m={}; SIM_FALLBACK_STATUSES.forEach((s,i)=>m[String(s.id)]=i); return m; }
 function simStatusColor(s){ return /^#[0-9A-Fa-f]{6}$/.test(String(s&&s.color||"")) ? s.color : "#C9C4BA"; }
 function simStatusPhase(s){ return (SIM_OVERLAY[String(s.id)]&&SIM_OVERLAY[String(s.id)].phase) || (String(s.type)==="QUOTE"?"Quote & Chase":"Paid & Pre-Production"); }
+function simNudgeTypeLabel(row){
+  const key=String(row&&row.nudge&&row.nudge.chatKey||"").toUpperCase();
+  if(key==="DRAFT") return "📮 Draft nudge";
+  if(key==="STALE") return "🐌 Stale nudge";
+  return "PM nudge";
+}
+function simFlavor(row){
+  const fl=SIM_FLAVOR[row.flavor]||SIM_FLAVOR.silent;
+  return row.flavor==="nudge" ? Object.assign({}, fl, {ic:"", lab:simNudgeTypeLabel(row)}) : fl;
+}
+function simFlavorChipLabel(fl){
+  return (fl.ic ? fl.ic+" " : "")+fl.lab;
+}
 function simParseCache(){
   try{ const raw=sessionStorage.getItem(SIM_STATUS_CACHE); if(!raw) return null; const parsed=JSON.parse(raw); if(!parsed || Date.now()-(+parsed.t||0)>SIM_CACHE_MS || !Array.isArray(parsed.statuses)) return null; return parsed.statuses; }catch(e){ return null; }
 }
@@ -3464,21 +3500,21 @@ function simRenderScriptPreviews(out, row){
 }
 function simRender(out, status){
   const row=SIM_OVERLAY[String(status.id)]||{phase:simStatusPhase(status),description:"Live Printavo status.",flavor:"silent",automation:"No mapped automation.",scriptCodes:[]};
-  const fl=SIM_FLAVOR[row.flavor]||SIM_FLAVOR.silent;
+  const fl=simFlavor(row);
   const hd=el("div","simhd");
-  hd.innerHTML='<div class="simtop"><span class="simswatch" style="background:'+esc(simStatusColor(status))+'"></span><div><div class="simname">'+esc(status.name)+'</div><div class="simphase">'+esc(row.phase)+' · '+esc(status.type||"")+' <span class="simchip" style="color:'+fl.col+';background:'+fl.bg+'">'+fl.ic+' '+esc(fl.lab)+'</span>'+(row.timed?'<span class="simclock">⏰ timed release — runs on a clock, no PM oversight</span>':'')+'</div></div></div>';
+  hd.innerHTML='<div class="simtop"><span class="simswatch" style="background:'+esc(simStatusColor(status))+'"></span><div><div class="simname">'+esc(status.name)+'</div><div class="simphase">'+esc(row.phase)+' · '+esc(status.type||"")+' <span class="simchip" style="color:'+fl.col+';background:'+fl.bg+'">'+esc(simFlavorChipLabel(fl))+'</span>'+(row.timed?'<span class="simclock">⏰ timed release — runs on a clock, no PM oversight</span>':'')+'</div></div></div>';
   out.appendChild(hd);
   out.appendChild(el("div","simblock",'<div class="simlabel">What it is</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">The status in plain English.</div><div class="simbody">'+esc(row.description)+'</div>'));
   const connected=el("div","simblock");
   let html='<div class="simlabel">What\'s connected</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What the system does when an order sits here — an email, a nudge, or nothing.</div><div class="simbody">';
   if(row.flavor==="customer") html+='<b>Sends customer-facing copy.</b> '+esc(simConnectedText(status,row));
-  else if(row.flavor==="nudge") html+='<b>No customer email fires here. The one thing connected is a PM nudge.</b> '+esc(row.automation||"");
+  else if(row.flavor==="nudge") html+='<b>No customer email fires here. The one thing connected is a '+esc(simNudgeTypeLabel(row))+'.</b> '+esc(simConnectedText(status,row));
   else if(row.flavor==="start") html+='<b>Manual start point.</b> '+esc(row.automation||"");
   else html+='<b>Workflow state.</b> No customer email, no notification. '+esc(row.automation||"");
   if(/^🚀/.test(status.name) && !/never delete/i.test(row.automation||"")) html+=' <span class="simnever">Red rule: never delete.</span>';
   html+='</div>';
   if(row.scriptCodes&&row.scriptCodes.length) html+='<div class="simfires">'+row.scriptCodes.map(c=>'<span class="simcode">'+esc(c)+'</span>').join("")+'</div>';
-  if(row.nudge) html+='<div class="simrule"><div class="simline"><b>Rule:</b> '+esc(row.nudge.ruleText)+'</div><div class="simline"><b>Chat:</b> '+esc(row.nudge.chatEmoji+' '+row.nudge.chatName)+'</div></div>';
+  if(row.nudge) html+='<div class="simrule"><div class="simline"><b>Rule:</b> '+esc(row.nudge.ruleText)+'</div><div class="simline"><b>Chat:</b> '+esc(row.nudge.chatEmoji+' '+row.nudge.chatName)+'</div>'+(row.cadence?'<div class="simline"><b>Cadence:</b> '+esc(row.cadence)+'</div>':'')+'</div>';
   connected.innerHTML=html; out.appendChild(connected);
   if(row.streakFactor) out.appendChild(el("div","simblock",'<div class="simlabel">Streak factor</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What Streak tracks, and the field that drives the nudge.</div><div class="simbody">'+esc(row.streakFactor)+'</div>'));
   if(row.endGame) simRenderEndGame(out,row.endGame);

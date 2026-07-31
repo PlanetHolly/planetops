@@ -784,12 +784,16 @@ const SIM_OVERLAY = {
   "428338": {
     "id": "428338",
     "phase": "Quote & Chase",
-    "description": "First quote send — the draft is ready; the PM reviews and sends it.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Native: attaches the approve/pay button. One Thread drafts the quote email.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_quote_sent"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -1237,12 +1241,16 @@ const SIM_OVERLAY = {
   "548874": {
     "id": "548874",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_2"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -1276,12 +1284,16 @@ const SIM_OVERLAY = {
   "548875": {
     "id": "548875",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_3"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "Auto-advances to the next check-in draft after the ladder interval."
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -1315,12 +1327,23 @@ const SIM_OVERLAY = {
   "548876": {
     "id": "548876",
     "phase": "Quote & Chase",
-    "description": "Timed quote follow-ups, drafted for the PM to send.",
+    "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "Draft check-in ladder +1 / +2 / +5 wd. Needs the cadence engine.",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
     "scriptCodes": [
       "^ot_chase_final"
     ],
+    "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
+    "endGame": {
+      "text": "5 working days after the 3rd check-in draft → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat → move it to Archived Quote (427400) or take it manual. No auto-send.",
+      "archiveScript": "^ot_missed_opportunity",
+      "archiveScriptPreview": {
+        "code": "^ot_missed_opportunity",
+        "name": "Missed Opportunity",
+        "subject": "a note on your [PROJECT NAME]",
+        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us work on your [PROJECT NAME]. Even though it didn't move forward this time, we'd love the chance to work with you on something else down the road.\n\nAt Planet Apparel we make life simpler by handling all your custom apparel, embroidery, and promo products in one place, so there's no juggling multiple vendors.\n\nAnd yes, we're real people who love a good phone chat, so call us any time for ideas or advice."
+      }
+    },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
