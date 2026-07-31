@@ -2089,7 +2089,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "A fresh inquiry or quote being built.",
     "flavor": "nudge",
-    "automation": "None — the manual starting point.",
+    "automation": "Manual starting point. It rarely sits here; the 3-day PM nudge is only a safety net so a new quote never falls through the cracks.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "QUOTE_STALLED",
@@ -2100,27 +2100,28 @@ const SIM_OVERLAY = {
       "ruleText": "3 business days of no movement → the owner gets nudged.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "New quote has been untouched for 3 business days.",
-        "suggestion": "Big one. Draft's ready below — give Summit a quick call, then send.",
+        "why": "Quiet for 3 business days",
         "buttons": [
           {
-            "label": "Review draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Call",
-            "kind": "link"
-          },
-          {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Quote",
+        "totalDays": "Box age: 8 days / days in status: 3 days"
       }
-    }
+    },
+    "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
+    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "timed": false
   },
   "390317": {
     "id": "390317",
@@ -2211,7 +2212,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Customer declined; needs a revision.",
     "flavor": "nudge",
-    "automation": "Printavo auto-moves here on decline. Internal PM alert.",
+    "automation": "Printavo auto-moves here on decline. PM alert.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "DECLINED",
@@ -2223,20 +2224,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Customer declined and this account still needs a human save attempt.",
-        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
         "buttons": [
           {
-            "label": "Call",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Customer declined; needs a revision.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2303,24 +2306,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Approval draft is ready for PM review.",
-        "suggestion": "Approval email's drafted. Review and send.",
         "buttons": [
           {
-            "label": "Open draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Edit",
-            "kind": "link"
-          },
-          {
-            "label": "Don't send",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Approval request for terms customers.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2339,7 +2340,7 @@ const SIM_OVERLAY = {
     "phase": "Art & Approval",
     "description": "Art or invoice declined; needs an update.",
     "flavor": "nudge",
-    "automation": "Printavo auto-moves here on decline. Internal PM alert.",
+    "automation": "Printavo auto-moves here on decline. PM alert.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "DECLINED",
@@ -2351,20 +2352,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Customer declined and this account still needs a human save attempt.",
-        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
         "buttons": [
           {
-            "label": "Call",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Art or invoice declined; needs an update.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2385,16 +2388,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Order entered the approved/paid production-ready moment.",
-        "suggestion": "Approved and paid — it is a real order now. Prep for production: confirm blanks, art, and due date. Priority build — flag it in the schedule.",
         "buttons": [
           {
-            "label": "Open in Printavo",
+            "label": "Open in Streak",
             "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Paid; ready to build.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2433,24 +2442,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Quote draft is ready for PM review.",
-        "suggestion": "Quote's drafted. Give it a personal read, then send.",
         "buttons": [
           {
-            "label": "Open draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Edit",
-            "kind": "link"
-          },
-          {
-            "label": "Don't send",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "First quote send — the draft is ready; the PM reviews and sends it.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2504,7 +2511,8 @@ const SIM_OVERLAY = {
     "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
     "scriptCodes": [
       "^ot_chase_2"
-    ]
+    ],
+    "timed": true
   },
   "433066": {
     "id": "433066",
@@ -2514,7 +2522,8 @@ const SIM_OVERLAY = {
     "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
     "scriptCodes": [
       "^ot_chase_3"
-    ]
+    ],
+    "timed": true
   },
   "433067": {
     "id": "433067",
@@ -2524,7 +2533,8 @@ const SIM_OVERLAY = {
     "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
     "scriptCodes": [
       "^ot_chase_final"
-    ]
+    ],
+    "timed": true
   },
   "454916": {
     "id": "454916",
@@ -2603,19 +2613,49 @@ const SIM_OVERLAY = {
   "548006": {
     "id": "548006",
     "phase": "Quote & Chase",
-    "description": "A sample-pack order to prep and ship.",
+    "description": "A new sample-pack order holding spot while the PM gets the samples ready to ship.",
     "flavor": "customer",
-    "automation": "Auto-sends the sample confirmation.",
-    "scriptCodes": [
-      "^ot_sample_shipped"
-    ]
+    "automation": "Generic order-confirmation email only at order time. Mark's automation drops every new sample-pack order here as the prep-and-ship holding spot. There is a Streak box and thread. PM nudge if it is still in Prep & Ship after 2 days.",
+    "scriptCodes": [],
+    "streakFactor": "The sample-pack box lives in Streak (project name, owner, sample-pack thread). The 2-day ship nudge watches the status age so samples do not sit unshipped.",
+    "endGame": "",
+    "timed": false,
+    "copyNote": "Copy being revised: Thanks for your sample pack request - we're excited. We'll send it within 48 hours unless it's a weekend. Note any specific colors/samples on your order or reply here. Expect tracking within 48h.",
+    "nudge": {
+      "trigger": "SAMPLE_PREP_SHIP_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "Still in Prep & Ship after 2 days → nudge the PM to ship the samples.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Still not shipped after 2 days",
+        "buttons": [
+          {
+            "label": "Open in Streak",
+            "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
+          }
+        ],
+        "projectName": "Summit Trading Co Sample Pack",
+        "customerName": "Summit Trading Co",
+        "statusName": "Sample Pack - Prep & Ship",
+        "visualId": "27612",
+        "totalDays": "Box age: 2 days / days in status: 2 days",
+        "stub": false
+      }
+    }
   },
   "548869": {
     "id": "548869",
     "phase": "Quote & Chase",
-    "description": "Live back-and-forth with the customer.",
+    "description": "Live back-and-forth with the customer, before an official quote is sent.",
     "flavor": "nudge",
-    "automation": "Silent while active; a Stale nudge fires after 3 business days of quiet.",
+    "automation": "PM nudge only after 3 business days of quiet. This stage may not have a quote number yet, so identify it by the Streak box, not a Printavo visual ID.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "IN_CONVERSATION_STALLED",
@@ -2623,38 +2663,70 @@ const SIM_OVERLAY = {
       "chatName": "Stale Status",
       "chatEmoji": "🐌",
       "chatColor": "#F0932B",
-      "ruleText": "3 business days of no customer reply → the owner gets nudged.",
+      "ruleText": "3 business days with no email in or out → the owner gets nudged.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "Live conversation has been quiet for 3 business days.",
-        "suggestion": "Chat with Summit stalled. Draft's ready — a call would help too.",
+        "why": "Quiet for 3 business days",
         "buttons": [
           {
-            "label": "Review draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Call",
-            "kind": "link"
-          },
-          {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
-        "visualId": "27612",
-        "stub": false
+        "visualId": "",
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "In Conversation",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
-    }
+    },
+    "streakFactor": "The box lives in Streak (project name, owner, and sometimes no quote # yet). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows the pre-quote conversation has gone quiet.",
+    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "timed": false
   },
   "548870": {
     "id": "548870",
     "phase": "Quote & Chase",
-    "description": "Customer asked for time — the ball is on their side.",
-    "flavor": "internal",
-    "automation": "Waiting-bump ladder +3 / +5 / +7 working days, then parks.",
-    "scriptCodes": []
+    "description": "Customer asked for time - the ball is on their side.",
+    "flavor": "nudge",
+    "automation": "A PM nudge only - no customer email. Plain recurring 7-day nudge on Last Email Date, outgoing or incoming; repeats every 7 days until the PM moves it or dismisses the interval.",
+    "scriptCodes": [],
+    "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
+    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "timed": false,
+    "nudge": {
+      "trigger": "WAITING_ON_CUSTOMER_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "7 days with no email in or out → the owner gets nudged; repeats every 7 days while it stays here.",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Quiet for 7 days",
+        "buttons": [
+          {
+            "label": "Open in Streak",
+            "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
+          }
+        ],
+        "projectName": "Summit Trading Co",
+        "customerName": "Summit Trading Co",
+        "statusName": "Waiting on Customer",
+        "visualId": "27612",
+        "totalDays": "Box age: 19 days / days in status: 7 days",
+        "stub": false
+      }
+    }
   },
   "548871": {
     "id": "548871",
@@ -2667,9 +2739,9 @@ const SIM_OVERLAY = {
   "548872": {
     "id": "548872",
     "phase": "Quote & Chase",
-    "description": "PM has a task to finish before a quote goes out.",
+    "description": "The PM sent a follow-up, the client replied with a future date / something custom, so the PM created a Streak task for the next follow-up. Their manual check-in comfort zone.",
     "flavor": "nudge",
-    "automation": "PM nudge on the set date / recurring every 7 bd.",
+    "automation": "PM nudge only. Watches outgoing and incoming email; if there is no movement for 14 days, the owner gets nudged.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "FOLLOW_UP_DUE",
@@ -2677,36 +2749,76 @@ const SIM_OVERLAY = {
       "chatName": "Stale Status",
       "chatEmoji": "🐌",
       "chatColor": "#F0932B",
-      "ruleText": "PM follow-up date is due; repeats every 7 business days until the owner moves it.",
+      "ruleText": "Follow-Up Pre-Quote (Streak Task): no movement for 14 days → the owner gets nudged.",
       "example": {
         "tierBadge": "🥇 T1",
-        "why": "PM-set follow-up is due.",
-        "suggestion": "Your follow-up on Summit Trading Co is due. Do it or move the order.",
+        "why": "Quiet for 14 days",
         "buttons": [
           {
-            "label": "Open",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Snooze",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Follow-Up Pre-Quote (Streak Task)",
+        "totalDays": "Box age: 32 days / days in status: 14 days"
       }
-    }
+    },
+    "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
+    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "timed": false
   },
   "548873": {
     "id": "548873",
     "phase": "Quote & Chase",
-    "description": "Samples have shipped to the buyer.",
+    "description": "Samples have shipped; the PM has a draft to fill with tracking number and estimated arrival, then the timed check-in ladder runs if there is no reply.",
     "flavor": "customer",
-    "automation": "Sample check-in ladder +3 / +2 / +5 bd drafted to the PM; 3rd no-reply → chat Shara.",
+    "automation": "Draft only first: PM fills tracking # + estimated arrival date, then sends. After that, the +3 / +2 / +5 day sample check-in ladder runs if no one replies. Custom T1 follow-ups get kicked to Follow-Up Pre-Quote (Streak Task).",
     "scriptCodes": [
-      "^ot_sample_arrival_checkin"
-    ]
+      "^ot_sample_shipped",
+      "^ot_sample_arrival_checkin",
+      "^ot_sample_arrival_checkin_plus2",
+      "^ot_sample_arrival_checkin_plus5"
+    ],
+    "streakFactor": "The sample-pack box lives in Streak and mirrors the Printavo status. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any reply stops the timed check-ins.",
+    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "timed": true,
+    "copyNote": "Copy being revised: sample arrival check-in needs two paths - ask for quantity, art, and needed-by date if they have not given project info yet; otherwise just ask which sample they want.",
+    "nudge": {
+      "trigger": "SAMPLE_SENT_STALLED",
+      "chatKey": "STALE",
+      "chatName": "Stale Status",
+      "chatEmoji": "🐌",
+      "chatColor": "#F0932B",
+      "ruleText": "After the +3 / +2 / +5 day check-in ladder, no reply → nudge the PM; custom T1 follow-ups move to Follow-Up Pre-Quote (Streak Task).",
+      "example": {
+        "tierBadge": "🥇 T1",
+        "why": "Timed ladder ended with no reply",
+        "buttons": [
+          {
+            "label": "Open in Streak",
+            "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
+          }
+        ],
+        "projectName": "Summit Trading Co Sample Pack",
+        "customerName": "Summit Trading Co",
+        "statusName": "Sample Pack Purchased → Samples Sent",
+        "visualId": "27612",
+        "totalDays": "Box age: 15 days / days in status: 10 days",
+        "stub": false
+      }
+    }
   },
   "548874": {
     "id": "548874",
@@ -2727,24 +2839,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Quote draft is ready for PM review.",
-        "suggestion": "Quote's drafted. Give it a personal read, then send.",
         "buttons": [
           {
-            "label": "Open draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Edit",
-            "kind": "link"
-          },
-          {
-            "label": "Don't send",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Timed quote follow-ups, drafted for the PM to send.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2767,24 +2877,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Quote draft is ready for PM review.",
-        "suggestion": "Quote's drafted. Give it a personal read, then send.",
         "buttons": [
           {
-            "label": "Open draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Edit",
-            "kind": "link"
-          },
-          {
-            "label": "Don't send",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Timed quote follow-ups, drafted for the PM to send.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2807,24 +2915,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Quote draft is ready for PM review.",
-        "suggestion": "Quote's drafted. Give it a personal read, then send.",
         "buttons": [
           {
-            "label": "Open draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Edit",
-            "kind": "link"
-          },
-          {
-            "label": "Don't send",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Timed quote follow-ups, drafted for the PM to send.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2853,20 +2959,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Customer declined and this account still needs a human save attempt.",
-        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
         "buttons": [
           {
-            "label": "Call",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Declined and dead.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2887,24 +2995,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "No customer feedback on the mockup by day 5.",
-        "suggestion": "No word on the mockup in 5 days. Call Summit.",
         "buttons": [
           {
-            "label": "Review draft",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Call",
-            "kind": "link"
-          },
-          {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Mockup sent, waiting on customer feedback.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2933,20 +3039,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Customer declined and this account still needs a human save attempt.",
-        "suggestion": "Summit declined Summit Trading Co. Worth a call — see what changed, offer a revise.",
         "buttons": [
           {
-            "label": "Call",
+            "label": "Open in Streak",
             "kind": "link"
           },
           {
-            "label": "Open",
-            "kind": "link"
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Declined and dead.",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2967,16 +3075,22 @@ const SIM_OVERLAY = {
       "example": {
         "tierBadge": "🥇 T1",
         "why": "Order entered the approved/paid production-ready moment.",
-        "suggestion": "Approved and paid — it is a real order now. Prep for production: confirm blanks, art, and due date. Priority build — flag it in the schedule.",
         "buttons": [
           {
-            "label": "Open in Printavo",
+            "label": "Open in Streak",
             "kind": "link"
+          },
+          {
+            "label": "Done",
+            "kind": "action"
           }
         ],
         "projectName": "Summit Trading Co",
         "visualId": "27612",
-        "stub": false
+        "stub": false,
+        "customerName": "Summit Trading Co",
+        "statusName": "Approved, no payment needed (terms / DWC).",
+        "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
   },
@@ -2985,7 +3099,7 @@ const SIM_OVERLAY = {
     "phase": "Paid & Pre-Production",
     "description": "Kicked back to the PM for a fix.",
     "flavor": "internal",
-    "automation": "Internal PM alert.",
+    "automation": "PM alert.",
     "scriptCodes": []
   },
   "548884": {
@@ -3017,7 +3131,7 @@ const SIM_OVERLAY = {
     "phase": "Paid & Pre-Production",
     "description": "An outsourced order that needs its purchase order sent to the vendor before production can start.",
     "flavor": "internal",
-    "automation": "Internal working state — no customer email, no notification.",
+    "automation": "Workflow state - no customer email, no notification.",
     "scriptCodes": []
   },
   "548888": {
@@ -3113,7 +3227,7 @@ const SIM_OVERLAY = {
 };
 
 const SIM_PHASES=["Quote & Chase","Art & Approval","Paid & Pre-Production","Production Floor","Outsourced lane","Fulfillment & Done","Outside Customer Flow"];
-const SIM_FLAVOR={customer:{ic:"📨",lab:"Customer email",col:"#065f46",bg:"#d1fae5"},nudge:{ic:"🔔",lab:"PM nudge",col:"#1d4ed8",bg:"#dbeafe"},internal:{ic:"⚙️",lab:"Internal",col:"#475569",bg:"#e2e8f0"},silent:{ic:"🔇",lab:"No notification",col:"#475569",bg:"#e2e8f0"},start:{ic:"🚀",lab:"Start trigger",col:"#991b1b",bg:"#fee2e2"}};
+const SIM_FLAVOR={customer:{ic:"📨",lab:"Customer email",col:"#065f46",bg:"#d1fae5"},nudge:{ic:"🔔",lab:"PM nudge",col:"#1d4ed8",bg:"#dbeafe"},internal:{ic:"⚙️",lab:"Workflow state",col:"#475569",bg:"#e2e8f0"},silent:{ic:"🔇",lab:"No notification",col:"#475569",bg:"#e2e8f0"},start:{ic:"🚀",lab:"Start trigger",col:"#991b1b",bg:"#fee2e2"}};
 const SIM_STATUS_PROXY="https://primary-production-079f9.up.railway.app/webhook/printavo-proxy";
 const SIM_STATUS_CACHE="cc_sim_statuses_v2";
 const SIM_CACHE_MS=60*60*1000;
@@ -3158,9 +3272,9 @@ function simEnsureCss(){
   st.textContent=".simpick{margin:12px 0 4px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.simsel{font:inherit;font-size:15px;padding:11px 14px;border:1px solid #d7dbe3;border-radius:10px;background:#fff;min-width:min(520px,100%);color:#1f2430;cursor:pointer}"+
    ".simsrc{font-size:12.5px;color:#6b7280}.simsrc.warn{color:#92400e;background:#fffbeb;border:1px solid #fcd34d;border-radius:999px;padding:4px 10px}"+
    ".simhd{margin:16px 0 10px;padding:16px;border:1px solid #e6e8ee;border-radius:10px;background:#fafbfc}.simtop{display:flex;align-items:flex-start;gap:12px}.simswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34);margin-top:3px;flex:none}.simname{font-weight:800;font-size:19px;color:#1f2430;line-height:1.3}.simphase{font-size:12.5px;color:#6b7280;margin-top:4px}.simchip{font-weight:750;font-size:12px;padding:2px 9px;border-radius:999px;white-space:nowrap;margin-left:6px}"+
-   ".simblock{border:1px solid #e6e8ee;border-radius:10px;background:#fff;margin:10px 0;padding:15px 16px}.simlabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:850;color:#6b7280;margin-bottom:6px}.simbody{font-size:14px;color:#374151;line-height:1.58}.simbody b{color:#1f2430}.simcode{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#374151;background:#f3f4f6;border-radius:999px;padding:3px 8px;display:inline-block;margin:4px 4px 0 0}.simtag{font-size:11px;font-weight:750;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}.simfires{display:flex;align-items:center;gap:9px;margin:11px 0 4px;flex-wrap:wrap}"+
+   ".simblock{border:1px solid #e6e8ee;border-radius:10px;background:#fff;margin:10px 0;padding:15px 16px}.simlabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:850;color:#6b7280;margin-bottom:6px}.simbody{font-size:14px;color:#374151;line-height:1.58}.simbody b{color:#1f2430}.simcode{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#374151;background:#f3f4f6;border-radius:999px;padding:3px 8px;display:inline-block;margin:4px 4px 0 0}.simtag{font-size:11px;font-weight:750;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}.simclock{font-size:11px;font-weight:800;color:#7c2d12;background:#ffedd5;border-radius:999px;padding:2px 8px;margin-left:6px}.simfires{display:flex;align-items:center;gap:9px;margin:11px 0 4px;flex-wrap:wrap}"+
    ".simrule{display:grid;gap:8px;margin-top:10px}.simline{font-size:13.5px;color:#374151;background:#f8fafc;border:1px solid #e6e8ee;border-radius:9px;padding:10px 12px}.simline b{color:#1f2430}.simnever{color:#991b1b;font-weight:850}"+
-   ".simmock{--c:#2D97F1;--c-soft:#eef6ff;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,.08);overflow:hidden;margin-top:12px;max-width:620px}.simmocktop{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #e4e7ec;background:#fbfcfd}.simmocktop .disc{width:30px;height:30px;flex:none}.simmocktop .who{font-size:13px;font-weight:750;color:#1b1f24}.simmocktop .who small{display:block;font-weight:500;color:#697585;font-size:11.5px;margin-top:1px}.simmocktop .to{margin-left:auto;font-size:11.5px;color:#697585;text-align:right}.simmocktop .to b{color:#1b1f24}.simcard{padding:15px 16px 4px}.simcardh{display:flex;align-items:center;gap:9px;margin:0 0 10px}.simcardh .em{font-size:16px}.simcardh .cat{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}.simcardh .pill{margin-left:auto;font-size:11px;font-weight:750;background:var(--c-soft);color:var(--c);padding:2px 8px;border-radius:20px}.simproj{font-size:16.5px;font-weight:800;margin:0 0 3px;color:#1b1f24}.simproj .id{color:#697585;font-weight:650;font-family:ui-monospace,Menlo,monospace;font-size:13px}.simwhy{font-size:14px;color:#1b1f24;margin:8px 0 0;display:flex;gap:8px;align-items:flex-start}.simwhy .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#697585;flex:none;width:74px;padding-top:2px}.simsugg{background:var(--c-soft);border-left:3px solid var(--c);border-radius:0 8px 8px 0;padding:9px 12px;margin:12px 0 4px;font-size:14px;color:#1b1f24}.simsugg .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c);display:block;margin-bottom:2px}.simbtns{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}.simbtn{font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid #d2d7df;background:#fff;color:#1b1f24;cursor:default}.simbtn.primary{background:var(--c);border-color:var(--c);color:#fff}";
+   ".simmock{--c:#2D97F1;--c-soft:#eef6ff;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,.08);overflow:hidden;margin-top:12px;max-width:620px}.simmocktop{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #e4e7ec;background:#fbfcfd}.simmocktop .disc{width:30px;height:30px;flex:none}.simmocktop .who{font-size:13px;font-weight:750;color:#1b1f24}.simmocktop .who small{display:block;font-weight:500;color:#697585;font-size:11.5px;margin-top:1px}.simmocktop .to{margin-left:auto;font-size:11.5px;color:#697585;text-align:right}.simmocktop .to b{color:#1b1f24}.simcard{padding:15px 16px 4px}.simcardh{display:flex;align-items:center;gap:9px;margin:0 0 10px}.simcardh .em{font-size:16px}.simcardh .cat{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}.simcardh .pill{margin-left:auto;font-size:11px;font-weight:750;background:var(--c-soft);color:var(--c);padding:2px 8px;border-radius:20px}.simproj{font-size:16.5px;font-weight:800;margin:0 0 3px;color:#1b1f24}.simproj .id{color:#697585;font-weight:650;font-family:ui-monospace,Menlo,monospace;font-size:13px}.simmeta{display:grid;grid-template-columns:130px 1fr;gap:7px 12px;margin-top:10px;font-size:14px;color:#1b1f24}.simmeta .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#697585;padding-top:2px}.simnote{background:#fffbeb;border:1px solid #fde68a;border-radius:9px;color:#78350f;font-size:13.5px;line-height:1.5;padding:10px 12px;margin-top:10px}.simbtns{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}.simbtn{font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid #d2d7df;background:#fff;color:#1b1f24;cursor:default}.simbtn.primary{background:var(--c);border-color:var(--c);color:#fff}";
   document.head.appendChild(st);
 }
 function simNudgeGlyph(color){
@@ -3171,17 +3285,16 @@ function simRenderNudgeCard(out, nudge){
   const mock=el("div","simmock"); mock.style.setProperty("--c", nudge.chatColor||"#2D97F1"); mock.style.setProperty("--c-soft", "color-mix(in srgb, "+(nudge.chatColor||"#2D97F1")+" 12%, white)");
   mock.innerHTML='<div class="simmocktop">'+simNudgeGlyph(nudge.chatColor)+'<div class="who">Nudges<small>'+esc(nudge.chatName)+' · example</small></div><div class="to">to <b>Shara</b></div></div>'+
     '<div class="simcard"><div class="simcardh"><span class="em">'+esc(nudge.chatEmoji||"")+'</span><span class="cat">'+esc(nudge.chatName||"Nudge")+'</span><span class="pill">'+esc(ex.tierBadge||"T1")+'</span></div>'+
-    '<p class="simproj">'+esc(ex.projectName||"Summit Trading Co")+' <span class="id">#'+esc(ex.visualId||"27612")+'</span></p>'+
-    '<p class="simwhy"><span class="k">Why</span><span>'+esc(ex.why||"")+'</span></p>'+
-    '<div class="simsugg"><span class="k">Suggestion</span>'+esc(ex.stub?"Coming with the sample lane. ":"")+esc(ex.suggestion||"")+'</div></div>'+
-    '<div class="simbtns">'+(ex.buttons||[]).map((b,i)=>'<span class="simbtn '+(i===0?'primary':'')+'">'+esc(b.label||"Open")+'</span>').join("")+'<span class="simbtn">Done</span></div>';
+    '<p class="simproj">'+esc(ex.projectName||"Summit Trading Co")+(ex.visualId?' <span class="id">#'+esc(ex.visualId)+'</span>':'')+'</p>'+
+    '<div class="simmeta"><span class="k">Customer</span><span>'+esc(ex.customerName||ex.projectName||"Summit Trading Co")+'</span><span class="k">Status</span><span>'+esc(ex.statusName||"Current status")+'</span><span class="k">Why</span><span>'+esc(ex.why||"Quiet")+'</span><span class="k">Box age / days in status</span><span>'+esc(ex.totalDays||"Box age / days in status")+'</span></div></div>'+
+    '<div class="simbtns">'+(ex.buttons||[{label:"Open in Streak"},{label:"Done"}]).map((b,i)=>'<span class="simbtn '+(i===0?'primary':'')+'">'+esc(b.label||"Open in Streak")+'</span>').join("")+'</div>';
   out.appendChild(mock);
 }
 function simRender(out, status){
   const row=SIM_OVERLAY[String(status.id)]||{phase:simStatusPhase(status),description:"Live Printavo status.",flavor:"silent",automation:"No mapped automation.",scriptCodes:[]};
   const fl=SIM_FLAVOR[row.flavor]||SIM_FLAVOR.silent;
   const hd=el("div","simhd");
-  hd.innerHTML='<div class="simtop"><span class="simswatch" style="background:'+esc(simStatusColor(status))+'"></span><div><div class="simname">'+esc(status.name)+'</div><div class="simphase">'+esc(row.phase)+' · '+esc(status.type||"")+' <span class="simchip" style="color:'+fl.col+';background:'+fl.bg+'">'+fl.ic+' '+esc(fl.lab)+'</span></div></div></div>';
+  hd.innerHTML='<div class="simtop"><span class="simswatch" style="background:'+esc(simStatusColor(status))+'"></span><div><div class="simname">'+esc(status.name)+'</div><div class="simphase">'+esc(row.phase)+' · '+esc(status.type||"")+' <span class="simchip" style="color:'+fl.col+';background:'+fl.bg+'">'+fl.ic+' '+esc(fl.lab)+'</span>'+(row.timed?'<span class="simclock">⏰ timed release — runs on a clock, no PM oversight</span>':'')+'</div></div></div>';
   out.appendChild(hd);
   out.appendChild(el("div","simblock",'<div class="simlabel">What it is</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">The status in plain English.</div><div class="simbody">'+esc(row.description)+'</div>'));
   const connected=el("div","simblock");
@@ -3189,12 +3302,14 @@ function simRender(out, status){
   if(row.flavor==="customer") html+='<b>Sends the customer an email automatically.</b> '+esc(row.automation||"");
   else if(row.flavor==="nudge") html+='<b>No customer email fires here. The one thing connected is a PM nudge.</b> '+esc(row.automation||"");
   else if(row.flavor==="start") html+='<b>Manual start point.</b> '+esc(row.automation||"");
-  else html+='<b>Internal working state.</b> No customer email, no notification. '+esc(row.automation||"");
+  else html+='<b>Workflow state.</b> No customer email, no notification. '+esc(row.automation||"");
   if(/^🚀/.test(status.name) && !/never delete/i.test(row.automation||"")) html+=' <span class="simnever">Red rule: never delete.</span>';
   html+='</div>';
   if(row.scriptCodes&&row.scriptCodes.length) html+='<div class="simfires">'+row.scriptCodes.map(c=>'<span class="simcode">'+esc(c)+'</span>').join("")+'</div>';
   if(row.nudge) html+='<div class="simrule"><div class="simline"><b>Rule:</b> '+esc(row.nudge.ruleText)+'</div><div class="simline"><b>Chat:</b> '+esc(row.nudge.chatEmoji+' '+row.nudge.chatName)+'</div></div>';
   connected.innerHTML=html; out.appendChild(connected);
+  if(row.streakFactor) out.appendChild(el("div","simblock",'<div class="simlabel">Streak factor</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What Streak tracks, and the field that drives the nudge.</div><div class="simbody">'+esc(row.streakFactor)+'</div>'));
+  if(row.endGame) out.appendChild(el("div","simblock",'<div class="simlabel">End game</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What happens if it stalls — the archive route.</div><div class="simbody">'+esc(row.endGame)+'</div>'));
   if(row.nudge) simRenderNudgeCard(out,row.nudge);
   if(row.flavor==="customer"){
     (row.scriptCodes||[]).forEach(code=>{
@@ -3205,6 +3320,7 @@ function simRender(out, status){
       if(live) renderEmailFrame(out, live);
     });
   }
+  if(row.copyNote) out.appendChild(el("div","simnote","⚠ Copy being revised: "+esc(row.copyNote).replace(/^Copy being revised:\\s*/,"")));
 }
 function simPaintPicker(app, state){
   const statuses=state.statuses||[];

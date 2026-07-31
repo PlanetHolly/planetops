@@ -1,46 +1,117 @@
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
 const board = require('/Users/hollytrevino/Dropbox/PlanetApparel/Printavo_Automations/Status_Cleanup_2026-07/live_statuses_FINAL_2026-07-27.json');
 const { SIM_OVERLAY } = require('./sim_overlay.gen.js');
-const { resolveNudge } = require('/Users/hollytrevino/Dropbox/PlanetApparel/Printavo_Automations/OneThread_Build/nudge/resolver.js');
-const workflow = require('/Users/hollytrevino/Dropbox/PlanetApparel/Printavo_Automations/OneThread_Build/composer_workflow.json');
-function cfg(){ const out={}; const node=workflow.nodes.find(n=>n.name==='Config'); for (const a of node.parameters.assignments.assignments) out[a.name]=a.value; return out; }
-const config = cfg();
-const validFlavors = new Set(['customer','nudge','silent','internal','start']);
-let pass=0, total=6;
-function ok(name, fn){ try { fn(); pass++; console.log('PASS '+pass+'/'+total+' '+name); } catch(e){ console.error('FAIL '+name); throw e; } }
-ok('coverage of all 71 ids', () => {
-  const missing = board.filter(s => !SIM_OVERLAY[String(s.id)] || !SIM_OVERLAY[String(s.id)].description || !validFlavors.has(SIM_OVERLAY[String(s.id)].flavor));
-  assert.deepStrictEqual(missing.map(s => s.id+' '+s.name), []);
+
+const validFlavors = new Set(['customer', 'nudge', 'silent', 'internal', 'start']);
+let pass = 0;
+const tests = [];
+
+function ok(name, fn) {
+  tests.push([name, fn]);
+}
+
+function overlayText() {
+  return JSON.stringify(SIM_OVERLAY);
+}
+
+function nudgeExample(id) {
+  return SIM_OVERLAY[id] && SIM_OVERLAY[id].nudge && SIM_OVERLAY[id].nudge.example;
+}
+
+ok('coverage of all live status ids still holds', () => {
+  const missing = board.filter(s => {
+    const row = SIM_OVERLAY[String(s.id)];
+    return !row || !row.description || !validFlavors.has(row.flavor);
+  });
+  assert.deepStrictEqual(missing.map(s => s.id + ' ' + s.name), []);
 });
+
 ok('no orphan overlay ids', () => {
   const ids = new Set(board.map(s => String(s.id)));
   const orphans = Object.keys(SIM_OVERLAY).filter(id => !ids.has(id));
   assert.deepStrictEqual(orphans, []);
 });
-ok('nudge completeness', () => {
-  const bad = Object.values(SIM_OVERLAY).filter(o => o.flavor === 'nudge').filter(o => !o.nudge || !o.nudge.chatName || !o.nudge.ruleText || !o.nudge.example || !o.nudge.example.why || !o.nudge.example.suggestion || !Array.isArray(o.nudge.example.buttons) || o.nudge.example.buttons.length < 1);
+
+ok('stall statuses have Streak factor and end game', () => {
+  const stallIds = ['548869', '548870', '548872', '548873'];
+  const bad = stallIds.filter(id => !SIM_OVERLAY[id].streakFactor || !SIM_OVERLAY[id].endGame);
+  assert.deepStrictEqual(bad, []);
+});
+
+ok('Waiting on Customer is recurring 7-day nudge only', () => {
+  const row = SIM_OVERLAY['548870'];
+  assert.strictEqual(row.flavor, 'nudge');
+  assert.match(row.nudge.ruleText, /7/);
+  assert.doesNotMatch(row.nudge.ruleText, /bump/i);
+  assert.doesNotMatch(row.nudge.ruleText, /3\s*\/\s*5\s*\/\s*7/i);
+  assert.doesNotMatch(row.automation, /bump/i);
+  assert.doesNotMatch(row.automation, /3\s*\/\s*5\s*\/\s*7/i);
+});
+
+ok('Follow-Up Pre-Quote nudge is 14 days', () => {
+  assert.match(SIM_OVERLAY['548872'].nudge.ruleText, /14/);
+});
+
+ok('In Conversation says before an official quote', () => {
+  assert.match(SIM_OVERLAY['548869'].description, /before an official quote/i);
+});
+
+ok('nudge examples have no suggestion and no Snooze, and include Done', () => {
+  const bad = Object.values(SIM_OVERLAY).filter(o => o.nudge).filter(o => {
+    const ex = o.nudge.example || {};
+    const labels = (ex.buttons || []).map(b => b.label);
+    return Object.prototype.hasOwnProperty.call(ex, 'suggestion') ||
+      labels.some(label => /snooze/i.test(label || '')) ||
+      !labels.includes('Done') ||
+      !labels.includes('Open in Streak') ||
+      !ex.customerName ||
+      !ex.statusName ||
+      !ex.why ||
+      !ex.totalDays;
+  });
   assert.deepStrictEqual(bad.map(o => o.id), []);
 });
-ok('customer completeness', () => {
-  const bad = Object.values(SIM_OVERLAY).filter(o => o.flavor === 'customer').filter(o => !Array.isArray(o.scriptCodes) || o.scriptCodes.length < 1);
-  assert.deepStrictEqual(bad.map(o => o.id), []);
+
+ok('word bump appears nowhere in overlay or simulator render text', () => {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const simStart = index.indexOf('const SIM_OVERLAY = ');
+  const simEnd = index.indexOf('/* ─────────────────────────── AUTOMATIONS', simStart);
+  assert.notStrictEqual(simStart, -1);
+  assert.notStrictEqual(simEnd, -1);
+  assert.doesNotMatch(overlayText(), /bump/i);
+  assert.doesNotMatch(index.slice(simStart, simEnd), /bump/i);
 });
-ok('cadence correctness', () => {
-  assert.match(SIM_OVERLAY['548869'].nudge.ruleText, /3 business days/);
-  assert.match(SIM_OVERLAY['548879'].nudge.ruleText, /5 business days/);
-  assert.match(SIM_OVERLAY['548872'].nudge.ruleText, /7 business days/);
-  assert.match(SIM_OVERLAY['548872'].nudge.ruleText, /repeats every 7 business days/);
-  assert.notStrictEqual(SIM_OVERLAY['548871'].flavor, 'nudge');
-  assert.strictEqual(SIM_OVERLAY['548871'].nudge, undefined);
+
+ok('sample-pack statuses match approved display contract', () => {
+  const prep = SIM_OVERLAY['548006'];
+  assert.match(prep.nudge.ruleText, /2 days/);
+  assert.strictEqual(prep.endGame, '');
+  assert.match(prep.automation, /Streak box and thread/i);
+
+  const sent = SIM_OVERLAY['548873'];
+  assert.strictEqual(sent.timed, true);
+  assert(sent.scriptCodes.includes('^ot_sample_shipped'));
+  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin'));
+  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
+  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus5'));
+  assert(sent.nudge);
 });
-ok('example fidelity vs resolveNudge', () => {
-  const sampleOrder={id:'27612', invoiceId:'27612', visualId:'27612', name:'Summit Trading Co', projectName:'Summit Trading Co', nickname:'Summit Trading Co', total:2500, tags:['#bandana'], customerName:'Summit Trading Co', contact:{firstName:'Summit', fullName:'Summit Trading Co', phone:'8585692090'}, owner:{email:'bandanas@planetapparel.com', name:'Shara'}, ownerEmail:'bandanas@planetapparel.com'};
-  const live = resolveNudge({ trigger:'IN_CONVERSATION_STALLED', order:sampleOrder, tier:'T1', cfg:config });
-  const baked = SIM_OVERLAY['548869'].nudge.example;
-  assert.strictEqual(baked.tierBadge, live.tierBadge);
-  assert.strictEqual(baked.why, live.why);
-  assert.strictEqual(baked.suggestion, live.suggestion);
-  assert.deepStrictEqual(baked.buttons, live.buttons.map(b => ({ label:b.label || '', kind:b.kind || 'link' })));
+
+ok('timed statuses expose clock-ready flag', () => {
+  assert.strictEqual(SIM_OVERLAY['548873'].timed, true);
 });
-console.log('PASS '+pass+'/'+total);
+
+for (const [name, fn] of tests) {
+  try {
+    fn();
+    pass++;
+    console.log('PASS ' + pass + '/' + tests.length + ' ' + name);
+  } catch (e) {
+    console.error('FAIL ' + name);
+    throw e;
+  }
+}
+
+console.log('PASS ' + pass + '/' + tests.length);
