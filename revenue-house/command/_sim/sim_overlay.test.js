@@ -16,6 +16,15 @@ function overlayText() {
   return JSON.stringify(SIM_OVERLAY);
 }
 
+function simulatorSource() {
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const simStart = index.indexOf('const SIM_OVERLAY = ');
+  const simEnd = index.indexOf('/* ─────────────────────────── AUTOMATIONS', simStart);
+  assert.notStrictEqual(simStart, -1);
+  assert.notStrictEqual(simEnd, -1);
+  return index.slice(simStart, simEnd);
+}
+
 function nudgeExample(id) {
   return SIM_OVERLAY[id] && SIM_OVERLAY[id].nudge && SIM_OVERLAY[id].nudge.example;
 }
@@ -168,6 +177,39 @@ ok('sample-pack statuses match approved display contract', () => {
 
 ok('timed statuses expose clock-ready flag', () => {
   assert.strictEqual(SIM_OVERLAY['548873'].timed, true);
+});
+
+ok('simulator render does not emit Command Center side-card markers', () => {
+  const sim = simulatorSource();
+  assert.doesNotMatch(sim, /renderEmailFrame\s*\(/);
+  assert.doesNotMatch(sim, /sideMeta\s*\(/);
+  assert.doesNotMatch(sim, /<h3>Fires when|<h3[^>]*>Cadence|<h3[^>]*>Sent by|<h3[^>]*>Appears in these journeys/i);
+  assert.doesNotMatch(sim, /FIRES WHEN|CADENCE|SENT BY|APPEARS IN THESE JOURNEYS/);
+});
+
+ok('customer-email statuses render clean script previews with Copy and Edit controls', () => {
+  const sim = simulatorSource();
+  const quoteAuto = SIM_OVERLAY['390317'];
+  assert.strictEqual(quoteAuto.flavor, 'customer');
+  assert(quoteAuto.scriptCodes.includes('^ot_quote_sent'));
+  assert.match(sim, /function simRenderCleanEmailPreview/);
+  assert.match(sim, /simpvrow.*From/);
+  assert.match(sim, /simpvrow.*To/);
+  assert.match(sim, /simpvsubj/);
+  assert.match(sim, /copyText\(s\.bodyText\|\|""/);
+  assert.match(sim, /Edit in Sheet →/);
+  assert.match(sim, /Copy uses the canonical send copy \(bodyText\)\. Edit opens the exact Sheet row — Holly-only\./);
+});
+
+ok('auto-send connected text names one auto lane and avoids mechanism cards', () => {
+  const row = SIM_OVERLAY['390317'];
+  assert.match(row.automation, /auto-chase \(auto-send\) lane/i);
+  assert.match(row.automation, /A PM can move an order into an auto status at any point mid-sequence/i);
+  const sim = simulatorSource();
+  assert.match(sim, /auto-chase \(auto-send\) lane/);
+  assert.match(sim, /switch it from drafting to auto-send/);
+  assert.doesNotMatch(sim, /autoChip\s*\(/);
+  assert.doesNotMatch(sim, /TOUCHPOINTS col J|autoLevel/);
 });
 
 for (const [name, fn] of tests) {

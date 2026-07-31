@@ -482,7 +482,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Quote approval sent — the auto-chase starts here.",
     "flavor": "customer",
-    "automation": "automations.io #1150 auto-sends the quote + approval request. 🔴 never delete.",
+    "automation": "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send. 🔴 never delete.",
     "scriptCodes": [
       "^ot_quote_sent"
     ]

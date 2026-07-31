@@ -2155,7 +2155,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Quote approval sent — the auto-chase starts here.",
     "flavor": "customer",
-    "automation": "automations.io #1150 auto-sends the quote + approval request. 🔴 never delete.",
+    "automation": "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send. 🔴 never delete.",
     "scriptCodes": [
       "^ot_quote_sent"
     ]
@@ -3368,6 +3368,7 @@ function simEnsureCss(){
    ".simhd{margin:16px 0 10px;padding:16px;border:1px solid #e6e8ee;border-radius:10px;background:#fafbfc}.simtop{display:flex;align-items:flex-start;gap:12px}.simswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.34);margin-top:3px;flex:none}.simname{font-weight:800;font-size:19px;color:#1f2430;line-height:1.3}.simphase{font-size:12.5px;color:#6b7280;margin-top:4px}.simchip{font-weight:750;font-size:12px;padding:2px 9px;border-radius:999px;white-space:nowrap;margin-left:6px}"+
    ".simblock{border:1px solid #e6e8ee;border-radius:10px;background:#fff;margin:10px 0;padding:15px 16px}.simlabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:850;color:#6b7280;margin-bottom:6px}.simbody{font-size:14px;color:#374151;line-height:1.58}.simbody b{color:#1f2430}.simcode{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#374151;background:#f3f4f6;border-radius:999px;padding:3px 8px;display:inline-block;margin:4px 4px 0 0}.simtag{font-size:11px;font-weight:750;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:999px}.simclock{font-size:11px;font-weight:800;color:#7c2d12;background:#ffedd5;border-radius:999px;padding:2px 8px;margin-left:6px}.simfires{display:flex;align-items:center;gap:9px;margin:11px 0 4px;flex-wrap:wrap}"+
    ".simrule{display:grid;gap:8px;margin-top:10px}.simline{font-size:13.5px;color:#374151;background:#f8fafc;border:1px solid #e6e8ee;border-radius:9px;padding:10px 12px}.simline b{color:#1f2430}.simnever{color:#991b1b;font-weight:850}"+
+   ".simpreviews{display:grid;gap:12px}.simpv{border:1px solid #e4e7ec;border-radius:10px;background:#fff;overflow:hidden}.simpvhead{padding:12px 14px;border-bottom:1px solid #e4e7ec;background:#fbfcfd;display:grid;gap:6px}.simpvrow{display:flex;gap:10px;font-size:13px;line-height:1.35}.simpvrow .k{width:58px;flex:0 0 auto;color:#6b7280;font-weight:800}.simpvrow .v{color:#1f2430}.simpvsubj{font-size:16px;font-weight:850;color:#1f2430;margin-top:4px}.simpvbody{padding:14px 16px;color:#374151;font-size:14px;line-height:1.62}.simpvbody p{margin:0 0 11px}.simpvbody p:last-child{margin-bottom:0}.simpvactions{border-top:1px solid #e4e7ec;padding:12px 14px;background:#fbfcfd}.simpvactions .actions{margin:0 0 8px}.simnoscript{font-size:13.5px;color:#6b7280}"+
    ".simmock{--c:#2D97F1;--c-soft:#eef6ff;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 8px 24px rgba(15,23,42,.08);overflow:hidden;margin-top:12px;max-width:620px}.simmocktop{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #e4e7ec;background:#fbfcfd}.simmocktop .disc{width:30px;height:30px;flex:none}.simmocktop .who{font-size:13px;font-weight:750;color:#1b1f24}.simmocktop .who small{display:block;font-weight:500;color:#697585;font-size:11.5px;margin-top:1px}.simmocktop .to{margin-left:auto;font-size:11.5px;color:#697585;text-align:right}.simmocktop .to b{color:#1b1f24}.simcard{padding:15px 16px 4px}.simcardh{display:flex;align-items:center;gap:9px;margin:0 0 10px}.simcardh .em{font-size:16px}.simcardh .cat{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}.simcardh .pill{margin-left:auto;font-size:11px;font-weight:750;background:var(--c-soft);color:var(--c);padding:2px 8px;border-radius:20px}.simproj{font-size:16.5px;font-weight:800;margin:0 0 3px;color:#1b1f24}.simproj .id{color:#697585;font-weight:650;font-family:ui-monospace,Menlo,monospace;font-size:13px}.simmeta{display:grid;grid-template-columns:130px 1fr;gap:7px 12px;margin-top:10px;font-size:14px;color:#1b1f24}.simmeta .k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#697585;padding-top:2px}.simnote{background:#fffbeb;border:1px solid #fde68a;border-radius:9px;color:#78350f;font-size:13.5px;line-height:1.5;padding:10px 12px;margin-top:10px}.simbtns{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}.simbtn{font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;border:1px solid #d2d7df;background:#fff;color:#1b1f24;cursor:default}.simbtn.primary{background:var(--c);border-color:var(--c);color:#fff}";
   document.head.appendChild(st);
 }
@@ -3390,20 +3391,76 @@ function simRenderEndGame(out, endGame){
   block.innerHTML='<div class="simlabel">End game</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What happens if it stalls — the archive route.</div><div class="simbody">'+esc(endGame.text||"")+'</div>';
   out.appendChild(block);
 
-  if(endGame.archiveScript){
-    const live=DATA.scripts.find(x=>x.code===endGame.archiveScript && x.publishStatus==="live");
-    const banner=el("div","simfires");
-    banner.innerHTML='<span class="simcode">'+esc(endGame.archiveScript)+'</span><span class="simtag">'+esc((live ? live.name : "archive-notice script not in the live script feed")+" · DRAFT to 📮 Draft chat")+'</span>';
-    out.appendChild(banner);
-    if(live) renderEmailFrame(out, live);
-    else if(endGame.archiveScriptPreview) renderStaticEmailPreview(out, endGame.archiveScriptPreview, "new script · ready (awaiting flip to live)");
-  }
-
   if(endGame.missedOppScript){
     const m=endGame.missedOppScript;
     const item=el("div","simblock",'<div class="simlabel">'+esc(m.name||"Missed Opportunity email")+'</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">'+esc((m.source||"Printavo template")+(m.t1Only?" · T1 only":"")+" · no live preview")+'</div>');
     out.appendChild(item);
   }
+}
+function simConnectedText(status, row){
+  if(row.connectedText) return row.connectedText;
+  if(/^🚀\s*Quote Approval - Auto Sent/i.test(status.name||"")){
+    return "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send.";
+  }
+  if(/^🚀/.test(status.name||"")){
+    return (row.automation||"").replace(/\s*🔴\s*never delete\.?/i,"")+
+      " This is an auto-send lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send.";
+  }
+  return row.automation||"";
+}
+function simScriptRows(row){
+  const rows=[];
+  (row.scriptCodes||[]).forEach(code=>{
+    const live=DATA.scripts.find(x=>x.code===code && x.publishStatus==="live");
+    rows.push({code, script:live||null, tag:live?"live script":"not in the live script feed"});
+  });
+  if(row.endGame && row.endGame.archiveScript){
+    const code=row.endGame.archiveScript;
+    const live=DATA.scripts.find(x=>x.code===code && x.publishStatus==="live");
+    rows.push({code, script:live||row.endGame.archiveScriptPreview||null, tag:(live?live.name:"archive-notice script not in the live script feed")+" · DRAFT to 📮 Draft chat"});
+  }
+  return rows;
+}
+function simRenderCleanEmailPreview(app, item){
+  const s=item.script;
+  if(!s) return;
+  const pv=el("div","simpv");
+  const own=s.sheetRow!=null?primaryOwner(s):"Kelly";
+  const mb=s.sheetRow!=null?mailboxOf(s):"team@planetapparel.com";
+  const head=el("div","simpvhead");
+  head.innerHTML='<div class="simpvrow"><span class="k">From</span><span class="v">'+esc(own)+' &lt;'+esc(mb)+'&gt;</span></div>'+
+    '<div class="simpvrow"><span class="k">To</span><span class="v">Sample Customer &lt;sample@customer.com&gt;</span></div>'+
+    '<div class="simpvrow"><span class="k">Script</span><span class="v">'+esc(s.code||item.code||"")+' · '+esc(s.name||item.tag||"")+'</span></div>';
+  const subj=el("div","simpvsubj"); subj.appendChild(mergeFrag(s.subject||"(no subject)", s.code||item.code)); head.appendChild(subj);
+  pv.appendChild(head);
+  const body=el("div","simpvbody");
+  splitParas(s.bodyText||"").forEach(para=>{ const p=el("p"); p.appendChild(mergeFrag(para, s.code||item.code)); body.appendChild(p); });
+  pv.appendChild(body);
+  const actionWrap=el("div","simpvactions");
+  const acts=el("div","actions");
+  const copyBtn=el("button","btn primary","Copy");
+  copyBtn.onclick=()=>{ copyText(s.bodyText||"", copyBtn); };
+  const editBtn=el("a","btn ghost","Edit in Sheet →");
+  editBtn.href=editUrl(s.sheetRow); editBtn.target="_blank"; editBtn.rel="noopener noreferrer";
+  acts.appendChild(copyBtn); acts.appendChild(editBtn); actionWrap.appendChild(acts);
+  actionWrap.appendChild(el("div","sheetnote","Copy uses the canonical send copy (bodyText). Edit opens the exact Sheet row — Holly-only."));
+  pv.appendChild(actionWrap);
+  app.appendChild(pv);
+}
+function simRenderScriptPreviews(out, row){
+  const block=el("div","simblock");
+  block.innerHTML='<div class="simlabel">Script preview(s)</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">The customer-facing copy connected to this status.</div>';
+  const list=el("div","simpreviews");
+  const rows=simScriptRows(row).filter(item=>item.script && String(item.script.bodyText||"").trim());
+  if(!rows.length) list.appendChild(el("div","simnoscript","No script for this status."));
+  else rows.forEach(item=>{
+    const banner=el("div","simfires");
+    banner.innerHTML='<span class="simcode">'+esc(item.code)+'</span><span class="simtag">'+esc(item.tag)+'</span>';
+    list.appendChild(banner);
+    simRenderCleanEmailPreview(list, item);
+  });
+  block.appendChild(list);
+  out.appendChild(block);
 }
 function simRender(out, status){
   const row=SIM_OVERLAY[String(status.id)]||{phase:simStatusPhase(status),description:"Live Printavo status.",flavor:"silent",automation:"No mapped automation.",scriptCodes:[]};
@@ -3414,7 +3471,7 @@ function simRender(out, status){
   out.appendChild(el("div","simblock",'<div class="simlabel">What it is</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">The status in plain English.</div><div class="simbody">'+esc(row.description)+'</div>'));
   const connected=el("div","simblock");
   let html='<div class="simlabel">What\'s connected</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What the system does when an order sits here — an email, a nudge, or nothing.</div><div class="simbody">';
-  if(row.flavor==="customer") html+='<b>Sends the customer an email automatically.</b> '+esc(row.automation||"");
+  if(row.flavor==="customer") html+='<b>Sends customer-facing copy.</b> '+esc(simConnectedText(status,row));
   else if(row.flavor==="nudge") html+='<b>No customer email fires here. The one thing connected is a PM nudge.</b> '+esc(row.automation||"");
   else if(row.flavor==="start") html+='<b>Manual start point.</b> '+esc(row.automation||"");
   else html+='<b>Workflow state.</b> No customer email, no notification. '+esc(row.automation||"");
@@ -3425,16 +3482,8 @@ function simRender(out, status){
   connected.innerHTML=html; out.appendChild(connected);
   if(row.streakFactor) out.appendChild(el("div","simblock",'<div class="simlabel">Streak factor</div><div class="sheetnote" style="margin-top:-2px;margin-bottom:8px">What Streak tracks, and the field that drives the nudge.</div><div class="simbody">'+esc(row.streakFactor)+'</div>'));
   if(row.endGame) simRenderEndGame(out,row.endGame);
+  simRenderScriptPreviews(out,row);
   if(row.nudge) simRenderNudgeCard(out,row.nudge);
-  if(row.flavor==="customer"){
-    (row.scriptCodes||[]).forEach(code=>{
-      const live=DATA.scripts.find(x=>x.code===code && x.publishStatus==="live");
-      const banner=el("div","simfires");
-      banner.innerHTML='<span class="simcode">'+esc(code)+'</span>'+(live?'':'<span class="simtag">not in the live script feed</span>');
-      out.appendChild(banner);
-      if(live) renderEmailFrame(out, live);
-    });
-  }
   if(row.copyNote) out.appendChild(el("div","simnote","⚠ Copy being revised: "+esc(row.copyNote).replace(/^Copy being revised:\\s*/,"")));
 }
 function simPaintPicker(app, state){
