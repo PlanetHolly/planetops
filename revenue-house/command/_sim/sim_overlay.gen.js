@@ -460,12 +460,21 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Quote",
         "totalDays": "Box age: 8 days / days in status: 3 days"
       }
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
-    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "endGame": {
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "archiveScript": "^ot_chase_final",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
+      }
+    },
     "timed": false
   },
   "390317": {
@@ -583,6 +592,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Customer declined; needs a revision.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -665,6 +675,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Approval request for terms customers.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -711,6 +722,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Art or invoice declined; needs an update.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -747,6 +759,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Paid; ready to build.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -801,6 +814,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "First quote send — the draft is ready; the PM reviews and sends it.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -988,6 +1002,7 @@ const SIM_OVERLAY = {
         ],
         "projectName": "Summit Trading Co Sample Pack",
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Sample Pack - Prep & Ship",
         "visualId": "27612",
         "totalDays": "Box age: 2 days / days in status: 2 days",
@@ -1026,12 +1041,21 @@ const SIM_OVERLAY = {
         "visualId": "",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "In Conversation",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     },
     "streakFactor": "The box lives in Streak (project name, owner, and sometimes no quote # yet). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows the pre-quote conversation has gone quiet.",
-    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "endGame": {
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "archiveScript": "^ot_chase_final",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
+      }
+    },
     "timed": false
   },
   "548870": {
@@ -1042,7 +1066,15 @@ const SIM_OVERLAY = {
     "automation": "A PM nudge only - no customer email. Plain recurring 7-day nudge on Last Email Date, outgoing or incoming; repeats every 7 days until the PM moves it or dismisses the interval.",
     "scriptCodes": [],
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
-    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "endGame": {
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "archiveScript": "^ot_chase_final",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
+      }
+    },
     "timed": false,
     "nudge": {
       "trigger": "WAITING_ON_CUSTOMER_STALLED",
@@ -1066,6 +1098,7 @@ const SIM_OVERLAY = {
         ],
         "projectName": "Summit Trading Co",
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Waiting on Customer",
         "visualId": "27612",
         "totalDays": "Box age: 19 days / days in status: 7 days",
@@ -1112,12 +1145,21 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Follow-Up Pre-Quote (Streak Task)",
         "totalDays": "Box age: 32 days / days in status: 14 days"
       }
     },
     "streakFactor": "The box lives in Streak (project name, owner). The nudge watches Streak's Last Email Date - both outgoing and incoming; that's how it knows there's been no reply.",
-    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "endGame": {
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "archiveScript": "^ot_chase_final",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
+      }
+    },
     "timed": false
   },
   "548873": {
@@ -1133,7 +1175,15 @@ const SIM_OVERLAY = {
       "^ot_sample_arrival_checkin_plus5"
     ],
     "streakFactor": "The sample-pack box lives in Streak and mirrors the Printavo status. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any reply stops the timed check-ins.",
-    "endGame": "No email in or out for 30 days → auto-archives. A short archive-notice email goes to the customer, and the PM is emailed too. T1: a missed-opportunity cross-sell follows 2 weeks later.",
+    "endGame": {
+      "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 only, +2 weeks) times off that Close Date.",
+      "archiveScript": "^ot_chase_final",
+      "missedOppScript": {
+        "name": "Missed Opportunity email",
+        "source": "Printavo template",
+        "t1Only": true
+      }
+    },
     "timed": true,
     "copyNote": "Copy being revised: sample arrival check-in needs two paths - ask for quantity, art, and needed-by date if they have not given project info yet; otherwise just ask which sample they want.",
     "nudge": {
@@ -1158,6 +1208,7 @@ const SIM_OVERLAY = {
         ],
         "projectName": "Summit Trading Co Sample Pack",
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Sample Pack Purchased → Samples Sent",
         "visualId": "27612",
         "totalDays": "Box age: 15 days / days in status: 10 days",
@@ -1198,6 +1249,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Timed quote follow-ups, drafted for the PM to send.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1236,6 +1288,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Timed quote follow-ups, drafted for the PM to send.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1274,6 +1327,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Timed quote follow-ups, drafted for the PM to send.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1292,7 +1346,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Declined and dead.",
     "flavor": "nudge",
-    "automation": "Nudge system auto-archives T2/T3; T1 / Retention get a call card.",
+    "automation": "Nudge system flags T2/T3 for the archive path; T1 / Retention get a call card.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "DECLINED",
@@ -1318,6 +1372,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Declined and dead.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1354,6 +1409,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Mockup sent, waiting on customer feedback.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1372,7 +1428,7 @@ const SIM_OVERLAY = {
     "phase": "Art & Approval",
     "description": "Declined and dead.",
     "flavor": "nudge",
-    "automation": "Nudge system auto-archives (non-retention).",
+    "automation": "Nudge system flags non-retention accounts for the archive path.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "DECLINED",
@@ -1398,6 +1454,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Declined and dead.",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
@@ -1434,6 +1491,7 @@ const SIM_OVERLAY = {
         "visualId": "27612",
         "stub": false,
         "customerName": "Summit Trading Co",
+        "contactName": "Jessica Ramos",
         "statusName": "Approved, no payment needed (terms / DWC).",
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
