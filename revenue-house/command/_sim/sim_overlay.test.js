@@ -528,7 +528,9 @@ ok('Customer Replied (549571) is a nudge-only status with a 2-day cadence', () =
   assert.strictEqual(row.flavor, 'nudge');
   // no send mode: this status can never email the customer, in either direction
   assert.deepStrictEqual(row.scriptCodes, []);
-  assert.match(row.automation, /no send mode/i);
+  // "no send mode" now comes from the renderer's send-mode lead, keyed off the 🔔 in
+  // the board name, rather than being repeated in the body copy.
+  assert.match(row.automation, /STOPS the chase ladder/i);
   assert.match(row.nudge.ruleText, /2 days/);
   assert.match(row.nudge.ruleText, /resets/i);
   assert.strictEqual(row.nudge.chatKey, 'STALE');
@@ -559,6 +561,82 @@ ok('every chase status tells the PM where a customer reply goes', () => {
     const a = SIM_OVERLAY[id].automation || '';
     assert.match(a, /Customer Replied/, id + ' does not tell the PM where a reply goes');
     assert.match(a, /549571/, id + ' does not name the target status id');
+  });
+});
+
+
+
+ok('send-mode emoji on the board matches what the status actually does', () => {
+  // Holly's legend: 🚀 auto-sends · 📮 drafts for the PM · 📮→🚀 draft-then-auto · 🔔 nudge only.
+  // The board name is the first thing a PM reads, so a wrong marker is worse than none.
+  // board is the live-synced fixture; SIM_OVERLAY is what the Simulator claims.
+  const byId = {};
+  board.forEach(s => { byId[String(s.id)] = s; });
+  const expectations = [
+    // id,      must contain, must NOT contain, why
+    ['548006', '\u{1F680}', '\u{1F4EE}', '^sample_confirm auto-sends on purchase'],
+    ['548873', '\u{1F4EE}', '\u{1F680}', '^ot_sample_shipped is draft-only'],
+    ['549571', '\u{1F514}', null,        'nudge only, no send mode at all'],
+  ];
+  expectations.forEach(([id, must, mustNot, why]) => {
+    const st = byId[id];
+    assert.ok(st, id + ' missing from the board fixture');
+    assert.ok(st.name.includes(must), `${id} (${why}) should carry ${must} — name is "${st.name}"`);
+    if (mustNot) {
+      assert.ok(!st.name.includes(mustNot), `${id} (${why}) must not carry ${mustNot}`);
+    }
+  });
+  // a nudge-only status can never carry a send-mode marker
+  Object.keys(SIM_OVERLAY).forEach(id => {
+    const st = byId[id];
+    if (!st || SIM_OVERLAY[id].flavor !== 'nudge') return;
+    if (!(SIM_OVERLAY[id].scriptCodes || []).length) {
+      assert.ok(!/\u{1F680}/u.test(st.name),
+        id + ' is nudge-only with no scripts but carries 🚀: ' + st.name);
+    }
+  });
+});
+
+ok('Prep & Ship states plainly that it auto-sends', () => {
+  // it fires a real customer email with no human in the loop; the panel must say so
+  const a = SIM_OVERLAY['548006'].automation;
+  assert.match(a, /AUTO-SENDS/);
+  assert.match(a, /no draft to review/i);
+  // and Samples Sent must stay explicitly draft-only
+  assert.match(SIM_OVERLAY['548873'].automation, /Draft only on entry/i);
+});
+
+
+
+ok('the connected-text lead is derived from send mode, not hardcoded', () => {
+  // Every nudge-flavour status used to open "No customer email fires here." That
+  // contradicted the whole 📮 draft lane and was simply false on the 📮→🚀 hybrids,
+  // which auto-send after 10 minutes.
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(index, /function simSendMode\(/);
+  assert.match(index, /function simSendModeLead\(/);
+  assert.doesNotMatch(index,
+    /<b>No customer email fires here\. The one thing connected is/,
+    'the hardcoded lead is back');
+
+  // replicate the resolver and check it against the live-synced board names
+  const mode = name =>
+    (name.includes('\u{1F4EE}') && name.includes('\u{1F680}')) ? 'hybrid' :
+    name.includes('\u{1F680}') ? 'auto' :
+    name.includes('\u{1F4EE}') ? 'draft' :
+    name.includes('\u{1F514}') ? 'none' : '';
+  const byId = {}; board.forEach(s => { byId[String(s.id)] = s; });
+  const expect = {
+    '427878': 'hybrid',   // Art/Order Ready for Approval (Terms Only)
+    '428338': 'draft',    // Quote Approval - Drafted
+    '433067': 'auto',     // Quote 3rd Check In - Auto Sent
+    '549571': 'none',     // Customer Replied
+    '548006': 'auto',     // Sample Pack Prep & Ship
+    '548873': 'draft'     // Samples Sent
+  };
+  Object.entries(expect).forEach(([id, want]) => {
+    assert.strictEqual(mode(byId[id].name), want,
+      `${id} "${byId[id].name}" should resolve to send mode "${want}"`);
   });
 });
 
