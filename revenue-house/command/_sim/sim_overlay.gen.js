@@ -109,6 +109,12 @@ const SIM_FALLBACK_STATUSES = [
     "color": "#C9C4BA"
   },
   {
+    "id": "549571",
+    "name": "💬 Quote Approval — Customer Replied 🔔",
+    "type": "QUOTE",
+    "color": "#47A0D9"
+  },
+  {
     "id": "427398",
     "name": "✏️ Quote Declined — Update Needed",
     "type": "QUOTE",
@@ -474,7 +480,7 @@ const SIM_OVERLAY = {
           },
           {
                 "label": "What happens",
-                "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email, and no final PM nudge — the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the ONLY status that auto-archives; every other stall status drafts a notice and pings the PM."
+                "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email, and no final PM nudge — the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. Only this status and 💬 Quote Approval — Customer Replied 🔔 auto-archive; every other stall status drafts a notice and pings the PM."
           },
           {
                 "label": "Close Date",
@@ -485,7 +491,7 @@ const SIM_OVERLAY = {
                 "body": "None. This is the placeholder every new Printavo entry lands in, not a quote lane, so no archive notice and no Missed Opportunity email go out."
           }
     ],
-      "text": "30 days no movement \u2192 the order is archived AUTOMATICALLY into Archived Quote (427400). No customer email, and no final PM nudge either: the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the placeholder every new Printavo entry lands in, not a quote lane, so there is no archive notice and no Missed Opportunity email. In practice an order should almost never reach 30 days here. This is the ONLY status that auto-archives; every other stall status drafts an archive notice and pings the PM instead."
+      "text": "30 days no movement \u2192 the order is archived AUTOMATICALLY into Archived Quote (427400). No customer email, and no final PM nudge either: the 3-day nudge has already fired roughly ten times by then, so one more adds nothing. This is the placeholder every new Printavo entry lands in, not a quote lane, so there is no archive notice and no Missed Opportunity email. In practice an order should almost never reach 30 days here. Only this status and Quote Approval — Customer Replied auto-archive; every other stall status drafts an archive notice and pings the PM instead."
     },
     "timed": false
   },
@@ -494,7 +500,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Quote approval sent — the auto-chase starts here.",
     "flavor": "customer",
-    "automation": "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send. 🔴 never delete.",
+    "automation": "Sends the customer the quote automatically — this is the auto-chase (auto-send) lane. A PM can move an order into an auto status at any point mid-sequence to switch it from drafting to auto-send. 🔴 never delete. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_quote_sent"
     ],
@@ -672,7 +678,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "A revised quote, auto-sent, that re-enters the chase. NEW name for 427399. 🔴 never delete (chase start-trigger).",
     "flavor": "customer",
-    "automation": "Native emails the revised quote. Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.”",
+    "automation": "Native emails the revised quote. Script: “Your updated quote is ready for approval. Click to approve, or let us know any changes you need.” 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_quote_revised"
     ],
@@ -889,7 +895,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation). 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_quote_sent"
     ],
@@ -984,7 +990,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Automatic follow-ups on the timer.",
     "flavor": "customer",
-    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_chase_2"
     ],
@@ -1029,7 +1035,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Automatic follow-ups on the timer.",
     "flavor": "customer",
-    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_chase_3"
     ],
@@ -1074,7 +1080,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Automatic follow-ups on the timer.",
     "flavor": "customer",
-    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete.",
+    "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_missed_opportunity"
     ],
@@ -1559,7 +1565,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation). 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_chase_2"
     ],
@@ -1612,7 +1618,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation). 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_chase_3"
     ],
@@ -1665,7 +1671,7 @@ const SIM_OVERLAY = {
     "phase": "Quote & Chase",
     "description": "Moving an order here triggers a DRAFT — the quote email with the native approve/pay button is drafted (One Thread drafts ^ot_quote_sent into the existing thread) for the PM to review and send. Manual to enter; the sequence then auto-advances.",
     "flavor": "nudge",
-    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation).",
+    "automation": "No automatic customer email fires here. It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation). 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_quote_sent"
     ],
@@ -2089,12 +2095,72 @@ const SIM_OVERLAY = {
     "automation": "None.",
     "scriptCodes": []
   },
+  "549571": {
+      "id": "549571",
+      "phase": "Quote & Chase",
+      "description": "The customer replied to the quote and is engaging, but has not approved yet. Parking them here stops the chase so nobody gets chased while they are mid-conversation with you.",
+      "flavor": "nudge",
+      "automation": "And none can: this status has no send mode at all, so it never drafts and never auto-sends. Moving an order in STOPS the chase ladder in both lanes, the 📮 draft one and the 🚀 auto one. All you get is a 2-day nudge until you move it forward. Today the PM moves the order here when a reply lands; automatic reply-detection arrives with the Streak last-email work.",
+      "scriptCodes": [],
+      "nudge": {
+        "trigger": "QUOTE_CUSTOMER_REPLIED",
+        "chatKey": "STALE",
+        "chatName": "Stale Status",
+        "chatEmoji": "🐌",
+        "chatColor": "#F0932B",
+        "ruleText": "2 days with no movement since the customer's last reply → the owner gets nudged. The clock resets every time they reply again.",
+        "example": {
+          "tierBadge": "🥇 T1",
+          "why": "Replied 2 days ago, nothing since",
+          "buttons": [
+            {
+              "label": "Open in Streak",
+              "kind": "link"
+            },
+            {
+              "label": "Done",
+              "kind": "action"
+            }
+          ],
+          "projectName": "Summit Trading Co",
+          "visualId": "27612",
+          "stub": false,
+          "customerName": "Summit Trading Co",
+          "contactName": "Jessica Ramos",
+          "statusName": "💬 Quote Approval — Customer Replied 🔔",
+          "totalDays": "Box age: 11 days / days in status: 2 days"
+        }
+      },
+      "streakFactor": "The reply itself is the signal. The nudge should watch Streak's Last Email Date INCOMING and reset the 2-day clock on each new one, so an active back-and-forth never gets nudged. Until that Streak wiring lands the nudge falls back to time in status.",
+      "endGame": {
+        "rows": [
+          {
+            "label": "Stalls at",
+            "body": "30 days with no movement. Reaching this would be very unusual: the 2-day nudge has fired around fifteen times by then."
+          },
+          {
+            "label": "What happens",
+            "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email and no final PM nudge. This status has no send mode, so it cannot draft or auto-send a notice, and the archive notice would be wrong here anyway: it says \"I have not heard back\", and this customer did reply."
+          },
+          {
+            "label": "Close Date",
+            "body": "Stamped on arrival in 🗄️ Archived Quote (427400), by that status's own trigger."
+          },
+          {
+            "label": "Missed Opportunity email",
+            "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+          }
+        ],
+        "text": "30 days no movement → the order is archived AUTOMATICALLY into Archived Quote (427400). No customer email and no final PM nudge: this status has no send mode so it cannot draft or auto-send, and by then the 2-day nudge has fired around fifteen times. T1 AND new customers still get the Missed Opportunity email 2 weeks after the Close Date."
+      },
+      "timed": false
+    },
   "548987": {
     "id": "548987",
     "phase": "Quote & Chase",
     "description": "A revised quote, drafted for the PM to send, after the customer replied asking for an update.",
     "flavor": "nudge",
-    "automation": "Drafts the new ^ot_quote_revised script and nudges the PM in the 📮 Draft chat. Cadence is 1 / 2 / 5 working days, then a recurring 5-day nudge; it resets on any customer reply and keeps going until moved out.",
+    "automation": "Drafts the new ^ot_quote_revised script and nudges the PM in the 📮 Draft chat. Cadence is 1 / 2 / 5 working days, then a recurring 5-day nudge; it resets on any customer reply and keeps going until moved out. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
       "^ot_quote_revised"
     ],

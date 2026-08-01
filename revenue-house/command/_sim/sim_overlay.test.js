@@ -121,8 +121,10 @@ ok('Quote placeholder end game sends no email and just moves to Archived Quote',
   assert.match(endGame.text, /no final PM nudge/i);
   assert.match(endGame.text, /Archived Quote \(427400\)/);
   assert.match(endGame.text, /no archive notice and no Missed Opportunity email/i);
-  // 390316 is the ONLY auto-archiving status; every other stall status drafts + pings.
-  assert.match(endGame.text, /ONLY status that auto-archives/);
+  // Auto-archive is now a TWO-status carve-out: 390316 (nothing was ever sent from it)
+  // and 549571 (the customer replied, so the archive notice would be a lie). Everything
+  // else drafts a notice and pings the PM.
+  assert.match(endGame.text, /Only this status and Quote Approval — Customer Replied auto-archive/);
   const otherStallIds = ['548869', '548870', '548872', '548873', '548877', '548987'];
   otherStallIds.forEach(id => {
     const t = (SIM_OVERLAY[id].endGame || {}).text || '';
@@ -475,14 +477,15 @@ ok('rows and the legacy text agree on the Quote auto-archive carve-out', () => {
   const q = SIM_OVERLAY['390316'].endGame;
   const what = q.rows.find(r => r.label === 'What happens');
   assert.match(what.body, /archived AUTOMATICALLY/);
-  assert.match(what.body, /ONLY status that auto-archives/);
+  assert.match(what.body, /Only this status and .* Quote Approval — Customer Replied .* auto-archive/);
   const mo = q.rows.find(r => r.label === 'Missed Opportunity email');
   assert.match(mo.body, /^None\b/, 'Quote must state plainly that there is no Missed Opportunity email');
-  // and no other status may claim the auto-archive carve-out in its rows
-  Object.keys(SIM_OVERLAY).filter(id => id !== '390316' && SIM_OVERLAY[id].endGame).forEach(id => {
-    const blob = JSON.stringify(SIM_OVERLAY[id].endGame.rows);
-    assert.doesNotMatch(blob, /archived AUTOMATICALLY/, id + ' must not auto-archive');
-  });
+  // exactly two statuses may auto-archive, and no others
+  const AUTO_ARCHIVE = ['390316', '549571'];
+  const claiming = Object.keys(SIM_OVERLAY).filter(id =>
+    SIM_OVERLAY[id].endGame && /archived AUTOMATICALLY/.test(JSON.stringify(SIM_OVERLAY[id].endGame.rows)));
+  assert.deepStrictEqual(claiming.sort(), AUTO_ARCHIVE.slice().sort(),
+    'the auto-archive carve-out must stay exactly 390316 + 549571');
 });
 
 
@@ -515,6 +518,48 @@ ok('the archive notice copy closes the quote and does not cross-sell', () => {
   assert.doesNotMatch(p.bodyText, /promo products/i);
   // and it stays non-bandana, the reason ^ot_chase_final was retired
   assert.doesNotMatch(p.bodyText, /bandana/i);
+});
+
+
+
+ok('Customer Replied (549571) is a nudge-only status with a 2-day cadence', () => {
+  const row = SIM_OVERLAY['549571'];
+  assert.ok(row, '549571 missing from the overlay');
+  assert.strictEqual(row.flavor, 'nudge');
+  // no send mode: this status can never email the customer, in either direction
+  assert.deepStrictEqual(row.scriptCodes, []);
+  assert.match(row.automation, /no send mode/i);
+  assert.match(row.nudge.ruleText, /2 days/);
+  assert.match(row.nudge.ruleText, /resets/i);
+  assert.strictEqual(row.nudge.chatKey, 'STALE');
+});
+
+ok('Customer Replied end game auto-archives with no email and no final nudge', () => {
+  const e = SIM_OVERLAY['549571'].endGame;
+  const by = l => e.rows.find(r => r.label === l);
+  ['Stalls at', 'What happens', 'Close Date', 'Missed Opportunity email'].forEach(l =>
+    assert.ok(by(l), '549571 end game is missing the "' + l + '" row'));
+  assert.match(by('What happens').body, /archived AUTOMATICALLY/);
+  assert.match(by('What happens').body, /no final PM nudge/i);
+  // Holly's reason: the archive notice says "I have not heard back", which is false here
+  assert.match(by('What happens').body, /did reply/i);
+  assert.match(by('Close Date').body, /Archived Quote \(427400\)/);
+  assert.match(by('Missed Opportunity email').body, /T1 AND new/);
+  // it must NOT carry an archive script - it has no send mode to deliver one
+  assert.strictEqual(e.archiveScript, undefined);
+  assert.strictEqual(e.archiveScriptPreview, undefined);
+});
+
+ok('every chase status tells the PM where a customer reply goes', () => {
+  // Holly 2026-08-01: a reply must route out of the chase, in BOTH lanes.
+  const draft = ['428338', '548874', '548875', '548876'];
+  const auto  = ['390317', '433065', '433066', '433067'];
+  const revised = ['427399', '548987'];
+  [...draft, ...auto, ...revised].forEach(id => {
+    const a = SIM_OVERLAY[id].automation || '';
+    assert.match(a, /Customer Replied/, id + ' does not tell the PM where a reply goes');
+    assert.match(a, /549571/, id + ' does not name the target status id');
+  });
 });
 
 
