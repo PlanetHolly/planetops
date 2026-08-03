@@ -683,6 +683,19 @@ ok('every referenced script is either served or explicitly planned', () => {
 
 
 
+ok('the status header shows the Printavo status ID', () => {
+  // 2026-08-03: Jean had an automation matching on the status NAME, so a rename broke it.
+  // Every other layer binds by ID, which is why the July rename pass was safe. The panel
+  // now surfaces the ID so whoever wires an automation copies the stable handle.
+  const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(index, /class="simid"/, 'the ID chip is gone from the status header');
+  assert.match(index, /ID '\s*\+\s*esc\(String\(status\.id\)\)/, 'the chip must render the real status id');
+  assert.match(index, /\.simid\{/, 'the .simid style is missing');
+  assert.match(index, /user-select:all/, 'the ID should select in one click for copying');
+});
+
+
+
 for (const [name, fn] of tests) {
   try {
     fn();
