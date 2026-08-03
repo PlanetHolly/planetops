@@ -696,6 +696,18 @@ ok('the status header shows the Printavo status ID', () => {
 
 
 
+ok('the auto lane 3rd Check In sends the archive notice, not a chase or a cross-sell', () => {
+  // Holly 2026-08-03: "this should be the sending archive notice and moving to archive."
+  // Rung 4 IS the archive step, so no ^ot_chase_4 is needed. Before this it sent
+  // ^ot_missed_opportunity — the post-archive cross-sell — while still mid-chase.
+  const r = SIM_OVERLAY['433067'];
+  assert.deepStrictEqual(r.scriptCodes, ['^ot_archive_notice']);
+  assert.notStrictEqual(r.scriptCodes[0], '^ot_missed_opportunity',
+    'the Missed Opportunity email is the +2wk touch, never the chase rung');
+});
+
+
+
 for (const [name, fn] of tests) {
   try {
     fn();

@@ -408,13 +408,7 @@ const SIM_FALLBACK_STATUSES = [
     "type": "QUOTE",
     "color": "#AEA38E"
   },
-  {
-    "id": "428340",
-    "name": " 📁 Archived Options 📁",
-    "type": "QUOTE",
-    "color": "#949494"
-  }
-];
+  ];
 
 const SIM_OVERLAY = {
   "390316": {
@@ -925,14 +919,6 @@ const SIM_OVERLAY = {
       }
     }
   },
-  "428340": {
-    "id": "428340",
-    "phase": "Fulfillment & Done",
-    "description": "Archived quote-option storage.",
-    "flavor": "silent",
-    "automation": "None.",
-    "scriptCodes": []
-  },
   "428346": {
     "id": "428346",
     "phase": "Paid & Pre-Production",
@@ -1065,7 +1051,7 @@ const SIM_OVERLAY = {
     "flavor": "customer",
     "automation": "#1150 auto-sends at +1 / +2 / +5 wd. 🔴 never delete. 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
-      "^ot_missed_opportunity"
+      "^ot_archive_notice"
     ],
     "endGame": {
       "rows": [
