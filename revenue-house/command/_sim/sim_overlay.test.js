@@ -2,7 +2,9 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const board = require('/Users/hollytrevino/Dropbox/PlanetApparel/Printavo_Automations/Status_Cleanup_2026-07/live_statuses_FINAL_2026-07-27.json');
-const { SIM_OVERLAY } = require('./sim_overlay.gen.js');
+const { SIM_FALLBACK_STATUSES, SIM_OVERLAY } = require('./sim_overlay.gen.js');
+// Committed snapshot of the live Command Center feed; refresh when scripts are added or retired.
+const servedCodes = require('./cc_served_codes.json');
 
 const validFlavors = new Set(['customer', 'nudge', 'silent', 'internal', 'start']);
 let pass = 0;
@@ -259,8 +261,8 @@ ok('sample-pack statuses match approved display contract', () => {
   assert.match(sent.streakFactor, /any customer reply stops/i);
   assert(sent.scriptCodes.includes('^ot_sample_shipped'));
   assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin'));
-  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
-  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus5'));
+  assert(sent.plannedScriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
+  assert(sent.plannedScriptCodes.includes('^ot_sample_arrival_checkin_plus5'));
   assert(sent.nudge);
 });
 
@@ -638,6 +640,45 @@ ok('the connected-text lead is derived from send mode, not hardcoded', () => {
     assert.strictEqual(mode(byId[id].name), want,
       `${id} "${byId[id].name}" should resolve to send mode "${want}"`);
   });
+});
+
+
+ok('board fixture matches the live Printavo board', () => {
+  const boardById = new Map(board.map(s => [String(s.id), s]));
+  const fallbackById = new Map(SIM_FALLBACK_STATUSES.map(s => [String(s.id), s]));
+  const fixtureOnly = [...boardById.keys()].filter(id => !fallbackById.has(id));
+  const fallbackOnly = [...fallbackById.keys()].filter(id => !boardById.has(id));
+  const nameDrift = [...boardById.entries()]
+    .filter(([id, s]) => fallbackById.has(id) && fallbackById.get(id).name !== s.name)
+    .map(([id, s]) => `${id}: ${s.name} !== ${fallbackById.get(id).name}`);
+  assert.deepStrictEqual(fixtureOnly, [], 'fixture ids absent from SIM_FALLBACK_STATUSES');
+  assert.deepStrictEqual(fallbackOnly, [], 'SIM_FALLBACK_STATUSES ids absent from fixture');
+  assert.deepStrictEqual(nameDrift, [], 'fixture and SIM_FALLBACK_STATUSES names differ');
+});
+
+ok('no dead overlay entries', () => {
+  const fixtureIds = new Set(board.map(s => String(s.id)));
+  const overlayIds = new Set(Object.keys(SIM_OVERLAY));
+  const overlayOnly = [...overlayIds].filter(id => !fixtureIds.has(id));
+  const fixtureOnly = [...fixtureIds].filter(id => !overlayIds.has(id));
+  assert.deepStrictEqual(overlayOnly, [], 'SIM_OVERLAY ids absent from fixture');
+  assert.deepStrictEqual(fixtureOnly, [], 'fixture ids absent from SIM_OVERLAY');
+});
+
+ok('every referenced script is either served or explicitly planned', () => {
+  const liveCodes = new Set(servedCodes);
+  const badLiveRefs = [];
+  const badPlannedRefs = [];
+  Object.values(SIM_OVERLAY).forEach(row => {
+    (row.scriptCodes || []).forEach(code => {
+      if (!liveCodes.has(code)) badLiveRefs.push(`${row.id} ${code}`);
+    });
+    (row.plannedScriptCodes || []).forEach(code => {
+      if (liveCodes.has(code)) badPlannedRefs.push(`${row.id} ${code}`);
+    });
+  });
+  assert.deepStrictEqual(badLiveRefs, [], 'scriptCodes contains codes absent from the live CC feed');
+  assert.deepStrictEqual(badPlannedRefs, [], 'plannedScriptCodes contains codes that are live in the CC feed');
 });
 
 

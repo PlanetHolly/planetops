@@ -19,12 +19,6 @@ const SIM_FALLBACK_STATUSES = [
     "color": "#F79A45"
   },
   {
-    "id": "548871",
-    "name": "🎾 In Our Court",
-    "type": "QUOTE",
-    "color": "#6FB6F2"
-  },
-  {
     "id": "548872",
     "name": "📌 Follow-Up Pre-Quote (Streak Task)",
     "type": "QUOTE",
@@ -46,7 +40,7 @@ const SIM_FALLBACK_STATUSES = [
     "id": "428338",
     "name": "📮 Quote Approval - Drafted, Ready To Send",
     "type": "QUOTE",
-    "color": "#C9C4BA"
+    "color": "#2D97F1"
   },
   {
     "id": "548874",
@@ -67,50 +61,50 @@ const SIM_FALLBACK_STATUSES = [
     "color": "#0F4C8C"
   },
   {
-    "id": "548987",
-    "name": "📮 Quote Revised - Drafted, Ready To Send",
-    "type": "QUOTE",
-    "color": "#2D97F1"
-  },
-  {
     "id": "390317",
     "name": "🚀 Quote Approval - Auto Sent ",
     "type": "QUOTE",
-    "color": "#C9C4BA"
+    "color": "#9AADBD"
   },
   {
     "id": "433065",
     "name": "🚀 Quote 1st Check In - Auto Sent ",
     "type": "QUOTE",
-    "color": "#C9C4BA"
+    "color": "#7C93A6"
   },
   {
     "id": "433066",
     "name": "🚀 Quote 2nd Check In - Auto Sent ",
     "type": "QUOTE",
-    "color": "#C9C4BA"
+    "color": "#5F7488"
   },
   {
     "id": "433067",
     "name": "🚀 Quote 3rd Check In - Auto Sent",
     "type": "QUOTE",
-    "color": "#C9C4BA"
-  },
-  {
-    "id": "427399",
-    "name": "🚀Quote Revised - Auto Sent ",
-    "type": "QUOTE",
-    "color": "#9AADBD"
+    "color": "#47586A"
   },
   {
     "id": "548877",
     "name": "📌 Quote Sent Manually (Streak Task)",
     "type": "QUOTE",
-    "color": "#C9C4BA"
+    "color": "#E84FA8"
   },
   {
     "id": "549571",
     "name": "💬🔔 Quote Approval — Customer Replied",
+    "type": "QUOTE",
+    "color": "#2D97F1"
+  },
+  {
+    "id": "427399",
+    "name": "🚀Quote Revised - Auto Sent ",
+    "type": "QUOTE",
+    "color": "#3B4B5C"
+  },
+  {
+    "id": "548987",
+    "name": "📮 Quote Revised - Drafted, Ready To Send",
     "type": "QUOTE",
     "color": "#2D97F1"
   },
@@ -149,18 +143,6 @@ const SIM_FALLBACK_STATUSES = [
     "name": "🖼️ Mockup Options — Awaiting Feedback",
     "type": "QUOTE",
     "color": "#F79A45"
-  },
-  {
-    "id": "548880",
-    "name": "🛠️ Files Being Reworked — Seps.io",
-    "type": "QUOTE",
-    "color": "#C5A9EF"
-  },
-  {
-    "id": "464181",
-    "name": "Pre-Approval Payment Export",
-    "type": "QUOTE",
-    "color": "#C9C4BA"
   },
   {
     "id": "427878",
@@ -218,7 +200,7 @@ const SIM_FALLBACK_STATUSES = [
   },
   {
     "id": "548883",
-    "name": "\t⚠️ Back to PM — Update Needed",
+    "name": "⚠️ Back to PM — Update Needed",
     "type": "INVOICE",
     "color": "#E2445C"
   },
@@ -242,7 +224,7 @@ const SIM_FALLBACK_STATUSES = [
   },
   {
     "id": "428346",
-    "name": "🏠 Bandanas to Pull   from In-House Inventory",
+    "name": "🏠 Bandanas - Use In-House Inventory",
     "type": "INVOICE",
     "color": "#41D3DC"
   },
@@ -262,7 +244,7 @@ const SIM_FALLBACK_STATUSES = [
     "id": "427884",
     "name": "📥 Blanks Received - Not Checked In",
     "type": "INVOICE",
-    "color": "#41D3DC"
+    "color": "#00A8C2"
   },
   {
     "id": "428348",
@@ -302,7 +284,7 @@ const SIM_FALLBACK_STATUSES = [
   },
   {
     "id": "390322",
-    "name": "🖨️ In Production",
+    "name": "🚧 In Production",
     "type": "INVOICE",
     "color": "#9C69E7"
   },
@@ -326,7 +308,7 @@ const SIM_FALLBACK_STATUSES = [
   },
   {
     "id": "390323",
-    "name": "📦 Production Completed — Ready to Package",
+    "name": "📦 Production Completed — Ready to Package ",
     "type": "INVOICE",
     "color": "#9C69E7"
   },
@@ -341,12 +323,6 @@ const SIM_FALLBACK_STATUSES = [
     "name": "📤 PO Sent — In Production (Outsourced)",
     "type": "INVOICE",
     "color": "#F79A45"
-  },
-  {
-    "id": "548985",
-    "name": "📍 Ready at Vendor (Outsourced)",
-    "type": "INVOICE",
-    "color": "#41D3DC"
   },
   {
     "id": "548894",
@@ -373,14 +349,20 @@ const SIM_FALLBACK_STATUSES = [
     "color": "#9AADBD"
   },
   {
+    "id": "548985",
+    "name": "📍 Ready at Vendor (Outsourced)",
+    "type": "INVOICE",
+    "color": "#41D3DC"
+  },
+  {
     "id": "467925",
-    "name": "📥 Goods Partially Received ",
+    "name": "📥 Goods Partially Received (Outsourced)",
     "type": "INVOICE",
     "color": "#F79A45"
   },
   {
     "id": "467926",
-    "name": "📥 Goods Received",
+    "name": "📥 Goods Received (Outsourced)",
     "type": "INVOICE",
     "color": "#41D3DC"
   },
@@ -430,7 +412,7 @@ const SIM_FALLBACK_STATUSES = [
     "id": "428340",
     "name": " 📁 Archived Options 📁",
     "type": "QUOTE",
-    "color": "#AEA38E"
+    "color": "#949494"
   }
 ];
 
@@ -981,7 +963,8 @@ const SIM_OVERLAY = {
     "description": "Complete.",
     "flavor": "customer",
     "automation": "Kicks a review request — #annual accounts only.",
-    "scriptCodes": [
+    "scriptCodes": [],
+    "plannedScriptCodes": [
       "^ot_review_request"
     ]
   },
@@ -1128,14 +1111,6 @@ const SIM_OVERLAY = {
     "automation": "None.",
     "scriptCodes": []
   },
-  "464181": {
-    "id": "464181",
-    "phase": "Outside Customer Flow",
-    "description": "The sanctioned QBO pre-payment export lever.",
-    "flavor": "internal",
-    "automation": "Kept — load-bearing for QuickBooks. Do not touch.",
-    "scriptCodes": []
-  },
   "467925": {
     "id": "467925",
     "phase": "Outsourced lane",
@@ -1174,7 +1149,8 @@ const SIM_OVERLAY = {
     "description": "Follow-up on a pending approval.",
     "flavor": "customer",
     "automation": "Native: email customer + PM. Draft → 10-min auto-send.",
-    "scriptCodes": [
+    "scriptCodes": [],
+    "plannedScriptCodes": [
       "^ot_art_invoice_followup"
     ]
   },
@@ -1400,14 +1376,6 @@ const SIM_OVERLAY = {
       }
     }
   },
-  "548871": {
-    "id": "548871",
-    "phase": "Quote & Chase",
-    "description": "The ball is on us to move it forward.",
-    "flavor": "internal",
-    "automation": "Stale nudge after 3 business days.",
-    "scriptCodes": []
-  },
   "548872": {
     "id": "548872",
     "phase": "Quote & Chase",
@@ -1492,34 +1460,32 @@ const SIM_OVERLAY = {
     "automation": "Draft only on entry: PM fills tracking # + estimated arrival date, then sends. After that, the +3 / +2 / +5 day sample-pack check-in ladder is a PM NUDGE, not an auto-send: \"you got your pack, do your check-in.\" Custom T1 follow-ups get kicked to Follow-Up Pre-Quote (Streak Task).",
     "scriptCodes": [
       "^ot_sample_shipped",
-      "^ot_sample_arrival_checkin",
-      "^ot_sample_arrival_checkin_plus2",
-      "^ot_sample_arrival_checkin_plus5"
+      "^ot_sample_arrival_checkin"
     ],
     "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any customer reply stops the check-ins. Holly's Streak \"sample pack\" column marks it.",
     "endGame": {
       "rows": [
-          {
-                "label": "Stalls at",
-                "body": "30 days in the status."
-          },
-          {
-                "label": "What happens",
-                "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
-          },
-          {
-                "label": "Nudge",
-                "body": "The sample check-in nudge keeps running forever until the order is moved out. There is no safe status."
-          },
-          {
-                "label": "Close Date",
-                "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
-          },
-          {
-                "label": "Missed Opportunity email",
-                "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
-          }
-    ],
+        {
+          "label": "Stalls at",
+          "body": "30 days in the status."
+        },
+        {
+          "label": "What happens",
+          "body": "The archive notice is DRAFTED, never sent, and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it. Your call. Nothing archives on its own."
+        },
+        {
+          "label": "Nudge",
+          "body": "The sample check-in nudge keeps running forever until the order is moved out. There is no safe status."
+        },
+        {
+          "label": "Close Date",
+          "body": "Not stamped here. The PM moving the order into 🗄️ Archived Quote (427400) is what stamps it — that status has its own trigger."
+        },
+        {
+          "label": "Missed Opportunity email",
+          "body": "Sent 2 weeks after that Close Date, by the Archived Quote automation, and only if the customer is T1 AND new. Return customers skip it — the retention pipeline has them."
+        }
+      ],
       "text": "30 days in the status → archive-notice email is DRAFTED; it never archives automatically. The PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The sample check-in nudge keeps going forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
       "missedOppScript": {
@@ -1558,7 +1524,11 @@ const SIM_OVERLAY = {
         "totalDays": "Box age: 15 days / days in status: 10 days",
         "stub": false
       }
-    }
+    },
+    "plannedScriptCodes": [
+      "^ot_sample_arrival_checkin_plus2",
+      "^ot_sample_arrival_checkin_plus5"
+    ]
   },
   "548874": {
     "id": "548874",
@@ -1892,14 +1862,6 @@ const SIM_OVERLAY = {
         "totalDays": "Box age: 12 days / days in status: 3 days"
       }
     }
-  },
-  "548880": {
-    "id": "548880",
-    "phase": "Art & Approval",
-    "description": "Files being fixed by Seps.io.",
-    "flavor": "silent",
-    "automation": "None.",
-    "scriptCodes": []
   },
   "548881": {
     "id": "548881",
