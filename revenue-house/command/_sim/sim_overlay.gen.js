@@ -1568,14 +1568,14 @@ const SIM_OVERLAY = {
     "flavor": "nudge",
     "automation": "It DRAFTS the email + sends a draft nudge to the 📮 Draft chat. The statuses AUTO-ADVANCE on a +1 / +2 / +5 working-day ladder (same cadence as the auto-chase), creating a fresh draft + nudge at each step — but they never auto-SEND. The PM sends each draft. If a draft isn't sent, the sequence still advances; to stop it, move the order out (e.g. to Quote Sent Manually 548877, or In Conversation). 🔴 If the customer replies, move the order to 💬 Quote Approval — Customer Replied 🔔 (549571). That stops the chase in this lane. From there the PM either leaves it and lets the 2-day nudge run, or updates the quote and moves it to the right Revised status.",
     "scriptCodes": [
-      "^ot_quote_sent"
+      "^ot_archive_notice"
     ],
     "cadence": "Quote Approval - Drafted → +1wd → 1st Check In → +2wd → 2nd → +5wd → 3rd. Draft-mode: auto-drafts + auto-advances the status, never auto-sends.",
     "endGame": {
       "rows": [
           {
                 "label": "Stalls at",
-                "body": "5 working days after the 3rd check-in draft."
+                "body": "On entry. This is the last rung: reaching it IS the end game, the same way the auto lane ends at \ud83d\ude80 Quote 3rd Check In."
           },
           {
                 "label": "What happens",

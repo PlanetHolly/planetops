@@ -736,6 +736,24 @@ ok('the auto lane 3rd Check In sends the archive notice, not a chase or a cross-
 
 
 
+ok('both lanes end rung 4 on the archive notice, never on a chase email', () => {
+  // Holly ruled 433067 (auto) = "sending archive notice and moving to archive". 548876 is the
+  // draft-lane twin and was still sending ^ot_quote_sent — the ORIGINAL "your quote is ready"
+  // — as the fourth chase. Both leftovers from ^ot_chase_final's retirement on 7/31.
+  ['433067', '548876'].forEach(id => {
+    assert.deepStrictEqual(SIM_OVERLAY[id].scriptCodes, ['^ot_archive_notice'],
+      id + ' rung 4 must send the archive notice');
+  });
+  // and no rung-4 status may re-send the opening quote or the +2wk cross-sell
+  ['433067', '548876'].forEach(id => {
+    const codes = SIM_OVERLAY[id].scriptCodes;
+    assert.ok(!codes.includes('^ot_quote_sent'), id + ' re-sends the opening quote at rung 4');
+    assert.ok(!codes.includes('^ot_missed_opportunity'), id + ' fires the cross-sell mid-chase');
+  });
+});
+
+
+
 for (const [name, fn] of tests) {
   try {
     fn();
