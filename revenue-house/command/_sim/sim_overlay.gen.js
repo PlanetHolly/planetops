@@ -2009,7 +2009,7 @@ const SIM_OVERLAY = {
           },
           {
             "label": "What happens",
-            "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email and no final PM nudge. This status has no send mode, so it cannot draft or auto-send a notice, and the archive notice would be wrong here anyway: it says \"I have not heard back\", and this customer did reply."
+            "body": "The order is archived AUTOMATICALLY into 🗄️ Archived Quote (427400). No customer email and no final PM nudge. This status has no send mode, so it cannot draft or auto-send anything, and by then the 2-day nudge has already fired around fifteen times, so one more adds nothing."
           },
           {
             "label": "Close Date",

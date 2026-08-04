@@ -571,8 +571,10 @@ ok('Customer Replied end game auto-archives with no email and no final nudge', (
     assert.ok(by(l), '549571 end game is missing the "' + l + '" row'));
   assert.match(by('What happens').body, /archived AUTOMATICALLY/);
   assert.match(by('What happens').body, /no final PM nudge/i);
-  // Holly's reason: the archive notice says "I have not heard back", which is false here
-  assert.match(by('What happens').body, /did reply/i);
+  // The original justification cited the archive notice's old "I have not heard back" opener.
+  // That copy was replaced 2026-08-04 with Shara's version, so the rule now rests on Holly's
+  // own reason: by day 30 the 2-day nudge has already fired ~15 times.
+  assert.match(by('What happens').body, /fired around fifteen times/i);
   assert.match(by('Close Date').body, /Archived Quote \(427400\)/);
   assert.match(by('Missed Opportunity email').body, /T1 AND new/);
   // it must NOT carry an archive script - it has no send mode to deliver one
