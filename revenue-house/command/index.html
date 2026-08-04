@@ -2174,12 +2174,6 @@ const SIM_OVERLAY = {
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2272,13 +2266,7 @@ const SIM_OVERLAY = {
       "^ot_quote_revised"
     ],
     "scriptPreviews": {
-      "^ot_quote_revised": {
-        "code": "^ot_quote_revised",
-        "name": "Updated Quote",
-        "subject": "your updated quote is here",
-        "bodyText": "Hi [FIRST NAME],\n\nYour updated quote is ready to review. If everything is correct, click the approve button and we'll move to the next phase - creating your mockup. Or just reply to this email and let us know any updates you'd like.\n\n[QUOTE LINK]"
-      }
-    },
+      },
     "nudge": {
       "trigger": "DECLINED",
       "chatKey": "DRAFT",
@@ -2352,12 +2340,6 @@ const SIM_OVERLAY = {
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2657,12 +2639,6 @@ const SIM_OVERLAY = {
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2702,12 +2678,6 @@ const SIM_OVERLAY = {
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2747,12 +2717,6 @@ const SIM_OVERLAY = {
     ],
       "text": "The auto-chase runs by itself (+1 / +2 / +5 working days). If the customer never replies, the final archive-notice email is AUTO-SENT (not drafted - this lane is hands-off), using the ^ot_missed_opportunity copy, then the order moves to Archived Quote (427400). T1 AND new customers only - return customers are handled by the retention pipeline - get the Missed Opportunity email +2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "archiveSendMode": "AUTO-SENT",
       "missedOppScript": {
         "name": "Missed Opportunity email",
@@ -2945,12 +2909,6 @@ const SIM_OVERLAY = {
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 3-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "CC script ^ot_missed_opportunity",
@@ -2992,12 +2950,6 @@ const SIM_OVERLAY = {
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 7-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "CC script ^ot_missed_opportunity",
@@ -3097,12 +3049,6 @@ const SIM_OVERLAY = {
     ],
       "text": "No movement for 30 days → we do NOT archive it automatically. The archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat: send it, move the status, or leave it - your call. The 14-day nudge keeps going forever until the order is moved out (there is no safe status). The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "CC script ^ot_missed_opportunity",
@@ -3117,10 +3063,7 @@ const SIM_OVERLAY = {
     "description": "Samples have shipped; the PM has a draft to fill with tracking number and estimated arrival, then the timed check-in ladder runs if there is no reply.",
     "flavor": "nudge",
     "automation": "Draft only on entry: PM fills tracking # + estimated arrival date, then sends. After that, the +3 / +2 / +5 day sample-pack check-in ladder is a PM NUDGE, not an auto-send: \"you got your pack, do your check-in.\" Custom T1 follow-ups get kicked to Follow-Up Pre-Quote (Streak Task).",
-    "scriptCodes": [
-      "^ot_sample_shipped",
-      "^ot_sample_arrival_checkin"
-    ],
+    "scriptCodes": ["^ot_sample_shipped", "^ot_sample_arrival_checkin", "^ot_sample_arrival_checkin_plus2", "^ot_sample_arrival_checkin_plus5"],
     "streakFactor": "The sample pack joins an existing open Streak box matched by EMAIL. A new standalone sample-pack box is created only on first contact. The ladder watches Streak's Last Email Date - both outgoing and incoming - so any customer reply stops the check-ins. Holly's Streak \"sample pack\" column marks it.",
     "endGame": {
       "rows": [
@@ -3183,11 +3126,7 @@ const SIM_OVERLAY = {
         "totalDays": "Box age: 15 days / days in status: 10 days",
         "stub": false
       }
-    },
-    "plannedScriptCodes": [
-      "^ot_sample_arrival_checkin_plus2",
-      "^ot_sample_arrival_checkin_plus5"
-    ]
+    }
   },
   "548874": {
     "id": "548874",
@@ -3325,14 +3264,8 @@ const SIM_OVERLAY = {
           }
     ],
       "text": "5 working days after the 3rd check-in draft → the archive-notice email is DRAFTED (^ot_missed_opportunity) and the PM is pinged in the 📮 Draft chat → move it to Archived Quote (427400) or take it manual. No auto-send.",
-      "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      }
-    },
+      "archiveScript": "^ot_archive_notice"
+      },
     "nudge": {
       "trigger": "QUOTE_DRAFT_READY",
       "chatKey": "DRAFT",
@@ -3425,12 +3358,6 @@ const SIM_OVERLAY = {
     ],
       "text": "No movement for 30 days → archive-notice email is DRAFTED (not sent) and the PM is pinged in the 📮 Draft chat. The status is never auto-archived. The 14-day nudge recurs forever until the order is moved out. The Close Date is NOT stamped here - it is stamped by a trigger on the Archived Quote (427400) status when the order is actually moved there, and the Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "CC script ^ot_missed_opportunity",
@@ -3449,13 +3376,7 @@ const SIM_OVERLAY = {
       "^ot_declined_lost"
     ],
     "scriptPreviews": {
-      "^ot_declined_lost": {
-        "code": "^ot_declined_lost",
-        "name": "Declined Lost",
-        "subject": "thanks for letting us know",
-        "bodyText": "Hi [FIRST NAME],\n\nThank you for letting us know this project isn't moving forward, and thank you for considering us. If anything else comes up down the road, keep us in mind - we handle custom apparel, embroidery, and promo products all in one place. We're here whenever you're ready.\n"
-      }
-    },
+      },
     "endGame": {
       "rows": [
           {
@@ -3786,13 +3707,7 @@ const SIM_OVERLAY = {
       "^ot_quote_revised"
     ],
     "scriptPreviews": {
-      "^ot_quote_revised": {
-        "code": "^ot_quote_revised",
-        "name": "Quote Revised",
-        "subject": "your revised quote is ready",
-        "bodyText": "Hi [FIRST NAME],\n\nYour adjusted quote is ready to review. If everything is correct, click the approve button and we'll move to the next phase - creating your mockup. Or just reply to this email and let us know any updates you'd like.\n\n[QUOTE LINK]"
-      }
-    },
+      },
     "cadence": "Quote Revised - Drafted: +1wd / +2wd / +5wd check-in nudges, then recurring +5wd nudge. Resets on any customer reply and continues until moved out.",
     "nudge": {
       "trigger": "QUOTE_REVISED_DRAFT_READY",
@@ -3845,12 +3760,6 @@ const SIM_OVERLAY = {
     ],
       "text": "30 days IN the status → archive-notice email is DRAFTED (^ot_missed_opportunity), not auto-send. The PM is pinged in the 📮 Draft chat to send it and move the status. The Missed Opportunity email (T1 AND new customers only - return customers are handled by the retention pipeline) is sent 2 weeks after the Close Date.",
       "archiveScript": "^ot_archive_notice",
-      "archiveScriptPreview": {
-        "code": "^ot_archive_notice",
-        "name": "Archive notice",
-        "subject": "setting your [PROJECT NAME] aside for now",
-        "bodyText": "Hi [FIRST NAME],\n\nI have not heard back on [PROJECT NAME], so I am setting it aside for now. Nothing is lost on our end.\n\nWhenever you are ready to pick it back up, just reply to this email and we will start right where we left off. If something new comes along in the meantime, I am happy to price that out for you too."
-      },
       "missedOppScript": {
         "name": "Missed Opportunity email",
         "source": "CC script ^ot_missed_opportunity",

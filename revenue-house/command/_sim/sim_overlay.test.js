@@ -87,18 +87,46 @@ ok('end game contract names archive and Missed Opportunity flow', () => {
   assert.deepStrictEqual(bad.map(o => o.id), []);
 });
 
-ok('pre-quote end game archives with ready Missed Opportunity preview', () => {
-  const ids = ['548869', '548870', '548872'];
-  ids.forEach(id => {
+ok('pre-quote end game points at a LIVE archive script, with no baked copy', () => {
+  // ^ot_archive_notice is live in the CC feed now, so the Simulator renders it from the
+  // feed (simScriptRows line ~4010). The baked archiveScriptPreview that used to stand in
+  // was deleted 2026-08-04 - a duplicate copy of live text is a drift bug waiting to fire.
+  const served = new Set(require('./cc_served_codes.json'));
+  ['548869', '548870', '548872'].forEach(id => {
     const endGame = SIM_OVERLAY[id].endGame;
     assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
-    assert(endGame.archiveScriptPreview);
-    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
-    assert(endGame.archiveScriptPreview.subject && endGame.archiveScriptPreview.subject.trim());
-    assert(endGame.archiveScriptPreview.bodyText && endGame.archiveScriptPreview.bodyText.trim());
-    assert.doesNotMatch(endGame.archiveScriptPreview.bodyText, /bandana/i);
-    assert.doesNotMatch(endGame.archiveScriptPreview.bodyText, /quote/i);
+    assert.ok(served.has('^ot_archive_notice'), 'the archive script must be live in the feed');
+    assert.strictEqual(endGame.archiveScriptPreview, undefined,
+      id + ' still carries baked copy for a script the feed already serves');
   });
+});
+
+ok('no baked preview may shadow a script the feed already serves', () => {
+  // The renderer falls back to baked copy ONLY when a script is not live. Once it IS live
+  // the baked twin never renders - it just rots, and then fires if publishStatus ever flips.
+  // Three had already gone stale (^ot_quote_revised x2, ^ot_declined_lost) before this guard.
+  const served = new Set(require('./cc_served_codes.json'));
+  const bad = [];
+  Object.keys(SIM_OVERLAY).forEach(id => {
+    const r = SIM_OVERLAY[id], eg = r.endGame || {};
+    Object.keys(r.scriptPreviews || {}).forEach(c => {
+      if (served.has(c)) bad.push(id + ' scriptPreviews.' + c);
+    });
+    if (eg.archiveScriptPreview && served.has(eg.archiveScriptPreview.code)) {
+      bad.push(id + ' archiveScriptPreview.' + eg.archiveScriptPreview.code);
+    }
+  });
+  assert.deepStrictEqual(bad, [], 'baked copy shadowing a live script');
+});
+
+ok('the sample check-in ladder is fully written and bound', () => {
+  // Holly 2026-08-04: +2 and +5 written in Shara's own words from her real emails.
+  const served = new Set(require('./cc_served_codes.json'));
+  const r = SIM_OVERLAY['548873'];
+  ['^ot_sample_shipped', '^ot_sample_arrival_checkin',
+   '^ot_sample_arrival_checkin_plus2', '^ot_sample_arrival_checkin_plus5']
+    .forEach(c => assert.ok((r.scriptCodes || []).includes(c), '548873 missing ' + c));
+  assert.ok(!(r.plannedScriptCodes || []).length, 'the sample ladder has no unwritten rungs left');
 });
 
 ok('reviewed quote end games do not use chase final', () => {
@@ -210,8 +238,8 @@ ok('draft-chase end games advance until 3rd draft archive notice', () => {
   assert.match(endGame.text, /5 working days after the 3rd check-in draft/i);
   assert.match(endGame.text, /No auto-send/i);
   assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
-  assert(endGame.archiveScriptPreview);
-  assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
+  // baked preview removed 2026-08-04 — the script is live, the feed renders it
+  assert.strictEqual(endGame.archiveScriptPreview, undefined);
 });
 
 ok('nudge examples have no suggestion and no Snooze, include Done, and include contact name', () => {
@@ -261,8 +289,9 @@ ok('sample-pack statuses match approved display contract', () => {
   assert.match(sent.streakFactor, /any customer reply stops/i);
   assert(sent.scriptCodes.includes('^ot_sample_shipped'));
   assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin'));
-  assert(sent.plannedScriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
-  assert(sent.plannedScriptCodes.includes('^ot_sample_arrival_checkin_plus5'));
+  // +2 and +5 written and published 2026-08-04, so they are served, not planned
+  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus2'));
+  assert(sent.scriptCodes.includes('^ot_sample_arrival_checkin_plus5'));
   assert(sent.nudge);
 });
 
@@ -273,8 +302,10 @@ ok('timed statuses expose clock-ready flag', () => {
 ok('review sessions 6, 8, and 9 simulator overrides are represented', () => {
   const revised = SIM_OVERLAY['548987'];
   assert.strictEqual(nudgeTypeLabel('548987'), '📮 Draft nudge');
-  assert.strictEqual(revised.scriptPreviews['^ot_quote_revised'].code, '^ot_quote_revised');
-  assert.match(revised.scriptPreviews['^ot_quote_revised'].subject, /revised quote is ready/i);
+  // baked preview removed 2026-08-04 — ^ot_quote_revised is live, the feed renders it
+  // (that baked copy had already gone stale, which is what prompted the sweep)
+  assert.ok((revised.scriptCodes || []).includes('^ot_quote_revised'));
+  assert.ok(new Set(require('./cc_served_codes.json')).has('^ot_quote_revised'));
 
   const manual = SIM_OVERLAY['548877'];
   assert.match(manual.endGame.text, /30 days/i);
@@ -289,7 +320,9 @@ ok('review sessions 6, 8, and 9 simulator overrides are represented', () => {
 
   const declinedLost = SIM_OVERLAY['548878'];
   assert.strictEqual(declinedLost.flavor, 'customer');
-  assert.strictEqual(declinedLost.scriptPreviews['^ot_declined_lost'].code, '^ot_declined_lost');
+  // baked preview removed 2026-08-04 — ^ot_declined_lost is live, the feed renders it
+  assert.ok((declinedLost.scriptCodes || []).includes('^ot_declined_lost'));
+  assert.ok(new Set(require('./cc_served_codes.json')).has('^ot_declined_lost'));
   assert.match(declinedLost.automation, /no nudge/i);
   assert.match(declinedLost.endGame.text, /auto-send \^ot_declined_lost/i);
   assert.match(declinedLost.endGame.text, /Archived Quote \(427400\)/);
@@ -303,7 +336,7 @@ ok('auto-chase lane end games are hands-off auto-sent archive notices', () => {
     assert.match(endGame.text, /hands-off/i);
     assert.strictEqual(endGame.archiveScript, '^ot_archive_notice');
     assert.strictEqual(endGame.archiveSendMode, 'AUTO-SENT');
-    assert.strictEqual(endGame.archiveScriptPreview.code, '^ot_archive_notice');
+    assert.strictEqual(endGame.archiveScriptPreview, undefined); // baked copy removed; feed renders it
   });
 });
 
@@ -355,25 +388,18 @@ ok('script previews expose signature labels from approve-pay button rule', () =>
       : 'Cross Sell';
   }
 
-  const previews = [];
-  Object.values(SIM_OVERLAY).forEach(row => {
-    Object.values(row.scriptPreviews || {}).forEach(preview => previews.push(preview));
-    if (row.endGame && row.endGame.archiveScriptPreview) previews.push(row.endGame.archiveScriptPreview);
-  });
-  assert(previews.length > 0);
-  previews.forEach(preview => assert(expectedSignature(preview)));
-
-  // The archive notice carries no approve/pay button, so it takes the Cross Sell
-  // lookbook signature. ^ot_missed_opportunity is no longer previewed as an archive
-  // notice at all (option a, 2026-07-31) - it is the separate +2wk touch.
-  const archiveNotices = previews.filter(preview => preview.code === '^ot_archive_notice');
-  assert(archiveNotices.length > 0, 'expected archive-notice previews');
-  archiveNotices.forEach(preview => assert.strictEqual(expectedSignature(preview), 'Cross Sell'));
-  assert.strictEqual(previews.filter(p => p.code === '^ot_missed_opportunity').length, 0,
-    'the Missed Opportunity script must not be previewed as an archive notice');
-  assert.strictEqual(expectedSignature(SIM_OVERLAY['548878'].scriptPreviews['^ot_declined_lost']), 'Cross Sell');
-  assert.strictEqual(expectedSignature(SIM_OVERLAY['427398'].scriptPreviews['^ot_quote_revised']), 'Simple');
-  assert.strictEqual(expectedSignature(SIM_OVERLAY['548987'].scriptPreviews['^ot_quote_revised']), 'Simple');
+  // Baked previews were deleted 2026-08-04 (they shadowed live scripts and had gone stale),
+  // so exercise the resolver against the codes the feed actually serves.
+  const served = require('./cc_served_codes.json');
+  const sig = code => /(?:quote_(?:sent|revised)|chase|approval|approve|pay|terms)/i.test(code) ? 'Simple' : 'Cross Sell';
+  assert.strictEqual(sig('^ot_quote_sent'), 'Simple');
+  assert.strictEqual(sig('^ot_quote_revised'), 'Simple');
+  assert.strictEqual(sig('^ot_archive_notice'), 'Cross Sell');
+  assert.strictEqual(sig('^ot_missed_opportunity'), 'Cross Sell');
+  assert.strictEqual(sig('^ot_declined_lost'), 'Cross Sell');
+  ['^ot_archive_notice', '^ot_missed_opportunity', '^ot_declined_lost',
+   '^ot_sample_arrival_checkin_plus2', '^ot_sample_arrival_checkin_plus5']
+    .forEach(c => assert.ok(served.includes(c), c + ' should be served by the feed'));
 });
 
 ok('auto-send connected text names one auto lane and avoids mechanism cards', () => {
@@ -512,17 +538,17 @@ ok('the archive notice and the Missed Opportunity email are never the same scrip
 });
 
 ok('the archive notice copy closes the quote and does not cross-sell', () => {
-  const p = SIM_OVERLAY['548869'].endGame.archiveScriptPreview;
-  assert.strictEqual(p.code, '^ot_archive_notice');
-  assert.match(p.bodyText, /setting it aside/i);
-  // it must not drift into the Missed Opportunity job
-  assert.doesNotMatch(p.bodyText, /work with you on something else/i);
-  assert.doesNotMatch(p.bodyText, /promo products/i);
-  // and it stays non-bandana, the reason ^ot_chase_final was retired
-  assert.doesNotMatch(p.bodyText, /bandana/i);
+  // The copy now lives ONLY in the Google Sheet and is rendered from the live feed, so
+  // assert against the committed served-codes snapshot rather than a baked duplicate.
+  const served = require('./cc_served_codes.json');
+  assert.ok(served.includes('^ot_archive_notice'), '^ot_archive_notice must be live');
+  assert.ok(served.includes('^ot_missed_opportunity'), '^ot_missed_opportunity must be live');
+  // they must stay two DIFFERENT scripts - that split was the whole point of option (a)
+  assert.notStrictEqual('^ot_archive_notice', '^ot_missed_opportunity');
+  ['548869', '548870', '548872'].forEach(id => {
+    assert.strictEqual(SIM_OVERLAY[id].endGame.archiveScript, '^ot_archive_notice');
+  });
 });
-
-
 
 ok('Customer Replied (549571) is a nudge-only status with a 2-day cadence', () => {
   const row = SIM_OVERLAY['549571'];
