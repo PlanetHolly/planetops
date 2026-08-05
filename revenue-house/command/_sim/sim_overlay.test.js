@@ -505,7 +505,7 @@ ok('rows and the legacy text agree on the Quote auto-archive carve-out', () => {
   const q = SIM_OVERLAY['390316'].endGame;
   const what = q.rows.find(r => r.label === 'What happens');
   assert.match(what.body, /archived AUTOMATICALLY/);
-  assert.match(what.body, /Only this status and .* Quote Approval — Customer Replied .* auto-archive/);
+  assert.match(what.body, /Only this status and 💬🔔 Quote Approval — Customer Replied auto-archive/);
   const mo = q.rows.find(r => r.label === 'Missed Opportunity email');
   assert.match(mo.body, /^None\b/, 'Quote must state plainly that there is no Missed Opportunity email');
   // exactly two statuses may auto-archive, and no others
@@ -767,6 +767,41 @@ ok('548877 Quote Sent Manually deliberately does NOT route replies to 549571', (
   assert.strictEqual(SIM_OVERLAY['548877'].flavor, 'nudge');
   assert.deepStrictEqual(SIM_OVERLAY['548877'].scriptCodes, []);
   assert.match(SIM_OVERLAY['548877'].nudge.ruleText, /14 days/);
+});
+
+
+
+ok('a status name never has its emoji stranded after the words', () => {
+  // The reply-branch copy read "💬 Quote Approval — Customer Replied 🔔" on 12 statuses: the 💬🔔 pair
+  // got split around the name. The panel is where a PM copies a status name from, and the trailing
+  // emoji is also the send-mode marker, so a stranded one misreports what the status does.
+  const bad = [];
+  SIM_FALLBACK_STATUSES.forEach(st => {
+    const words = st.name.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').trim();
+    if (words.length < 8) return;                     // too short to match uniquely
+    const stray = new RegExp(words.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+      '\\s+[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]', 'u');
+    Object.entries(SIM_OVERLAY).forEach(([id, row]) => {
+      if (stray.test(JSON.stringify(row))) bad.push(id + ' strands an emoji after "' + words + '"');
+    });
+  });
+  assert.deepStrictEqual(bad, [], bad.join('; '));
+});
+
+ok('the two Quote Revised twins each say when to pick them', () => {
+  // Holly 2026-08-05: a PM lands on 427399 on purpose, after the customer asked for an update.
+  // It is the hands-off lane, used mostly on T3 where drafting by hand costs more than the order.
+  // Auto-archive is therefore correct here, but only because the choice was deliberate — so the
+  // panel has to explain the choice or the whole lane reads like an accident.
+  const auto = SIM_OVERLAY['427399'].description;
+  const draft = SIM_OVERLAY['548987'].description;
+  assert.match(auto, /T3/, '427399 must say which tier it is for');
+  assert.match(auto, /548987/, '427399 must point at its drafted twin');
+  assert.match(draft, /427399/, '548987 must point at its auto twin');
+  assert.doesNotMatch(auto, /NEW name for/, 'build notes are not training copy');
+  // it stays a chase start-trigger that auto-sends
+  assert.strictEqual(SIM_OVERLAY['427399'].flavor, 'customer');
+  assert.deepStrictEqual(SIM_OVERLAY['427399'].scriptCodes, ['^ot_quote_revised']);
 });
 
 
