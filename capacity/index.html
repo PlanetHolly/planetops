@@ -8,7 +8,7 @@
 :root{
   --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
   --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
-  --full:#D64545; --limited:#F7BE00; --open:#3AAE5A; --empty:#E3E8ED;
+  --full:#D64545; --limited:#F7BE00; --open:#3AAE5A; --empty:#E3E8ED; --reserve:#7A5CC4;
 }
 html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
 .wrap{max-width:980px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2rem;}
@@ -49,7 +49,8 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .cell .adj{font-size:.54rem;font-weight:900;color:#111;background:#fff;border:1px solid #111;border-radius:3px;padding:0 .25rem;margin-left:.2rem;}
 .cell .pct{font-weight:900;font-size:1.35rem;line-height:1;color:#1b1e23;}
 .cell .st{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1b1e23;}
-.cell.full .d,.cell.full .pct,.cell.full .st{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.30);}
+.cell.full .d,.cell.full .pct,.cell.full .st,
+.cell.reserve .d,.cell.reserve .pct,.cell.reserve .st{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.30);}
 .cell.empty .pct,.cell.empty .st{color:#7c8590;}
 .cell.today{outline:3px solid #000;outline-offset:1px;}
 .cell.nextopen{box-shadow:0 0 0 3px var(--pa-yellow);}
@@ -94,9 +95,10 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
   </div>
 
   <div class="legend">
-    <span><i class="dot" style="background:var(--full)"></i> Full 100%+</span>
-    <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+</span>
-    <span><i class="dot" style="background:var(--open)"></i> Open under 70%</span>
+    <span><i class="dot" style="background:var(--full)"></i> Full — no room left in the day</span>
+    <span><i class="dot" style="background:var(--reserve)"></i> Reserve — past plan, ask Jean first</span>
+    <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+ of plan</span>
+    <span><i class="dot" style="background:var(--open)"></i> Open under 70% of plan</span>
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (600 min)</span>
   </div>
@@ -105,6 +107,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 
   <div class="note" id="note">
     A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. To place or move a job, talk to Jean.
+    <br><br><b>100% means booked to plan, not physically full.</b> We schedule to 85% of the press day and hold the last 15% back as <b>reserve</b> — that cushion is what absorbs press checks, blanks, ink changes and the days that go sideways. A day showing Reserve still has minutes in it, but they are spoken for. Book into it only with Jean's okay.
   </div>
 
   <div class="foot">
@@ -119,7 +122,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <h3 id="ed-date">—</h3>
     <div class="ro" id="ed-load">—</div>
     <label>Press day</label>
-    <div class="seg"><button id="seg-std">Standard · 420</button><button id="seg-ot">OT · 600</button></div>
+    <div class="seg"><button id="seg-std">Standard · 420 <small>(plan 357)</small></button><button id="seg-ot">OT · 600 <small>(plan 510)</small></button></div>
     <label>Adjust minutes (+ add / − remove)</label>
     <input id="ed-adj" type="number" step="10" value="0">
     <div class="eff" id="ed-eff">—</div>
@@ -153,6 +156,17 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 // falls back to sample data + localStorage, so it never looks broken.
 const GAUGE_API='https://primary-production-079f9.up.railway.app/webhook/gauge';
 const CAP={Standard:420,OT:600};
+/* ── The planning ceiling (Jean, 2026-08-05) ──────────────────────────────────────
+   CAP is the PHYSICAL day: 420 min = the 7 workable press-hours left after breaks
+   (600 on an OT day). We now book against 85% of it — 357 min — and treat the top
+   15% as RESERVE: real capacity, but not free room to quote into. Measured over July
+   2026 the shop was running at ~102% of physical every day, which is why the floor
+   experiences it as 200%: nothing is left for press checks, blanks, ink or trouble.
+   This constant must stay in step with PLAN_PCT in /schedule/index.html — they are
+   two separate apps reading the same idea, and if they drift they will disagree
+   about whether a day is full. */
+const PLAN_PCT=0.85;
+const planOf=station=>Math.round((CAP[station]||420)*PLAN_PCT);
 const JEAN = new URLSearchParams(location.search).get('mode')==='jean';
 
 // ── sample fallback (used only until the n8n feed populates gauge_load) ──
@@ -187,15 +201,23 @@ function eff(iso){
   const station=ov.mode||base.station||'Standard';
   const minutes=Math.max(0,(base.minutes||0)+(ov.add||0));
   const cap=CAP[station]||420;
-  const pct=minutes>0?Math.round(minutes/cap*100):0;
+  const plan=planOf(station);
+  // % is now against the PLAN line, so 100% means "booked to plan", not "physically
+  // full". Reserve is 101% up to the physical day (~118% on a standard day).
+  const pct=minutes>0?Math.round(minutes/plan*100):0;
   let cls='empty',st='Open';
-  if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=70){cls='limited';st='Limited';} else {cls='open';st='Open';} }
-  return {station,minutes,cap,pct,cls,st,fill:Math.min(pct,100),open:pct<70,ot:station==='OT',adj:ov.add||0,base};
+  if(minutes>0){
+    if(minutes>=cap){cls='full';st='Full';}
+    else if(minutes>plan){cls='reserve';st='Reserve';}
+    else if(pct>=70){cls='limited';st='Limited';}
+    else {cls='open';st='Open';}
+  }
+  return {station,minutes,cap,plan,pct,cls,st,fill:Math.min(pct,100),open:cls==='open',ot:station==='OT',adj:ov.add||0,base};
 }
 
 function render(){
   const cal=document.getElementById('cal');cal.innerHTML='';
-  const tier={full:'var(--full)',limited:'var(--limited)',open:'var(--open)',empty:'var(--empty)'};
+  const tier={full:'var(--full)',reserve:'var(--reserve)',limited:'var(--limited)',open:'var(--open)',empty:'var(--empty)'};
   const dh=document.createElement('div');dh.className='dow';DOW.forEach(d=>{const e=document.createElement('div');e.textContent=d;dh.appendChild(e);});cal.appendChild(dh);
   let autoNext=null;VISIBLE=[];
   for(let w=0;w<5;w++){
@@ -258,8 +280,10 @@ let segMode='Standard';
 function setSeg(m){segMode=m;document.getElementById('seg-std').classList.toggle('sel',m==='Standard');document.getElementById('seg-ot').classList.toggle('sel',m==='OT');updateEff();}
 function updateEff(){
   const base=LOAD[selected]||{minutes:0};const add=Number(document.getElementById('ed-adj').value||0);
-  const mins=Math.max(0,(base.minutes||0)+add);const cap=CAP[segMode];const pct=mins>0?Math.round(mins/cap*100):0;
-  document.getElementById('ed-eff').textContent=`Result: ${mins} min ÷ ${cap} = ${pct}%`;
+  const mins=Math.max(0,(base.minutes||0)+add);const cap=CAP[segMode];const plan=planOf(segMode);
+  const pct=mins>0?Math.round(mins/plan*100):0;
+  const band=mins>=cap?'FULL — past the day':mins>plan?`RESERVE — ${mins-plan} min past plan`:'within plan';
+  document.getElementById('ed-eff').textContent=`Result: ${mins} min ÷ ${plan} plan = ${pct}%  ·  ${band}  (day is ${cap} min)`;
 }
 document.getElementById('seg-std').onclick=()=>setSeg('Standard');
 document.getElementById('seg-ot').onclick=()=>setSeg('OT');
