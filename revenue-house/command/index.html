@@ -3299,9 +3299,9 @@ const SIM_OVERLAY = {
   "548877": {
     "id": "548877",
     "phase": "Quote & Chase",
-    "description": "The PM's comfort-zone status - custom dates/info gathered and managed on their Streak tasks.",
+    "description": "The PM sent the quote by hand instead of letting the system chase it, and is running the follow-ups off their own Streak tasks. The difference from Follow-Up Pre-Quote: there, no quote has gone out yet. Here one has, it just was not sent by the system.",
     "flavor": "nudge",
-    "automation": "No customer email. PM nudge only, mimicking Follow-Up Pre-Quote (Streak Task): if there is no movement for 14 days, the owner gets nudged in the 🐌 Stale chat.",
+    "automation": "No customer email. PM nudge only, mimicking Follow-Up Pre-Quote (Streak Task): if there is no movement for 14 days, the owner gets nudged in the 🐌 Stale chat. 🔴 A customer reply does NOT move this one. Every other quote status routes a reply to 💬🔔 Quote Approval — Customer Replied (549571), but this status already has a Streak task attached and moving the order would strand it. The PM handles the reply on the task they already have.",
     "scriptCodes": [],
     "nudge": {
       "trigger": "QUOTE_SENT_MANUAL_STALLED",

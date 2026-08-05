@@ -754,6 +754,23 @@ ok('both lanes end rung 4 on the archive notice, never on a chase email', () => 
 
 
 
+ok('548877 Quote Sent Manually deliberately does NOT route replies to 549571', () => {
+  // Holly 2026-08-05: every other quote status sends a reply to 549571, but this one must not.
+  // A Streak task is already attached to the order; moving it would strand that task. This is a
+  // deliberate exception, so the guard exists to stop someone adding the branch "for consistency".
+  const a = SIM_OVERLAY['548877'].automation;
+  assert.match(a, /reply does NOT move this one/i);
+  assert.match(a, /already has a Streak task/i, 'the panel must give the REASON, not just the rule');
+  assert.doesNotMatch(a, /If the customer replies, move the order to/i,
+    '548877 must not carry the standard reply-branch instruction');
+  // and it stays nudge-only with the 14-day cadence Holly re-confirmed
+  assert.strictEqual(SIM_OVERLAY['548877'].flavor, 'nudge');
+  assert.deepStrictEqual(SIM_OVERLAY['548877'].scriptCodes, []);
+  assert.match(SIM_OVERLAY['548877'].nudge.ruleText, /14 days/);
+});
+
+
+
 for (const [name, fn] of tests) {
   try {
     fn();
