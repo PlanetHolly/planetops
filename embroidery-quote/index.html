@@ -65,6 +65,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .total { font-size:clamp(2.3rem, 7vw, 5.4rem); line-height:.9; font-weight:950; letter-spacing:0; }
 .heroProfit .profitMeta { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; color:#f7df92; font-size:.9rem; font-weight:900; }
 .heroProfit .profitMeta span { display:inline-flex; align-items:center; min-height:28px; border:1px solid rgba(247,223,146,.45); border-radius:6px; padding:3px 8px; }
+.heroProfit .profitMeta span.muted { color:#c9c5bc; border-color:rgba(201,197,188,.34); }
 .perunit { text-align:right; }
 .perunit b { display:block; font-size:clamp(1.4rem, 3vw, 2.4rem); }
 .perunit .revenueBlock { margin-bottom:12px; }
@@ -95,11 +96,22 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .flagBlock.good { background:#edfff6; border-color:#98e6be; color:#075b36; }
 .flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
 .flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.marginOptions { display:grid; gap:10px; }
+.marginOption { display:grid; grid-template-columns:auto minmax(0,1fr); gap:11px; align-items:start; border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfaf7; }
+.marginOption input[type="checkbox"] { width:17px; height:17px; margin-top:3px; accent-color:var(--yellow); }
+.marginOptionTop { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.marginOptionTop b { font-size:.9rem; text-transform:uppercase; letter-spacing:.05em; }
+.marginOptionTop span { color:var(--muted); font-weight:900; font-size:.78rem; }
+.marginOptionMetrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:9px; }
+.marginMetric { border-top:1px solid var(--line); padding-top:7px; min-width:0; }
+.marginMetric small { display:block; color:var(--muted); font-size:.65rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+.marginMetric strong { display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:.9rem; font-variant-numeric:tabular-nums; }
+.marginMetric strong .flag { white-space:nowrap; }
 .provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
 @media (prefers-color-scheme:dark) {
   :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
   body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
-  input[type="number"],select,.check,.placementRow { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
+  input[type="number"],select,.check,.placementRow,.marginOption { background:#11100e; color:#f5f0e6; border-color:#4a4438; }
   .ghostBtn,.iconBtn { background:#11100e; color:#f5f0e6; border-color:#f5f0e6; }
   .panel { background:rgba(29,27,24,.9); }
   .panel h2,.hero { background:#050505; }
@@ -115,7 +127,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
   .shell { width:min(100% - 22px, 1180px); padding-top:16px; }
   header { grid-template-columns:auto 1fr; } .badge { grid-column:1 / -1; justify-self:start; }
   .layout { grid-template-columns:1fr; } .hero { grid-template-columns:1fr; } .perunit { text-align:left; }
-  .spgrid,.twocol,.threecol { grid-template-columns:1fr; }
+  .spgrid,.twocol,.threecol,.marginOptionMetrics { grid-template-columns:1fr; }
   .row { grid-template-columns:minmax(0,1fr) auto; }
 }
 @media (max-width:520px) {
@@ -183,7 +195,7 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         <div class="heroProfit">
           <small>Project margin</small>
           <div class="total" id="marginTotal">$0</div>
-          <div class="profitMeta"><span id="marginUnit">$0.00 / unit</span><span id="marginPct">0.0% margin</span></div>
+          <div class="profitMeta"><span id="marginUnit">$0.00 / unit</span><span id="marginPct">0.0% decoration</span><span id="blendedPct" class="muted">0.0% blended</span></div>
         </div>
         <div class="perunit">
           <div class="revenueBlock"><small>Project revenue</small><b id="orderTotal">$0</b></div>
@@ -199,6 +211,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
           </div>
           <div class="pcQuoted" id="priceCheckQuoted"></div>
           <div class="note">Type the price a customer is pushing for. Shows the resulting per-unit and whole-order margin against this quote's cost basis. Does not change the quote above.</div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Margin options</h2>
+        <div class="form">
+          <div class="marginOptions" id="marginOptions"></div>
+          <div class="controls">
+            <button class="pcBtn" id="addMarginOptions" type="button">Add checked to comparison</button>
+          </div>
         </div>
       </section>
       <section class="panel">
@@ -330,6 +351,8 @@ const EMBROIDERY_DATA = {
 };
 
 const SURVIVAL_SP = Number((EMBROIDERY_DATA.sp_curve || {}).survival_floor || EMBROIDERY_DATA.sp_formula.survival_SP);
+const STRETCH_UPLIFT = 0.10;
+const STRETCH_CAP = 0.65;
 const ROUND_UP_TO = Number((EMBROIDERY_DATA.sp_curve || {}).round_up_to_embroidery || EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
 const MAX_PLACEMENTS = 3;
 const $ = id => document.getElementById(id);
@@ -465,17 +488,108 @@ function specialtyMath(qty, placementCount) {
     return {id:item.id, label, price:Number(item.price || 0), revenue:units * Number(item.price || 0), units, note:item.note || '', basis:item.basis};
   }).filter(item => item.revenue > 0);
 }
+function computeQuote(targetSP) {
+  const qty = readQty();
+  const rowValue = qtyRow(qty);
+  const tier = $('tier').value || 'Standard';
+  const placements = activePlacements();
+  const placementCount = placements.length;
+  const garment = garmentMath();
+  const specialty = specialtyMath(qty, placementCount);
+  const placementLines = placements.map(placement => {
+    const costRow = EMBROIDERY_DATA.bear_cost[String(rowValue)] || [];
+    const bearCost = Number(costRow[placement.bandInfo.index]) || 0;
+    const missingBearCost = !bearCost;
+    const price = placementPrice(bearCost, targetSP, tier, qty);
+    const cost = bearCost * qty;
+    const revenue = price.sell * qty;
+    const margin = revenue - cost;
+    return {...placement, bearCost, missingBearCost, sellUnit:price.sell, price, cost, revenue, margin, marginPct:revenue > 0 ? margin / revenue : 0};
+  });
+  const placementCost = placementLines.reduce((sum, line) => sum + line.cost, 0);
+  const placementRevenue = placementLines.reduce((sum, line) => sum + line.revenue, 0);
+  const specialtyRevenue = specialty.reduce((sum, item) => sum + item.revenue, 0);
+  const specialtyCost = 0;
+  const projectCost = garment.cost + placementCost + specialtyCost;
+  const projectRevenue = garment.revenue + placementRevenue + specialtyRevenue;
+  const projectMargin = projectRevenue - projectCost;
+  const projectMarginPct = projectRevenue > 0 ? projectMargin / projectRevenue : 0;
+  const decorationMargin = placementRevenue - placementCost;
+  const decorationMarginPct = placementRevenue > 0 ? decorationMargin / placementRevenue : 0;
+  const perDecoratedUnitRevenue = projectRevenue / qty;
+  const perDecoratedUnitMargin = projectMargin / qty;
+  return {
+    qty, rowValue, tier, placements, placementCount, garment, specialty, placementLines,
+    zones: {
+      goods: {revenue:garment.revenue, cost:garment.cost},
+      decoration: {revenue:placementRevenue, cost:placementCost},
+      services: {revenue:specialtyRevenue, cost:specialtyCost}
+    },
+    placementCost, placementRevenue, specialtyRevenue, specialtyCost,
+    projectCost, projectRevenue, projectMargin, projectMarginPct,
+    decorationMargin, decorationMarginPct, perDecoratedUnitRevenue, perDecoratedUnitMargin,
+    missingBearCost: placementLines.some(line => line.missingBearCost)
+  };
+}
 function setNoQuote(message, qty, placementCount) {
   $('orderTotal').textContent = '$0';
   $('perUnit').textContent = 'No quote';
   $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placementCount + ' ' + plural(placementCount, 'placement', 'placements');
   $('marginTotal').textContent = '$0';
   $('marginUnit').textContent = '$0.00 / unit';
-  $('marginPct').textContent = '0.0% margin';
+  $('marginPct').textContent = '0.0% decoration';
+  $('blendedPct').textContent = '0.0% blended';
   $('costBreakdown').innerHTML = row('Project status', 'No quote', message, true);
   $('placementBreakdown').innerHTML = row('Placement pricing', 'No quote', 'Correct stitch counts before quoting.', true);
   $('spPanel').innerHTML = '<div class="spcard wide"><div class="top"><h3>Custom quote required</h3>' + flagPill('bad', 'check') + '</div><div class="rate">No price</div><div class="spmeta">' + escapeHtml(message) + '</div></div>';
   $('priceDecision').innerHTML = row('Selected customer price', 'No quote', message, true);
+  renderMarginOptions([]);
+}
+function marginOptionHtml(option) {
+  const floorKind = option.quote.decorationMarginPct >= SURVIVAL_SP ? 'good' : 'bad';
+  const floorText = option.quote.decorationMarginPct >= SURVIVAL_SP ? 'clears floor' : 'below floor';
+  return '<label class="marginOption" for="marginOption_' + option.id + '">' +
+    '<input id="marginOption_' + option.id + '" data-margin-option="' + option.id + '" type="checkbox"' + (option.checked ? ' checked' : '') + '>' +
+    '<div>' +
+      '<div class="marginOptionTop"><b>' + escapeHtml(option.label) + '</b><span>' + pct(option.sp * 100) + ' target SP</span></div>' +
+      '<div class="note">' + escapeHtml(option.note) + '</div>' +
+      '<div class="marginOptionMetrics">' +
+        '<div class="marginMetric"><small>Unit price</small><strong>' + money(option.quote.perDecoratedUnitRevenue) + '</strong></div>' +
+        '<div class="marginMetric"><small>Order total</small><strong>' + money0(option.quote.projectRevenue) + '</strong></div>' +
+        '<div class="marginMetric"><small>Project margin</small><strong>' + money0(option.quote.projectMargin) + '</strong></div>' +
+        '<div class="marginMetric"><small>Decoration margin</small><strong>' + pct(option.quote.decorationMarginPct * 100) + ' ' + flagPill(floorKind, floorText) + '</strong></div>' +
+      '</div>' +
+    '</div>' +
+  '</label>';
+}
+let LAST_MARGIN_OPTIONS = [];
+function renderMarginOptions(options) {
+  const priorChecked = {};
+  (LAST_MARGIN_OPTIONS || []).forEach(option => {
+    const checkbox = $('marginOption_' + option.id);
+    if (checkbox) priorChecked[option.id] = checkbox.checked;
+  });
+  LAST_MARGIN_OPTIONS = options.map(option => ({...option, checked:Object.prototype.hasOwnProperty.call(priorChecked, option.id) ? priorChecked[option.id] : option.checked}));
+  $('marginOptions').innerHTML = LAST_MARGIN_OPTIONS.length ? LAST_MARGIN_OPTIONS.map(marginOptionHtml).join('') : '<div class="basketEmpty">No valid margin options. Correct the quote inputs before adding options.</div>';
+  $('addMarginOptions').disabled = !LAST_MARGIN_OPTIONS.length;
+}
+function addCheckedMarginOptions() {
+  if (!LAST_MARGIN_OPTIONS.length) return;
+  const note = (($('basketNote') || {}).value || '').trim();
+  const copyLabel = (($('garmentName').value || '').trim() || 'Custom apparel') + ', embroidery';
+  LAST_MARGIN_OPTIONS.forEach(option => {
+    const checkbox = $('marginOption_' + option.id);
+    if (!checkbox || !checkbox.checked) return;
+    BASKET.push({
+      label: option.label,
+      copyLabel,
+      qty: option.quote.qty,
+      unitPrice: option.quote.perDecoratedUnitRevenue,
+      total: option.quote.projectRevenue,
+      note
+    });
+  });
+  renderBasket();
 }
 function calculate() {
   const qty = readQty();
@@ -509,25 +623,10 @@ function calculate() {
     return;
   }
 
-  const placementLines = placements.map(placement => {
-    const bearCost = Number((EMBROIDERY_DATA.bear_cost[String(rowValue)] || [])[placement.bandInfo.index]) || 0;
-    const price = placementPrice(bearCost, targetSP, tier, qty);
-    const cost = bearCost * qty;
-    const revenue = price.sell * qty;
-    const margin = revenue - cost;
-    return {...placement, bearCost, sellUnit:price.sell, price, cost, revenue, margin, marginPct:revenue > 0 ? margin / revenue : 0};
-  });
-
-  const placementCost = placementLines.reduce((sum, line) => sum + line.cost, 0);
-  const placementRevenue = placementLines.reduce((sum, line) => sum + line.revenue, 0);
-  const specialtyRevenue = specialty.reduce((sum, item) => sum + item.revenue, 0);
-  const specialtyCost = 0;
-  const projectCost = garment.cost + placementCost + specialtyCost;
-  const projectRevenue = garment.revenue + placementRevenue + specialtyRevenue;
-  const projectMargin = projectRevenue - projectCost;
-  const projectMarginPct = projectRevenue > 0 ? projectMargin / projectRevenue : 0;
-  const perDecoratedUnitRevenue = projectRevenue / qty;
-  const perDecoratedUnitMargin = projectMargin / qty;
+  const standardQuote = computeQuote(targetSP);
+  const stretchSP = Math.min(targetSP + STRETCH_UPLIFT, STRETCH_CAP);
+  const stretchQuote = computeQuote(stretchSP);
+  const {placementLines, placementCost, placementRevenue, specialtyRevenue, specialtyCost, projectCost, projectRevenue, projectMargin, projectMarginPct, decorationMarginPct, perDecoratedUnitRevenue, perDecoratedUnitMargin} = standardQuote;
   const tierDiscount = tier === 'Standard' ? 0 : tierDiscountForQty(qty);
 
   $('orderTotal').textContent = money0(projectRevenue);
@@ -535,14 +634,20 @@ function calculate() {
   $('qtyLabel').textContent = qty.toLocaleString('en-US') + ' pcs / ' + placementCount + ' ' + plural(placementCount, 'placement', 'placements');
   $('marginTotal').textContent = money0(projectMargin);
   $('marginUnit').textContent = money(perDecoratedUnitMargin) + ' / unit';
-  $('marginPct').textContent = pct(projectMarginPct * 100) + ' margin';
+  $('marginPct').textContent = pct(decorationMarginPct * 100) + ' decoration';
+  $('blendedPct').textContent = pct(projectMarginPct * 100) + ' blended';
+
+  renderMarginOptions([
+    {id:'standard', label:'Standard', sp:targetSP, checked:true, note:"The desk's live quote.", quote:standardQuote},
+    {id:'stretch', label:'Stretch', sp:stretchSP, checked:false, note:'Pre-approved higher point for low-competition work.', quote:stretchQuote}
+  ]);
 
   $('costBreakdown').innerHTML = [
     row('Garment revenue', money0(garment.revenue), garment.included ? garment.source + ': ' + money(garment.unitRevenue) + ' sell/unit, ' + money(garment.unitCost) + ' cost/unit, ' + garment.qty.toLocaleString('en-US') + ' garments' : 'Not included because blank cost is 0'),
     row('Embroidery placement revenue', money0(placementRevenue), placementCount + ' ' + plural(placementCount, 'placement', 'placements') + ' x ' + qty.toLocaleString('en-US') + ' pcs'),
     row('Specialty item revenue', money0(specialtyRevenue), specialty.length ? specialty.map(item => item.label + ': ' + money(item.revenue)).join('; ') : 'No specialty items selected'),
-    row('Total project cost', money0(projectCost), 'Garment COGS ' + money0(garment.cost) + ' + Bear decoration COGS ' + money0(placementCost), true),
-    row('Total project revenue', money0(projectRevenue), 'Garment + embroidery + specialty charges', true),
+    row('Total project cost', money0(projectCost), 'Goods cost ' + money0(garment.cost) + ' + decoration cost ' + money0(placementCost) + ' + services cost ' + money0(specialtyCost), true),
+    row('Total project revenue', money0(projectRevenue), 'Goods + decoration + services', true),
     row('Project margin', money0(projectMargin), pct(projectMarginPct * 100) + ' of project revenue', true)
   ].join('');
 
@@ -558,18 +663,23 @@ function calculate() {
     row('Placement margin total', money0(placementRevenue - placementCost), pct(placementRevenue > 0 ? ((placementRevenue - placementCost) / placementRevenue) * 100 : 0) + ' placement margin', true)
   ]).join('');
 
-  const belowSurvival = projectMarginPct < SURVIVAL_SP;
-  if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - project margin ' + pct(projectMarginPct * 100) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
-  else $('flags').innerHTML += flagBlock('good', 'PROJECT CLEARS SURVIVAL - achieved ' + pct(projectMarginPct * 100) + ' with ' + tier + ' tier.');
+  const belowSurvival = decorationMarginPct < SURVIVAL_SP;
+  if (standardQuote.missingBearCost) $('flags').innerHTML += flagBlock('bad', 'MISSING BEAR COST - check the quantity row and stitch band before quoting.');
+  else if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - decoration margin ' + pct(decorationMarginPct * 100) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
+  else $('flags').innerHTML += flagBlock('good', 'DECORATION CLEARS SURVIVAL - ' + pct(decorationMarginPct * 100) + ' on Bear cost, floor ' + pct(SURVIVAL_SP * 100) + '.');
+  if (projectMarginPct < SURVIVAL_SP) {
+    $('flags').innerHTML += flagBlock('warn', 'Blended project margin ' + pct(projectMarginPct * 100) + ' - the PA-supplied blank dilutes the ratio. ' + money(garment.cost) + ' of garment cost is recovered at ' + money(garment.recovery) + '/unit by design; PA\'s margin is in the decoration, at ' + pct(decorationMarginPct * 100) + '. Project profit is ' + money(projectMargin) + '.');
+  }
 
   $('spPanel').innerHTML =
     '<div class="spcard"><div class="top"><h3>Standard SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(targetSP * 100) + '</div><div class="spmeta">Qty band ' + targetBand.label + '. Standard uses full sliding margin.</div></div>' +
-    '<div class="spcard"><div class="top"><h3>Tier</h3>' + flagPill(tier === 'Standard' ? 'neutral' : 'warn', tier) + '</div><div class="rate">' + (tier === 'Standard' ? '0.0%' : pct(tierDiscount * 100)) + '</div><div class="spmeta">' + (tier === 'Standard' ? 'No discount applied.' : 'Discounts Standard sell, then floors at 60% of Standard margin and 33% survival.') + '</div></div>' +
-    '<div class="spcard"><div class="top"><h3>Project margin</h3>' + flagPill(belowSurvival ? 'bad' : 'good', belowSurvival ? 'low' : 'clear') + '</div><div class="rate">' + pct(projectMarginPct * 100) + '</div><div class="spmeta">Revenue minus cost across garment, placements, and specialty items.</div></div>' +
+    '<div class="spcard"><div class="top"><h3>Tier</h3>' + flagPill(tier === 'Standard' ? 'neutral' : 'warn', tier) + '</div><div class="rate">' + pct(tierDiscount * 100) + '</div><div class="spmeta">' + (tier === 'Standard' ? 'No discount applied.' : 'Discounts Standard sell, then floors at ' + pct(Number((EMBROIDERY_DATA.tiers || {}).floor_ratio || 0) * 100) + ' of Standard margin and ' + pct(SURVIVAL_SP * 100) + ' survival.') + '</div></div>' +
+    '<div class="spcard"><div class="top"><h3>Decoration margin</h3>' + flagPill(belowSurvival ? 'bad' : 'good', belowSurvival ? 'low' : 'clear') + '</div><div class="rate">' + pct(decorationMarginPct * 100) + '</div><div class="spmeta">Placement revenue minus Bear decoration cost. This is the survival-floor test.</div></div>' +
     '<div class="spcard wide"><div class="top"><h3>Built-up detail</h3>' + flagPill('neutral', 'self-contained') + '</div><div class="detailList">' +
       spDetailItem('Garment revenue / cost', money0(garment.revenue) + ' / ' + money0(garment.cost)) +
       spDetailItem('Placement revenue / cost', money0(placementRevenue) + ' / ' + money0(placementCost)) +
       spDetailItem('Specialty revenue / cost', money0(specialtyRevenue) + ' / ' + money0(specialtyCost)) +
+      spDetailItem('Decoration margin', money0(standardQuote.decorationMargin) + ' / ' + pct(decorationMarginPct * 100)) +
       spDetailItem('Project revenue', money0(projectRevenue)) +
       spDetailItem('Project cost', money0(projectCost)) +
       spDetailItem('Project margin', money0(projectMargin) + ' / ' + pct(projectMarginPct * 100)) +
@@ -609,12 +719,143 @@ let BASKET = (()=>{ try{ const t=sessionStorage.getItem('pa_basket_handoff'); if
 const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
 const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+function basketCopyText(){ return BASKET.map(l => (l.copyLabel || l.label) + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
 function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span>'+(l.note?'<br><span class="note" style="white-space:pre-wrap">'+bxEsc(l.note)+'</span>':'')+'</div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
 function addToBasket(){ if(!CURRENT_QUOTE) return; const note=(($('basketNote')||{}).value||'').trim(); BASKET.push(Object.assign({}, CURRENT_QUOTE, {note})); renderBasket(); }
 function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
 function clearBasket(){ BASKET=[]; renderBasket(); }
 function clearForm(){ try{ sessionStorage.setItem('pa_basket_handoff', JSON.stringify(BASKET)); }catch(e){} location.reload(); }
+function runSelftest() {
+  const out = document.createElement('pre');
+  out.id = 'selftestOut';
+  document.body.appendChild(out);
+  const tests = [];
+  let totalAssertions = 0;
+  const approx = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
+  const fail = (name, expected, got) => ({name, expected, got});
+  const setLiveInputs = (blank, tierName) => {
+    $('qty').value = '24';
+    $('blankCost').value = String(blank);
+    $('garmentSource').value = 'PA-supplied';
+    $('garmentQty').value = '24';
+    $('tier').value = tierName || 'Standard';
+    $('vendorRouting').value = 'Bear';
+    renderPlacementRows(1);
+    $('placement1').value = '9494';
+    EMBROIDERY_DATA.specialty_items.items.forEach(item => {
+      const checkbox = $(item.id);
+      if (checkbox) checkbox.checked = false;
+      const count = $(item.id + '_count');
+      if (count) count.value = '0';
+    });
+    BASKET = [];
+    renderBasket();
+    calculate();
+    return computeQuote(targetSpForQty(readQty()).sp);
+  };
+  const assertEqual = (name, actual, expected) => {
+    totalAssertions += 1;
+    if (actual !== expected) tests.push(fail(name, expected, actual));
+  };
+  const assertApprox = (name, actual, expected, tolerance) => {
+    totalAssertions += 1;
+    if (!approx(actual, expected, tolerance)) tests.push(fail(name, expected, actual));
+  };
+  const quote13 = setLiveInputs(13.40);
+  assertApprox('live projectRevenue', quote13.projectRevenue, 648.00, 0.001);
+  assertApprox('live projectCost', quote13.projectCost, 460.32, 0.001);
+  assertApprox('live projectMargin', quote13.projectMargin, 187.68, 0.001);
+  assertApprox('live blended margin', quote13.projectMarginPct, 0.2896, 0.0001);
+  assertApprox('live decoration margin', quote13.decorationMarginPct, 0.5413, 0.0001);
+  assertApprox('live per decorated unit', quote13.perDecoratedUnitRevenue, 27.00, 0.001);
+  assertApprox('live margin per unit', quote13.perDecoratedUnitMargin, 7.82, 0.001);
+
+  const flags13 = $('flags').textContent;
+  const quote3 = setLiveInputs(3.00);
+  const flags3 = $('flags').textContent;
+  assertApprox('blank independence decoration margin', quote3.decorationMarginPct, quote13.decorationMarginPct, 0.000001);
+  assertEqual('blank independence flag state', flags3.includes('DECORATION CLEARS SURVIVAL') && !flags3.includes('BELOW SURVIVAL'), flags13.includes('DECORATION CLEARS SURVIVAL') && !flags13.includes('BELOW SURVIVAL'));
+
+  setLiveInputs(13.40);
+  const flagHtml = $('flags').innerHTML;
+  assertEqual('no false bad flag', $('flags').querySelector('.bad') == null, true);
+  assertEqual('dilution warn present', $('flags').querySelector('.warn') != null, true);
+  assertEqual('dilution contains project profit', flagHtml.includes('$187.68'), true);
+  assertEqual('dilution contains decoration margin', flagHtml.includes('54.1%'), true);
+
+  let floorOk = true;
+  let floorMin = 1;
+  EMBROIDERY_DATA._meta.qty_rows.forEach(qtyRowValue => {
+    const target = targetSpForQty(qtyRowValue).sp;
+    (EMBROIDERY_DATA.bear_cost[String(qtyRowValue)] || []).forEach(cost => {
+      EMBROIDERY_DATA.tiers.options.forEach(tierName => {
+        const price = placementPrice(Number(cost), target, tierName, qtyRowValue);
+        const marginPct = price.sell > 0 ? (price.sell - Number(cost)) / price.sell : 0;
+        floorMin = Math.min(floorMin, marginPct);
+        if (marginPct < SURVIVAL_SP) floorOk = false;
+      });
+    });
+  });
+  assertEqual('structural floor sweep', floorOk, true);
+
+  const standardOption = LAST_MARGIN_OPTIONS.find(option => option.id === 'standard');
+  const stretchOption = LAST_MARGIN_OPTIONS.find(option => option.id === 'stretch');
+  assertApprox('ladder stretch SP', stretchOption.sp, Math.min(targetSpForQty(readQty()).sp + STRETCH_UPLIFT, STRETCH_CAP), 0.000001);
+  assertEqual('ladder stretch unit price higher', stretchOption.quote.perDecoratedUnitRevenue > standardOption.quote.perDecoratedUnitRevenue, true);
+  assertEqual('ladder stretch margin higher', stretchOption.quote.projectMargin > standardOption.quote.projectMargin, true);
+  $('marginOption_stretch').checked = true;
+  $('blankCost').value = '13.45';
+  calculate();
+  assertEqual('ladder preserves checked state', $('marginOption_stretch').checked, true);
+
+  setLiveInputs(13.40, 'Partner');
+  const partnerStandard = LAST_MARGIN_OPTIONS.find(option => option.id === 'standard');
+  const partnerStretch = LAST_MARGIN_OPTIONS.find(option => option.id === 'stretch');
+  const partnerLadderHtml = $('marginOptions').innerHTML;
+  assertApprox('Partner Standard achieved decoration margin', partnerStandard.quote.decorationMarginPct, 0.428, 0.001);
+  assertApprox('Partner Stretch achieved decoration margin', partnerStretch.quote.decorationMarginPct, 0.552, 0.001);
+  assertEqual('Partner Standard achieved below target', partnerStandard.quote.decorationMarginPct < partnerStandard.sp, true);
+  assertEqual('Partner Stretch achieved below target', partnerStretch.quote.decorationMarginPct < partnerStretch.sp, true);
+  assertEqual('Partner Standard rendered achieved margin', partnerLadderHtml.includes('<small>Decoration margin</small><strong>' + pct(partnerStandard.quote.decorationMarginPct * 100)), true);
+  assertEqual('Partner Stretch rendered achieved margin', partnerLadderHtml.includes('<small>Decoration margin</small><strong>' + pct(partnerStretch.quote.decorationMarginPct * 100)), true);
+  assertEqual('Partner ladder clears floor pills', (partnerLadderHtml.match(/clears floor/g) || []).length, 2);
+  renderMarginOptions([{id:'synthetic', label:'Synthetic', sp:SURVIVAL_SP, checked:true, note:'Synthetic floor check.', quote:{perDecoratedUnitRevenue:1, projectRevenue:1, projectMargin:1, decorationMarginPct:SURVIVAL_SP - 0.01}}]);
+  assertEqual('synthetic ladder below floor pill', $('marginOptions').innerHTML.includes('below floor'), true);
+  assertEqual('ladder omits decoration SP label', /decoration SP/i.test(partnerLadderHtml), false);
+
+  setLiveInputs(13.40);
+  const heroBefore = [$('marginTotal').textContent, $('marginPct').textContent, $('orderTotal').textContent, $('perUnit').textContent].join('|');
+  $('marginOption_stretch').checked = true;
+  const heroAfter = [$('marginTotal').textContent, $('marginPct').textContent, $('orderTotal').textContent, $('perUnit').textContent].join('|');
+  assertEqual('hero tracks Standard', heroAfter, heroBefore);
+
+  BASKET = [];
+  $('marginOption_standard').checked = true;
+  $('marginOption_stretch').checked = true;
+  addCheckedMarginOptions();
+  assertEqual('basket count', BASKET.length, 2);
+  assertEqual('basket labels', BASKET.map(item => item.label).join(','), 'Standard,Stretch');
+  assertEqual('basket prices differ', BASKET[0].unitPrice !== BASKET[1].unitPrice, true);
+  const customerCopy = basketCopyText();
+  assertEqual('basket copy hides internal option names', customerCopy.includes('Standard') || customerCopy.includes('Stretch'), false);
+
+  setLiveInputs(13.40);
+  $('placement1').value = '0';
+  BASKET = [];
+  calculate();
+  addCheckedMarginOptions();
+  assertEqual('no-quote clears ladder options', LAST_MARGIN_OPTIONS.length, 0);
+  assertEqual('no-quote ladder cannot add basket item', BASKET.length, 0);
+
+  assertEqual('no free-form field', document.querySelector('#customMarginPct, #customPct') == null, true);
+
+  if (tests.length) {
+    const first = tests[0];
+    out.textContent = 'SELFTEST: FAIL (' + tests.length + '/' + totalAssertions + ') — ' + first.name + ': expected ' + first.expected + ' got ' + first.got;
+  } else {
+    out.textContent = 'SELFTEST: PASS (' + totalAssertions + '/' + totalAssertions + ')';
+  }
+}
 function bind() {
   $('vendorRouting').innerHTML = EMBROIDERY_DATA.vendor_routing.options.map(option => '<option value="' + escapeHtml(option) + '">' + escapeHtml(option + (option === EMBROIDERY_DATA.vendor_routing.default ? ' default' : ' backup')) + '</option>').join('');
   $('vendorRouting').value = EMBROIDERY_DATA.vendor_routing.default;
@@ -625,6 +866,7 @@ function bind() {
   $('quoteForm').addEventListener('change', calculate);
   $('targetPrice').addEventListener('input', renderPriceCheck);
   $('addToBasket').addEventListener('click', addToBasket);
+  $('addMarginOptions').addEventListener('click', addCheckedMarginOptions);
   $('clearForm').addEventListener('click', clearForm);
   $('copyBasket').addEventListener('click', copyBasket);
   $('clearBasket').addEventListener('click', clearBasket);
@@ -649,6 +891,7 @@ function bind() {
   });
   $('provenance').textContent = 'Provenance: ' + EMBROIDERY_DATA._meta.title + '. As-of ' + EMBROIDERY_DATA._meta.as_of + '. Source: ' + EMBROIDERY_DATA._meta.source + ' Model: ' + EMBROIDERY_DATA._meta.model;
   calculate();
+  if (new URLSearchParams(location.search).get('selftest') === '1') runSelftest();
 }
 bind();
 </script>
