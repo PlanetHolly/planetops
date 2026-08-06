@@ -80,6 +80,7 @@ input[type="number"]:focus, select:focus { border-color:#111; box-shadow:0 0 0 3
 .total { font-size:clamp(2.35rem, 7vw, 5.7rem); line-height:.88; font-weight:950; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .heroMeta { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; color:#f7df92; font-size:.88rem; font-weight:950; }
 .heroMeta span { display:inline-flex; align-items:center; min-height:28px; border:1px solid rgba(247,223,146,.45); border-radius:6px; padding:3px 8px; }
+.heroMeta span.muted { color:#c8c1b3; border-color:rgba(200,193,179,.34); }
 .heroSide { text-align:right; display:grid; gap:14px; min-width:170px; }
 .heroSide b { display:block; font-size:clamp(1.45rem, 3vw, 2.35rem); line-height:1; font-variant-numeric:tabular-nums; }
 .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
@@ -96,6 +97,20 @@ input[type="number"]:focus, select:focus { border-color:#111; box-shadow:0 0 0 3
 .flag.warn { background:#ffd45d; }
 .flag.bad { background:#ff776f; }
 .flag.neutral { background:#bdb7aa; }
+.flagBlock { border-radius:8px; padding:10px 12px; font-size:.82rem; font-weight:850; border:1px solid; margin-bottom:8px; }
+.flagBlock.good { background:#edfff6; border-color:#98e6be; color:#075b36; }
+.flagBlock.warn { background:#fff8dd; border-color:#ecd27b; color:#4f3d00; }
+.flagBlock.bad { background:#fff1ef; border-color:#efaaa3; color:#611610; }
+.marginOptions { display:grid; gap:10px; }
+.marginOption { display:grid; grid-template-columns:auto minmax(0,1fr); gap:11px; align-items:start; border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbf8f0; }
+.marginOption input[type="checkbox"] { width:17px; height:17px; margin-top:3px; accent-color:var(--yellow); }
+.marginOptionTop { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.marginOptionTop b { font-size:.9rem; text-transform:uppercase; letter-spacing:.05em; }
+.marginOptionTop span { color:var(--muted); font-weight:900; font-size:.78rem; }
+.marginOptionMetrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:9px; }
+.marginMetric { border-top:1px solid var(--line); padding-top:7px; min-width:0; }
+.marginMetric small { display:block; color:var(--muted); font-size:.65rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+.marginMetric strong { display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:.9rem; font-variant-numeric:tabular-nums; }
 .rows { padding:8px 15px 15px; }
 .row { display:grid; grid-template-columns:minmax(0,1fr) minmax(116px,auto); gap:12px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline; }
 .row:last-child { border-bottom:0; }
@@ -213,7 +228,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
         <div>
           <small>Project margin dollars</small>
           <div class="total" id="projectMargin">$0</div>
-          <div class="heroMeta"><span id="marginPct">0.0% margin</span><span id="projectCost">$0 cost</span></div>
+          <div class="heroMeta"><span id="marginPct">0.0% decoration</span><span id="blendedPct" class="muted">0.0% blended</span><span id="projectCost">$0 cost</span></div>
         </div>
         <div class="heroSide">
           <div><small>Total revenue</small><b id="totalRevenue">$0</b></div>
@@ -230,6 +245,16 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
           </div>
           <div class="pcQuoted" id="priceCheckQuoted"></div>
           <div class="note">Type the price a customer is pushing for. Shows the resulting per-unit and whole-order margin against this quote's cost basis. Per-unit figures use the average-per-garment quantity. Does not change the quote above.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Margin options</h2>
+        <div class="form">
+          <div class="marginOptions" id="marginOptions"></div>
+          <div class="controls">
+            <button class="pcBtn" id="addMarginOptions" type="button">Add checked to comparison</button>
+          </div>
         </div>
       </section>
 
@@ -280,6 +305,8 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
   const roundUpQuarter = (value) => roundUp(value, data.sp_curve.round_up_to_dtf || 0.25);
   const roundUpNickel = (value) => roundUp(value, 0.05);
   const transferKeys = Object.keys(data.transfers);
+  const STRETCH_UPLIFT = 0.10;
+  const STRETCH_CAP = 0.65;
   let lineSeq = 0;
   let lines = [];
   let gangApplied = false;
@@ -313,8 +340,8 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     return band ? band.discount : 0;
   }
 
-  function tierSellPrice(standardSell, baseCost, qty, tier) {
-    const stdMargin = standardMargin(qty);
+  function tierSellPrice(standardSell, baseCost, qty, tier, targetMargin) {
+    const stdMargin = targetMargin == null ? standardMargin(qty) : targetMargin;
     if (tier === 'Standard') return { sell: standardSell, discount:0, stdMargin, actualMargin:(standardSell - baseCost) / standardSell, floorPrice:null };
     const discounted = standardSell * (1 - tierDiscount(qty));
     const requiredMargin = Math.max(data.sp_curve.survival_floor || 0.33, stdMargin * (data.tiers.floor_ratio || 0.6));
@@ -463,14 +490,14 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     return { ok:true, transfer:t, qty:q, gangSize:fit.s, band:gangUnit.band, indivFilm, gangFilm:gangUnit.cost, savePerGarment:indivFilm - gangUnit.cost, count:placements.length };
   }
 
-  function gangedLineCalc(placements, elig, shippingTotal, tier) {
+  function gangedLineCalc(placements, elig, shippingTotal, tier, targetMargin) {
     const q = elig.qty;
     const totalLabor = placements.reduce((sum, p) => sum + data.application_labor.per_pc * (1 + (p.difficulty ? data.application_labor.difficulty_toggle.uplift : 0)), 0);
     const shippingPer = shippingTotal / q;
     const baseUnit = elig.gangFilm + totalLabor + shippingPer;
-    const stdMargin = standardMargin(q);
+    const stdMargin = targetMargin == null ? standardMargin(q) : targetMargin;
     const standardSell = roundUpQuarter(baseUnit / (1 - stdMargin));
-    const tiered = tierSellPrice(standardSell, baseUnit, q, tier);
+    const tiered = tierSellPrice(standardSell, baseUnit, q, tier, stdMargin);
     const revenue = tiered.sell * q, cost = baseUnit * q;
     return { line:{ transfer:elig.transfer, size:elig.gangSize, ganged:true, count:elig.count }, transfer:data.transfers[elig.transfer], qty:q, labor:totalLabor, transferCost:elig.gangFilm, band:elig.band, shippingShare:shippingTotal, shippingPer, baseUnit, standardSell, sell:tiered.sell, discount:tiered.discount, stdMargin:tiered.stdMargin, actualMargin:tiered.actualMargin, floorPrice:tiered.floorPrice, revenue, cost, margin:revenue - cost, ganged:true };
   }
@@ -487,7 +514,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     }
   }
 
-  function calculateLine(line, shippingTotal, totalLineQty, tier) {
+  function calculateLine(line, shippingTotal, totalLineQty, tier, targetMargin) {
     const transfer = data.transfers[line.transfer];
     const qty = Math.max(1, clampQty(line.qty));
     const labor = data.application_labor.per_pc * (1 + (line.difficulty ? data.application_labor.difficulty_toggle.uplift : 0));
@@ -495,9 +522,9 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     const shippingShare = totalLineQty > 0 ? shippingTotal * (qty / totalLineQty) : 0;
     const shippingPer = shippingShare / qty;
     const baseUnit = unitTransfer.cost + labor + shippingPer;
-    const stdMargin = standardMargin(qty);
+    const stdMargin = targetMargin == null ? standardMargin(qty) : targetMargin;
     const standardSell = roundUpQuarter(baseUnit / (1 - stdMargin));
-    const tiered = tierSellPrice(standardSell, baseUnit, qty, tier);
+    const tiered = tierSellPrice(standardSell, baseUnit, qty, tier, stdMargin);
     const revenue = tiered.sell * qty;
     const cost = baseUnit * qty;
     const margin = revenue - cost;
@@ -513,21 +540,15 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     $(id).innerHTML = rows.map((row) => '<div class="row ' + (row.strong ? 'strong' : '') + '"><div><div class="name">' + row.name + '</div>' + (row.meta ? '<div class="meta">' + row.meta + '</div>' : '') + '</div><div class="val">' + row.value + '</div></div>').join('');
   }
 
-  function calculate() {
-    const tier = $('tier').value || 'Standard';
-    const shippingTotal = Math.max(0, Number($('shippingTotal').value) || 0);
-    const blankCost = Math.max(0, Number($('blankCost').value) || 0);
-    const garmentQty = clampQty($('garmentQty').value);
-    const garmentSource = $('garmentSource').value;
+  function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
+  function marginTargetForQty(qty, uplift) { return Math.min(standardMargin(qty) + (uplift || 0), STRETCH_CAP); }
+  function computeQuote(tier, shippingTotal, blankCost, garmentQty, garmentSource, uplift) {
     const totalLineQty = lines.reduce((sum, line) => sum + Math.max(1, clampQty(line.qty)), 0);
     const gangElig = gangEligibility(lines);
     const canGang = !!(gangElig && gangElig.ok);
-    if (!canGang) gangApplied = false;
     const lineCalcs = (canGang && gangApplied)
-      ? [ gangedLineCalc(lines, gangElig, shippingTotal, tier) ]
-      : lines.map((line) => calculateLine(line, shippingTotal, totalLineQty, tier));
-    renderGangPanel(gangElig, canGang);
-
+      ? [ gangedLineCalc(lines, gangElig, shippingTotal, tier, marginTargetForQty(gangElig.qty, uplift)) ]
+      : lines.map((line) => calculateLine(line, shippingTotal, totalLineQty, tier, marginTargetForQty(Math.max(1, clampQty(line.qty)), uplift)));
     const recovery = garmentRecovery(blankCost, garmentSource);
     const garmentIncluded = blankCost > 0 && garmentQty > 0;
     const garmentUnitCost = garmentIncluded && garmentSource === 'pa' ? blankCost : 0;
@@ -535,18 +556,71 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     const garmentCost = garmentUnitCost * garmentQty;
     const garmentRevenue = garmentUnitRevenue * garmentQty;
     const garmentMargin = garmentRevenue - garmentCost;
-
     const transferRevenue = lineCalcs.reduce((sum, row) => sum + row.revenue, 0);
     const transferCost = lineCalcs.reduce((sum, row) => sum + row.cost, 0);
     const transferMargin = transferRevenue - transferCost;
     const totalRevenue = transferRevenue + garmentRevenue;
     const totalCost = transferCost + garmentCost;
     const projectMargin = totalRevenue - totalCost;
-    const marginPct = totalRevenue > 0 ? projectMargin / totalRevenue : 0;
+    const projectMarginPct = totalRevenue > 0 ? projectMargin / totalRevenue : 0;
+    const decorationMarginPct = transferRevenue > 0 ? transferMargin / transferRevenue : 0;
     const avgQty = garmentQty || Math.max(...lineCalcs.map((row) => row.qty), 0);
+    return {lineCalcs, recovery, garmentIncluded, garmentUnitCost, garmentUnitRevenue, garmentCost, garmentRevenue, garmentMargin, transferRevenue, transferCost, transferMargin, totalRevenue, totalCost, projectMargin, projectMarginPct, decorationMarginPct, avgQty};
+  }
+  function marginOptionHtml(option) {
+    const survival = data.sp_curve.survival_floor || 0.33;
+    const floorKind = option.quote.decorationMarginPct >= survival ? 'good' : 'bad';
+    const floorText = option.quote.decorationMarginPct >= survival ? 'clears floor' : 'below floor';
+    return '<label class="marginOption" for="marginOption_' + option.id + '">' +
+      '<input id="marginOption_' + option.id + '" data-margin-option="' + option.id + '" type="checkbox"' + (option.checked ? ' checked' : '') + '>' +
+      '<div><div class="marginOptionTop"><b>' + option.label + '</b><span>' + pct(option.sp) + ' target SP</span></div>' +
+      '<div class="note">' + option.note + '</div><div class="marginOptionMetrics">' +
+      '<div class="marginMetric"><small>Unit price</small><strong>' + money(option.quote.avgQty ? option.quote.totalRevenue / option.quote.avgQty : 0) + '</strong></div>' +
+      '<div class="marginMetric"><small>Order total</small><strong>' + money(option.quote.totalRevenue, 0) + '</strong></div>' +
+      '<div class="marginMetric"><small>Project margin</small><strong>' + money(option.quote.projectMargin, 0) + '</strong></div>' +
+      '<div class="marginMetric"><small>Decoration margin</small><strong>' + pct(option.quote.decorationMarginPct) + ' ' + flagPill(floorKind, floorText) + '</strong></div>' +
+      '</div></div></label>';
+  }
+  let LAST_MARGIN_OPTIONS = [];
+  function renderMarginOptions(options) {
+    const priorChecked = {};
+    (LAST_MARGIN_OPTIONS || []).forEach(option => {
+      const checkbox = $('marginOption_' + option.id);
+      if (checkbox) priorChecked[option.id] = checkbox.checked;
+    });
+    LAST_MARGIN_OPTIONS = options.map(option => Object.assign({}, option, {checked:Object.prototype.hasOwnProperty.call(priorChecked, option.id) ? priorChecked[option.id] : option.checked}));
+    $('marginOptions').innerHTML = LAST_MARGIN_OPTIONS.length ? LAST_MARGIN_OPTIONS.map(marginOptionHtml).join('') : '<div class="basketEmpty">No valid margin options. Correct the quote inputs before adding options.</div>';
+    $('addMarginOptions').disabled = !LAST_MARGIN_OPTIONS.length;
+  }
+  function addCheckedMarginOptions() {
+    if (!LAST_MARGIN_OPTIONS.length) return;
+    const note = (($('basketNote') || {}).value || '').trim();
+    const copyLabel = (($('garmentName').value || '').trim() || 'Custom apparel') + ', DTF';
+    LAST_MARGIN_OPTIONS.forEach(option => {
+      const checkbox = $('marginOption_' + option.id);
+      if (!checkbox || !checkbox.checked) return;
+      BASKET.push({label:option.label, copyLabel, qty:option.quote.avgQty, unitPrice:option.quote.avgQty ? option.quote.totalRevenue / option.quote.avgQty : 0, total:option.quote.totalRevenue, note});
+    });
+    renderBasket();
+  }
+
+  function calculate() {
+    const tier = $('tier').value || 'Standard';
+    const shippingTotal = Math.max(0, Number($('shippingTotal').value) || 0);
+    const blankCost = Math.max(0, Number($('blankCost').value) || 0);
+    const garmentQty = clampQty($('garmentQty').value);
+    const garmentSource = $('garmentSource').value;
+    const gangElig = gangEligibility(lines);
+    const canGang = !!(gangElig && gangElig.ok);
+    if (!canGang) gangApplied = false;
+    const standardQuote = computeQuote(tier, shippingTotal, blankCost, garmentQty, garmentSource, 0);
+    const stretchQuote = computeQuote(tier, shippingTotal, blankCost, garmentQty, garmentSource, STRETCH_UPLIFT);
+    const {lineCalcs, recovery, garmentIncluded, garmentUnitCost, garmentUnitRevenue, garmentCost, garmentRevenue, garmentMargin, transferRevenue, transferCost, transferMargin, totalRevenue, totalCost, projectMargin, projectMarginPct, decorationMarginPct, avgQty} = standardQuote;
+    renderGangPanel(gangElig, canGang);
 
     $('projectMargin').textContent = money(projectMargin, 0);
-    $('marginPct').textContent = pct(marginPct) + ' margin';
+    $('marginPct').textContent = pct(decorationMarginPct) + ' decoration';
+    $('blendedPct').textContent = pct(projectMarginPct) + ' blended';
     $('projectCost').textContent = money(totalCost, 0) + ' cost';
     $('totalRevenue').textContent = money(totalRevenue, 0);
     $('avgPerGarment').textContent = money(avgQty ? totalRevenue / avgQty : 0);
@@ -559,7 +633,11 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     $('recoveryLabel').textContent = money(recovery) + ' recovery each';
     $('transferCost').textContent = money(transferCost, 0);
     $('shippingLabel').textContent = money(shippingTotal, 0) + ' shipping split by qty';
-    const belowFloor = lineCalcs.some((row) => row.actualMargin < (data.sp_curve.survival_floor || 0.33) - .0001) || marginPct < (data.sp_curve.survival_floor || 0.33) - .0001;
+    renderMarginOptions([
+      {id:'standard', label:'Standard', sp:standardMargin(avgQty || 1), checked:true, note:"The desk's live quote.", quote:standardQuote},
+      {id:'stretch', label:'Stretch', sp:Math.min(standardMargin(avgQty || 1) + STRETCH_UPLIFT, STRETCH_CAP), checked:false, note:'Pre-approved higher point for low-competition work.', quote:stretchQuote}
+    ]);
+    const belowFloor = lineCalcs.some((row) => row.actualMargin < (data.sp_curve.survival_floor || 0.33) - .0001);
     $('floorStatus').textContent = belowFloor ? 'Check' : 'OK';
 
     $('lineBreakdown').innerHTML = lineCalcs.map((row, index) => {
@@ -601,7 +679,8 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     flagItems.push(['neutral','Empowered n/a here']);
     if (tier !== 'Standard') flagItems.push(['neutral', tier + ' tier']);
     if (garmentIncluded) flagItems.push(['good', garmentSource === 'pa' ? 'PA garment recovery' : 'customer garment recovery']);
-    if (!flagItems.length) flagItems.push(['good','standard pricing']);
+    flagItems.push([decorationMarginPct < (data.sp_curve.survival_floor || 0.33) ? 'bad' : 'good', decorationMarginPct < (data.sp_curve.survival_floor || 0.33) ? 'decoration below floor' : 'decoration clears floor']);
+    if (projectMarginPct < (data.sp_curve.survival_floor || 0.33)) flagItems.push(['warn','blended margin diluted']);
     $('flags').innerHTML = flagItems.map(([type, text]) => '<span class="flag ' + type + '">' + text + '</span>').join('');
     $('provenance').textContent = data._meta.title + ' · as of ' + data._meta.as_of + ' · ' + data._meta.grade;
     $('garmentHelper').textContent = blankCost <= 0 ? 'Blank 0 means garment is not included. Set blank cost to add garment revenue and recovery.' : (garmentSource === 'pa' ? 'PA-supplied recovery: ' + money(recovery) + ' per garment, rounded up to nickel.' : 'Customer-supplied recovery: $0.45 per garment.');
@@ -629,7 +708,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
   const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
   const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+  function basketCopyText(){ return BASKET.map(l => (l.copyLabel || l.label) + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
   function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span>'+(l.note?'<br><span class="note" style="white-space:pre-wrap">'+bxEsc(l.note)+'</span>':'')+'</div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
   function addToBasket(){ if(!CURRENT_QUOTE) return; const note=(($('basketNote')||{}).value||'').trim(); BASKET.push(Object.assign({}, CURRENT_QUOTE, {note})); renderBasket(); }
   function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
@@ -646,6 +725,81 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     lineSeq=0; lines=[newLine()]; renderLines();
     calculate();
   }
+  function runSelftest() {
+    const out = document.createElement('pre');
+    out.id = 'selftestOut';
+    document.body.appendChild(out);
+    const tests = [];
+    let totalAssertions = 0;
+    const fail = (name, expected, got) => ({name, expected, got});
+    const assertEqual = (name, actual, expected) => { totalAssertions += 1; if (actual !== expected) tests.push(fail(name, expected, actual)); };
+    const assertApprox = (name, actual, expected, tolerance) => { totalAssertions += 1; if (Math.abs(actual - expected) > tolerance) tests.push(fail(name, expected, actual)); };
+    const setQuote = (blank, tierName) => {
+      $('garmentQty').value = '24';
+      $('blankCost').value = String(blank);
+      $('garmentSource').value = 'pa';
+      $('tier').value = tierName || 'Standard';
+      $('shippingTotal').value = '15.00';
+      gangApplied = false;
+      lineSeq = 0;
+      lines = [newLine({qty:24, transfer:'WE', size:'LC'}), newLine({qty:24, transfer:'WE', size:'SM'})];
+      lines.forEach(line => { line.material = data.garment_to_transfer.map[0].material; line.difficulty = false; line.overridden = true; });
+      renderLines();
+      BASKET = [];
+      renderBasket();
+      calculate();
+      return computeQuote($('tier').value, 15, Number($('blankCost').value), 24, 'pa', 0);
+    };
+    const quote13 = setQuote(13.40);
+    assertApprox('regression project revenue', quote13.totalRevenue, 729.60, 0.01);
+    assertApprox('regression project cost', quote13.totalCost, 495.24, 0.01);
+    assertApprox('regression project margin', quote13.projectMargin, 234.36, 0.01);
+    assertApprox('regression decoration margin', quote13.decorationMarginPct, 0.5478, 0.001);
+    assertApprox('regression blended margin', quote13.projectMarginPct, 0.3212, 0.001);
+    const flags13 = $('flags').textContent;
+    const quote3 = setQuote(3.00);
+    const flags3 = $('flags').textContent;
+    assertApprox('blank independence decoration margin', quote3.decorationMarginPct, quote13.decorationMarginPct, 0.000001);
+    assertEqual('blank independence flag state', flags3.includes('decoration clears floor') && !flags3.includes('decoration below floor'), flags13.includes('decoration clears floor') && !flags13.includes('decoration below floor'));
+    setQuote(28.00);
+    assertEqual('expensive blank has no below-floor flag', $('floorStatus').textContent, 'OK');
+    assertEqual('expensive blank shows blended dilution', $('flags').textContent.includes('blended margin diluted'), true);
+    const badLine = setQuote(0, 'Partner');
+    badLine.lineCalcs[0].actualMargin = 0.20;
+    assertEqual('line floor predicate detects real under-floor line', badLine.lineCalcs.some(row => row.actualMargin < (data.sp_curve.survival_floor || 0.33) - .0001), true);
+    setQuote(13.40, 'Partner');
+    const partnerStandard = LAST_MARGIN_OPTIONS.find(option => option.id === 'standard');
+    const partnerStretch = LAST_MARGIN_OPTIONS.find(option => option.id === 'stretch');
+    const ladderHtml = $('marginOptions').innerHTML;
+    assertEqual('Partner Standard achieved below target', partnerStandard.quote.decorationMarginPct < partnerStandard.sp, true);
+    assertEqual('Partner Stretch achieved below target', partnerStretch.quote.decorationMarginPct < partnerStretch.sp, true);
+    assertEqual('Partner rendered achieved margin', ladderHtml.includes('<small>Decoration margin</small><strong>' + pct(partnerStandard.quote.decorationMarginPct)), true);
+    assertEqual('ladder stretch unit price higher', partnerStretch.quote.totalRevenue > partnerStandard.quote.totalRevenue, true);
+    assertEqual('ladder clears floor pills', (ladderHtml.match(/clears floor/g) || []).length, 2);
+    gangApplied = true;
+    calculate();
+    const gangedStandard = LAST_MARGIN_OPTIONS.find(option => option.id === 'standard');
+    const gangedStretch = LAST_MARGIN_OPTIONS.find(option => option.id === 'stretch');
+    assertEqual('ganged ladder uses collapsed film', gangedStandard.quote.lineCalcs[0].ganged, true);
+    assertEqual('ganged stretch price higher', gangedStretch.quote.totalRevenue > gangedStandard.quote.totalRevenue, true);
+    const heroBefore = [$('projectMargin').textContent, $('marginPct').textContent, $('totalRevenue').textContent, $('avgPerGarment').textContent].join('|');
+    $('marginOption_stretch').checked = true;
+    const heroAfter = [$('projectMargin').textContent, $('marginPct').textContent, $('totalRevenue').textContent, $('avgPerGarment').textContent].join('|');
+    assertEqual('hero tracks Standard', heroAfter, heroBefore);
+    BASKET = [];
+    $('marginOption_standard').checked = true;
+    $('marginOption_stretch').checked = true;
+    addCheckedMarginOptions();
+    assertEqual('basket count', BASKET.length, 2);
+    assertEqual('basket copy hides internal option names', basketCopyText().includes('Standard') || basketCopyText().includes('Stretch'), false);
+    assertEqual('no free-form field', document.querySelector('#customMarginPct, #customPct') == null, true);
+    if (tests.length) {
+      const first = tests[0];
+      out.textContent = 'SELFTEST: FAIL (' + tests.length + '/' + totalAssertions + ') — ' + first.name + ': expected ' + first.expected + ' got ' + first.got;
+    } else {
+      out.textContent = 'SELFTEST: PASS (' + totalAssertions + '/' + totalAssertions + ')';
+    }
+  }
   function bindEvents() {
     $('clearForm').addEventListener('click', clearForm);
     $('gangPanel').addEventListener('click', (event) => {
@@ -655,6 +809,7 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
     $('targetPrice').addEventListener('input', renderPriceCheck);
     $('garmentName').addEventListener('input', calculate);
     $('addToBasket').addEventListener('click', addToBasket);
+    $('addMarginOptions').addEventListener('click', addCheckedMarginOptions);
     $('copyBasket').addEventListener('click', copyBasket);
     $('clearBasket').addEventListener('click', clearBasket);
     $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
@@ -687,6 +842,14 @@ td .sub { font-variant-numeric:normal; color:var(--muted); font-size:.74rem; mar
   renderLines();
   bindEvents();
   calculate();
+  if (new URLSearchParams(location.search).get('selftest') === '1') {
+    try { runSelftest(); }
+    catch (e) {
+      let o = document.getElementById('selftestOut');
+      if (!o) { o = document.createElement('pre'); o.id = 'selftestOut'; document.body.appendChild(o); }
+      o.textContent = 'SELFTEST: ERROR - harness threw: ' + ((e && e.message) ? e.message : String(e));
+    }
+  }
 })();
 </script>
 </body>

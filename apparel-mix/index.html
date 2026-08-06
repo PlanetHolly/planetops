@@ -44,6 +44,7 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
 .total { font-size:clamp(2.45rem, 6vw, 5.8rem); line-height:.9; font-weight:950; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .heroMetric { text-align:right; min-width:138px; }
 .heroMetric b { display:block; font-size:clamp(1.25rem, 2.5vw, 2.2rem); line-height:1; font-variant-numeric:tabular-nums; }
+.heroMetric .muted { display:block; color:#c9c5bc; font-size:.82rem; font-weight:850; margin-top:6px; }
 .placement { border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.62); overflow:hidden; }
 .placementHead { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; padding:12px; background:var(--soft); border-bottom:1px solid var(--line); }
 .placementHead b { font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; }
@@ -92,6 +93,16 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
 .basketRow:last-child { border-bottom:0; }
 .basketRow .bx { border:0; background:none; cursor:pointer; color:var(--bad); font-weight:900; font-size:1rem; line-height:1; }
 .basketEmpty { color:var(--muted); font-size:.82rem; padding:6px 0; }
+.marginOptions { display:grid; gap:10px; }
+.marginOption { display:grid; grid-template-columns:auto minmax(0,1fr); gap:11px; align-items:start; border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfaf7; }
+.marginOption input[type="checkbox"] { width:17px; height:17px; margin-top:3px; accent-color:var(--yellow); }
+.marginOptionTop { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.marginOptionTop b { font-size:.9rem; text-transform:uppercase; letter-spacing:.05em; }
+.marginOptionTop span { color:var(--muted); font-weight:900; font-size:.78rem; }
+.marginOptionMetrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:9px; }
+.marginMetric { border-top:1px solid var(--line); padding-top:7px; min-width:0; }
+.marginMetric small { display:block; color:var(--muted); font-size:.65rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+.marginMetric strong { display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:.9rem; font-variant-numeric:tabular-nums; }
 @media (prefers-color-scheme:dark) {
   :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
   body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
@@ -166,7 +177,7 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
       <div id="flags"></div>
       <section class="hero">
         <div><small>Project margin</small><div class="total" id="projectMargin">$0</div></div>
-        <div class="heroMetric"><small>Margin %</small><b id="projectMarginPct">0.0%</b><span id="projectQty">0 pcs</span></div>
+        <div class="heroMetric"><small>Margin %</small><b id="projectMarginPct">0.0% decoration</b><span id="projectBlendedPct" class="muted">0.0% blended</span><span id="projectQty">0 pcs</span></div>
         <div class="heroMetric"><small>Per-unit price</small><b id="perUnit">$0.00</b><span id="orderTotal">$0 total</span></div>
       </section>
 
@@ -193,6 +204,15 @@ input[type="number"]:focus,input[type="text"]:focus,select:focus { border-color:
           </div>
           <div id="basketList"></div>
           <div class="note">Add each option (change the product or quantity, then Add again), then Copy a clean plain-text price comparison to paste into a customer email. No internal cost or margin is included.</div>
+        </div>
+      </section>
+      <section class="panel" id="marginOptionsPanel">
+        <h2>Margin options</h2>
+        <div class="form">
+          <div class="marginOptions" id="marginOptions"></div>
+          <div class="controls">
+            <button class="pcBtn" id="addMarginOptions" type="button">Add checked to comparison</button>
+          </div>
         </div>
       </section>
       <section class="panel">
@@ -418,6 +438,8 @@ const roundUpNickel = n => Math.ceil((n - 1e-9) / 0.05) * 0.05;
 const roundUpTo = (value, increment) => Math.ceil((Number(value) || 0) / increment) * increment;
 const clampInt = (v, min, max) => Math.max(min, Math.min(max, Math.floor(Number(v) || 0)));
 const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const STRETCH_UPLIFT = 0.10;
+const STRETCH_CAP = 0.65;
 let nextPlacementId = 1;
 function defaultPlacement(method, location) { return {id: nextPlacementId++, method, location, colors:2, stitches:8500, materialIndex:0, transfer:'', transferOverridden:false, size:'', difficulty:false}; }
 let placements = [defaultPlacement('Screen Print', 'Front')];
@@ -495,7 +517,8 @@ function applyTier(standardPrice, cost, qty, tier, roundTo, stdTargetSP, surviva
   const floorPrice = cost / (1 - requiredMargin);
   return {price:roundUpTo(Math.max(discounted, floorPrice), roundTo), discount};
 }
-function calcDtf(row, qty, shippingShare, tier) {
+function stretchTarget(target, uplift) { return Math.min(Number(target || 0) + (uplift || 0), STRETCH_CAP); }
+function calcDtf(row, qty, shippingShare, tier, uplift) {
   const norm = normalizedDtfRow(row);
   const costLookup = lookupDtfCost(norm.transfer, norm.size, qty);
   const baseLaborUnit = Number(DTF_DATA.application_labor.per_pc || 0);
@@ -505,12 +528,13 @@ function calcDtf(row, qty, shippingShare, tier) {
   const target = targetSpForQty(DTF_DATA, qty);
   const survivalSP = Number((DTF_DATA.sp_curve || {}).survival_floor || DTF_DATA.sp_formula.survival_SP || 0.33);
   const roundTo = Number(DTF_DATA.sp_formula.round_up_to || 0.25);
-  const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
+  const targetSp = stretchTarget(target.sp, uplift);
+  const targetPrice = roundUpTo(landedUnit / (1 - targetSp), roundTo);
   const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
   const standardPrice = Math.max(targetPrice, survivalPrice);
-  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, target.sp, survivalSP);
+  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, targetSp, survivalSP);
   const price = tiered.price;
-  return {method:'DTF', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, costLookup, transferKey:norm.transferKey, transfer:norm.transfer, size:norm.size, laborUnit, shippingShare, meta:norm.transferKey + ' ' + norm.transfer.name + ', size ' + norm.size + ', qty band ' + costLookup.band + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
+  return {method:'DTF', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target:{...target, sp:targetSp}, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, costLookup, transferKey:norm.transferKey, transfer:norm.transfer, size:norm.size, laborUnit, shippingShare, meta:norm.transferKey + ' ' + norm.transfer.name + ', size ' + norm.size + ', qty band ' + costLookup.band + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
 }
 function stitchBand(stitches) {
   if (stitches < 1) return {band:null, index:-1, label:'Enter stitch count', overGrid:false};
@@ -522,7 +546,7 @@ function stitchBand(stitches) {
   return {band:null, index:-1, label:'Over grid (>35k stitches) - custom quote', overGrid:true};
 }
 function embroideryQtyRow(qty) { const rows = EMBROIDERY_DATA._meta.qty_rows; let rowValue = rows[0]; rows.forEach(value => { if (qty >= value) rowValue = value; }); return rowValue; }
-function calcEmbroidery(row, qty, digitizingShare, tier) {
+function calcEmbroidery(row, qty, digitizingShare, tier, uplift) {
   const bandInfo = stitchBand(Number(row.stitches) || 0);
   if (bandInfo.overGrid || !bandInfo.band) return {method:'Embroidery', price:0, cost:0, margin:0, rate:null, available:false, reason:bandInfo.label, bandInfo};
   const rowValue = embroideryQtyRow(qty);
@@ -531,12 +555,13 @@ function calcEmbroidery(row, qty, digitizingShare, tier) {
   const target = targetSpForQty(EMBROIDERY_DATA, qty);
   const survivalSP = Number((EMBROIDERY_DATA.sp_curve || {}).survival_floor || EMBROIDERY_DATA.sp_formula.survival_SP || 0.33);
   const roundTo = Number(EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
-  const targetPrice = roundUpTo(landedUnit / (1 - target.sp), roundTo);
+  const targetSp = stretchTarget(target.sp, uplift);
+  const targetPrice = roundUpTo(landedUnit / (1 - targetSp), roundTo);
   const survivalPrice = roundUpTo(landedUnit / (1 - survivalSP), roundTo);
   const standardPrice = Math.max(targetPrice, survivalPrice);
-  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, target.sp, survivalSP);
+  const tiered = applyTier(standardPrice, landedUnit, qty, tier, roundTo, targetSp, survivalSP);
   const price = tiered.price;
-  return {method:'Embroidery', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, bearBaseUnit, rowValue, bandInfo, digitizingShare, meta:'Bear row ' + rowValue + ', band ' + bandInfo.band + ', ' + Number(row.stitches || 0).toLocaleString('en-US') + ' stitches' + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
+  return {method:'Embroidery', price, cost:landedUnit, margin:price - landedUnit, rate:price > 0 ? (price - landedUnit) / price : null, available:true, target:{...target, sp:targetSp}, survivalSP, targetPrice, survivalPrice, standardPrice, tier, tierDiscount:tiered.discount, bearBaseUnit, rowValue, bandInfo, digitizingShare, meta:'Bear row ' + rowValue + ', band ' + bandInfo.band + ', ' + Number(row.stitches || 0).toLocaleString('en-US') + ' stitches' + (tiered.discount ? ', ' + tier + ' -' + Math.round(tiered.discount*100) + '%' : '')};
 }
 function band(rate) { if (rate == null) return {class:'neutral', label:'n/a'}; if (rate > 0.70) return {class:'warn', label:'high'}; if (rate >= 0.445) return {class:'good', label:'target'}; if (rate >= 0.33) return {class:'warn', label:'survival'}; return {class:'bad', label:'below'}; }
 function marginInfo(price, cost) { if (price == null || cost == null || !isFinite(price) || !isFinite(cost) || price <= 0) return null; const margin = price - cost; return {margin, rate:margin / price}; }
@@ -576,6 +601,86 @@ function readTopState() {
   if ($('reusedDesign').checked) $('digitizingTotal').value = '0.00';
   return {qty, blank, source:$('source').value, tier:$('tier').value, ink:$('ink').value, shippingTotal:Math.max(0, Number($('shippingTotal').value) || 0), digitizingTotal:$('reusedDesign').checked ? 0 : Math.max(0, Number($('digitizingTotal').value) || 0), colorChangeCount, tapeOutCount};
 }
+function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
+function placementCalcFor(p, index, s, screenRole, dtfShippingShare, embroideryDigitizingShare, uplift) {
+  let result;
+  if (p.method === 'Screen Print') {
+    result = screenPrintLookup(s.tier, s.ink, screenRole, clampInt(p.colors, 1, 12), s.qty);
+    result.role = screenRole;
+  } else if (p.method === 'Embroidery') {
+    result = calcEmbroidery(p, s.qty, embroideryDigitizingShare, s.tier, uplift);
+  } else {
+    result = calcDtf(p, s.qty, dtfShippingShare, s.tier, uplift);
+  }
+  result.id = p.id; result.location = p.location || 'Placement ' + (index + 1); result.index = index + 1;
+  return result;
+}
+function aggregateQuote(s, calculated, adders, nonUnitRevenue, nonUnitCost) {
+  const rec = garmentRecovery(s.source, s.blank);
+  const goodsRevenue = s.blank + rec;
+  const goodsCost = s.blank;
+  const decorationRevenue = calculated.reduce((sum, r) => sum + (r.available ? r.price : 0), 0);
+  const decorationCost = calculated.reduce((sum, r) => sum + (r.available ? r.cost : 0), 0);
+  const serviceRevenue = adders.reduce((sum, a) => sum + (a.nonUnit ? 0 : a.amount), 0);
+  const serviceCost = adders.reduce((sum, a) => sum + (a.nonUnit ? 0 : a.cost), 0);
+  const perUnitRevenue = goodsRevenue + decorationRevenue + serviceRevenue;
+  const perUnitCost = goodsCost + decorationCost + serviceCost;
+  const orderTotal = perUnitRevenue * s.qty + nonUnitRevenue;
+  const totalCost = perUnitCost * s.qty + nonUnitCost;
+  const marginTotal = orderTotal - totalCost;
+  const blendedRate = orderTotal > 0 ? marginTotal / orderTotal : null;
+  const decorationTotalRevenue = decorationRevenue * s.qty;
+  const decorationTotalCost = decorationCost * s.qty;
+  const decorationMargin = decorationTotalRevenue - decorationTotalCost;
+  const decorationRate = decorationTotalRevenue > 0 ? decorationMargin / decorationTotalRevenue : null;
+  return {rec, perUnitRevenue, perUnitCost, nonUnitRevenue, nonUnitCost, orderTotal, totalCost, marginTotal, blendedRate, decorationRevenue, decorationCost, decorationMargin, decorationRate};
+}
+function movedMethods(calculated, stretchCalculated) {
+  const methods = [];
+  calculated.forEach((row, index) => {
+    const stretch = stretchCalculated[index];
+    if (!row || !stretch || row.method === 'Screen Print') return;
+    if (stretch.price !== row.price && !methods.includes(row.method)) methods.push(row.method);
+  });
+  return methods;
+}
+function marginOptionHtml(option) {
+  const floorKind = option.quote.decorationRate >= 0.33 ? 'good' : 'bad';
+  const floorText = option.quote.decorationRate >= 0.33 ? 'clears floor' : 'below floor';
+  return '<label class="marginOption" for="marginOption_' + option.id + '">' +
+    '<input id="marginOption_' + option.id + '" data-margin-option="' + option.id + '" type="checkbox"' + (option.checked ? ' checked' : '') + '>' +
+    '<div><div class="marginOptionTop"><b>' + option.label + '</b><span>' + pct(option.sp) + ' target SP</span></div>' +
+    '<div class="note">' + escapeHtml(option.note) + '</div><div class="marginOptionMetrics">' +
+    '<div class="marginMetric"><small>Unit price</small><strong>' + money(option.quote.perUnitRevenue) + '</strong></div>' +
+    '<div class="marginMetric"><small>Order total</small><strong>' + money0(option.quote.orderTotal) + '</strong></div>' +
+    '<div class="marginMetric"><small>Project margin</small><strong>' + money0(option.quote.marginTotal) + '</strong></div>' +
+    '<div class="marginMetric"><small>Decoration margin</small><strong>' + pct(option.quote.decorationRate) + ' ' + flagPill(floorKind, floorText) + '</strong></div>' +
+    '</div></div></label>';
+}
+let LAST_MARGIN_OPTIONS = [];
+let LAST_CALCS = {standard:[], stretch:[], moved:[]};
+function renderMarginOptions(options) {
+  const priorChecked = {};
+  (LAST_MARGIN_OPTIONS || []).forEach(option => {
+    const checkbox = $('marginOption_' + option.id);
+    if (checkbox) priorChecked[option.id] = checkbox.checked;
+  });
+  LAST_MARGIN_OPTIONS = options.map(option => Object.assign({}, option, {checked:Object.prototype.hasOwnProperty.call(priorChecked, option.id) ? priorChecked[option.id] : option.checked}));
+  $('marginOptionsPanel').style.display = LAST_MARGIN_OPTIONS.length ? '' : 'none';
+  $('marginOptions').innerHTML = LAST_MARGIN_OPTIONS.map(marginOptionHtml).join('');
+  $('addMarginOptions').disabled = !LAST_MARGIN_OPTIONS.length;
+}
+function addCheckedMarginOptions() {
+  if (!LAST_MARGIN_OPTIONS.length) return;
+  const note = (($('basketNote') || {}).value || '').trim();
+  const copyLabel = (($('garmentName').value || '').trim() || 'Custom apparel') + ' - mixed decoration';
+  LAST_MARGIN_OPTIONS.forEach(option => {
+    const checkbox = $('marginOption_' + option.id);
+    if (!checkbox || !checkbox.checked) return;
+    BASKET.push({label:option.label, copyLabel, qty:option.qty, unitPrice:option.quote.perUnitRevenue, total:option.quote.orderTotal, note});
+  });
+  renderBasket();
+}
 function calculate() {
   const s = readTopState();
   const warnings = [];
@@ -585,23 +690,22 @@ function calculate() {
   const dtfShippingShare = dtfRows.length ? s.shippingTotal / s.qty / dtfRows.length : 0;
   const embroideryDigitizingShare = embroideryRows.length ? s.digitizingTotal / s.qty / embroideryRows.length : 0;
   const calculated = [];
+  const screenRoles = {};
   let seenSp = false;
   placements.forEach((p, index) => {
-    let result;
+    let role = null;
     if (p.method === 'Screen Print') {
-      const role = seenSp ? 'P2' : 'P1';
+      role = seenSp ? 'P2' : 'P1';
       seenSp = true;
-      result = screenPrintLookup(s.tier, s.ink, role, clampInt(p.colors, 1, 12), s.qty);
-      result.role = role;
+      screenRoles[p.id] = role;
+    }
+    const result = placementCalcFor(p, index, s, role, dtfShippingShare, embroideryDigitizingShare, 0);
+    if (p.method === 'Screen Print') {
       if (!result.available) warnings.push(result.reason);
       if (s.qty < 12) warnings.push('Screen print quantity is below the first matrix row; calculator uses the 12-piece row.');
     } else if (p.method === 'Embroidery') {
-      result = calcEmbroidery(p, s.qty, embroideryDigitizingShare, s.tier);
       if (!result.available) warnings.push('Embroidery ' + (p.location || 'placement') + ': ' + result.reason);
-    } else {
-      result = calcDtf(p, s.qty, dtfShippingShare, s.tier);
     }
-    result.id = p.id; result.location = p.location || 'Placement ' + (index + 1); result.index = index + 1;
     calculated.push(result);
   });
   if (screenRows.length > 1 && calculated.filter(r => r.method === 'Screen Print' && r.role === 'P2').length !== screenRows.length - 1) warnings.push('Screen-print P2 guard failed: review placement order.');
@@ -656,20 +760,29 @@ function calculate() {
       }
     });
   }
-  const orderTotal = perUnitRevenue * s.qty + nonUnitRevenue;
-  const totalCost = perUnitCost * s.qty + nonUnitCost;
-  const marginTotal = orderTotal - totalCost;
-  const marginRate = orderTotal > 0 ? marginTotal / orderTotal : null;
+  const stretchCalculated = placements.map((p, index) => placementCalcFor(p, index, s, screenRoles[p.id] || null, dtfShippingShare, embroideryDigitizingShare, STRETCH_UPLIFT));
+  const standardQuote = aggregateQuote(s, calculated, adders, nonUnitRevenue, nonUnitCost);
+  const stretchQuote = aggregateQuote(s, stretchCalculated, adders, nonUnitRevenue, nonUnitCost);
+  const moved = movedMethods(calculated, stretchCalculated);
+  LAST_CALCS = {standard:calculated, stretch:stretchCalculated, moved};
+  const {orderTotal, totalCost, marginTotal, blendedRate, decorationRate} = standardQuote;
+  perUnitRevenue = standardQuote.perUnitRevenue;
+  perUnitCost = standardQuote.perUnitCost;
   $('projectMargin').textContent = money0(marginTotal);
-  $('projectMarginPct').textContent = pct(marginRate);
+  $('projectMarginPct').textContent = pct(decorationRate) + ' decoration';
+  $('projectBlendedPct').textContent = pct(blendedRate) + ' blended';
   $('perUnit').textContent = money(perUnitRevenue);
   $('orderTotal').textContent = money0(orderTotal) + ' total';
   $('projectQty').textContent = s.qty.toLocaleString('en-US') + ' pcs';
   const flagBlocks = [];
   const targetBand = targetSpForQty(DTF_DATA, s.qty);
-  flagBlocks.push('<div class="flagBlock good">SLIDING MARGIN NOTE - DTF and embroidery use target SP ' + pct(targetBand.sp) + ' for qty band ' + targetBand.label + ' with the 33% survival floor. Screen print margins are already baked into the matrix.</div>');
+  flagBlocks.push('<div class="flagBlock good">SLIDING MARGIN NOTE - DTF and embroidery use target SP ' + pct(targetBand.sp) + ' for qty band ' + targetBand.label + ' with the 33% survival floor. Stretch can move only those curve-priced placements; screen print margins are already baked into the matrix.</div>');
   warnings.forEach(w => flagBlocks.push('<div class="flagBlock ' + (/warning|below|estimated|placeholder|minimum|guard|blocked|custom|failed/i.test(w) ? 'warn' : 'good') + '">' + escapeHtml(w) + '</div>'));
   $('flags').innerHTML = flagBlocks.join('');
+  renderMarginOptions(moved.length ? [
+    {id:'standard', label:'Standard', sp:targetBand.sp, checked:true, note:"The desk's live quote.", quote:standardQuote, qty:s.qty},
+    {id:'stretch', label:'Stretch', sp:Math.min(targetBand.sp + STRETCH_UPLIFT, STRETCH_CAP), checked:false, note:'Stretch applied to ' + moved.map(m => m.toLowerCase()).join(' and ') + ' placements; screen print held at matrix price.', quote:stretchQuote, qty:s.qty}
+  ] : []);
   $('placementBreakdown').innerHTML = calculated.map(r => {
     const meta = r.available ? r.meta : r.reason;
     return rowHtml('#' + r.index + ' ' + escapeHtml(r.location) + ' - ' + r.method + (r.role ? ' ' + r.role : ''), r.available ? money(r.price) : 'No quote', escapeHtml(meta || ''), false, r.available ? marginInfo(r.price, r.cost) : null);
@@ -734,12 +847,92 @@ let BASKET = (()=>{ try{ const t=sessionStorage.getItem('pa_basket_handoff'); if
 const bxEsc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bkM0 = v => '$' + (v<0?'-':'') + Math.round(Math.abs(v)).toLocaleString('en-US');
 const bkM2 = v => '$' + (v<0?'-':'') + Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-function basketCopyText(){ return BASKET.map(l => l.label + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
+function basketCopyText(){ return BASKET.map(l => (l.copyLabel || l.label) + ' - ' + l.qty.toLocaleString('en-US') + ' pieces' + (l.note ? '\n' + l.note : '') + '\n' + bkM2(l.unitPrice) + ' each  (' + bkM0(l.total) + ' total)').join('\n\n'); }
 function renderBasket(){ const el=$('basketList'); if(!el)return; if(!BASKET.length){ el.innerHTML='<div class="basketEmpty">No options added yet. Build a quote above, then click Add current option.</div>'; return; } el.innerHTML=BASKET.map((l,i)=>'<div class="basketRow"><div><b>'+bxEsc(l.label)+'</b><br><span class="note">'+l.qty.toLocaleString('en-US')+' pcs  \u00b7  '+bkM2(l.unitPrice)+' ea  \u00b7  '+bkM0(l.total)+' total</span>'+(l.note?'<br><span class="note" style="white-space:pre-wrap">'+bxEsc(l.note)+'</span>':'')+'</div><button class="bx" data-i="'+i+'" title="Remove">\u2715</button></div>').join(''); }
 function addToBasket(){ if(!CURRENT_QUOTE) return; const note=(($('basketNote')||{}).value||'').trim(); BASKET.push(Object.assign({}, CURRENT_QUOTE, {note})); renderBasket(); }
 function copyBasket(){ if(!BASKET.length) return; const btn=$('copyBasket'); navigator.clipboard.writeText(basketCopyText()).then(()=>{ const o=btn.textContent; btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=o; },1400); },()=>{ btn.textContent='Copy failed'; }); }
 function clearBasket(){ BASKET=[]; renderBasket(); }
 function clearForm(){ try{ sessionStorage.setItem('pa_basket_handoff', JSON.stringify(BASKET)); }catch(e){} location.reload(); }
+function runSelftest() {
+  const out = document.createElement('pre');
+  out.id = 'selftestOut';
+  document.body.appendChild(out);
+  const tests = [];
+  let totalAssertions = 0;
+  const fail = (name, expected, got) => ({name, expected, got});
+  const assertEqual = (name, actual, expected) => { totalAssertions += 1; if (actual !== expected) tests.push(fail(name, expected, actual)); };
+  const assertApprox = (name, actual, expected, tolerance) => { totalAssertions += 1; if (Math.abs(actual - expected) > tolerance) tests.push(fail(name, expected, actual)); };
+  const setBase = (blank, tierName, mode) => {
+    $('blankCost').value = String(blank);
+    $('qty').value = '100';
+    $('source').value = 'PA-supplied';
+    $('tier').value = tierName || 'Standard';
+    $('ink').value = 'Plastisol';
+    $('shippingTotal').value = '15.00';
+    $('digitizingTotal').value = '25.00';
+    $('reusedDesign').checked = false;
+    $('colorChangeCount').value = '0';
+    $('tapeOutCount').value = '0';
+    IMPRINT_FEES.forEach(f => { const el = $('fee_' + f.id); if (el) el.checked = false; });
+    SERVICES.forEach(s => { const el = $('svc_' + s.id); if (el) el.checked = false; });
+    nextPlacementId = 1;
+    if (mode === 'screen') {
+      placements = [defaultPlacement('Screen Print', 'Front')];
+      placements[0].colors = 1;
+    } else if (mode === 'curve') {
+      placements = [defaultPlacement('Embroidery', 'Sleeve'), defaultPlacement('DTF', 'Back')];
+      placements[0].stitches = 8500;
+      placements[1].transfer = 'WE';
+      placements[1].size = 'LC';
+    } else {
+      placements = [defaultPlacement('Screen Print', 'Front'), defaultPlacement('Embroidery', 'Sleeve'), defaultPlacement('DTF', 'Back')];
+      placements[0].colors = 1;
+      placements[1].stitches = 8500;
+      placements[2].transfer = 'WE';
+      placements[2].size = 'LC';
+    }
+    renderPlacements();
+    BASKET = [];
+    renderBasket();
+    calculate();
+    return {hero:$('projectMargin').textContent + '|' + $('projectMarginPct').textContent + '|' + $('projectBlendedPct').textContent + '|' + $('perUnit').textContent, ladder:LAST_MARGIN_OPTIONS.slice(), html:$('marginOptions').innerHTML};
+  };
+  const low = setBase(4.50, 'Standard');
+  assertEqual('regression mixed ladder count', low.ladder.length, 2);
+  assertEqual('regression hero decoration label', $('projectMarginPct').textContent.includes('decoration'), true);
+  const high = setBase(40.00, 'Standard');
+  assertApprox('blank independence decoration margin', high.ladder[0].quote.decorationRate, low.ladder[0].quote.decorationRate, 0.000001);
+  assertEqual('blank independence ladder state', high.html.includes('clears floor'), low.html.includes('clears floor'));
+  const standard = high.ladder.find(option => option.id === 'standard');
+  const stretch = high.ladder.find(option => option.id === 'stretch');
+  const standardScreen = LAST_CALCS.standard.find(r => r.method === 'Screen Print');
+  const stretchScreen = LAST_CALCS.stretch.find(r => r.method === 'Screen Print');
+  const standardEmbroidery = LAST_CALCS.standard.find(r => r.method === 'Embroidery');
+  const stretchEmbroidery = LAST_CALCS.stretch.find(r => r.method === 'Embroidery');
+  const standardDtf = LAST_CALCS.standard.find(r => r.method === 'DTF');
+  const stretchDtf = LAST_CALCS.stretch.find(r => r.method === 'DTF');
+  assertEqual('screen print stretch byte-identical price', JSON.stringify({price:standardScreen.price,cost:standardScreen.cost}), JSON.stringify({price:stretchScreen.price,cost:stretchScreen.cost}));
+  assertEqual('embroidery stretch price higher', stretchEmbroidery.price > standardEmbroidery.price, true);
+  assertEqual('DTF stretch price higher', stretchDtf.price > standardDtf.price, true);
+  assertEqual('moved methods excludes screen print', LAST_CALCS.moved.includes('Embroidery') && LAST_CALCS.moved.includes('DTF') && !LAST_CALCS.moved.includes('Screen Print'), true);
+  assertEqual('stretch changes curve placements', stretch.quote.orderTotal > standard.quote.orderTotal, true);
+  assertEqual('stretch note derives moved methods', $('marginOptions').textContent.includes('embroidery and dtf placements; screen print held at matrix price'), true);
+  setBase(40.00, 'Partner', 'curve');
+  const partnerStandard = LAST_MARGIN_OPTIONS.find(option => option.id === 'standard');
+  const partnerStretch = LAST_MARGIN_OPTIONS.find(option => option.id === 'stretch');
+  assertEqual('Partner Standard achieved below target', partnerStandard.quote.decorationRate < partnerStandard.sp, true);
+  assertEqual('Partner Stretch achieved below target', partnerStretch.quote.decorationRate < partnerStretch.sp, true);
+  setBase(40.00, 'Standard', 'screen');
+  assertEqual('screen-print-only hides ladder', LAST_MARGIN_OPTIONS.length, 0);
+  assertEqual('screen-print-only panel hidden', $('marginOptionsPanel').style.display, 'none');
+  assertEqual('no free-form field', document.querySelector('#customMarginPct, #customPct') == null, true);
+  if (tests.length) {
+    const first = tests[0];
+    out.textContent = 'SELFTEST: FAIL (' + tests.length + '/' + totalAssertions + ') — ' + first.name + ': expected ' + first.expected + ' got ' + first.got;
+  } else {
+    out.textContent = 'SELFTEST: PASS (' + totalAssertions + '/' + totalAssertions + ')';
+  }
+}
 function bind() {
   setupStaticControls();
   renderPlacements();
@@ -758,12 +951,21 @@ function bind() {
   document.querySelectorAll('#quoteForm input,#quoteForm select').forEach(el => { el.addEventListener('input', calculate); el.addEventListener('change', calculate); });
   $('targetPrice').addEventListener('input', renderPriceCheck);
   $('addToBasket').addEventListener('click', addToBasket);
+  $('addMarginOptions').addEventListener('click', addCheckedMarginOptions);
   $('clearForm').addEventListener('click', clearForm);
   $('copyBasket').addEventListener('click', copyBasket);
   $('clearBasket').addEventListener('click', clearBasket);
   $('basketList').addEventListener('click', e => { const b=e.target.closest('.bx'); if(!b) return; BASKET.splice(Number(b.dataset.i), 1); renderBasket(); });
   renderBasket();
   calculate();
+  if (new URLSearchParams(location.search).get('selftest') === '1') {
+    try { runSelftest(); }
+    catch (e) {
+      let o = document.getElementById('selftestOut');
+      if (!o) { o = document.createElement('pre'); o.id = 'selftestOut'; document.body.appendChild(o); }
+      o.textContent = 'SELFTEST: ERROR - harness threw: ' + ((e && e.message) ? e.message : String(e));
+    }
+  }
 }
 bind();
 </script>
