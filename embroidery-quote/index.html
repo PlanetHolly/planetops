@@ -108,6 +108,15 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
 .marginMetric strong { display:flex; flex-wrap:wrap; align-items:center; gap:5px; font-size:.9rem; font-variant-numeric:tabular-nums; }
 .marginMetric strong .flag { white-space:nowrap; }
 .provenance { color:var(--muted); font-size:.75rem; margin-top:12px; }
+.inlineMeta { color:var(--muted); font-size:.78rem; font-weight:850; }
+.volumeTable { width:100%; border-collapse:collapse; font-size:.82rem; }
+.volumeTable th,.volumeTable td { border-bottom:1px solid var(--line); padding:9px 8px; text-align:right; font-variant-numeric:tabular-nums; }
+.volumeTable th:first-child,.volumeTable td:first-child { text-align:left; }
+.volumeTable th { color:var(--muted); font-size:.66rem; text-transform:uppercase; letter-spacing:.07em; }
+.volumeTable tr:last-child td { border-bottom:0; }
+.volumeTable .status { font-weight:950; text-transform:uppercase; }
+.volumeTable .status.good { color:var(--good); }
+.volumeTable .status.warn { color:var(--warn); }
 @media (prefers-color-scheme:dark) {
   :root { --paper:#11100e; --card:#1d1b18; --ink:#f5f0e6; --muted:#b5aa95; --line:#39352d; --soft:#25221d; --shadow:0 18px 60px rgba(0,0,0,.34); }
   body { background:linear-gradient(135deg,#11100e 0%,#191713 55%,#242017 100%); }
@@ -172,6 +181,16 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
           <div class="field"><label for="garmentSource">Garment source</label><select id="garmentSource"><option value="PA-supplied">PA-supplied</option><option value="customer-supplied">Customer-supplied</option></select></div>
           <div class="field"><label for="garmentQty">Garment quantity</label><input id="garmentQty" type="number" min="1" step="1" value="48"></div>
         </div>
+        <div class="field">
+          <label for="garmentMarginLevel">Garment margin</label>
+          <select id="garmentMarginLevel">
+            <option value="none">Standard - cost recovery only - 0%</option>
+            <option value="plus">Above standard - 5%</option>
+            <option value="premium">Premium - 10-15% by volume</option>
+          </select>
+          <div class="inlineMeta" id="garmentMarginOut">Recovery $0.00 / garment. Margin $0.00 / garment.</div>
+          <div class="helper">What PA earns on the blank, on top of handling and spoilage recovery. Standard is cost-neutral by design; Premium scales down as the order grows.</div>
+        </div>
         <div class="helper" id="garmentNote">Blank cost 0 = garment not included.</div>
 
         <div class="subhead">
@@ -200,6 +219,20 @@ input[type="number"]:focus,select:focus { border-color:var(--ink); box-shadow:0 
         <div class="perunit">
           <div class="revenueBlock"><small>Project revenue</small><b id="orderTotal">$0</b></div>
           <small>Per decorated unit</small><b id="perUnit">$0.00</b><span id="qtyLabel">0 pcs</span>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Garment pressure</h2>
+        <div class="form">
+          <div id="customerSuppliedLine" class="helper">Enter a blank cost to compare customer-supplied goods.</div>
+          <div class="note" id="overheadProvenance">Overhead share uses the 2026 Jan-Jun break-even rate.</div>
+        </div>
+      </section>
+      <section class="panel" id="volumePanel">
+        <h2>Volume ladder</h2>
+        <div class="form">
+          <div class="note">As volume rises, the rate can fall when the blank passes through flat while the embroidery curve steps down.</div>
+          <div id="volumeLadder"></div>
         </div>
       </section>
       <section class="panel">
@@ -355,6 +388,14 @@ const STRETCH_UPLIFT = 0.10;
 const STRETCH_CAP = 0.65;
 const ROUND_UP_TO = Number((EMBROIDERY_DATA.sp_curve || {}).round_up_to_embroidery || EMBROIDERY_DATA.sp_formula.round_up_to || 0.05);
 const MAX_PLACEMENTS = 3;
+const OVERHEAD_RATE = 0.33;
+const GARMENT_HEAVY_COST_SHARE = 0.60;
+const GARMENT_MARGIN_PLUS = 0.05;
+const GARMENT_PREMIUM_BANDS = [
+  {max:47, pct:0.15},
+  {max:143, pct:0.12},
+  {max:null, pct:0.10}
+];
 const $ = id => document.getElementById(id);
 const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 const money0 = n => '$' + Math.round(Number(n || 0)).toLocaleString('en-US');
@@ -363,6 +404,7 @@ const plural = (n, one, many) => n === 1 ? one : many;
 const readQty = () => Math.max(1, Math.floor(Number($('qty').value) || 1));
 const readGarmentQty = () => Math.max(1, Math.floor(Number($('garmentQty').value) || readQty()));
 const readBlankCost = () => Math.max(0, Number($('blankCost').value) || 0);
+const readGarmentMarginLevel = () => (($('garmentMarginLevel') || {}).value || 'none');
 function roundUpTo(value, increment) { return Math.ceil(((Number(value) || 0) - 1e-9) / increment) * increment; }
 function roundUpNickel(value) { return roundUpTo(value, 0.05); }
 function row(name, val, meta, strong) { return '<div class="row' + (strong ? ' strong' : '') + '"><div><div class="name">' + name + '</div>' + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div><div class="val">' + val + '</div></div>'; }
@@ -371,6 +413,38 @@ function flagBlock(kind, text) { return '<div class="flagBlock ' + kind + '">' +
 function flagPill(kind, text) { return '<span class="flag ' + kind + '">' + text + '</span>'; }
 function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function embroideryGuidance() { return String(EMBROIDERY_DATA.embroidery_note || '').replace('Quote at target 44.5%;', 'Quote at the current sliding target;'); }
+function garmentRecovery(blank) {
+  const value = Number(blank) || 0;
+  return roundUpNickel(0.45 + (0.04 * value));
+}
+function premiumGarmentMarginPct(qty) {
+  const match = GARMENT_PREMIUM_BANDS.find(band => band.max == null || qty <= band.max) || GARMENT_PREMIUM_BANDS[GARMENT_PREMIUM_BANDS.length - 1];
+  return Number((match || {}).pct || 0);
+}
+function garmentMarginPctForLevel(level, qty) {
+  if (level === 'plus') return GARMENT_MARGIN_PLUS;
+  if (level === 'premium') return premiumGarmentMarginPct(qty);
+  return 0;
+}
+function garmentMarginLabel(level, qty) {
+  const rate = garmentMarginPctForLevel(level, qty);
+  if (level === 'plus') return 'Plus, ' + pct(rate * 100);
+  if (level === 'premium') return 'Premium, ' + pct(rate * 100) + ' at qty ' + qty.toLocaleString('en-US');
+  return 'None, cost recovery only';
+}
+function garmentMarginAmount(blank, source, qty, level) {
+  if (source !== 'PA-supplied') return 0;
+  return roundUpNickel(garmentMarginPctForLevel(level, qty) * (Number(blank) || 0));
+}
+function overheadSignal(quote) {
+  const overheadShare = quote.projectMargin - (quote.projectRevenue * OVERHEAD_RATE);
+  return {
+    amount: overheadShare,
+    clears: overheadShare >= 0,
+    kind: overheadShare >= 0 ? 'good' : 'warn',
+    label: overheadShare >= 0 ? 'ORDER CARRIES ITS OVERHEAD SHARE - ' + money(overheadShare) + ' clear' : 'ORDER IS UNDER ITS OVERHEAD SHARE BY ' + money(Math.abs(overheadShare))
+  };
+}
 function targetSpForQty(qty) {
   const bands = ((EMBROIDERY_DATA.sp_curve || {}).bands || []).map((band, index, all) => {
     const previousMax = index === 0 ? 0 : Number(all[index - 1].max || 0);
@@ -454,19 +528,24 @@ function placementPrice(costUnit, targetSP, tier, qty) {
   const sell = Math.max(discountedSell, marginFloorSell, survivalSell);
   return {sell, standardSell, standardRaw, survivalSell, discountedSell, discount, floorSell:marginFloorSell, standardMargin};
 }
-function garmentMath() {
-  const blank = readBlankCost();
-  const qty = readGarmentQty();
-  const source = $('garmentSource').value;
+function garmentMath(options) {
+  const opts = options || {};
+  const blank = opts.blank == null ? readBlankCost() : Math.max(0, Number(opts.blank) || 0);
+  const qty = opts.qty == null ? readGarmentQty() : Math.max(1, Math.floor(Number(opts.qty) || 1));
+  const source = opts.source || $('garmentSource').value;
+  const marginLevel = opts.marginLevel || readGarmentMarginLevel();
+  const marginPct = garmentMarginPctForLevel(marginLevel, qty);
   if (blank <= 0) {
-    return {included:false, source, qty, blank, recovery:0, cost:0, revenue:0, margin:0, unitRevenue:0, unitCost:0};
+    return {included:false, source, qty, blank, marginLevel, marginPct, recovery:0, garmentMargin:0, cost:0, revenue:0, margin:0, unitRevenue:0, unitCost:0, marginRate:0};
   }
-  const recovery = source === 'PA-supplied' ? roundUpNickel(0.45 + (0.04 * blank)) : 0.45;
+  const recovery = source === 'PA-supplied' ? garmentRecovery(blank) : 0.45;
+  const garmentMargin = garmentMarginAmount(blank, source, qty, marginLevel);
   const unitCost = source === 'PA-supplied' ? blank : 0;
-  const unitRevenue = unitCost + recovery;
+  const unitRevenue = unitCost + recovery + garmentMargin;
   const cost = unitCost * qty;
   const revenue = unitRevenue * qty;
-  return {included:true, source, qty, blank, recovery, cost, revenue, margin:revenue - cost, unitRevenue, unitCost};
+  const margin = revenue - cost;
+  return {included:true, source, qty, blank, marginLevel, marginPct, recovery, garmentMargin, cost, revenue, margin, unitRevenue, unitCost, marginRate:revenue > 0 ? margin / revenue : 0};
 }
 function specialtyMath(qty, placementCount) {
   const items = EMBROIDERY_DATA.specialty_items.items;
@@ -488,13 +567,19 @@ function specialtyMath(qty, placementCount) {
     return {id:item.id, label, price:Number(item.price || 0), revenue:units * Number(item.price || 0), units, note:item.note || '', basis:item.basis};
   }).filter(item => item.revenue > 0);
 }
-function computeQuote(targetSP) {
-  const qty = readQty();
+function computeQuote(targetSP, options) {
+  const opts = options || {};
+  const qty = opts.qty == null ? readQty() : Math.max(1, Math.floor(Number(opts.qty) || 1));
   const rowValue = qtyRow(qty);
-  const tier = $('tier').value || 'Standard';
+  const tier = opts.tier || $('tier').value || 'Standard';
   const placements = activePlacements();
   const placementCount = placements.length;
-  const garment = garmentMath();
+  const garment = garmentMath({
+    blank: opts.blank,
+    qty: opts.garmentQty == null ? (opts.qty == null ? undefined : qty) : opts.garmentQty,
+    source: opts.garmentSource,
+    marginLevel: opts.marginLevel
+  });
   const specialty = specialtyMath(qty, placementCount);
   const placementLines = placements.map(placement => {
     const costRow = EMBROIDERY_DATA.bear_cost[String(rowValue)] || [];
@@ -543,6 +628,11 @@ function setNoQuote(message, qty, placementCount) {
   $('placementBreakdown').innerHTML = row('Placement pricing', 'No quote', 'Correct stitch counts before quoting.', true);
   $('spPanel').innerHTML = '<div class="spcard wide"><div class="top"><h3>Custom quote required</h3>' + flagPill('bad', 'check') + '</div><div class="rate">No price</div><div class="spmeta">' + escapeHtml(message) + '</div></div>';
   $('priceDecision').innerHTML = row('Selected customer price', 'No quote', message, true);
+  if ($('garmentMarginOut')) $('garmentMarginOut').textContent = 'Recovery $0.00 / garment. Margin $0.00 / garment.';
+  if ($('customerSuppliedLine')) $('customerSuppliedLine').textContent = 'Correct the quote inputs to compare customer-supplied goods.';
+  if ($('volumePanel')) $('volumePanel').style.display = 'none';
+  if ($('volumeLadder')) $('volumeLadder').innerHTML = '';
+  LAST_VOLUME_LADDER = [];
   renderMarginOptions([]);
 }
 function marginOptionHtml(option) {
@@ -563,6 +653,7 @@ function marginOptionHtml(option) {
   '</label>';
 }
 let LAST_MARGIN_OPTIONS = [];
+let LAST_VOLUME_LADDER = [];
 function renderMarginOptions(options) {
   const priorChecked = {};
   (LAST_MARGIN_OPTIONS || []).forEach(option => {
@@ -591,6 +682,56 @@ function addCheckedMarginOptions() {
   });
   renderBasket();
 }
+function renderCustomerSuppliedComparison(currentQuote, targetSP) {
+  const el = $('customerSuppliedLine');
+  if (!el) return null;
+  const comparison = computeQuote(targetSP, {
+    qty: currentQuote.qty,
+    garmentQty: currentQuote.qty,
+    garmentSource: 'customer-supplied',
+    marginLevel: currentQuote.garment.marginLevel
+  });
+  if (!currentQuote.garment.included) {
+    el.textContent = 'Enter a blank cost to compare customer-supplied goods.';
+    return comparison;
+  }
+  el.textContent = 'Customer-supplied comparison: ' + money(comparison.perDecoratedUnitRevenue) + '/unit, ' + money(comparison.projectMargin) + ' project margin, ' + pct(comparison.projectMarginPct * 100) + ' blended.';
+  return comparison;
+}
+function renderVolumeLadder(currentQuote) {
+  const panel = $('volumePanel');
+  const el = $('volumeLadder');
+  if (!panel || !el) return [];
+  const rows = (EMBROIDERY_DATA._meta.qty_rows || []).filter(value => value > currentQuote.qty);
+  if (!rows.length) {
+    panel.style.display = 'none';
+    el.innerHTML = '';
+    return [];
+  }
+  panel.style.display = '';
+  const ladder = rows.map(rowQty => {
+    const target = targetSpForQty(rowQty);
+    const quote = computeQuote(target.sp, {
+      qty: rowQty,
+      garmentQty: rowQty,
+      tier: currentQuote.tier,
+      garmentSource: currentQuote.garment.source,
+      marginLevel: currentQuote.garment.marginLevel
+    });
+    return {qty: rowQty, target, quote, overhead: overheadSignal(quote)};
+  });
+  el.innerHTML = '<table class="volumeTable"><thead><tr><th>Qty</th><th>Unit</th><th>Order</th><th>Margin</th><th>Blended</th><th>Overhead</th></tr></thead><tbody>' +
+    ladder.map(item => '<tr data-volume-qty="' + item.qty + '">' +
+      '<td>' + item.qty.toLocaleString('en-US') + '</td>' +
+      '<td data-volume-unit>' + money(item.quote.perDecoratedUnitRevenue) + '</td>' +
+      '<td>' + money0(item.quote.projectRevenue) + '</td>' +
+      '<td>' + money0(item.quote.projectMargin) + '</td>' +
+      '<td data-volume-blended>' + pct(item.quote.projectMarginPct * 100) + '</td>' +
+      '<td class="status ' + item.overhead.kind + '" data-volume-overhead>' + (item.overhead.clears ? 'carries ' + money(item.overhead.amount) : 'under ' + money(Math.abs(item.overhead.amount))) + '</td>' +
+    '</tr>').join('') +
+    '</tbody></table>';
+  return ladder;
+}
 function calculate() {
   const qty = readQty();
   const rowValue = qtyRow(qty);
@@ -603,9 +744,13 @@ function calculate() {
   const placementCount = placements.length;
   const garment = garmentMath();
   const specialty = specialtyMath(qty, placementCount);
+  const marginOut = $('garmentMarginOut');
+  if (marginOut) {
+    marginOut.textContent = 'Recovery ' + money(garment.recovery) + ' / garment. Margin ' + money(garment.garmentMargin) + ' / garment. ' + garmentMarginLabel(garment.marginLevel, garment.qty) + '.';
+  }
 
   $('garmentNote').textContent = garment.included
-    ? garment.source + ' garment recovery: ' + money(garment.recovery) + ' per garment. Blank ' + money(garment.blank) + ', qty ' + garment.qty.toLocaleString('en-US') + '.'
+    ? garment.source + ' garment: blank ' + money(garment.blank) + ', recovery ' + money(garment.recovery) + '/unit, margin ' + money(garment.garmentMargin) + '/unit, qty ' + garment.qty.toLocaleString('en-US') + '.'
     : 'Blank cost 0 = garment not included.';
   $('placementNote').textContent = 'Qty ' + qty.toLocaleString('en-US') + ' uses Bear row ' + rowValue + '. Each placement keeps its own stitch band.';
   $('routingNote').textContent = routing === 'Empowered' ? 'Backup route selected. ' + EMBROIDERY_DATA.vendor_routing.empowered_warning : EMBROIDERY_DATA.vendor_routing.bear_note;
@@ -644,6 +789,8 @@ function calculate() {
 
   $('costBreakdown').innerHTML = [
     row('Garment revenue', money0(garment.revenue), garment.included ? garment.source + ': ' + money(garment.unitRevenue) + ' sell/unit, ' + money(garment.unitCost) + ' cost/unit, ' + garment.qty.toLocaleString('en-US') + ' garments' : 'Not included because blank cost is 0'),
+    row('Garment cost recovery', garment.included ? money(garment.recovery) + ' / unit' : '$0.00 / unit', garment.included ? (garment.source === 'PA-supplied' ? 'Handling $0.45 + 4% float & spoilage' : 'Customer-supplied handling') : 'No blank entered'),
+    row('Garment margin', garment.included ? money(garment.garmentMargin) + ' / unit' : '$0.00 / unit', garment.included ? garmentMarginLabel(garment.marginLevel, garment.qty) : 'No margin applied'),
     row('Embroidery placement revenue', money0(placementRevenue), placementCount + ' ' + plural(placementCount, 'placement', 'placements') + ' x ' + qty.toLocaleString('en-US') + ' pcs'),
     row('Specialty item revenue', money0(specialtyRevenue), specialty.length ? specialty.map(item => item.label + ': ' + money(item.revenue)).join('; ') : 'No specialty items selected'),
     row('Total project cost', money0(projectCost), 'Goods cost ' + money0(garment.cost) + ' + decoration cost ' + money0(placementCost) + ' + services cost ' + money0(specialtyCost), true),
@@ -667,9 +814,18 @@ function calculate() {
   if (standardQuote.missingBearCost) $('flags').innerHTML += flagBlock('bad', 'MISSING BEAR COST - check the quantity row and stitch band before quoting.');
   else if (belowSurvival) $('flags').innerHTML += flagBlock('bad', 'BELOW SURVIVAL - decoration margin ' + pct(decorationMarginPct * 100) + ' is under ' + pct(SURVIVAL_SP * 100) + '.');
   else $('flags').innerHTML += flagBlock('good', 'DECORATION CLEARS SURVIVAL - ' + pct(decorationMarginPct * 100) + ' on Bear cost, floor ' + pct(SURVIVAL_SP * 100) + '.');
+  const overhead = overheadSignal(standardQuote);
+  $('flags').innerHTML += flagBlock(overhead.kind, overhead.label + '. 33% is the 2026 Jan-Jun break-even rate (overhead / revenue), a portfolio average used here as a per-order signal.');
+  if (projectCost > 0 && garment.cost / projectCost > GARMENT_HEAVY_COST_SHARE) {
+    const garmentCostShare = garment.cost / projectCost;
+    const garmentMarginShare = projectMargin !== 0 ? garment.margin / projectMargin : 0;
+    $('flags').innerHTML += flagBlock('warn', 'Garment is ' + pct(garmentCostShare * 100) + ' of project cost and delivers ' + pct(garmentMarginShare * 100) + ' of project margin.');
+  }
   if (projectMarginPct < SURVIVAL_SP) {
     $('flags').innerHTML += flagBlock('warn', 'Blended project margin ' + pct(projectMarginPct * 100) + ' - the PA-supplied blank dilutes the ratio. ' + money(garment.cost) + ' of garment cost is recovered at ' + money(garment.recovery) + '/unit by design; PA\'s margin is in the decoration, at ' + pct(decorationMarginPct * 100) + '. Project profit is ' + money(projectMargin) + '.');
   }
+  renderCustomerSuppliedComparison(standardQuote, targetSP);
+  LAST_VOLUME_LADDER = renderVolumeLadder(standardQuote);
 
   $('spPanel').innerHTML =
     '<div class="spcard"><div class="top"><h3>Standard SP</h3>' + flagPill('good', 'target') + '</div><div class="rate">' + pct(targetSP * 100) + '</div><div class="spmeta">Qty band ' + targetBand.label + '. Standard uses full sliding margin.</div></div>' +
@@ -690,7 +846,7 @@ function calculate() {
     row('Selected tier', tier, tier === 'Standard' ? 'Full sliding margin.' : 'Discount band for qty ' + qty.toLocaleString('en-US') + ': ' + pct(tierDiscount * 100) + '.'),
     row('Embroidery sell / decorated unit', money(placementRevenue / qty), 'Sum of all placement sell prices. Specialty and garments listed separately.'),
     row('Specialty charges / decorated unit', money(specialtyRevenue / qty), specialty.length ? 'Revenue-only adders selected.' : 'No adders selected.'),
-    row('Garment line', garment.included ? money0(garment.revenue) + ' revenue' : 'Not included', garment.included ? money(garment.recovery) + ' recovery per garment, once per garment' : 'Blank cost is 0.'),
+    row('Garment line', garment.included ? money0(garment.revenue) + ' revenue' : 'Not included', garment.included ? money(garment.recovery) + ' recovery + ' + money(garment.garmentMargin) + ' margin per garment' : 'Blank cost is 0.'),
     row('Project margin shown to PM', money0(projectMargin) + ' total / ' + pct(projectMarginPct * 100), money(perDecoratedUnitMargin) + ' margin per decorated unit', true)
   ].join('');
   PC_LAST = {unitPrice:perDecoratedUnitRevenue, unitCost:qty ? projectCost / qty : 0, qty};
@@ -733,11 +889,13 @@ function runSelftest() {
   let totalAssertions = 0;
   const approx = (actual, expected, tolerance) => Math.abs(actual - expected) <= tolerance;
   const fail = (name, expected, got) => ({name, expected, got});
-  const setLiveInputs = (blank, tierName) => {
-    $('qty').value = '24';
+  const setLiveInputs = (blank, tierName, qtyValue, marginLevel, garmentSource) => {
+    const inputQty = qtyValue || 24;
+    $('qty').value = String(inputQty);
     $('blankCost').value = String(blank);
-    $('garmentSource').value = 'PA-supplied';
-    $('garmentQty').value = '24';
+    $('garmentSource').value = garmentSource || 'PA-supplied';
+    $('garmentQty').value = String(inputQty);
+    $('garmentMarginLevel').value = marginLevel || 'none';
     $('tier').value = tierName || 'Standard';
     $('vendorRouting').value = 'Bear';
     renderPlacementRows(1);
@@ -761,6 +919,8 @@ function runSelftest() {
     totalAssertions += 1;
     if (!approx(actual, expected, tolerance)) tests.push(fail(name, expected, actual));
   };
+  const parseMoney = text => Number(String(text || '').replace(/[^0-9.-]/g, ''));
+  const parsePctText = text => Number(String(text || '').replace(/[^0-9.-]/g, '')) / 100;
   const quote13 = setLiveInputs(13.40);
   assertApprox('live projectRevenue', quote13.projectRevenue, 648.00, 0.001);
   assertApprox('live projectCost', quote13.projectCost, 460.32, 0.001);
@@ -769,6 +929,9 @@ function runSelftest() {
   assertApprox('live decoration margin', quote13.decorationMarginPct, 0.5413, 0.0001);
   assertApprox('live per decorated unit', quote13.perDecoratedUnitRevenue, 27.00, 0.001);
   assertApprox('live margin per unit', quote13.perDecoratedUnitMargin, 7.82, 0.001);
+  assertApprox('live DOM revenue', parseMoney($('orderTotal').textContent), 648.00, 0.001);
+  assertApprox('live DOM margin', parseMoney($('marginTotal').textContent), 188.00, 0.001);
+  assertApprox('live DOM decoration margin', parsePctText($('marginPct').textContent), 0.541, 0.001);
 
   const flags13 = $('flags').textContent;
   const quote3 = setLiveInputs(3.00);
@@ -848,6 +1011,101 @@ function runSelftest() {
   assertEqual('no-quote ladder cannot add basket item', BASKET.length, 0);
 
   assertEqual('no free-form field', document.querySelector('#customMarginPct, #customPct') == null, true);
+
+  const whale = setLiveInputs(30.19, 'Standard', 12, 'none');
+  const whaleFlags = Array.from($('flags').querySelectorAll('.flagBlock'));
+  const overheadFlag = whaleFlags.find(node => node.textContent.includes('OVERHEAD SHARE'));
+  const whaleRenderedMargin = $('marginTotal').textContent;
+  assertApprox('whale recovery none', whale.garment.recovery, 1.70, 0.001);
+  assertApprox('whale margin none', whale.garment.garmentMargin, 0.00, 0.001);
+  assertApprox('whale revenue regression', whale.projectRevenue, 614.28, 0.001);
+  assertApprox('whale margin regression', whale.projectMargin, 154.92, 0.001);
+  assertApprox('whale decoration regression', whale.decorationMarginPct, 0.5808, 0.0001);
+  assertApprox('whale blended regression', whale.projectMarginPct, 0.2522, 0.0001);
+  assertEqual('garment recovery and margin rendered separately', $('costBreakdown').textContent.includes('Garment cost recovery') && $('costBreakdown').textContent.includes('Garment margin'), true);
+  assertEqual('garment margin control renders both figures', $('garmentMarginOut').textContent.includes('Recovery $1.70') && $('garmentMarginOut').textContent.includes('Margin $0.00'), true);
+  assertEqual('overhead gauge rendered', !!overheadFlag, true);
+  assertEqual('overhead gauge warn not bad', overheadFlag && overheadFlag.classList.contains('warn') && !overheadFlag.classList.contains('bad'), true);
+  assertApprox('overhead gauge under amount', Math.abs(overheadSignal(whale).amount), 47.79, 0.01);
+  assertEqual('overhead gauge text under', overheadFlag && overheadFlag.textContent.includes('ORDER IS UNDER ITS OVERHEAD SHARE BY $47.79'), true);
+
+  const clearQuote = setLiveInputs(0, 'Standard', 48, 'none');
+  const clearOverheadFlag = Array.from($('flags').querySelectorAll('.flagBlock')).find(node => node.textContent.includes('OVERHEAD SHARE'));
+  assertEqual('overhead gauge carries case', clearOverheadFlag && clearOverheadFlag.textContent.includes('ORDER CARRIES ITS OVERHEAD SHARE'), true);
+  assertEqual('overhead carries flag good', clearOverheadFlag && clearOverheadFlag.classList.contains('good'), true);
+
+  const recoveryLevels = ['none', 'plus', 'premium'].map(level => setLiveInputs(30.19, 'Standard', 12, level));
+  recoveryLevels.forEach((quote, index) => {
+    assertApprox('garment recovery invariant ' + ['none', 'plus', 'premium'][index], quote.garment.recovery, 1.70, 0.001);
+  });
+  assertApprox('garment margin none qty12', recoveryLevels[0].garment.garmentMargin, 0.00, 0.001);
+  assertApprox('garment margin plus qty12', recoveryLevels[1].garment.garmentMargin, 1.55, 0.001);
+  assertApprox('garment margin premium qty12', recoveryLevels[2].garment.garmentMargin, 4.55, 0.001);
+  const premium48 = setLiveInputs(30.19, 'Standard', 48, 'premium');
+  const premium192 = setLiveInputs(30.19, 'Standard', 192, 'premium');
+  assertApprox('garment margin premium qty48', premium48.garment.garmentMargin, roundUpNickel(30.19 * 0.12), 0.001);
+  assertApprox('garment margin premium qty192', premium192.garment.garmentMargin, roundUpNickel(30.19 * 0.10), 0.001);
+  assertEqual('premium margin decreases qty12 to qty48', premium48.garment.garmentMargin < recoveryLevels[2].garment.garmentMargin, true);
+  assertEqual('premium margin decreases qty48 to qty192', premium192.garment.garmentMargin < premium48.garment.garmentMargin, true);
+  const decorationBaseline = setLiveInputs(30.19, 'Standard', 12, 'none');
+  const decorationPlus = setLiveInputs(30.19, 'Standard', 12, 'plus');
+  const decorationPremium = setLiveInputs(30.19, 'Standard', 12, 'premium');
+  assertApprox('decoration sell unchanged plus', decorationPlus.placementRevenue / decorationPlus.qty, decorationBaseline.placementRevenue / decorationBaseline.qty, 0.000001);
+  assertApprox('decoration sell unchanged premium', decorationPremium.placementRevenue / decorationPremium.qty, decorationBaseline.placementRevenue / decorationBaseline.qty, 0.000001);
+  assertApprox('decoration margin unchanged plus', decorationPlus.decorationMarginPct, decorationBaseline.decorationMarginPct, 0.000001);
+  assertApprox('decoration margin unchanged premium', decorationPremium.decorationMarginPct, decorationBaseline.decorationMarginPct, 0.000001);
+  [3.00, 4.50, 8.63, 30.19].forEach(blank => {
+    const none = setLiveInputs(blank, 'Standard', 12, 'none').garment.unitRevenue;
+    const plus = setLiveInputs(blank, 'Standard', 12, 'plus').garment.unitRevenue;
+    const plusMargin = setLiveInputs(blank, 'Standard', 12, 'plus').garment.garmentMargin;
+    const premiumQuote = setLiveInputs(blank, 'Standard', 12, 'premium').garment;
+    const premium = premiumQuote.unitRevenue;
+    assertEqual('additive garment line plus blank ' + blank, plus >= none, true);
+    assertEqual('additive garment line premium blank ' + blank, premium >= none, true);
+    assertApprox('additive garment line plus stacks blank ' + blank, plus, none + plusMargin, 0.001);
+    assertApprox('additive garment line premium stacks blank ' + blank, premium, none + premiumQuote.garmentMargin, 0.001);
+  });
+
+  const noneModeQuote = setLiveInputs(13.40, 'Standard', 24, 'none');
+  assertApprox('none mode unchanged revenue', noneModeQuote.projectRevenue, 648.00, 0.001);
+  assertApprox('none mode unchanged cost', noneModeQuote.projectCost, 460.32, 0.001);
+  assertApprox('none mode unchanged margin', noneModeQuote.projectMargin, 187.68, 0.001);
+  assertApprox('none mode unchanged decoration', noneModeQuote.decorationMarginPct, 0.5413, 0.0001);
+
+  const whaleAgain = setLiveInputs(30.19, 'Standard', 12, 'none');
+  const row192 = $('volumeLadder').querySelector('[data-volume-qty="192"]');
+  assertEqual('volume ladder 192 row rendered', !!row192, true);
+  assertEqual('volume ladder 192 blended below 12', row192 ? parsePctText(row192.querySelector('[data-volume-blended]').textContent) < whaleAgain.projectMarginPct : false, true);
+  const volumeUnits = Array.from($('volumeLadder').querySelectorAll('[data-volume-unit]')).map(node => parseMoney(node.textContent));
+  assertEqual('volume ladder units decrease each row', volumeUnits.every((unit, index) => index === 0 || unit < volumeUnits[index - 1]), true);
+  const independent192Target = targetSpForQty(192);
+  const independent192Quote = computeQuote(independent192Target.sp, {qty:192, garmentQty:192, tier:'Standard', garmentSource:'PA-supplied', marginLevel:'none'});
+  const ladder192 = LAST_VOLUME_LADDER.find(item => item.qty === 192);
+  const cost192 = EMBROIDERY_DATA.bear_cost[String(qtyRow(192))][stitchBand(9494).index];
+  const independentPlacement192 = placementPrice(cost192, independent192Target.sp, 'Standard', 192);
+  const independentDecorationPct192 = (independentPlacement192.sell - cost192) / independentPlacement192.sell;
+  assertApprox('volume ladder 192 decoration margin from engine', ladder192 ? ladder192.quote.decorationMarginPct : NaN, independentDecorationPct192, 0.000001);
+  assertApprox('volume ladder 192 revenue from independent quote', ladder192 ? ladder192.quote.projectRevenue : NaN, independent192Quote.projectRevenue, 0.001);
+  setLiveInputs(30.19, 'Standard', 12, 'premium');
+  const premiumLadder192 = LAST_VOLUME_LADDER.find(item => item.qty === 192);
+  const expectedPremium192Margin = roundUpNickel(30.19 * premiumGarmentMarginPct(192));
+  assertApprox('volume ladder premium 192 row garment margin', premiumLadder192 ? premiumLadder192.quote.garment.garmentMargin : NaN, expectedPremium192Margin, 0.001);
+  assertEqual('volume ladder premium 192 row uses row band', premiumLadder192 ? premiumLadder192.quote.garment.garmentMargin !== roundUpNickel(30.19 * premiumGarmentMarginPct(12)) : false, true);
+
+  setLiveInputs(30.19, 'Standard', 12, 'none');
+  const marginBeforeComparison = $('marginTotal').textContent;
+  const comparisonText = $('customerSuppliedLine').textContent;
+  const customerQuote = computeQuote(targetSpForQty(12).sp, {qty:12, garmentQty:12, garmentSource:'customer-supplied', marginLevel:'none'});
+  assertEqual('customer-supplied line lower order total', customerQuote.projectRevenue < whaleAgain.projectRevenue, true);
+  assertEqual('customer-supplied line higher blended', customerQuote.projectMarginPct > whaleAgain.projectMarginPct, true);
+  assertEqual('customer-supplied line does not alter margin total', $('marginTotal').textContent, marginBeforeComparison);
+  assertEqual('customer-supplied line rendered unit', comparisonText.includes(money(customerQuote.perDecoratedUnitRevenue)), true);
+  ['none', 'plus', 'premium'].forEach(level => {
+    const supplied = setLiveInputs(30.19, 'Standard', 12, level, 'customer-supplied');
+    assertApprox('customer-supplied recovery ' + level, supplied.garment.recovery, 0.45, 0.001);
+    assertApprox('customer-supplied margin ' + level, supplied.garment.garmentMargin, 0.00, 0.001);
+  });
+  assertEqual('no free-form markup field', document.querySelector('#customMarginPct, #customPct, #customMarkupPct') == null, true);
 
   if (tests.length) {
     const first = tests[0];
