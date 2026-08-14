@@ -247,18 +247,45 @@ document.getElementById('copyBtn').addEventListener('click',()=>{
 /* ---------- Save — all work types; webhook routes each to its own tab (Auto/Heat/Post) ---------- */
 /* ▶ WRITEBACK RE-ENABLED 2026-07-06 (Jean's go) — #13 missing fields + broken setup header key fixed,
    #14 diagnosed (header edit + quota 429s, not a real "L" write). Emergency stop: WRITEBACK_PAUSED=true. */
+/* ▶ PACED + FAILURES NAMED 2026-08-14 — Google Sheets allows 60 reads/min/user and every save reads all
+   three calc tabs (dup guard + append match), so an unpaced batch 429s a few rows partway through: on
+   8/14 a 50-row save lost 27717-2 and 27196-2 with nothing on screen to say which. Rows now go one every
+   SAVE_GAP_MS, anything that fails gets one slower retry pass, and whatever is still missing is listed
+   by imprint. Re-saving is safe — the webhook matches on Imprint and updates the row in place. */
 const WRITEBACK_PAUSED = false;
 const WEBHOOK_URL="https://primary-production-079f9.up.railway.app/webhook/estimate";
+const SAVE_GAP_MS=3000,SAVE_RETRY_GAP_MS=6000;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function postSave(r){
+  try{const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,inkChange:r.inkChange,jobName:r.jobName,imprintId:r.imprintId})});
+    return res.ok;}catch(e){return false;}
+}
 document.getElementById('saveAllBtn').addEventListener('click',async()=>{
   const rows=lastResults.filter(r=>r.status==='OK');
-  const log=document.getElementById('saveLog');
+  const log=document.getElementById('saveLog'),btn=document.getElementById('saveAllBtn');
   if(WRITEBACK_PAUSED){log.textContent='⏸ Writeback paused (Holly 7/6) — calculator rows were arriving incomplete. Fix in progress; nothing was sent.';return;}
   if(!rows.length){log.textContent='No complete rows to save.';return;}
-  log.textContent='Saving '+rows.length+' rows…';let done=0,fail=0;
-  for(const r of rows){try{const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,inkChange:r.inkChange,jobName:r.jobName,imprintId:r.imprintId})});
-    res.ok?done++:fail++;}catch(e){fail++;}}
-  log.textContent='Saved '+done+' · failed '+fail+(fail?' (check connection)':'')+' — routed to Auto / Heat / Post tabs by type.';
+  btn.disabled=true;
+  const mins=Math.max(1,Math.round(rows.length*SAVE_GAP_MS/60000));
+  let done=0,failed=[];
+  for(let i=0;i<rows.length;i++){
+    log.textContent='Saving '+(i+1)+' of '+rows.length+'… (~'+mins+' min — paced to stay under the Google Sheets rate limit)';
+    if(await postSave(rows[i]))done++;else failed.push(rows[i]);
+    if(i<rows.length-1)await sleep(SAVE_GAP_MS);
+  }
+  if(failed.length){
+    const retry=failed;failed=[];
+    for(let i=0;i<retry.length;i++){
+      log.textContent='Retrying '+(i+1)+' of '+retry.length+' row(s) that failed…';
+      await sleep(SAVE_RETRY_GAP_MS);
+      if(await postSave(retry[i]))done++;else failed.push(retry[i]);
+    }
+  }
+  btn.disabled=false;
+  const names=failed.map(r=>r.imprintId+(r.jobName?' ('+r.jobName+')':'')).join(' · ');
+  log.textContent='Saved '+done+' of '+rows.length+' — routed to Auto / Heat / Post tabs by type.'
+    +(failed.length?'  ⚠ NOT SAVED ('+failed.length+'): '+names+' — press Save all again to re-send (rows update in place, nothing duplicates).':'');
 });
 
 /* ---------- Quick Estimate (work-type aware, live) ---------- */
