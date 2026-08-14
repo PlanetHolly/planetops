@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floor Recap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--yellow:#F7BE00;--black:#231F20;--line:#e3e3e3;--text:#555;--muted:#777;--bg:#f5f5f4;--white:#fff;--green:#2e7d32;--blue:#1565C0;--orange:#a85f00;--red:#b3261e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--black);padding:18px}
+  h1{font-size:22px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px;max-width:980px;line-height:1.45}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  .toolbar .spacer{flex:1 1 auto}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--white);border-radius:6px;padding:7px 12px}
+  button:hover{background:#faf6e8}
+  button.active{background:var(--black);border-color:var(--black);color:var(--white)}
+  .sheetlink{font-size:13px;background:var(--white);border:1px solid var(--line);border-radius:6px;padding:7px 12px;text-decoration:none}
+  .sheetlink:hover{background:#faf6e8}
+  .stamp,.muted{color:var(--muted);font-size:12px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{display:inline-block;font-size:11px;background:#eee;border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .chip.done{background:#ddf2e2;color:#1a7a3d}
+  .chip.warn{background:#fff2cf;color:#765200;border:1px solid #ebcf7a}
+  .chip.miss{background:#fbe4e1;color:var(--red);border:1px solid #efb5ae}
+  .chip.sat{background:#e4f0fb;color:var(--blue);border:1px solid #b9d4ed}
+  table.q{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.q th{background:#f0efed;text-align:left;padding:8px 12px;font-size:12px;color:var(--muted)}
+  .qrow{border-top:1px solid #eee;cursor:pointer}
+  .qrow:hover{background:#faf6e8}
+  .qrow td{padding:10px 12px;font-size:13px;vertical-align:middle}
+  .jobn{font-family:'Barlow Condensed',Impact,sans-serif;font-weight:900;font-size:16px;letter-spacing:.02em}
+  .num{text-align:right}
+  .exp{background:#fbfbf9;border-top:1px solid #eee}
+  .exp td{padding:16px 18px}
+  .summary{display:grid;gap:14px}
+  .section{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .section h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:var(--text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+  .kv{font-size:13px;line-height:1.35}
+  .kv b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:1px}
+  .smalltbl{width:100%;border-collapse:collapse;font-size:13px}
+  .smalltbl th{text-align:left;color:var(--muted);font-size:11px;padding:5px 6px;background:#f7f7f5}
+  .smalltbl td{padding:6px;border-top:1px solid #eee;vertical-align:top}
+  .empty{color:var(--muted);padding:34px;text-align:center;font-size:14px;background:var(--white);border:1px solid var(--line);border-radius:10px}
+  .link{color:var(--blue)}
+  a{color:var(--blue)}
+  @media (max-width:760px){
+    body{padding:12px}
+    table.q th:nth-child(3),table.q td:nth-child(3),table.q th:nth-child(5),table.q td:nth-child(5){display:none}
+    .exp td{padding:12px}
+    .toolbar .spacer{display:none}
+  }
+</style>
+</head>
+<body>
+<h1>🧾 Floor Recap</h1>
+<div class="sub">One row per production day — impressions, minutes, and press time, after the day happens. Data flows in from Production Time Capture; corrections happen in the sheet.</div>
+<div class="toolbar">
+  <button id="dailyBtn" class="active" onclick="setView('daily')">Daily</button>
+  <button id="weeklyBtn" onclick="setView('weekly')">Weekly</button>
+  <button id="monthlyBtn" onclick="setView('monthly')">Monthly</button>
+  <span id="stamp" class="stamp"></span>
+  <span class="spacer"></span>
+  <button onclick="loadData(true)">Refresh</button>
+  <a class="sheetlink" id="sheetLink" href="https://docs.google.com/spreadsheets/d/1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ/edit#gid=618091662" target="_blank" rel="noopener noreferrer">Edit the sheet →</a>
+</div>
+<div class="stats" id="stats"></div>
+<table class="q" id="qtbl"></table>
+<div class="empty" id="empty" style="display:none">Data unavailable — <a id="emptySheetLink" href="https://docs.google.com/spreadsheets/d/1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ/edit#gid=618091662" target="_blank" rel="noopener noreferrer">open the sheet directly</a></div>
+
+<script>
+const LIVE_URL='https://primary-production-079f9.up.railway.app/webhook/floor-recap-data';
+const LASTGOOD='floor-recap-lastgood-v1';
+const FALLBACK_META={sheetId:'1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ',gid:618091662};
+const state={days:[],meta:{...FALLBACK_META},view:'daily',open:null,loadedFrom:'',loadedAt:null};
+
+function escHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function num(v){if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function pct(v){return v==null?'':Math.round(v*100)+'%';}
+function fmtInt(v){const n=num(v);return n==null?'':Math.round(n).toLocaleString('en-US');}
+function fmt1(v){const n=num(v);return n==null?'':n.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});}
+function fmt2(v){const n=num(v);return n==null?'':n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function dateObj(iso){const [y,m,d]=String(iso).split('-').map(Number);return new Date(y,m-1,d);}
+function dateLabel(iso){return dateObj(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function shortDate(iso){return dateObj(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function expected(day){return day.day_type==='STD'?880:(day.day_type==='OT'?1092:null);}
+function enrich(day){
+  const working=num(day.working_min), setup=num(day.setup_min), press=num(day.press_min);
+  const hasWorking=Number.isFinite(working);
+  const hasSetup=Number.isFinite(setup);
+  const hasPress=Number.isFinite(press);
+  return {...day,working_min:working,setup_min:setup,press_min:press,impressions:num(day.impressions)||0,projects:num(day.projects)||0,orders:num(day.orders)||0,
+    running:hasWorking&&hasPress?press/working:null,setup_pct:hasWorking&&hasSetup?setup/working:null,occupied:hasWorking&&hasSetup&&hasPress?(setup+press)/working:null,expected:expected(day)};
+}
+function validPayload(payload){return payload&&Array.isArray(payload.days)&&payload.days.length>0;}
+function sheetUrl(){return 'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(state.meta.sheetId||FALLBACK_META.sheetId)+'/edit#gid='+encodeURIComponent(state.meta.gid||FALLBACK_META.gid);}
+
+async function fetchWithTimeout(url, ms){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),ms);
+  try{
+    const r=await fetch(url,{signal:controller.signal});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return await r.json();
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function loadData(manual=false){
+  document.getElementById('stamp').textContent='loading...';
+  let payload=null, source='';
+  try{
+    const live=await fetchWithTimeout(LIVE_URL,5000);
+    if(!validPayload(live))throw new Error('empty live payload');
+    payload=live; source='live';
+    sessionStorage.setItem(LASTGOOD,JSON.stringify(live));
+  }catch(e){
+    try{
+      const cached=JSON.parse(sessionStorage.getItem(LASTGOOD)||'null');
+      if(validPayload(cached)){payload=cached; source='last-good';}
+    }catch(_e){}
+    if(!payload){
+      try{
+        const sample=await fetch('./sample-data.json');
+        if(!sample.ok)throw new Error('HTTP '+sample.status);
+        const samplePayload=await sample.json();
+        if(!validPayload(samplePayload))throw new Error('empty sample payload');
+        payload=samplePayload; source='sample';
+      }catch(_e){}
+    }
+  }
+  if(!payload){
+    state.days=[]; state.loadedFrom='empty'; document.body.dataset.loaded='empty'; render(); return;
+  }
+  state.meta={...FALLBACK_META,...(payload.meta||{})};
+  state.days=payload.days.map(enrich);
+  state.loadedFrom=source;
+  state.loadedAt=new Date();
+  document.body.dataset.loaded=source;
+  document.getElementById('sheetLink').href=sheetUrl();
+  document.getElementById('emptySheetLink').href=sheetUrl();
+  document.getElementById('stamp').textContent=state.days.length+' days loaded · '+source+(manual?' · refreshed':'');
+  render();
+}
+
+function setView(view){
+  state.view=view; state.open=null;
+  for(const name of ['daily','weekly','monthly'])document.getElementById(name+'Btn').classList.toggle('active',name===view);
+  render();
+}
+function toggleKey(key){state.open=state.open===key?null:key;render();}
+
+function render(){
+  document.getElementById('empty').style.display=state.days.length?'none':'block';
+  document.getElementById('qtbl').style.display=state.days.length?'':'none';
+  renderStats();
+  if(!state.days.length){document.getElementById('qtbl').innerHTML='';return;}
+  if(state.view==='weekly')renderWeekly();
+  else if(state.view==='monthly')renderMonthly();
+  else renderDaily();
+}
+
+function renderStats(){
+  if(!state.days.length){document.getElementById('stats').innerHTML='';return;}
+  const sorted=state.days.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const latest=sorted[sorted.length-1];
+  const weekKey=isoWeekKey(dateObj(latest.date));
+  const currentWeek=state.days.filter(day=>isoWeekKey(dateObj(day.date))===weekKey);
+  const weekImps=currentWeek.reduce((sum,day)=>sum+day.impressions,0);
+  document.getElementById('stats').innerHTML=[
+    '<span class="chip done">latest '+escHtml(dateLabel(latest.date))+' · '+fmtInt(latest.impressions)+' impressions · '+(latest.occupied==null?'occupied n/a':pct(latest.occupied)+' occupied')+'</span>',
+    '<span class="chip warn">current week '+fmtInt(weekImps)+' impressions</span>',
+    '<span class="chip">Standard ≈880 · OT ≈1,092 · best measured occupied 95%</span>'
+  ].join('');
+}
+
+function dayChip(day){
+  const cls=day.day_type==='OT'?'warn':(day.day_type==='SAT'?'sat':'');
+  return '<span class="chip '+cls+'">'+escHtml(day.day_type)+'</span>';
+}
+function expectedChip(day){
+  if(!day.expected)return '—';
+  const ratio=day.impressions/day.expected;
+  const cls=ratio>=0.95?'done':(ratio>=0.8?'warn':'miss');
+  return '<span class="chip '+cls+'">'+pct(ratio)+'</span>';
+}
+function renderDaily(){
+  const rows=state.days.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('qtbl').innerHTML='<thead><tr><th>Date</th><th>Day</th><th class="num">Working min</th><th class="num">Impressions</th><th class="num">Projects</th><th class="num">Running %</th><th class="num">Occupied %</th><th>vs expected</th></tr></thead><tbody>'+
+    rows.map(day=>dailyRow(day)).join('')+'</tbody>';
+}
+function dailyRow(day){
+  const key=day.date, open=state.open===key;
+  return `<tr class="qrow" onclick="toggleKey('${escHtml(key)}')">
+    <td class="jobn">${escHtml(dateLabel(day.date))}</td>
+    <td>${dayChip(day)}</td>
+    <td class="num">${day.working_min==null?'—':fmtInt(day.working_min)}</td>
+    <td class="num">${fmtInt(day.impressions)}</td>
+    <td class="num">${fmt2(day.projects)}</td>
+    <td class="num">${day.running==null?'—':pct(day.running)}</td>
+    <td class="num">${day.occupied==null?'—':pct(day.occupied)}</td>
+    <td>${expectedChip(day)}</td>
+  </tr>${open?`<tr class="exp"><td colspan="8">${detailHtml(day)}</td></tr>`:''}`;
+}
+function detailHtml(day){
+  return `<div class="summary"><div class="section"><h2>Day Detail</h2><div class="grid">
+    <div class="kv"><b>Setup min</b>${fmt1(day.setup_min)}</div>
+    <div class="kv"><b>Press min</b>${fmt1(day.press_min)}</div>
+    <div class="kv"><b>Setup %</b>${day.setup_pct==null?'—':pct(day.setup_pct)}</div>
+    <div class="kv"><b>Orders</b>${fmtInt(day.orders)}</div>
+    <div class="kv"><b>Source</b>${escHtml(day.source||'')}</div>
+    <div class="kv"><b>Expected impressions</b>${day.expected?fmtInt(day.expected):'—'}</div>
+    <div class="kv"><b>Notes</b>${escHtml(day.notes||'')}</div>
+  </div></div></div>`;
+}
+
+function isoWeekKey(date){
+  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const day=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-day);
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const week=Math.ceil((((d-yearStart)/86400000)+1)/7);
+  return d.getUTCFullYear()+'-W'+String(week).padStart(2,'0');
+}
+function groupRows(kind){
+  const map=new Map();
+  for(const day of state.days){
+    const d=dateObj(day.date);
+    const key=kind==='month'?day.date.slice(0,7):isoWeekKey(d);
+    if(!map.has(key))map.set(key,{key,days:[],start:day.date,end:day.date});
+    const g=map.get(key);
+    g.days.push(day);
+    if(day.date<g.start)g.start=day.date;
+    if(day.date>g.end)g.end=day.date;
+  }
+  return [...map.values()].sort((a,b)=>b.key.localeCompare(a.key)).map(g=>{
+    // Rates are POOLED (total / total). Never average per-day percentages.
+    const workDays=g.days.filter(day=>Number.isFinite(day.working_min)&&Number.isFinite(day.setup_min)&&Number.isFinite(day.press_min));
+    const work=workDays.reduce((sum,day)=>sum+day.working_min,0);
+    const press=workDays.reduce((sum,day)=>sum+day.press_min,0);
+    const setup=workDays.reduce((sum,day)=>sum+day.setup_min,0);
+    return {...g,workDays,impressions:g.days.reduce((sum,day)=>sum+day.impressions,0),
+      projects:g.days.reduce((sum,day)=>sum+day.projects,0),otDays:g.days.filter(day=>day.day_type==='OT').length,
+      running:work?press/work:null,occupied:work?(setup+press)/work:null};
+  });
+}
+function renderWeekly(){
+  const rows=groupRows('week');
+  document.getElementById('qtbl').innerHTML='<thead><tr><th>Week</th><th class="num">Days</th><th class="num">OT days</th><th class="num">Impressions</th><th class="num">Projects</th><th class="num">Running %</th><th class="num">Occupied %</th></tr></thead><tbody>'+
+    rows.map(g=>`<tr class="qrow"><td class="jobn">${escHtml(g.key+' · '+shortDate(g.start)+'–'+shortDate(g.end))}</td><td class="num">${g.days.length}</td><td class="num">${g.otDays}</td><td class="num">${fmtInt(g.impressions)}</td><td class="num">${fmt2(g.projects)}</td><td class="num">${g.running==null?'—':pct(g.running)}</td><td class="num">${g.occupied==null?'—':pct(g.occupied)}</td></tr>`).join('')+'</tbody>';
+}
+function renderMonthly(){
+  const rows=groupRows('month');
+  document.getElementById('qtbl').innerHTML='<thead><tr><th>Month</th><th class="num">Days</th><th class="num">OT days</th><th class="num">Impressions</th><th class="num">Projects</th><th class="num">Running %</th><th class="num">Occupied %</th></tr></thead><tbody>'+
+    rows.map(g=>`<tr class="qrow"><td class="jobn">${escHtml(dateObj(g.key+'-01').toLocaleDateString('en-US',{month:'long',year:'numeric'}))}</td><td class="num">${g.days.length}</td><td class="num">${g.otDays}</td><td class="num">${fmtInt(g.impressions)}</td><td class="num">${fmt2(g.projects)}</td><td class="num">${g.running==null?'—':pct(g.running)}</td><td class="num">${g.occupied==null?'—':pct(g.occupied)}</td></tr>`).join('')+'</tbody>';
+}
+
+loadData();
+setInterval(()=>loadData(),5*60*1000);
+</script>
+</body>
+</html>

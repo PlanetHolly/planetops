@@ -581,6 +581,18 @@
           "icon": "📈"
         },
         {
+          "id": "floor-recap",
+          "kind": "surface",
+          "name": "Floor Recap",
+          "blurb": "What each production day was shaped like — impressions, minutes, press % by day, week, month",
+          "type": "dashboard",
+          "url": "../floor-recap/",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Floor_Recap sheet · daily",
+          "icon": "🧾"
+        },
+        {
           "id": "pricing-dashboard",
           "kind": "surface",
           "name": "Bandana Pricing Dashboard",
