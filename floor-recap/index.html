@@ -38,10 +38,19 @@
   .exp td{padding:16px 18px}
   .summary{display:grid;gap:14px}
   .section{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .sectionbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
   .section h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:var(--text)}
+  .sectionbar h2{margin-bottom:0}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
   .kv{font-size:13px;line-height:1.35}
   .kv b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:1px}
+  .dayform{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}
+  .dayform label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .dayform input,.dayform select{width:100%;margin-top:3px;border:1px solid var(--line);border-radius:6px;background:var(--white);font:inherit;font-size:13px;padding:7px 8px}
+  .dayform .wide{grid-column:1/-1}
+  .formactions{display:flex;gap:8px;align-items:center;grid-column:1/-1;flex-wrap:wrap}
+  .formdate{font-size:13px;line-height:1.35}
+  .formdate b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:1px}
   .smalltbl{width:100%;border-collapse:collapse;font-size:13px}
   .smalltbl th{text-align:left;color:var(--muted);font-size:11px;padding:5px 6px;background:#f7f7f5}
   .smalltbl td{padding:6px;border-top:1px solid #eee;vertical-align:top}
@@ -65,18 +74,21 @@
   <button id="monthlyBtn" onclick="setView('monthly')">Monthly</button>
   <span id="stamp" class="stamp"></span>
   <span class="spacer"></span>
+  <button onclick="openAddDay()">+ Add day</button>
   <button onclick="loadData(true)">Refresh</button>
   <a class="sheetlink" id="sheetLink" href="https://docs.google.com/spreadsheets/d/1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ/edit#gid=618091662" target="_blank" rel="noopener noreferrer">Edit the sheet →</a>
 </div>
 <div class="stats" id="stats"></div>
+<div id="addPanel" style="display:none"></div>
 <table class="q" id="qtbl"></table>
 <div class="empty" id="empty" style="display:none">Data unavailable — <a id="emptySheetLink" href="https://docs.google.com/spreadsheets/d/1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ/edit#gid=618091662" target="_blank" rel="noopener noreferrer">open the sheet directly</a></div>
 
 <script>
 const LIVE_URL='https://primary-production-079f9.up.railway.app/webhook/floor-recap-data';
+const WRITE_URL='https://primary-production-079f9.up.railway.app/webhook/floor-recap-writeback';
 const LASTGOOD='floor-recap-lastgood-v1';
 const FALLBACK_META={sheetId:'1gPcJY9wdXzLG2S152eyyBgjcyCGBdolg8_LgxOouAIQ',gid:618091662};
-const state={days:[],meta:{...FALLBACK_META},view:'daily',open:null,loadedFrom:'',loadedAt:null};
+const state={days:[],meta:{...FALLBACK_META},view:'daily',open:null,loadedFrom:'',loadedAt:null,adding:false};
 
 function escHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function num(v){if(v==null||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
@@ -159,6 +171,7 @@ function toggleKey(key){state.open=state.open===key?null:key;render();}
 function render(){
   document.getElementById('empty').style.display=state.days.length?'none':'block';
   document.getElementById('qtbl').style.display=state.days.length?'':'none';
+  renderAddPanel();
   renderStats();
   if(!state.days.length){document.getElementById('qtbl').innerHTML='';return;}
   if(state.view==='weekly')renderWeekly();
@@ -209,7 +222,7 @@ function dailyRow(day){
   </tr>${open?`<tr class="exp"><td colspan="8">${detailHtml(day)}</td></tr>`:''}`;
 }
 function detailHtml(day){
-  return `<div class="summary"><div class="section"><h2>Day Detail</h2><div class="grid">
+  return `<div class="summary"><div class="section" id="detail-${escHtml(day.date)}"><div class="sectionbar"><h2>Day Detail</h2><button onclick="event.stopPropagation();editDay('${escHtml(day.date)}')">Edit day</button></div><div class="grid">
     <div class="kv"><b>Setup min</b>${fmt1(day.setup_min)}</div>
     <div class="kv"><b>Press min</b>${fmt1(day.press_min)}</div>
     <div class="kv"><b>Setup %</b>${day.setup_pct==null?'—':pct(day.setup_pct)}</div>
@@ -218,6 +231,108 @@ function detailHtml(day){
     <div class="kv"><b>Expected impressions</b>${day.expected?fmtInt(day.expected):'—'}</div>
     <div class="kv"><b>Notes</b>${escHtml(day.notes||'')}</div>
   </div></div></div>`;
+}
+
+function formValue(v){return v==null?'':String(v);}
+function openAddDay(){state.adding=true;renderAddPanel();}
+function closeAddDay(){state.adding=false;renderAddPanel();}
+function renderAddPanel(){
+  const el=document.getElementById('addPanel');
+  if(!state.adding){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="summary" style="margin-bottom:12px"><div class="section"><div class="sectionbar"><h2>Add Day</h2></div>'+dayFormHtml({day_type:'STD'},'add')+'</div></div>';
+}
+function editDay(date){
+  const day=state.days.find(d=>d.date===date);
+  const el=document.getElementById('detail-'+date);
+  if(!day||!el)return;
+  el.innerHTML='<div class="sectionbar"><h2>Day Detail</h2></div>'+dayFormHtml(day,'edit');
+}
+function cancelEdit(date){
+  const day=state.days.find(d=>d.date===date);
+  const el=document.getElementById('detail-'+date);
+  if(day&&el)el.parentElement.outerHTML=detailHtml(day);
+}
+function dayFormHtml(day,mode,error=''){
+  const id=mode+'DayForm'+(day.date?'-'+day.date:'');
+  const datePart=mode==='add'
+    ? `<label>Date<input name="date" type="date" required value="${escHtml(formValue(day.date))}"></label>`
+    : `<div class="formdate"><b>Date</b>${escHtml(dateLabel(day.date))}<input name="date" type="hidden" value="${escHtml(day.date)}"></div>`;
+  return `<form class="dayform" id="${escHtml(id)}" onsubmit="event.preventDefault();event.stopPropagation();saveDay('${escHtml(id)}','${mode}')" onclick="event.stopPropagation()" oninput="event.stopPropagation()" onchange="event.stopPropagation()">
+    ${datePart}
+    <label>Day type<select name="day_type" onchange="maybeFillWorking('${escHtml(id)}')">
+      ${['STD','OT','SAT'].map(t=>`<option value="${t}" ${day.day_type===t?'selected':''}>${t}</option>`).join('')}
+    </select></label>
+    <label>Working min<input name="working_min" type="number" min="0" step="0.1" value="${escHtml(formValue(day.working_min))}" oninput="this.dataset.typed='1'"></label>
+    <label>Setup min<input name="setup_min" type="number" min="0" step="0.1" value="${escHtml(formValue(day.setup_min))}"></label>
+    <label>Press min<input name="press_min" type="number" min="0" step="0.1" value="${escHtml(formValue(day.press_min))}"></label>
+    <label>Impressions<input name="impressions" type="number" min="0" step="1" value="${escHtml(formValue(day.impressions))}"></label>
+    <label>Projects<input name="projects" type="number" min="0" step="0.01" value="${escHtml(formValue(day.projects))}"></label>
+    <label>Orders<input name="orders" type="number" min="0" step="1" value="${escHtml(formValue(day.orders))}"></label>
+    <label class="wide">Notes<input name="notes" type="text" maxlength="300" value="${escHtml(day.notes||'')}"></label>
+    <div class="formactions">
+      <button type="submit" data-save>Save</button>
+      <button type="button" onclick="${mode==='add'?'closeAddDay()':`cancelEdit('${escHtml(day.date)}')`}">Cancel</button>
+      <span class="chip miss" data-error style="${error?'':'display:none'}">${escHtml(error)}</span>
+    </div>
+  </form>`;
+}
+function maybeFillWorking(formId){
+  const form=document.getElementById(formId);
+  if(!form)return;
+  const input=form.elements.working_min;
+  if(input.dataset.typed||input.value.trim()!=='')return;
+  const type=form.elements.day_type.value;
+  input.value=type==='STD'?'450':(type==='OT'?'558':'');
+}
+function parseFormNumber(form,name){
+  const raw=String(form.elements[name].value||'').trim();
+  if(raw==='')return null;
+  const n=Number(raw.replace(/,/g,''));
+  if(!Number.isFinite(n)||n<0)throw new Error('Numbers must be 0 or higher');
+  return n;
+}
+function showFormError(form,msg){
+  const err=form.querySelector('[data-error]');
+  if(err){err.textContent=msg;err.style.display='inline-block';}
+}
+async function saveDay(formId,mode){
+  const form=document.getElementById(formId);
+  if(!form)return;
+  const save=form.querySelector('[data-save]');
+  try{
+    const date=String(form.elements.date.value||'').trim();
+    if(!date)throw new Error('Date is required');
+    if(mode==='add'&&state.days.some(day=>day.date===date))throw new Error('That day exists, edit it below');
+    const payload={
+      date,
+      day_type:form.elements.day_type.value,
+      working_min:parseFormNumber(form,'working_min'),
+      setup_min:parseFormNumber(form,'setup_min'),
+      press_min:parseFormNumber(form,'press_min'),
+      impressions:parseFormNumber(form,'impressions'),
+      projects:parseFormNumber(form,'projects'),
+      orders:parseFormNumber(form,'orders'),
+      notes:String(form.elements.notes.value||'').trim().slice(0,300),
+      source:'manual'
+    };
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),10000);
+    save.disabled=true;
+    save.textContent='Saving…';
+    try{
+      const r=await fetch(WRITE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+    }finally{
+      clearTimeout(timer);
+    }
+    if(mode==='add')state.adding=false;
+    await loadData(true);
+  }catch(e){
+    if(save){save.disabled=false;save.textContent='Save';}
+    const validationMessages=['Date is required','Numbers must be 0 or higher','That day exists, edit it below'];
+    showFormError(form,validationMessages.includes(e.message)?e.message:'Save failed — try again or use Edit the sheet');
+  }
 }
 
 function isoWeekKey(date){
@@ -262,7 +377,7 @@ function renderMonthly(){
 }
 
 loadData();
-setInterval(()=>loadData(),5*60*1000);
+setInterval(()=>{if(!state.adding&&!document.querySelector('.dayform'))loadData();},5*60*1000);
 </script>
 </body>
 </html>
