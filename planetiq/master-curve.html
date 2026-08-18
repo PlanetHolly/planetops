@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Curve — Production Cost — Planet Apparel</title>
+<style>
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --up:#3AAE5A; --down:#D64545; --flat:#8A93A0; --line:rgba(0,0,0,.09);
+  --c1:#3E7CB1; --c2:#B98300; --c3:#A15CA8; --c4:#0E9678;
+  --ink:#232323; --ink2:#5B6470;
+}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F4F6F9;letter-spacing:.01em;}
+.wrap{max-width:1080px;margin:0 auto;background:#fff;padding:1.4rem 1.5rem 2.4rem;}
+@media(min-width:900px){.wrap{margin:1.5rem auto;box-shadow:0 2px 24px rgba(0,0,0,.08);}}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #000;padding-bottom:.9rem;margin-bottom:1rem;}
+.head .t{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;}
+h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0 .05em;line-height:1.05;}
+.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
+.updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
+.updated a{color:inherit;}
+h2{font-size:1.05rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin:1.8rem 0 .8rem;border-bottom:2px solid var(--pa-yellow);padding-bottom:.3rem;}
+.pill{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border-radius:4px;padding:.16rem .45rem;vertical-align:middle;white-space:nowrap;}
+.pill.live{background:#DFF3E6;color:#1b6b39;border:1px solid var(--up);}
+.pill.warn{background:#FDECEC;color:#8c1d1d;border:1px solid var(--down);}
+.pill.kpi{background:#FFF3CC;color:#7a5c00;border:1px solid var(--pa-yellow);}
+.formula{font-size:1.05rem;font-weight:900;background:#FBFBF4;border:1px solid #000;border-radius:11px;padding:1rem 1.2rem;margin:.6rem 0 1rem;line-height:1.5;}
+.formula .v{color:var(--c1);}
+.formula small{display:block;font-weight:700;color:var(--ink2);font-size:.74rem;margin-top:.4rem;}
+p.exp{font-size:.86rem;line-height:1.55;color:var(--ink);max-width:70ch;}
+.note{font-size:.72rem;color:var(--pa-tonal);background:#FBFBF4;border-left:3px solid var(--pa-yellow);padding:.6rem .8rem;border-radius:5px;margin:1rem 0;}
+.note.red{border-left-color:var(--down);background:#FDF6F6;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:.8rem 0;}
+.card{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;}
+.card h3{margin:.1rem 0 .55rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;}
+.card .big{font-size:1.8rem;font-weight:900;line-height:1;margin-bottom:.3rem;}
+.card .big small{font-size:.8rem;font-weight:700;color:var(--ink2);}
+.card .cav{font-size:.72rem;color:var(--ink2);line-height:1.4;}
+.chain{display:flex;flex-wrap:wrap;gap:.6rem;align-items:stretch;margin:.8rem 0 1rem;}
+.chain .step{flex:1 1 200px;border:1px solid var(--line);border-radius:9px;padding:.7rem .8rem;background:#fff;}
+.chain .step .n{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--flat);}
+.chain .step .v{font-size:1.15rem;font-weight:900;margin:.15rem 0;}
+.chain .step .d{font-size:.7rem;color:var(--ink2);line-height:1.35;}
+table.t{width:100%;border-collapse:collapse;font-size:.78rem;margin:.4rem 0 .8rem;}
+table.t th,table.t td{padding:.38rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+table.t th:first-child,table.t td:first-child{text-align:left;white-space:normal;}
+table.t thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+.calc{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;background:#FBFBF4;margin:.8rem 0 1rem;}
+.calc .row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:.7rem;}
+.calc label{font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.25rem;}
+.calc input,.calc select{font:inherit;font-size:.9rem;font-weight:700;border:1px solid #000;border-radius:7px;padding:.4rem .55rem;width:120px;background:#fff;}
+.calc .out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;}
+.calc .o{background:#fff;border:1px solid var(--line);border-radius:9px;padding:.6rem .8rem;}
+.calc .o .n{font-size:.58rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--flat);}
+.calc .o .v{font-size:1.3rem;font-weight:900;}
+footer{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:.8rem;font-size:.68rem;color:var(--flat);text-transform:uppercase;letter-spacing:.08em;line-height:1.6;}
+footer a{color:inherit;}
+a.sheetlink{font-weight:900;}
+ul.edge{font-size:.82rem;line-height:1.55;max-width:75ch;padding-left:1.2rem;}
+ul.edge li{margin-bottom:.5rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div class="t">Planet Apparel · PlanetIQ</div><div class="t">Internal — PIN</div></div>
+  <div class="sub">Production Cost Engine · In-House Screen Print Only (no DTF)</div>
+  <h1>The Master Curve</h1>
+  <div class="updated" id="asof">Loading live inputs…</div>
+
+  <h2>The whole machine, one sentence</h2>
+  <div class="formula">
+    Job&nbsp;Time&nbsp;(min) = <span class="v" id="f-rate">print&nbsp;rate</span> × qty + (<span class="v" id="f-sb">8</span> + <span class="v" id="f-spc">12</span> × colors)
+    &nbsp;&nbsp;·&nbsp;&nbsp; Cost/unit = Job&nbsp;Time ÷ 60 × <span class="v" id="f-hr">$—/hr</span> ÷ qty
+    <small>A job costs setup time plus per-piece press time, and every press hour costs a known amount. That is the entire model — everything on this page explains or feeds those two lines.</small>
+  </div>
+  <p class="exp">Setup is paid once per job (burning in, registration, ink-up), so it fades as quantity grows — that is the whole reason bigger runs are cheaper per piece. The per-piece time barely changes from 1 to 2 colors because bandanas don't double-pass; it jumps at 4+ colors, which is why 4+ goes to Bear Designz and is not priced by this curve.</p>
+
+  <h2>Where the hourly rate comes from <span class="pill live" id="rate-pill">LOCKED</span></h2>
+  <div class="chain">
+    <div class="step"><div class="n">1 · The month's production bill</div><div class="v" id="c-cost">$42,736</div>
+      <div class="d">Everything it costs to run production for one month: staff wages, production's share of rent, ink &amp; chemicals, the two shop power meters, workers' comp. From Kelly's books (QB Production Bucket + production payroll). No blanks, no outsourcing, no freight — those live in COGS.</div></div>
+    <div class="step"><div class="n">2 · The month's press hours</div><div class="v" id="c-hrs">194.1 hrs</div>
+      <div class="d">Hours the press was actually occupied by jobs (setup + print), from the settled Printavo export — validated at 88% exact-day accuracy. Screen-print stations only; idle time is not counted, so its cost is carried by the jobs that ran.</div></div>
+    <div class="step"><div class="n">3 · Divide</div><div class="v" id="c-rate">= $220 / hr</div>
+      <div class="d">June 2026, the cleanest complete month, sitting on the annualized 2026 estimate of $215–233. The rate history: $415 (methodology error) → $225 (guessed busy-fraction) → $140 (correct for 2025) → $220 (2026 re-lock, 2026-08-18).</div></div>
+  </div>
+  <div class="note"><b>Guarded:</b> a monthly watchdog (<i>Prod Rate Watch</i>) recomputes trailing production cost ÷ settled press hours and alerts if it drifts more than 15% from the locked rate. The governed lock lives in <b>Production_Rate.md</b>; the value here must match it.</div>
+
+  <h2>Cost per unit — live table</h2>
+  <table class="t" id="costtbl"><thead><tr><th>Qty</th><th>1-color</th><th>2-color</th><th>3-color</th></tr></thead><tbody></tbody></table>
+
+  <h2>Calculator</h2>
+  <div class="calc">
+    <div class="row">
+      <div><label for="q">Quantity</label><input id="q" type="number" min="1" value="500"></div>
+      <div><label for="c">Colors</label><select id="c"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+    </div>
+    <div class="out">
+      <div class="o"><div class="n">Setup</div><div class="v" id="o-setup">—</div></div>
+      <div class="o"><div class="n">Job time</div><div class="v" id="o-time">—</div></div>
+      <div class="o"><div class="n">Cost / unit</div><div class="v" id="o-unit">—</div></div>
+      <div class="o"><div class="n">Job production cost</div><div class="v" id="o-total">—</div></div>
+    </div>
+  </div>
+  <p class="exp">This is <b>production cost</b>, not price: it excludes the blank bandana, art, screens billed to the customer, shipping, and all profit. It is the floor the pricing matrix must clear.</p>
+
+  <h2>Every input, with its receipts</h2>
+  <table class="t" id="provtbl"><thead><tr><th>Input</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody></tbody></table>
+  <div class="note"><b>To change a number:</b> edit the <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/10ZA8B6f1-fzQb-3TGr4x7gffpP3aZUpNejWHeuV-xxI/edit#gid=1535109574" target="_blank" rel="noopener">Curve Inputs tab of the bandana sheet</a> — this page reads it on every load, no deploy needed. Changing the hourly rate requires re-locking Production_Rate.md first; the two must never disagree.</div>
+
+  <h2>What the curve deliberately does not know</h2>
+  <ul class="edge">
+    <li><b>No imprint-size dimension.</b> The rate is keyed on colors only — a 16.5" and a 21.65" print cost the same here. Only 16.5" (small screen) is genuinely cheaper; 17"/19"/20" all run the big screen. The 27" bandana still carries 22" labor: open item.</li>
+    <li><b>4+ colors is outsourced</b> (Bear Designz) and priced by their invoice, not this curve. In-house cap: 3 colors.</li>
+    <li><b>DTF and heat press are excluded.</b> This is the screen-print engine only.</li>
+    <li><b>The setup formula (8 + 12 × colors) is the least-measured input</b> — bandana-informed but never cleanly timed. An audit against the Project Calculator's June–July actuals is queued to harden it.</li>
+    <li><b>The rate is a floor.</b> The export minutes that produced the hours are known to overstate real press time, so the true rate is at or above the locked value.</li>
+  </ul>
+
+  <footer>
+    Source of truth: <a href="https://docs.google.com/spreadsheets/d/10ZA8B6f1-fzQb-3TGr4x7gffpP3aZUpNejWHeuV-xxI/edit#gid=1535109574" target="_blank" rel="noopener">Curve Inputs tab</a> · Rate governance: Production_Rate.md (PlanetIQ/Production) · Derivation working: Pricing/_Audit/Rate_Check_MayJul_2026 · Guard: Prod Rate Watch → Alert Gateway
+  </footer>
+</div>
+
+<script>
+(function(){
+  // Fallback = values at build time (2026-08-18). The live fetch overrides them.
+  var FALLBACK = {
+    rate_per_hour: 220, rate_lock_date: "2026-08-18",
+    print_rate_1c_min_per_unit: 0.40, print_rate_2c_min_per_unit: 0.41, print_rate_3c_min_per_unit: 0.48,
+    setup_base_min: 8, setup_per_color_min: 12, inhouse_color_cap: 3,
+    scope: "in-house screen print only"
+  };
+  var QTYS = [50, 100, 250, 500, 1000, 2500, 5000];
+  var IN = FALLBACK, SRC = {}, live = false;
+
+  function fmt$(x){ return "$" + x.toFixed(2); }
+  function printRate(c){ return IN["print_rate_" + c + "c_min_per_unit"]; }
+  function setupMin(c){ return IN.setup_base_min + IN.setup_per_color_min * c; }
+  function jobMin(q, c){ return printRate(c) * q + setupMin(c); }
+  function costUnit(q, c){ return jobMin(q, c) / 60 * IN.rate_per_hour / q; }
+
+  function render(){
+    document.getElementById("f-hr").textContent = "$" + IN.rate_per_hour + "/hr";
+    document.getElementById("f-sb").textContent = IN.setup_base_min;
+    document.getElementById("f-spc").textContent = IN.setup_per_color_min;
+    document.getElementById("c-rate").textContent = "= $" + IN.rate_per_hour + " / hr";
+    document.getElementById("asof").textContent =
+      (live ? "Live inputs from the Curve Inputs sheet" : "OFFLINE — showing baked-in values from " + FALLBACK.rate_lock_date) +
+      " · rate locked " + IN.rate_lock_date + " · " + IN.scope;
+
+    var tb = document.querySelector("#costtbl tbody"); tb.innerHTML = "";
+    QTYS.forEach(function(q){
+      var tr = "<tr><td>" + q + "</td>";
+      [1,2,3].forEach(function(c){ tr += "<td>" + fmt$(costUnit(q,c)) + "</td>"; });
+      tb.insertAdjacentHTML("beforeend", tr + "</tr>");
+    });
+
+    var pv = document.querySelector("#provtbl tbody"); pv.innerHTML = "";
+    Object.keys(IN).forEach(function(k){
+      var s = SRC[k] || {};
+      pv.insertAdjacentHTML("beforeend", "<tr><td>" + k.replace(/_/g," ") + "</td><td>" + IN[k] +
+        "</td><td style='text-align:left;white-space:normal'>" + (s.source || "—") +
+        (s.note ? " · <span style='color:var(--ink2)'>" + s.note + "</span>" : "") + "</td></tr>");
+    });
+    calc();
+  }
+
+  function calc(){
+    var q = Math.max(1, parseInt(document.getElementById("q").value || "1", 10));
+    var c = parseInt(document.getElementById("c").value, 10);
+    var t = jobMin(q, c);
+    document.getElementById("o-setup").textContent = setupMin(c) + " min";
+    document.getElementById("o-time").textContent = (t/60).toFixed(1) + " hrs";
+    document.getElementById("o-unit").textContent = fmt$(costUnit(q, c));
+    document.getElementById("o-total").textContent = "$" + (t/60*IN.rate_per_hour).toFixed(0);
+  }
+  document.getElementById("q").addEventListener("input", calc);
+  document.getElementById("c").addEventListener("change", calc);
+
+  render();
+  fetch("https://primary-production-079f9.up.railway.app/webhook/curve-inputs")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d && d.ok && d.inputs && d.inputs.rate_per_hour) {
+        IN = Object.assign({}, FALLBACK, d.inputs); SRC = d.sources || {}; live = true;
+        var pill = document.getElementById("rate-pill");
+        if (Number(d.inputs.rate_per_hour) !== FALLBACK.rate_per_hour) {
+          pill.textContent = "SHEET ≠ PAGE BUILD"; pill.className = "pill kpi";
+        }
+        render();
+      }
+    })
+    .catch(function(){ /* fallback already rendered */ });
+})();
+</script>
+</body>
+</html>

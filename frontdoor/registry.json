@@ -604,6 +604,18 @@
           "url": "../planetiq/pricing-dashboard.html"
         },
         {
+          "id": "master-curve",
+          "kind": "surface",
+          "name": "Master Curve",
+          "blurb": "How a press hour becomes a unit cost — formula, rate derivation, live calculator",
+          "type": "live-app",
+          "url": "../planetiq/master-curve.html",
+          "status": "live",
+          "access": "pin",
+          "dataSource": "Curve Inputs tab via Railway /webhook/curve-inputs",
+          "icon": "📈"
+        },
+        {
           "id": "kpi-tracker",
           "kind": "surface",
           "name": "KPI Tracker",
