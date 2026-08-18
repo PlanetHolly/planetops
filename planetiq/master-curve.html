@@ -47,6 +47,9 @@ table.t{width:100%;border-collapse:collapse;font-size:.78rem;margin:.4rem 0 .8re
 table.t th,table.t td{padding:.38rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
 table.t th:first-child,table.t td:first-child{text-align:left;white-space:normal;}
 table.t thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
+table.t thead th.ih{background:#000;color:#fff;border-radius:4px 4px 0 0;}
+table.t thead th.bear{background:var(--c1);color:#fff;border-radius:4px 4px 0 0;}
+table.t td.bear{color:var(--ink2);font-style:italic;white-space:normal;}
 .calc{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;background:#FBFBF4;margin:.8rem 0 1rem;}
 .calc .row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:.7rem;}
 .calc label{font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.25rem;}
@@ -89,7 +92,15 @@ ul.edge li{margin-bottom:.5rem;}
   <div class="note"><b>Guarded:</b> a monthly watchdog (<i>Prod Rate Watch</i>) recomputes trailing production cost ÷ settled press hours and alerts if it drifts more than 15% from the locked rate. The governed lock lives in <b>Production_Rate.md</b>; the value here must match it.</div>
 
   <h2>Cost per unit — live table</h2>
-  <table class="t" id="costtbl"><thead><tr><th>Qty</th><th>1-color</th><th>2-color</th><th>3-color</th></tr></thead><tbody></tbody></table>
+  <div style="overflow-x:auto"><table class="t" id="costtbl">
+    <thead><tr>
+      <th>Qty</th>
+      <th class="ih">1 Color</th><th class="ih">2 Color</th><th class="ih">3 Color</th>
+      <th class="bear">4+ Color</th>
+      <th>Color Adder</th>
+    </tr></thead><tbody></tbody>
+  </table></div>
+  <div class="note" style="margin-top:.2rem"><span style="display:inline-block;width:10px;height:10px;background:#000;border-radius:3px;margin-right:.3rem;vertical-align:-1px"></span><b>In-house production cost</b> (this curve) · <span style="display:inline-block;width:10px;height:10px;background:#3E7CB1;border-radius:3px;margin:0 .3rem 0 .9rem;vertical-align:-1px"></span><b>4+ colors = Bear Designz</b>, outsourced — priced by their invoice / the Price Builder, not this curve. <b>Color Adder</b> = what one more color costs per unit at that quantity (12 min extra setup spread over the run, plus a small per-piece bump). Quantity ladder matches the Printavo matrix tiers. ⚠️ High-volume honesty: these cells hold Jean's measured flat per-piece rate; the 2/16 Price Builder grid assumed big runs speed up. Which is right above ~1,000 pieces is unmeasured until the Project Calculator audit lands.</div>
 
   <h2>Calculator</h2>
   <div class="calc">
@@ -133,7 +144,7 @@ ul.edge li{margin-bottom:.5rem;}
     setup_base_min: 8, setup_per_color_min: 12, inhouse_color_cap: 3,
     scope: "in-house screen print only"
   };
-  var QTYS = [50, 100, 250, 500, 1000, 2500, 5000];
+  var QTYS = [12, 24, 48, 72, 144, 288, 576, 1152, 2304, 4608, 9216, 18432]; // Printavo matrix tiers
   var IN = FALLBACK, SRC = {}, live = false;
 
   function fmt$(x){ return "$" + x.toFixed(2); }
@@ -152,9 +163,13 @@ ul.edge li{margin-bottom:.5rem;}
       " · rate locked " + IN.rate_lock_date + " · " + IN.scope;
 
     var tb = document.querySelector("#costtbl tbody"); tb.innerHTML = "";
-    QTYS.forEach(function(q){
-      var tr = "<tr><td>" + q + "</td>";
+    QTYS.forEach(function(q, i){
+      var tr = "<tr><td>" + q.toLocaleString() + "</td>";
       [1,2,3].forEach(function(c){ tr += "<td>" + fmt$(costUnit(q,c)) + "</td>"; });
+      // 1c -> 2c step: tiny per-piece delta + one more 12-min setup, spread over the run
+      var adder = ((printRate(2) - printRate(1)) * q + IN.setup_per_color_min) / 60 * IN.rate_per_hour / q;
+      tr += "<td class='bear'>" + (i === 0 ? "Bear Designz — outsourced" : "·") + "</td>";
+      tr += "<td>" + fmt$(adder) + "</td>";
       tb.insertAdjacentHTML("beforeend", tr + "</tr>");
     });
 
