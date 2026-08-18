@@ -47,9 +47,10 @@ table.t{width:100%;border-collapse:collapse;font-size:.78rem;margin:.4rem 0 .8re
 table.t th,table.t td{padding:.38rem .5rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
 table.t th:first-child,table.t td:first-child{text-align:left;white-space:normal;}
 table.t thead th{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);border-bottom:1.5px solid #000;}
-table.t thead th.ih{background:#000;color:#fff;border-radius:4px 4px 0 0;}
-table.t thead th.bear{background:var(--c1);color:#fff;border-radius:4px 4px 0 0;}
-table.t td.bear{color:var(--ink2);font-style:italic;white-space:normal;}
+table.t thead th.ih{background:#000;color:#fff;}
+table.t thead th.pb{background:var(--c3);color:#fff;}
+table.t thead th.bear{background:var(--c1);color:#fff;}
+table.t td .pbsub{display:block;font-size:.58rem;color:var(--flat);font-weight:400;}
 .calc{border:1px solid #000;border-radius:11px;padding:1rem 1.1rem;background:#FBFBF4;margin:.8rem 0 1rem;}
 .calc .row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:.7rem;}
 .calc label{font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.25rem;}
@@ -93,14 +94,9 @@ ul.edge li{margin-bottom:.5rem;}
 
   <h2>Cost per unit — live table</h2>
   <div style="overflow-x:auto"><table class="t" id="costtbl">
-    <thead><tr>
-      <th>Qty</th>
-      <th class="ih">1 Color</th><th class="ih">2 Color</th><th class="ih">3 Color</th>
-      <th class="bear">4+ Color</th>
-      <th>Color Adder</th>
-    </tr></thead><tbody></tbody>
+    <thead><tr id="costhead"></tr></thead><tbody></tbody>
   </table></div>
-  <div class="note" style="margin-top:.2rem"><span style="display:inline-block;width:10px;height:10px;background:#000;border-radius:3px;margin-right:.3rem;vertical-align:-1px"></span><b>In-house production cost</b> (this curve) · <span style="display:inline-block;width:10px;height:10px;background:#3E7CB1;border-radius:3px;margin:0 .3rem 0 .9rem;vertical-align:-1px"></span><b>4+ colors = Bear Designz</b>, outsourced — priced by their invoice / the Price Builder, not this curve. <b>Color Adder</b> = what one more color costs per unit at that quantity (12 min extra setup spread over the run, plus a small per-piece bump). Quantity ladder matches the Printavo matrix tiers. ⚠️ High-volume honesty: these cells hold Jean's measured flat per-piece rate; the 2/16 Price Builder grid assumed big runs speed up. Which is right above ~1,000 pieces is unmeasured until the Project Calculator audit lands.</div>
+  <div class="note" style="margin-top:.2rem"><span style="display:inline-block;width:10px;height:10px;background:#000;border-radius:3px;margin-right:.3rem;vertical-align:-1px"></span><b>In-house 1–3 color — this curve</b> (measured; the small grey <i>PB</i> figure underneath is the Price Builder's number for comparison) · <span style="display:inline-block;width:10px;height:10px;background:#A15CA8;border-radius:3px;margin:0 .3rem 0 .9rem;vertical-align:-1px"></span><b>4–5 color — Price Builder</b> (in-house on apparel; bandana caps at 3 colors, so these go to Bear) · <span style="display:inline-block;width:10px;height:10px;background:#3E7CB1;border-radius:3px;margin:0 .3rem 0 .9rem;vertical-align:-1px"></span><b>6–12 color — Bear Designz</b>, from the Price Builder CURVES_PRODUCTION tab (2/16/26), read live. <b>Color Adder</b> = the builder's per-color step at that quantity — every builder row is exactly its 1-color price plus (colors − 1) × adder. ⚠️ Where the two systems disagree (1–3c at very small and very large runs): the curve holds Jean's measured flat per-piece rate; the builder assumed big runs speed up. Unmeasured either way above ~1,000 pieces until the Project Calculator audit lands.</div>
 
   <h2>Calculator</h2>
   <div class="calc">
@@ -145,7 +141,32 @@ ul.edge li{margin-bottom:.5rem;}
     scope: "in-house screen print only"
   };
   var QTYS = [12, 24, 48, 72, 144, 288, 576, 1152, 2304, 4608, 9216, 18432]; // Printavo matrix tiers
-  var IN = FALLBACK, SRC = {}, live = false;
+  // Price Builder CURVES_PRODUCTION grid (2026-02-16), baked fallback; live fetch overrides.
+  // Row shape: [c1..c12, adder]
+  var GRID_FALLBACK = {
+    12:[4.98,6.74,8.51,10.27,12.03,13.80,15.56,17.33,19.09,20.85,22.62,24.38,1.76],
+    24:[3.09,4.29,5.49,6.69,7.89,9.09,10.30,11.50,12.70,13.90,15.10,16.30,1.21],
+    48:[2.42,3.02,3.62,4.23,4.83,5.43,6.03,6.63,7.23,7.84,8.44,9.04,0.60],
+    72:[2.09,2.61,3.13,3.65,4.17,4.69,5.21,5.73,6.25,6.77,7.29,7.80,0.52],
+    144:[1.80,2.15,2.50,2.84,3.19,3.54,3.89,4.24,4.59,4.93,5.28,5.63,0.35],
+    288:[1.51,1.79,2.06,2.34,2.62,2.89,3.17,3.44,3.72,4.00,4.27,4.55,0.28],
+    576:[1.16,1.38,1.59,1.81,2.03,2.25,2.46,2.68,2.90,3.12,3.33,3.55,0.21],
+    1152:[0.98,1.16,1.34,1.52,1.70,1.88,2.05,2.23,2.41,2.59,2.77,2.95,0.17],
+    2304:[0.80,0.94,1.08,1.22,1.36,1.50,1.65,1.79,1.93,2.07,2.21,2.35,0.15],
+    4608:[0.62,0.74,0.86,0.99,1.11,1.23,1.35,1.47,1.59,1.72,1.84,1.96,0.12],
+    9216:[0.52,0.63,0.75,0.86,0.97,1.09,1.20,1.32,1.43,1.54,1.66,1.77,0.11],
+    18432:[0.45,0.53,0.61,0.69,0.77,0.85,0.92,1.00,1.08,1.16,1.24,1.32,0.07]
+  };
+  function gridFromFallback(){
+    var out = {};
+    Object.keys(GRID_FALLBACK).forEach(function(q){
+      var a = GRID_FALLBACK[q], row = {adder: a[12]};
+      for (var c = 1; c <= 12; c++) row["c" + c] = a[c - 1];
+      out[q] = row;
+    });
+    return out;
+  }
+  var IN = FALLBACK, SRC = {}, GRID = gridFromFallback(), live = false;
 
   function fmt$(x){ return "$" + x.toFixed(2); }
   function printRate(c){ return IN["print_rate_" + c + "c_min_per_unit"]; }
@@ -162,14 +183,26 @@ ul.edge li{margin-bottom:.5rem;}
       (live ? "Live inputs from the Curve Inputs sheet" : "OFFLINE — showing baked-in values from " + FALLBACK.rate_lock_date) +
       " · rate locked " + IN.rate_lock_date + " · " + IN.scope;
 
+    var th = document.getElementById("costhead");
+    th.innerHTML = "<th>Qty</th>";
+    for (var c = 1; c <= 12; c++)
+      th.innerHTML += "<th class='" + (c <= 3 ? "ih" : c <= 5 ? "pb" : "bear") + "'>" + c + " Color</th>";
+    th.innerHTML += "<th>Color Adder</th>";
+
     var tb = document.querySelector("#costtbl tbody"); tb.innerHTML = "";
-    QTYS.forEach(function(q, i){
+    QTYS.forEach(function(q){
+      var g = GRID[q] || {};
       var tr = "<tr><td>" + q.toLocaleString() + "</td>";
-      [1,2,3].forEach(function(c){ tr += "<td>" + fmt$(costUnit(q,c)) + "</td>"; });
-      // 1c -> 2c step: tiny per-piece delta + one more 12-min setup, spread over the run
-      var adder = ((printRate(2) - printRate(1)) * q + IN.setup_per_color_min) / 60 * IN.rate_per_hour / q;
-      tr += "<td class='bear'>" + (i === 0 ? "Bear Designz — outsourced" : "·") + "</td>";
-      tr += "<td>" + fmt$(adder) + "</td>";
+      for (var c = 1; c <= 12; c++) {
+        if (c <= 3) {
+          var pb = g["c" + c];
+          tr += "<td>" + fmt$(costUnit(q, c)) +
+                (pb != null ? "<span class='pbsub'>PB " + fmt$(pb) + "</span>" : "") + "</td>";
+        } else {
+          tr += "<td>" + (g["c" + c] != null ? fmt$(g["c" + c]) : "—") + "</td>";
+        }
+      }
+      tr += "<td>" + (g.adder != null ? fmt$(g.adder) : "—") + "</td>";
       tb.insertAdjacentHTML("beforeend", tr + "</tr>");
     });
 
@@ -201,6 +234,7 @@ ul.edge li{margin-bottom:.5rem;}
     .then(function(d){
       if (d && d.ok && d.inputs && d.inputs.rate_per_hour) {
         IN = Object.assign({}, FALLBACK, d.inputs); SRC = d.sources || {}; live = true;
+        if (d.builder_grid && Object.keys(d.builder_grid).length >= 10) GRID = d.builder_grid;
         var pill = document.getElementById("rate-pill");
         if (Number(d.inputs.rate_per_hour) !== FALLBACK.rate_per_hour) {
           pill.textContent = "SHEET ≠ PAGE BUILD"; pill.className = "pill kpi";
