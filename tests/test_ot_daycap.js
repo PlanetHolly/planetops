@@ -13,7 +13,7 @@ function t(n,c){c?pass++:fail++;console.log((c?'  PASS ':'  FAIL ')+n);}
 
 // ── behavioral: the shipped isOT predicate (base station via stationOrig) + the real capFor ──
 const ctx={console}; vm.createContext(ctx);
-vm.runInContext("let store={caps:{}}; var AUTO={key:'auto',cap:420,otCap:600};", ctx);
+vm.runInContext("let store={caps:{}}; var AUTO={key:'auto',cap:420,otCap:525};", ctx);
 vm.runInContext(grabFn('capFor'), ctx);
 const isOTday=(jobs,d)=>jobs.some(x=>x.date===d && /\(OT\)/.test(x.stationOrig||x.station));   // exactly as shipped
 
@@ -26,7 +26,7 @@ t('C. In-Season job does NOT mark its day OT', isOTday([inSeason],'2026-07-31')=
 t('D. base In-Season overridden TO an OT string does NOT mark OT (stationOrig wins)',
   isOTday([{date:'d',stationOrig:'Auto Press (In Season)',station:'Auto Press (OT)'}],'d')===false);
 
-t('E. capFor auto OT day = 600', vm.runInContext("capFor(AUTO,'2026-07-29',true)",ctx)===600);
+t('E. capFor auto OT day = 525', vm.runInContext("capFor(AUTO,'2026-07-29',true)",ctx)===525);
 t('F. capFor auto standard day = 420', vm.runInContext("capFor(AUTO,'2026-07-31',false)",ctx)===420);
 vm.runInContext("store.caps['2026-07-29|auto']=500;",ctx);
 t('G. caps override still wins over the OT default', vm.runInContext("capFor(AUTO,'2026-07-29',true)",ctx)===500);
