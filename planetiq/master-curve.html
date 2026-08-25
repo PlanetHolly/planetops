@@ -87,8 +87,8 @@ ul.edge li{margin-bottom:.5rem;}
       <div class="d">Everything it costs to run production for one month: staff wages, production's share of rent, ink &amp; chemicals, the two shop power meters, workers' comp. From Kelly's books (QB Production Bucket + production payroll). No blanks, no outsourcing, no freight — those live in COGS.</div></div>
     <div class="step"><div class="n">2 · The month's press hours</div><div class="v" id="c-hrs">194.1 hrs</div>
       <div class="d">Hours the press was actually occupied by jobs (setup + print), from the settled Printavo export — validated at 88% exact-day accuracy. Screen-print stations only; idle time is not counted, so its cost is carried by the jobs that ran.</div></div>
-    <div class="step"><div class="n">3 · Divide</div><div class="v" id="c-rate">= $220 / hr</div>
-      <div class="d">June 2026, the cleanest complete month, sitting on the annualized 2026 estimate of $215–233. The rate history: $415 (methodology error) → $225 (guessed busy-fraction) → $140 (correct for 2025) → $220 (2026 re-lock, 2026-08-18).</div></div>
+    <div class="step"><div class="n">3 · Divide, then set the annual lock</div><div class="v" id="c-rate">= $240 / hr</div>
+      <div class="d">June measures $220 — the year's cheapest month. The locked rate is the ANNUAL number: $240 (boardroom, 2026-08-25, 12-month lock) — above June's best-month floor, at the bottom of the honest annual band ($250–270 weighted burn). History: $415 → $225 → $140 → $220 → $240. Re-derived every August from 12 settled months.</div></div>
   </div>
   <div class="note"><b>Guarded:</b> a monthly watchdog (<i>Prod Rate Watch</i>) recomputes trailing production cost ÷ settled press hours and alerts if it drifts more than 15% from the locked rate. The governed lock lives in <b>Production_Rate.md</b>; the value here must match it.</div>
 
@@ -135,7 +135,7 @@ ul.edge li{margin-bottom:.5rem;}
 (function(){
   // Fallback = values at build time (2026-08-18). The live fetch overrides them.
   var FALLBACK = {
-    rate_per_hour: 220, rate_lock_date: "2026-08-18",
+    rate_per_hour: 240, rate_lock_date: "2026-08-25",
     print_rate_1c_min_per_unit: 0.40, print_rate_2c_min_per_unit: 0.41, print_rate_3c_min_per_unit: 0.48,
     setup_base_min: 8, setup_per_color_min: 12, inhouse_color_cap: 3,
     scope: "in-house screen print only"
