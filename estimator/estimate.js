@@ -29,6 +29,11 @@
     defStrokes:  2,
     // screen-print setup minutes: Standard = base + perColor*colors ; Specialty = specColor*colors
     setupStandardBase: 10, setupStandardPerColor: 12, setupSpecialtyPerColor: 25,
+    // RECURVE v2 (2026-09-01) - print is fixed + variable, fitted on 169 measured jobs.
+    // MUST stay identical to the n8n Estimator Engine or the page and the sheet disagree.
+    recurve: 'v2',
+    printCurve: { Bandana:{f:8.1,v:0.2828}, Apparel:{f:28.1,v:0.2218} },
+    teardownBase: 5, teardownPerColor: 2,
   };
   // ---- END EDIT ZONE --------------------------------------------------------
 
@@ -84,15 +89,24 @@
     const setup=setupType==='Standard'?(C.setupStandardBase+C.setupStandardPerColor*colors):(C.setupSpecialtyPerColor*colors);
     const palletSec=C.palletAuto[palletKey(inp.pallet)]!==undefined?C.palletAuto[palletKey(inp.pallet)]:C.palletDefaultSec;
     const printPerUnit=(palletSec/60)*strokes*(C.productScaler[product]||C.productScaler.Apparel);
-    const printMin=printPerUnit*qty, dry=((C.dry[ink]||0)/60)*qty;
+    const PC=C.printCurve[product]||C.printCurve.Bandana;
+    const printMin=PC.f+PC.v*qty, dry=((C.dry[ink]||0)/60)*qty;
     // #8/#10 double-dry model (Jean 2026-07-06): small jobs (≤ dryConcurrentMaxQty) dry CONCURRENT
     // with the next job on press — tracked as data but excluded from the blocking total.
     // Large jobs dry in a separate block (like a post-prod service) — added to the total.
     const dryConcurrent=dry>0&&qty<=(C.dryConcurrentMaxQty||100);
-    const total=setup+printMin+(dryConcurrent?0:dry);
+    const teardown=C.teardownBase+C.teardownPerColor*colors;
+    const total=setup+printMin+(dryConcurrent?0:dry)+teardown;
     return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,scaler:(C.productScaler[product]||C.productScaler.Apparel),
-      setup:r1(setup),process:r1(printMin),dry:r1(dry),dryConcurrent,total:r1(total),cost:money(total,C.rate.screen_print),
-      unitsPerHr:printPerUnit?Math.round(60/printPerUnit):null,provisional:false,procLabel:'Print'},base);
+      setup:r1(setup),process:r1(printMin),dry:r1(dry),dryConcurrent,teardown:r1(teardown),total:r1(total),
+      recurve:C.recurve,
+      derivation:('setup '+(setupType==='Standard'?(C.setupStandardBase+'+'+C.setupStandardPerColor+'x'+colors):(C.setupSpecialtyPerColor+'x'+colors))+'='+r1(setup)
+        +' | print '+PC.f+'+'+PC.v+'x'+qty+'='+r1(printMin)
+        +' | dry '+(dryConcurrent?'concurrent':r1(dry))
+        +' | teardown '+C.teardownBase+'+'+C.teardownPerColor+'x'+colors+'='+r1(teardown)
+        +' | TOTAL '+r1(total)+' | recurve '+C.recurve),
+      cost:money(total,C.rate.screen_print),
+      unitsPerHr:printMin>0?Math.round(qty/(printMin/60)):null,provisional:false,procLabel:'Print'},base);
   }
 
   /* ---- live rates: Jean's sheet is the source of truth for the curve ---- */
