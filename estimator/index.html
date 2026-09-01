@@ -312,12 +312,16 @@ function quick(){
   const o=document.getElementById('q_out');
   if(e.status!=='OK'){o.innerHTML='<div class="lab">Fill in the fields</div>';return;}
   const procRow=e.process?'<div class="row"><span class="lab">'+(e.procLabel||'Process')+'</span><span>'+e.process+' min</span></div>':'';
-  const setupRow=e.setup?'<div class="row"><span class="lab">Setup / teardown</span><span>'+e.setup+' min</span></div>':'';
+  const setupRow=e.setup?'<div class="row"><span class="lab">Setup</span><span>'+e.setup+' min</span></div>':'';
+  const tearRow=e.teardown?'<div class="row"><span class="lab">Teardown</span><span>'+e.teardown+' min</span></div>':'';
   const dryRow=e.dry?'<div class="row"><span class="lab">Drying</span><span>'+e.dry+' min</span></div>':'';
-  o.innerHTML=setupRow+procRow+dryRow+
+  const derivRow=e.derivation?'<div class="row" style="margin-top:.55rem;border-top:1px solid var(--pa-line);padding-top:.45rem">'
+    +'<span class="lab" style="font-size:.66rem;line-height:1.55;opacity:.85">HOW THIS WAS CALCULATED<br>'
+    +e.derivation.split(' | ').join('<br>')+'</span></div>':'';
+  o.innerHTML=setupRow+procRow+dryRow+tearRow+
     '<div class="row"><span class="lab">Total</span><span><strong>'+e.total+' min</strong></span></div>'+
     '<div class="row" style="margin-top:.4rem;"><span class="lab">Cost @ $'+e.rate+'/hr</span><span class="big">$'+e.cost.toFixed(2)+(e.provisional?'<span class="prov" style="font-size:.8rem;"> *prov</span>':'')+'</span></div>'+
-    (e.unitsPerHr?'<div class="row"><span class="lab">Throughput</span><span>~'+e.unitsPerHr+' units/hr</span></div>':'');
+    (e.unitsPerHr?'<div class="row"><span class="lab">Throughput</span><span>~'+e.unitsPerHr+' units/hr</span></div>':'')+derivRow;
 }
 document.getElementById('q_type').addEventListener('change',showType);
 ['q_product','q_ink','q_colors','q_qty','q_pallet','q_strokes','q_heatink','q_heatqty','q_presses','q_finish','q_postqty'].forEach(id=>document.getElementById(id).addEventListener('input',quick));
@@ -334,7 +338,7 @@ function renderRates(){
   const box='border:1px solid var(--pa-line);padding: .7rem .9rem;font-size:.8rem';
   document.getElementById('ratesPanel').innerHTML=
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem">'
-    +'<div style="'+box+'"><strong>SCREEN PRINT</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Setup = '+C.setupStandardBase+' + '+C.setupStandardPerColor+'×colors min (Standard) · '+C.setupSpecialtyPerColor+'×colors (Specialty)<br>Press = pallet-sec ÷ 60 × strokes × scaler × qty · Dry = dry-sec ÷ 60 × qty</p>'
+    +'<div style="'+box+'"><strong>SCREEN PRINT</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Setup = '+C.setupStandardBase+' + '+C.setupStandardPerColor+'×colors min (Standard) · '+C.setupSpecialtyPerColor+'×colors (Specialty)<br>Print = fixed + per-piece (RECURVE v2): Bandana '+C.printCurve.Bandana.f+' + '+C.printCurve.Bandana.v+'×qty · Apparel '+C.printCurve.Apparel.f+' + '+C.printCurve.Apparel.v+'×qty<br>Teardown = '+C.teardownBase+' + '+C.teardownPerColor+'×colors · Dry = dry-sec ÷ 60 × qty</p>'
     +'<table><tr><th style="text-align:left">Pallet</th><th>sec/unit</th></tr>'+map(C.palletAuto,'s')+'<tr><td style="text-align:left;padding:2px 10px 2px 0">unknown</td><td style="text-align:right">'+C.palletDefaultSec+'s</td></tr></table>'
     +'<table style="margin-top:.4rem"><tr><th style="text-align:left">Dry</th><th>sec/unit</th></tr>'+map(C.dry,'s')+'</table>'
     +'<table style="margin-top:.4rem"><tr><th style="text-align:left">Scaler</th><th>×</th></tr>'+map(C.productScaler,'')+'</table></div>'
