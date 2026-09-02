@@ -14,7 +14,7 @@
     rate:        { screen_print:140, heat_press:34, post_prod:26 }, // $/hr (cost only)
     palletAuto:  {'8':7,'10':8,'16':10,'22':12,'4':6},   // screen-print sec/unit by pallet size
     palletDefaultSec: 12,                                 // fallback if pallet unknown
-    dry:         { plastisol:0, waterbase:6, discharge:6 }, // sec/unit DOUBLE-DRY — Jean's stopwatch 7/6: 100 units/10 min = 6 s/u; blanket rule: ALL waterbase + discharge double-dry (#8/#10)
+    dry:         { plastisol:0, waterbase:0, discharge:13 }, // sec/unit for the SECOND dry pass. 2026-09-02: waterbase does NOT second-pass (Jean, from the floor) so it is 0 like plastisol. Discharge 13 s/u from the 8/11 production run - 750 units / 161 min / 2-person crew = 12.88 s/u. Supersedes the 7/6 stopwatch of 6 s/u, which was taken on a 100-unit batch - the exact size this model already prices at zero.
     dryConcurrentMaxQty: 100,                             // ≤100 pcs: dry rides ALONG SIDE the next job on press — tracked but NOT schedule-blocking; >100: separate dryer block (end of day)
     heatPalletSec: 70,                                    // heat = 70 sec/unit regardless of pallet
     heatInk:     {'heat applied - apparel':10, 'heat applied - hat':25}, // sec/unit
