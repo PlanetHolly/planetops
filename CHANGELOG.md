@@ -3,6 +3,12 @@
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
 
+## 2026-09-03 — Estimator CSV import table: Teardown column added, Total min column highlighted — PR #50 (`jean/estimator-teardown-column` → `frontdoor-gate`)
+- Who:    Jean (via Claude, Fable). Jean's read of the import table: everything lined up, but the total (setup + print + dry + teardown) needed to stand out, and teardown had no column — it was only implied inside the total.
+- What:   `estimator/index.html` only. New **Teardown** column between Dry and Total min (screen rows show the engine's 5 + 2×colors; heat/post rows show a dash because teardown is not modeled for them). **Total min** column now brand-yellow, bold, black side borders — header, body rows and the TOTAL row. Totals-row colspan 7 → 8 so the sum still lands under Total min. No engine change; `estimate.js` untouched; nothing written to the calculator or n8n.
+- Proof:  headless Chromium render (2 screen / 1 heat / 1 post rows): every row's setup+process+dry+teardown equals its Total min (e.g. 34+149.5+0+9 = 192.5); TOTAL row aligned; both inline scripts parse.
+- Build doc updated?  no — this entry + the PR are the record.
+
 ## 2026-09-03 — Availability gauge: Jean mode through the front door · 15-business-day lead · green-only rule · "Where does it fit?" recommender — PR #49 (`jean/availability-adjustments` → `frontdoor-gate`), NOT yet merged
 - Who:    Jean (via Claude, Fable). Four asks in one message; all in `capacity/index.html`, nothing else touched. Supersedes PR #14 (close it when #49 merges).
 - 1 Jean mode: the front door iframes the page with a bare `src`, so `?mode=jean` never reached it and Jean lost the manual next-open pick. Page now also reads the TOP window's `?mode=` (same origin) and makes the mode sticky per browser in `localStorage.gauge_jeanmode`; `?mode=view` or the new **Exit Jean mode** button clears it. To arm it inside the shell: put `?mode=jean` BEFORE the `#` on the front-door URL once, e.g. `/frontdoor/?mode=jean#/planetops/floor/capacity`. ⚠ Per-origin: staging and production are armed separately.
