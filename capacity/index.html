@@ -20,18 +20,24 @@ html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);ba
 h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin:.1em 0 .05em;line-height:1.05;}
 .sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--pa-tonal);font-weight:700;margin-bottom:.35rem;}
 .updated{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--pa-tonal);}
-.jeanbar{display:none;align-items:center;gap:.6rem;background:#111;color:#fff;border-radius:7px;padding:.5rem .8rem;margin:.7rem 0 0;font-size:.78rem;}
+.jeanbar{display:none;align-items:center;gap:.6rem;background:#111;color:#fff;border-radius:7px;padding:.5rem .8rem;margin:.7rem 0 0;font-size:.78rem;flex-wrap:wrap;}
 .jeanbar.on{display:flex;}
 .jeanbar b{letter-spacing:.05em;}
-.next{background:var(--pa-black);color:#fff;border-radius:8px;padding:.85rem 1.1rem;margin:1.05rem 0 1.15rem;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+.jeanbar button{margin-left:auto;background:#fff;color:#111;border:0;border-radius:5px;padding:.25rem .55rem;font-family:inherit;font-weight:800;font-size:.7rem;cursor:pointer;}
+.next{background:var(--pa-black);color:#fff;border-radius:8px;padding:.85rem 1.1rem;margin:1.05rem 0 .6rem;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
 .next .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;opacity:.8;}
 .next .day{font-size:1.5rem;font-weight:900;}
+.next .out{flex-basis:100%;font-size:.8rem;letter-spacing:.04em;opacity:.9;}
+.next .out b{color:var(--pa-yellow);}
 .editable .next{cursor:pointer;}
 .editable .next:hover{outline:2px solid var(--pa-yellow);outline-offset:2px;}
 .next .pin{display:none;font-size:.58rem;font-weight:900;letter-spacing:.08em;background:var(--pa-yellow);color:#000;border-radius:3px;padding:.12rem .4rem;align-self:center;}
 .next .pin.on{display:inline-block;}
+.next .pin.warn{background:var(--full);color:#fff;}
 .next .edithint{display:none;font-size:.62rem;letter-spacing:.08em;opacity:.65;align-self:center;}
 .editable .next .edithint{display:inline-block;}
+.rule{background:#EAF7EE;border-left:5px solid var(--open);padding:.6rem .9rem;font-size:.84rem;margin:0 0 .9rem;line-height:1.35;}
+.rule b{font-weight:900;}
 .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.76rem;margin:.1rem 0 1rem;}
 .legend span{display:inline-flex;align-items:center;gap:.4rem;}
 .dot{width:13px;height:13px;border-radius:3px;display:inline-block;}
@@ -53,6 +59,12 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .cell.empty .pct,.cell.empty .st{color:#7c8590;}
 .cell.today{outline:3px solid #000;outline-offset:1px;}
 .cell.nextopen{box-shadow:0 0 0 3px var(--pa-yellow);}
+/* days inside the minimum lead: never quotable, whatever the color */
+.cell.lead .fill{opacity:.45;}
+.cell.lead .content{background:repeating-linear-gradient(135deg,rgba(0,0,0,.05) 0 6px,transparent 6px 12px);}
+.cell.lead .st{color:#5b6570;}
+.cell.lead .st::after{content:' · lead';font-weight:700;}
+.cell.full.lead .st{color:#fff;}
 .note{margin-top:1.3rem;background:#FFFBEC;border-left:5px solid var(--pa-yellow);padding:.7rem 1rem;font-size:.85rem;}
 .foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #000;margin-top:1.7rem;padding-top:.7rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);}
 /* editor modal */
@@ -61,17 +73,39 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .card{background:#fff;border-radius:12px;max-width:360px;width:100%;padding:1.2rem 1.3rem;}
 .card h3{margin:0 0 .2em;font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:1.1rem;}
 .card .ro{font-size:.82rem;color:var(--pa-tonal);margin:.2rem 0 .9rem;}
-.card label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--pa-tonal);margin:.7rem 0 .25rem;}
+.card label,.fit label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--pa-tonal);margin:.7rem 0 .25rem;}
 .seg{display:flex;border:1px solid #111;border-radius:7px;overflow:hidden;}
 .seg button{flex:1;padding:.5rem;border:0;background:#fff;font-family:inherit;font-weight:800;cursor:pointer;font-size:.85rem;}
 .seg button.sel{background:#111;color:#fff;}
-.card input,.card select{width:100%;box-sizing:border-box;padding:.5rem .6rem;border:1px solid #111;border-radius:7px;font-family:inherit;font-size:1rem;background:#fff;}
+.card input,.card select,.fit input,.fit select{width:100%;box-sizing:border-box;padding:.5rem .6rem;border:1px solid #111;border-radius:7px;font-family:inherit;font-size:1rem;background:#fff;}
 .row{display:flex;gap:.5rem;margin-top:1.1rem;}
 .row button{flex:1;padding:.6rem;border-radius:7px;border:1px solid #111;font-family:inherit;font-weight:800;cursor:pointer;font-size:.85rem;}
 .row .save{background:var(--pa-yellow);border-color:var(--pa-yellow);}
 .row .clear{background:#fff;}
 .row .cancel{background:#fff;color:var(--pa-tonal);}
 .eff{font-size:.8rem;margin-top:.6rem;font-weight:700;}
+/* ── Where does it fit? (Jean mode) ── */
+.fit{display:none;margin-top:1.4rem;border:2px solid #111;border-radius:10px;padding:1rem 1.2rem 1.2rem;}
+.fit.on{display:block;}
+.fit h2{margin:0;font-size:1.05rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+.fit .why{font-size:.8rem;color:var(--pa-tonal);margin:.2rem 0 .4rem;}
+.fit .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.35rem .7rem;}
+.fit label{margin-top:.5rem;}
+.fit .go{margin-top:1rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;}
+.fit .go button{padding:.6rem 1.2rem;border-radius:7px;border:1px solid #111;background:var(--pa-yellow);font-family:inherit;font-weight:900;cursor:pointer;font-size:.85rem;}
+.fit .need{font-size:.85rem;font-weight:700;}
+.fit .need small{font-weight:400;color:var(--pa-tonal);}
+.fit .rec{margin-top:.9rem;background:#111;color:#fff;border-radius:8px;padding:.7rem 1rem;font-size:.9rem;line-height:1.4;}
+.fit .rec b{color:var(--pa-yellow);}
+.fit table{width:100%;border-collapse:collapse;margin-top:.7rem;font-size:.82rem;}
+.fit th{text-align:left;font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);border-bottom:1px solid #111;padding:.3rem .4rem;}
+.fit td{padding:.35rem .4rem;border-bottom:1px solid #eee;}
+.fit tr.best td{font-weight:900;}
+.tier{display:inline-block;font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:.1rem .4rem;color:#111;}
+.tier.open{background:var(--open);color:#fff;}
+.tier.limited{background:var(--limited);}
+.tier.full{background:var(--full);color:#fff;}
+.fit .caveat{font-size:.74rem;color:var(--pa-tonal);margin-top:.7rem;line-height:1.4;}
 </style>
 </head>
 <body>
@@ -84,24 +118,50 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
   <div class="sub">Press capacity, at a glance</div>
   <h1>Production Availability</h1>
   <div class="updated" id="updated">Loading…</div>
-  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date. PMs don't see this.</div>
+  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date or change the minimum lead. PMs don't see this. <button id="jeanexit">Exit Jean mode</button></div>
 
   <div class="next" id="nextbar">
     <span class="lbl">Next open press day</span>
     <span class="day" id="nextday">—</span>
     <span class="pin" id="nextpin">Manual</span>
     <span class="edithint" id="nexthint">tap to set</span>
+    <span class="out" id="nextout">—</span>
+  </div>
+
+  <div class="rule" id="rule">
+    <b>Only GREEN days are openings.</b> Yellow (Limited) and red (Full) days are never available to promise, and no day inside the minimum lead is either, whatever its color. Quote the next open press day shown above.
   </div>
 
   <div class="legend">
-    <span><i class="dot" style="background:var(--full)"></i> Full 100%+</span>
-    <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+</span>
-    <span><i class="dot" style="background:var(--open)"></i> Open under 70%</span>
+    <span><i class="dot" style="background:var(--open)"></i> Open under 70% · an opening</span>
+    <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+ · not an opening</span>
+    <span><i class="dot" style="background:var(--full)"></i> Full 100%+ · not an opening</span>
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (525 min)</span>
   </div>
 
   <div id="cal"></div>
+
+  <!-- Jean's allocation recommender -->
+  <div class="fit" id="fit">
+    <h2>Where does it fit?</h2>
+    <div class="why">Enter the project. The tool sizes it with the same Recurve formula as the Estimator, then ranks the press days by how much room is left after it lands. It recommends, it does not book.</div>
+    <div class="grid">
+      <div><label>Product</label><select id="f-product"><option>Bandana</option><option>Apparel</option></select></div>
+      <div><label>Quantity</label><input id="f-qty" type="number" min="1" step="1" placeholder="500"></div>
+      <div><label>Colors (per imprint)</label><input id="f-colors" type="number" min="1" step="1" value="1"></div>
+      <div><label>Ink</label><select id="f-ink"><option>Plastisol</option><option>Waterbase</option><option>Discharge</option></select></div>
+      <div><label>Pallet</label><select id="f-pallet"><option value="">Unknown</option><option>8</option><option>10</option><option>16</option><option>22</option></select></div>
+      <div><label>Imprints</label><input id="f-imprints" type="number" min="1" step="1" value="1"></div>
+      <div><label>Minutes (override)</label><input id="f-min" type="number" min="0" step="5" placeholder="from Estimator"></div>
+      <div><label>Earliest day</label><input id="f-from" type="date"></div>
+      <div><label>Must print before</label><input id="f-due" type="date"></div>
+      <div><label>Rank by</label><select id="f-mode"><option value="room">Most room left (keeps days green)</option><option value="fill">Fill the day (closest to full, no overflow)</option></select></div>
+    </div>
+    <div class="go"><button id="f-go">Recommend</button><span class="need" id="f-need"></span></div>
+    <div id="f-out"></div>
+    <div class="caveat">Not checked here: the 4–5 projects per day changeover cap, the 1,800-unit single-stroke wall, screen readiness, and the client's ship date. The gauge only carries minutes. Confirm those on the board before placing.</div>
+  </div>
 
   <div class="note" id="note">
     A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. To place or move a job, talk to Jean.
@@ -135,7 +195,10 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 <div class="ov" id="ovn">
   <div class="card">
     <h3>Next open press day</h3>
-    <div class="ro">Pin the date PMs see as next available, or let the gauge compute it from the load.</div>
+    <div class="ro">Pin the date PMs see as next available, or let the gauge compute it from the load and the minimum lead.</div>
+    <label>Minimum lead (business days)</label>
+    <input id="nx-lead" type="number" min="0" max="60" step="1" value="15">
+    <div class="eff" id="nx-floor">—</div>
     <label>Show as next available</label>
     <select id="nx-sel"></select>
     <div class="eff" id="nx-auto">—</div>
@@ -146,6 +209,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
   </div>
 </div>
 
+<script src="../estimator/estimate.js"></script>
 <script>
 // ── config ──
 // Data flows through an n8n webhook (NO API key in this public page).
@@ -153,7 +217,24 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 // falls back to sample data + localStorage, so it never looks broken.
 const GAUGE_API='https://primary-production-079f9.up.railway.app/webhook/gauge';
 const CAP={Standard:420,OT:525};
-const JEAN = new URLSearchParams(location.search).get('mode')==='jean';
+const LEAD_DEFAULT=15;   // business days: nothing sooner is offered as "next open" (2026-09-03, Jean)
+const WEEKS=7;           // calendar depth; must reach past the lead floor with room to spare
+const OPEN_BELOW=70;     // pct under which a day counts as an opening (green)
+
+// JEAN mode: the front door loads this page in a same-origin iframe with a bare
+// src, so the iframe's own URL never carries ?mode=jean. Check the top window's
+// URL too, and make the mode stick per-browser: ?mode=jean turns it on until
+// ?mode=view (or the Exit button) turns it off.
+function jeanMode(){
+  let m=new URLSearchParams(location.search).get('mode');
+  if(!m){try{if(window.top!==window)m=new URLSearchParams(window.top.location.search).get('mode');}catch(e){}}
+  try{
+    if(m==='jean'){localStorage.setItem('gauge_jeanmode','1');return true;}
+    if(m==='view'){localStorage.removeItem('gauge_jeanmode');return false;}
+    return localStorage.getItem('gauge_jeanmode')==='1';
+  }catch(e){return m==='jean';}
+}
+const JEAN=jeanMode();
 
 // ── sample fallback (used only until the n8n feed populates gauge_load) ──
 const SAMPLE={
@@ -173,10 +254,17 @@ const START=mondayOf(TODAY);
 const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
 let LOAD={}, ASOF='', PULLEDAT='', OVERRIDES={}, selected=null;
-let MANUAL_NEXT=null, AUTO_NEXT=null, VISIBLE=[];
+let MANUAL_NEXT=null, AUTO_NEXT=null, VISIBLE=[], MIN_LEAD=LEAD_DEFAULT, FLOOR=null;
 
 function addDays(iso,n){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d+n)).toISOString().slice(0,10);}
 function fmt(iso){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
+function dowOf(iso){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d)).getUTCDay();} // 0=Sun
+function isBiz(iso){const w=dowOf(iso);return w>=1&&w<=5;}
+// n business days after iso (iso itself not counted)
+function bizAdd(iso,n){let d=iso,k=0;while(k<n){d=addDays(d,1);if(isBiz(d))k++;}return d;}
+// business days strictly after a, up to and including b
+function bizBetween(a,b){let d=a,k=0;while(d<b){d=addDays(d,1);if(isBiz(d))k++;}return k;}
+function plural(n,w){return n+' '+w+(n===1?'':'s');}
 
 async function gaugeRead(){try{const r=await fetch(GAUGE_API);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function gaugeWrite(overrides){try{const r=await fetch(GAUGE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({overrides})});return r.ok;}catch(e){return false;}}
@@ -189,23 +277,26 @@ function eff(iso){
   const cap=CAP[station]||420;
   const pct=minutes>0?Math.round(minutes/cap*100):0;
   let cls='empty',st='Open';
-  if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=70){cls='limited';st='Limited';} else {cls='open';st='Open';} }
-  return {station,minutes,cap,pct,cls,st,fill:Math.min(pct,100),open:pct<70,ot:station==='OT',adj:ov.add||0,base};
+  if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=OPEN_BELOW){cls='limited';st='Limited';} else {cls='open';st='Open';} }
+  return {station,minutes,cap,pct,cls,st,fill:Math.min(pct,100),open:pct<OPEN_BELOW,ot:station==='OT',adj:ov.add||0,base};
 }
 
 function render(){
+  FLOOR=bizAdd(TODAY,MIN_LEAD);
   const cal=document.getElementById('cal');cal.innerHTML='';
   const tier={full:'var(--full)',limited:'var(--limited)',open:'var(--open)',empty:'var(--empty)'};
   const dh=document.createElement('div');dh.className='dow';DOW.forEach(d=>{const e=document.createElement('div');e.textContent=d;dh.appendChild(e);});cal.appendChild(dh);
   let autoNext=null;VISIBLE=[];
-  for(let w=0;w<5;w++){
+  for(let w=0;w<WEEKS;w++){
     const row=document.createElement('div');row.className='wk';
     for(let i=0;i<6;i++){
       const iso=addDays(START,w*7+i);const f=eff(iso);
-      if(i<5&&iso>TODAY)VISIBLE.push({iso:iso,pct:f.pct,st:f.st}); // Mon–Fri future days, selectable as next open
-      if(!autoNext&&iso>TODAY&&f.open&&i<5)autoNext=iso; // i<5 = Mon–Fri; weekends are never offered as next open
+      const inLead=iso>TODAY&&iso<FLOOR;
+      if(i<5&&iso>TODAY)VISIBLE.push({iso:iso,pct:f.pct,st:f.st,lead:inLead}); // Mon–Fri future days, selectable as next open
+      if(!autoNext&&iso>=FLOOR&&f.open&&i<5)autoNext=iso; // i<5 = Mon–Fri; weekends are never offered; nothing inside the lead is
       const c=document.createElement('div');c.className='cell '+f.cls;c.dataset.iso=iso;
       if(iso===TODAY)c.classList.add('today');
+      if(inLead&&i<5)c.classList.add('lead');
       const dd=Number(iso.split('-')[2]);
       const pctTxt=f.cls==='empty'?'—':f.pct+'%';
       const adjTag=f.adj?`<span class="adj">${f.adj>0?'+':''}${f.adj}</span>`:'';
@@ -221,9 +312,20 @@ function render(){
   if(MANUAL_NEXT&&MANUAL_NEXT<=TODAY)MANUAL_NEXT=null; // drop a pin that has aged into the past
   const manual=(MANUAL_NEXT&&VISIBLE.some(v=>v.iso===MANUAL_NEXT))?MANUAL_NEXT:null;
   const nextOpen=manual||autoNext;
-  if(nextOpen){const el=[...document.querySelectorAll('.cell')].find(c=>c.dataset.iso===nextOpen);if(el)el.classList.add('nextopen');document.getElementById('nextday').textContent=fmt(nextOpen);}
-  else document.getElementById('nextday').textContent='None in range';
-  document.getElementById('nextpin').classList.toggle('on',!!manual&&JEAN);
+  const out=document.getElementById('nextout');
+  if(nextOpen){
+    const el=[...document.querySelectorAll('.cell')].find(c=>c.dataset.iso===nextOpen);if(el)el.classList.add('nextopen');
+    document.getElementById('nextday').textContent=fmt(nextOpen);
+    const n=bizBetween(TODAY,nextOpen);
+    out.innerHTML=`We are booking <b>${plural(n,'business day')}</b> out · minimum lead ${plural(MIN_LEAD,'business day')} (${fmt(FLOOR)} or later)`;
+  } else {
+    document.getElementById('nextday').textContent='None in range';
+    out.innerHTML=`No green day on or after the minimum lead of <b>${plural(MIN_LEAD,'business day')}</b> (${fmt(FLOOR)}) inside the next ${WEEKS} weeks. Talk to Jean.`;
+  }
+  const pin=document.getElementById('nextpin');
+  pin.classList.toggle('on',!!manual&&JEAN);
+  pin.classList.toggle('warn',!!manual&&manual<FLOOR);
+  pin.textContent=(manual&&manual<FLOOR)?'Manual · inside the lead':'Manual';
   renderStamp();
 }
 
@@ -273,38 +375,115 @@ document.getElementById('ed-save').onclick=async()=>{
   if(Object.keys(o).length)OVERRIDES[selected]=o;else delete OVERRIDES[selected];
   await persist();document.getElementById('ov').classList.remove('on');render();
 };
-// ── Jean next-open editor ──
+// ── Jean next-open editor (pin + minimum lead) ──
+function leadInput(){const v=Number(document.getElementById('nx-lead').value);return (isFinite(v)&&v>=0)?Math.min(60,Math.round(v)):LEAD_DEFAULT;}
+function updateFloorHint(){const L=leadInput();document.getElementById('nx-floor').textContent=`Earliest quotable day: ${fmt(bizAdd(TODAY,L))}`;}
 function openNextEditor(){
+  document.getElementById('nx-lead').value=MIN_LEAD;
+  updateFloorHint();
   const sel=document.getElementById('nx-sel');sel.innerHTML='';
   const o0=document.createElement('option');o0.value='';o0.textContent='Auto — let the gauge decide';sel.appendChild(o0);
-  VISIBLE.forEach(v=>{const o=document.createElement('option');o.value=v.iso;o.textContent=`${fmt(v.iso)} — ${v.pct}% ${v.st}`;sel.appendChild(o);});
+  VISIBLE.forEach(v=>{const o=document.createElement('option');o.value=v.iso;o.textContent=`${fmt(v.iso)} — ${v.pct}% ${v.st}${v.lead?' (inside the lead)':''}`;sel.appendChild(o);});
   sel.value=(MANUAL_NEXT&&VISIBLE.some(v=>v.iso===MANUAL_NEXT))?MANUAL_NEXT:'';
   document.getElementById('nx-auto').textContent=AUTO_NEXT?`Auto would show: ${fmt(AUTO_NEXT)}`:'Auto would show: none in range';
   document.getElementById('ovn').classList.add('on');
 }
+document.getElementById('nx-lead').oninput=updateFloorHint;
 document.getElementById('nx-cancel').onclick=()=>document.getElementById('ovn').classList.remove('on');
 document.getElementById('nx-save').onclick=async()=>{
+  MIN_LEAD=leadInput();
   MANUAL_NEXT=document.getElementById('nx-sel').value||null;
   await persist();document.getElementById('ovn').classList.remove('on');render();
+};
+document.getElementById('jeanexit').onclick=()=>{
+  try{localStorage.removeItem('gauge_jeanmode');}catch(e){}
+  // strip ?mode=jean from whichever URL carried it so the reload does not re-arm
+  try{const u=new URL(location.href);u.searchParams.delete('mode');history.replaceState(null,'',u);}catch(e){}
+  try{if(window.top!==window){const u=new URL(window.top.location.href);u.searchParams.delete('mode');window.top.history.replaceState(null,'',u);}}catch(e){}
+  location.reload();
 };
 
 async function persist(){
   if(MANUAL_NEXT)OVERRIDES.__nextOpen=MANUAL_NEXT;else delete OVERRIDES.__nextOpen;
-  localStorage.setItem('gauge_overrides',JSON.stringify(OVERRIDES));
-  localStorage.setItem('gauge_nextopen',MANUAL_NEXT||'');
+  if(MIN_LEAD!==LEAD_DEFAULT)OVERRIDES.__minLead=MIN_LEAD;else delete OVERRIDES.__minLead;
+  try{localStorage.setItem('gauge_overrides',JSON.stringify(OVERRIDES));localStorage.setItem('gauge_nextopen',MANUAL_NEXT||'');}catch(e){}
   const ok=await gaugeWrite(OVERRIDES);
-  delete OVERRIDES.__nextOpen; // keep the in-memory per-day map clean (transport-only key)
+  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead; // keep the in-memory per-day map clean (transport-only keys)
   if(!ok)console.warn('Override saved locally; n8n gauge webhook not live yet.');
 }
 
+// ── Where does it fit? (Jean mode) ──
+function fitNeed(){
+  const ov=Number(document.getElementById('f-min').value);
+  const imprints=Math.max(1,Math.round(Number(document.getElementById('f-imprints').value)||1));
+  if(ov>0)return {need:Math.round(ov),src:'minutes entered',imprints};
+  if(!window.PA_ESTIMATE)return {need:0,src:'estimator formula not loaded',imprints};
+  const e=PA_ESTIMATE.estimate({product:document.getElementById('f-product').value,qty:document.getElementById('f-qty').value,
+    colors:document.getElementById('f-colors').value,ink:document.getElementById('f-ink').value,pallet:document.getElementById('f-pallet').value});
+  if(e.status!=='OK')return {need:0,src:e.reason||'incomplete (need quantity + colors)',imprints};
+  return {need:Math.round(e.total*imprints),src:`${e.total} min per imprint × ${imprints} · ${e.derivation}`,imprints,est:e};
+}
+function recommend(){
+  const {need,src}=fitNeed();
+  const needEl=document.getElementById('f-need'),out=document.getElementById('f-out');
+  if(!need){needEl.innerHTML=`<small>${src}</small>`;out.innerHTML='';return;}
+  needEl.innerHTML=`Needs <b>${need} min</b> <small>· ${src}</small>`;
+  const from=document.getElementById('f-from').value||addDays(TODAY,1);
+  const due=document.getElementById('f-due').value||'';
+  const mode=document.getElementById('f-mode').value;
+  const days=[];
+  for(let k=0;k<WEEKS*7;k++){const iso=addDays(START,k);if(!isBiz(iso)||iso<=TODAY||iso<from||(due&&iso>=due))continue;
+    const f=eff(iso);const room=f.cap-f.minutes;const after=f.minutes+need;const pctAfter=Math.round(after/f.cap*100);
+    days.push({iso,f,room,pctAfter,fits:need<=room,tierAfter:pctAfter>=100?'full':pctAfter>=OPEN_BELOW?'limited':'open'});}
+  if(!days.length){out.innerHTML='<div class="rec">No press days in that window. Widen the dates.</div>';return;}
+  const fits=days.filter(d=>d.fits);
+  let ranked=fits.slice();
+  if(mode==='fill')ranked.sort((a,b)=>b.pctAfter-a.pctAfter||a.iso.localeCompare(b.iso));
+  else ranked.sort((a,b)=>a.pctAfter-b.pctAfter||a.iso.localeCompare(b.iso));
+  const greenFirst=fits.filter(d=>d.tierAfter==='open').sort((a,b)=>a.iso.localeCompare(b.iso))[0];
+  let html='';
+  if(ranked.length){
+    const b=ranked[0];
+    html+=`<div class="rec">Recommend <b>${fmt(b.iso)}</b> — ${b.f.pct}% now → ${b.pctAfter}% after (${b.tierAfter==='open'?'stays green':b.tierAfter==='limited'?'goes Limited':'goes Full'}), ${b.room-need} min still free.`;
+    if(greenFirst&&greenFirst.iso!==b.iso)html+=`<br>Earliest day that stays green: <b>${fmt(greenFirst.iso)}</b> (${greenFirst.f.pct}% → ${greenFirst.pctAfter}%).`;
+    if(!greenFirst)html+=`<br>No single day stays green after this lands.`;
+    if(b.iso<FLOOR)html+=`<br>⚠ Inside the ${MIN_LEAD}-day lead. Fine for a promised or rush job, not for a new quote.`;
+    html+='</div>';
+  } else {
+    // no single day: split across the two roomiest days in the window, earliest first
+    const top=days.slice().sort((a,b)=>b.room-a.room).slice(0,2).sort((a,b)=>a.iso.localeCompare(b.iso));
+    const cover=top.reduce((s,d)=>s+Math.max(0,d.room),0);
+    if(top.length===2&&cover>=need){
+      const a=Math.min(top[0].room,need),c=need-a;
+      html+=`<div class="rec">No single day has ${need} min free. <b>Split it:</b> ${a} min on <b>${fmt(top[0].iso)}</b> (${top[0].f.pct}% → ${Math.round((top[0].f.minutes+a)/top[0].f.cap*100)}%) + ${c} min on <b>${fmt(top[1].iso)}</b> (${top[1].f.pct}% → ${Math.round((top[1].f.minutes+c)/top[1].f.cap*100)}%). Schedule it as one imprint at full quantity and let production split.</div>`;
+    } else {
+      html+=`<div class="rec">Does not fit in this window, even split across the two roomiest days (${cover} min free between them). Widen the dates, open OT, or move the conversation to the client date.</div>`;
+    }
+  }
+  html+='<table><thead><tr><th>Day</th><th>Now</th><th>Free</th><th>After</th><th>Verdict</th></tr></thead><tbody>';
+  const show=(ranked.length?ranked:days.slice().sort((a,b)=>b.room-a.room)).slice(0,8);
+  show.forEach((d,i)=>{html+=`<tr class="${i===0&&ranked.length?'best':''}"><td>${fmt(d.iso)}${d.f.ot?' <span class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900">OT</span>':''}${d.iso<FLOOR?' <small>(lead)</small>':''}</td><td>${d.f.pct}% · ${d.f.minutes} min</td><td>${d.room} min</td><td>${d.pctAfter}%</td><td>${d.fits?`<span class="tier ${d.tierAfter}">${d.tierAfter==='open'?'stays green':d.tierAfter}</span>`:'<span class="tier full">does not fit</span>'}</td></tr>`;});
+  html+='</tbody></table>';
+  out.innerHTML=html;
+}
+document.getElementById('f-go').onclick=recommend;
+['f-qty','f-colors','f-imprints','f-min'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')recommend();}));
+
 // ── boot ──
 (async function(){
-  if(JEAN){document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('footmode').textContent='Jean mode';document.getElementById('nextbar').onclick=openNextEditor;}
+  if(JEAN){
+    document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('fit').classList.add('on');
+    document.getElementById('footmode').textContent='Jean mode';document.getElementById('nextbar').onclick=openNextEditor;
+    document.getElementById('f-from').value=addDays(TODAY,1);
+    if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().catch(()=>{});
+  }
   const data=await gaugeRead();
   if(data&&data.load&&Object.keys(data.load).length){LOAD=data.load;ASOF=data.asOf||'(unknown)';PULLEDAT=data.pulledAt||'';OVERRIDES=(data.overrides&&typeof data.overrides==='object')?data.overrides:{};}
-  else {LOAD=SAMPLE.load;ASOF=SAMPLE.asOf;PULLEDAT='';OVERRIDES=JSON.parse(localStorage.getItem('gauge_overrides')||'{}');}
-  MANUAL_NEXT=(typeof OVERRIDES.__nextOpen==='string'?OVERRIDES.__nextOpen:'')||localStorage.getItem('gauge_nextopen')||null;
-  delete OVERRIDES.__nextOpen;
+  else {LOAD=SAMPLE.load;ASOF=SAMPLE.asOf;PULLEDAT='';try{OVERRIDES=JSON.parse(localStorage.getItem('gauge_overrides')||'{}');}catch(e){OVERRIDES={};}}
+  let ls='';try{ls=localStorage.getItem('gauge_nextopen')||'';}catch(e){}
+  MANUAL_NEXT=(typeof OVERRIDES.__nextOpen==='string'?OVERRIDES.__nextOpen:'')||ls||null;
+  const ml=Number(OVERRIDES.__minLead);MIN_LEAD=(OVERRIDES.__minLead!==undefined&&isFinite(ml)&&ml>=0)?Math.min(60,Math.round(ml)):LEAD_DEFAULT;
+  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;
   if(MANUAL_NEXT&&MANUAL_NEXT<=TODAY)MANUAL_NEXT=null;
   render();
   setInterval(renderStamp,60000); // keep "X ago" + fresh/stale current if the page stays open
