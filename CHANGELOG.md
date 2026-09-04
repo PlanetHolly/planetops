@@ -3,6 +3,18 @@
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
 
+## 2026-09-04 — Jean-mode SLACK view: which minutes on a day can move (wiggle / expedite / locked) — feed LIVE, page in PR #52
+- Who:    Jean (via Claude, Fable). Ask: "at a glance, which days have projects that could move when I need to fit a rush." Decision: show BOTH measures, two colors, with a legend.
+- Feed (`Utw3VU0cu8aKLTcf`, **LIVE** — published via MCP `update_workflow` + `publish_workflow`, activeVersionId `4945f5a0`): the "Aggregate press load" code node now also emits `load[date].jobs = [{id, m, pd, cd}]` (job number, minutes, Prod. Due, Cust. Due) for every Auto Press row. Job number only, no nickname (the gauge webhook is open). Minutes/station/capacity/pct unchanged; guard + publish path untouched (`payload.load` passes through). Offline test against `power_scheduler_2026-09-04_1940.csv` matched the live gauge on all 21 days; live run after export `_2051.csv` → `pulledAt` advanced, jobs present on 21/21 days, JSON ~6 KB. Credentials survived (Dropbox + state-api nodes ran).
+- Page (`capacity/index.html`, Jean mode only, PMs see nothing new):
+  - Per day the jobs are classified, disjoint, summing to the day's minutes: **▲ wiggle** (blue) = prod due ≥ `SLACK_PROD` business days after the print day → moves without touching the client · **✈ expedite** (purple) = not wiggle, but client due ≥ `SLACK_CUST` business days after → moves if we pay expedited shipping · **locked** = the rest. Defaults 1 / 3 business days, editable in the black-bar editor, persisted as `overrides.__slackProd` / `__slackCust` (only when non-default).
+  - Cells show chips with the minutes; legend + a plain-English key under it; tapping a day lists each job with prod due, client due, slack in business days, and its tag. The fit recommender table gained a "Movable" column.
+- Proof (Playwright, live JSON, POST intercepted): view mode shows no chips/legend · 9/28 = ▲134 wiggle (`27755` +5bd, `27890` +10bd) + ✈195 expedite (`27993`, `27345` client Oct 1) · 9/25 = ✈367 (all three jobs prod-due day-of, client due Sep 30/Oct 1) · 9/9, 9/18 = locked · raising the client threshold to 5 flips 9/25 to locked and the legend number follows · zero console errors.
+- 🔍 Finding from the data, NOT acted on: **9/18 carries `27246` (5 imprints, 383 min) with prod due Sep 4 and client due Sep 11** — the job is scheduled two weeks AFTER its client date. The slack view reads it as "locked" because due < print day; a "late" tag (due before the print day) would make this visible at a glance. Jean's call.
+- ⚠ Still open from 9/3: feed reports OT `capacity:600`; page recomputes off 525.
+- Build doc updated?  no — this entry is the record.
+
+
 ## 2026-09-03 — Availability gauge: Jean mode through the front door · 15-business-day lead · green-only rule · "Where does it fit?" recommender — PR #49 (`jean/availability-adjustments` → `frontdoor-gate`), NOT yet merged
 - Who:    Jean (via Claude, Fable). Four asks in one message; all in `capacity/index.html`, nothing else touched. Supersedes PR #14 (close it when #49 merges).
 - 1 Jean mode: the front door iframes the page with a bare `src`, so `?mode=jean` never reached it and Jean lost the manual next-open pick. Page now also reads the TOP window's `?mode=` (same origin) and makes the mode sticky per browser in `localStorage.gauge_jeanmode`; `?mode=view` or the new **Exit Jean mode** button clears it. To arm it inside the shell: put `?mode=jean` BEFORE the `#` on the front-door URL once, e.g. `/frontdoor/?mode=jean#/planetops/floor/capacity`. ⚠ Per-origin: staging and production are armed separately.
