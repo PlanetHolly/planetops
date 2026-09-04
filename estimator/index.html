@@ -37,12 +37,17 @@ th{background:var(--pa-grey);font-weight:700;text-transform:uppercase;letter-spa
 td.l,th.l{text-align:left;}
 tr.incomplete td{background:#f4f4f4;color:#999;}
 tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fcfcfc;}
+th.tot{background:var(--pa-yellow);color:var(--pa-black);border-left:2px solid var(--pa-black);border-right:2px solid var(--pa-black);}
+td.tot{background:#FFF3C4;font-weight:900;border-left:2px solid var(--pa-black);border-right:2px solid var(--pa-black);}
+tr.totals td.tot{background:var(--pa-yellow);}
 .pill{display:inline-block;font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 7px;border-radius:10px;}
 .pill.ok{background:#C6EFCE;color:#0a5a1e;}
 .pill.bad{background:#eee;color:#777;}
 .t-screen{background:#E8EEF7;color:#1d3c66;}
 .t-heat{background:#FBE6D4;color:#8a4b16;}
 .t-post{background:#E6F2E6;color:#1e5a2a;}
+.t-manual{background:#EFE6F7;color:#4b1d78;}
+.pill.warn{background:#FFE2B8;color:#7a4300;}
 .prov{color:#8a4b16;font-weight:700;}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
 @media(max-width:760px){.grid{grid-template-columns:1fr;}}
@@ -82,6 +87,7 @@ tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fc
     <span class="pill t-screen">Screen</span> screen print · $140/hr
     <span class="pill t-heat">Heat*</span> DTF heat press · $34/hr (*provisional)
     <span class="pill t-post">Post</span> finishing · $26/hr
+    <span class="pill t-manual">Manual*</span> manual press · screen rate, own print curve (*provisional)
   </div>
   <div class="drop" id="drop">
     <strong>Drop CSV here</strong>
@@ -114,6 +120,7 @@ tr.totals td{font-weight:900;border-top:3px solid var(--pa-black);background:#fc
           <div class="field"><label>Colors (screens)</label><input id="q_colors" type="number" min="1" value="2" /></div>
           <div class="field"><label>Quantity</label><input id="q_qty" type="number" min="1" value="100" /></div>
         </div>
+        <div class="field"><label>Press</label><select id="q_press"><option value="">Auto Press</option><option value="Manual Press">Manual Press (provisional curve)</option></select></div>
         <div class="grid">
           <div class="field"><label>Pallet</label><select id="q_pallet"><option value='22"'>22"</option><option value='16"'>16"</option><option value='10"'>10"</option><option value='8"'>8"</option><option value='4"'>4"</option></select></div>
           <div class="field"><label>Strokes</label><input id="q_strokes" type="number" min="1" value="2" /></div>
@@ -198,7 +205,7 @@ function render(rows){
     product:pick(o,['Project Type']), colors:pick(o,['Screen Count']),
     qty:pick(o,['Quantity']), ink:pick(o,['Ink/Application Type','Ink / Application Type']),
     pallet:pick(o,['Pallet']), postType:pick(o,['Post Production Type']),
-    inkChange:pick(o,['Ink Change'])
+    inkChange:pick(o,['Ink Change']), station:pick(o,['Station'])
   }));
   document.getElementById('results').classList.remove('hide');
   document.getElementById('saveLog').textContent='';
@@ -212,24 +219,25 @@ function draw(){
   const shown=hide?ok:results;
   const totMin=ok.reduce((a,r)=>a+r.total,0), totCost=ok.reduce((a,r)=>a+r.cost,0);
   const byType=t=>ok.filter(r=>r.workType===t).length;
-  const cols=['Type','Imprint','Nickname','Qty','Ink / Finish','Colors','Setup','Process','Dry','Total min','Rate','Cost','Units/hr','Status'];
-  let html='<thead><tr>'+cols.map((c,i)=>'<th class="'+(i>=1&&i<=2||i===4?'l':'')+'">'+c+'</th>').join('')+'</tr></thead><tbody>';
+  const nManual=ok.filter(r=>r.press==='manual').length, nIssue=ok.filter(r=>r.manualIssue).length;
+  const cols=['Type','Imprint','Nickname','Qty','Ink / Finish','Colors','Setup','Process','Dry','Teardown','Total min','Rate','Cost','Units/hr','Status'];
+  let html='<thead><tr>'+cols.map((c,i)=>'<th class="'+(i>=1&&i<=2||i===4?'l':c==='Total min'?'tot':'')+'">'+c+'</th>').join('')+'</tr></thead><tbody>';
   shown.forEach(r=>{
     const o=r.status==='OK';
     const inkOrFin=r.workType==='post_prod'?r.finishing:r.ink;
     html+='<tr class="'+(o?'':'incomplete')+'">'+
-      '<td>'+(TYPE_PILL[r.workType]||'<span class="pill bad">?</span>')+'</td>'+
+      '<td>'+(r.press==='manual'?'<span class="pill t-manual">Manual*</span>':(TYPE_PILL[r.workType]||'<span class="pill bad">?</span>'))+'</td>'+
       td(r.imprintId,'l')+td(r.jobName,'l')+td(r.qty)+td(inkOrFin,'l')+
       td(r.workType==='screen_print'?r.colors:'—')+
-      td(o?r.setup:'—')+td(o?r.process:'—')+td(o?r.dry:'—')+td(o?r.total:'—')+
+      td(o?r.setup:'—')+td(o?r.process:'—')+td(o?r.dry:'—')+td(o?(r.teardown!=null?r.teardown:'—'):'—')+td(o?r.total:'—','tot')+
       td(o?('$'+r.rate):'—')+td(o?('$'+r.cost.toFixed(2)+(r.provisional?' *':'')):'—',(r.provisional?'prov':''))+
       td(o?r.unitsPerHr:'—')+
-      '<td>'+(o?'<span class="pill ok">OK</span>':'<span class="pill bad">Incomplete</span>')+'</td></tr>';
+      '<td>'+(o?'<span class="pill ok">OK</span>':'<span class="pill bad">Incomplete</span>')+(r.manualIssue?' <span class="pill warn" title="Outside the manual-press rules: 1-2 colors, plastisol or waterbase">⚠ '+r.manualIssue+'</span>':'')+'</td></tr>';
   });
-  html+='<tr class="totals">'+td('TOTAL','l')+td(ok.length+' job(s)','l')+'<td colspan="7"></td>'+td(r1(totMin)+' min')+td('')+td('$'+totCost.toFixed(2))+'<td colspan="2"></td></tr>';
+  html+='<tr class="totals">'+td('TOTAL','l')+td(ok.length+' job(s)','l')+'<td colspan="8"></td>'+td(r1(totMin)+' min','tot')+td('')+td('$'+totCost.toFixed(2))+'<td colspan="2"></td></tr>';
   html+='</tbody>';
   document.getElementById('tbl').innerHTML=html;
-  document.getElementById('summary').textContent=results.length+' rows · '+ok.length+' projected ('+byType('screen_print')+' screen / '+byType('heat_press')+' heat / '+byType('post_prod')+' post) · '+inc+' incomplete'+(hide&&inc?' (hidden)':'');
+  document.getElementById('summary').textContent=results.length+' rows · '+ok.length+' projected ('+byType('screen_print')+' screen / '+byType('heat_press')+' heat / '+byType('post_prod')+' post) · '+inc+' incomplete'+(hide&&inc?' (hidden)':'')+(nManual?' · '+nManual+' on manual'+(nIssue?' ('+nIssue+' outside manual rules)':''):'');
 }
 
 document.getElementById('hideInc').addEventListener('change',draw);
@@ -258,7 +266,7 @@ const SAVE_GAP_MS=3000,SAVE_RETRY_GAP_MS=6000;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function postSave(r){
   try{const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,inkChange:r.inkChange,jobName:r.jobName,imprintId:r.imprintId})});
+    body:JSON.stringify({mode:'save',product:r.product,colors:r.colors,qty:r.qty,ink:r.ink,pallet:r.pallet,strokes:r.strokes,postType:r.finishing,inkChange:r.inkChange,jobName:r.jobName,imprintId:r.imprintId,station:r.press==='manual'?'Manual Press':''})});
     return res.ok;}catch(e){return false;}
 }
 document.getElementById('saveAllBtn').addEventListener('click',async()=>{
@@ -303,8 +311,9 @@ function showType(){
 }
 function quick(){
   const t=val('q_type');let e,note='';
-  if(t==='screen'){e=estimate({product:val('q_product'),ink:val('q_ink'),colors:val('q_colors'),qty:val('q_qty'),pallet:val('q_pallet'),strokes:val('q_strokes')});
-    note='Setup '+(e.setupType||'')+(e.setupType==='Specialty'?' (waterbase/discharge premium)':'')+' · scaler '+Math.round((e.scaler||0)*100)+'% · $'+CFG.rate.screen_print+'/hr';}
+  if(t==='screen'){e=estimate({product:val('q_product'),ink:val('q_ink'),colors:val('q_colors'),qty:val('q_qty'),pallet:val('q_pallet'),strokes:val('q_strokes'),station:val('q_press')});
+    note='Setup '+(e.setupType||'')+(e.setupType==='Specialty'?' (waterbase/discharge premium)':'')+' · scaler '+Math.round((e.scaler||0)*100)+'% · $'+CFG.rate.screen_print+'/hr'
+      +(e.press==='manual'?' · MANUAL print curve (provisional, n=6) — setup/teardown still auto':'')+(e.manualIssue?' · ⚠ outside manual rules: '+e.manualIssue:'');}
   else if(t==='heat'){e=estimate({product:'Apparel',ink:val('q_heatink'),qty:val('q_heatqty'),presses:val('q_presses'),pallet:'16"'});
     note='Heat press · $'+CFG.rate.heat_press+'/hr · PROVISIONAL (Heat reference, not yet validated vs actuals)';}
   else{e=estimate({postType:val('q_finish'),qty:val('q_postqty')});note='Post production · $'+CFG.rate.post_prod+'/hr · finishing-time × qty';}
@@ -324,7 +333,7 @@ function quick(){
     (e.unitsPerHr?'<div class="row"><span class="lab">Throughput</span><span>~'+e.unitsPerHr+' units/hr</span></div>':'')+derivRow;
 }
 document.getElementById('q_type').addEventListener('change',showType);
-['q_product','q_ink','q_colors','q_qty','q_pallet','q_strokes','q_heatink','q_heatqty','q_presses','q_finish','q_postqty'].forEach(id=>document.getElementById(id).addEventListener('input',quick));
+['q_product','q_ink','q_colors','q_qty','q_pallet','q_strokes','q_press','q_heatink','q_heatqty','q_presses','q_finish','q_postqty'].forEach(id=>document.getElementById(id).addEventListener('input',quick));
 showType();
 
 /* ---------- Formulas & Rates panel (live values, visible) ---------- */
@@ -345,6 +354,7 @@ function renderRates(){
     +'<div style="'+box+'"><strong>HEAT PRESS</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Setup = '+C.heatSetup+' min · Press = ('+C.heatPalletSec+'s × presses + adder) ÷ 60 × qty</p>'
     +'<table><tr><th style="text-align:left">Application</th><th>adder s/u</th></tr>'+map(C.heatInk,'s')+'</table>'
     +'<p style="margin:.8rem 0 .2rem"><strong>COST RATES</strong></p><table><tr><th style="text-align:left">Type</th><th>$/hr</th></tr>'+map(C.rate,'')+'</table></div>'
+    +'<div style="'+box+'"><strong>MANUAL PRESS <span class="prov">*provisional</span></strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Picked when the Station says Manual. Print = per-piece only (n=6 timed runs, 2026-09-04): Bandana '+C.manualCurve.Bandana.v+' min/pc · Apparel '+C.manualCurve.Apparel.v+' min/pc.<br>Setup, teardown and dry use the auto formulas until manual setup is timed.<br>Manual rules: 1–'+C.manualRules.maxColors+' colors · '+C.manualRules.inks.join(' / ')+' · no discharge · inside-neck prints always manual. Jobs outside the rules are estimated and flagged ⚠.</p></div>'
     +'<div style="'+box+'"><strong>POST PRODUCTION</strong><p class="muted" style="font-size:.74rem;margin:.3rem 0">Time = finish-sec ÷ 60 × qty</p>'
     +'<table><tr><th style="text-align:left">Finish</th><th>sec/unit</th></tr>'+map(C.finish,'s')+'</table></div>'
     +'</div>';
