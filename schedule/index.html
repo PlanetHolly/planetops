@@ -1161,7 +1161,7 @@ function autofillAttrs(j){
 function estimateFor(j){
   if(j.placeholder||!window.PA_ESTIMATE)return null;
   const strokes=store.strokes[j.imprint]||2;
-  const e=window.PA_ESTIMATE.estimate({product:j.projectType,qty:j.qty,ink:j.ink,colors:j.screens,pallet:j.pallet,postType:j.postProdType,inkChange:j.inkChange,strokes,jobName:j.nickname,imprintId:j.imprint});
+  const e=window.PA_ESTIMATE.estimate({product:j.projectType,qty:j.qty,ink:j.ink,colors:j.screens,pallet:j.pallet,postType:j.postProdType,inkChange:j.inkChange,strokes,jobName:j.nickname,imprintId:j.imprint,station:j.station});
   return e&&e.status==='OK'?e:null;
 }
 function estBadge(j){

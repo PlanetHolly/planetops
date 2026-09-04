@@ -34,6 +34,16 @@
     recurve: 'v2',
     printCurve: { Bandana:{f:8.1,v:0.2828}, Apparel:{f:28.1,v:0.2218} },
     teardownBase: 5, teardownPerColor: 2,
+    // MANUAL PRESS print curve (2026-09-04, Jean) - PROVISIONAL. Pooled min/piece from the first
+    // timed manual runs (total minutes / total pieces, never per-job averages): Bandana 227 pcs /
+    // 140 min (27519-1, 27557-1c); Apparel 278 pcs / 204 min (27769-1, 27769-27, 27766-1, 27762-1).
+    // No fixed term yet (n=6, colors effect unproven). Setup + teardown ride the auto formulas
+    // until manual setup is timed. Picked when the job's Station contains "Manual".
+    manualCurve: { Bandana:{f:0,v:0.62}, Apparel:{f:0,v:0.73} },
+    // What the floor has agreed is manual-press work (Jean 2026-09-04): 1-2 colors, plastisol or
+    // waterbase, NO discharge (ink complexity) and NO 3+ colors (registration). Inside-neck prints
+    // are always manual. A manual job outside these is still estimated, just flagged.
+    manualRules: { maxColors:2, inks:['plastisol','waterbase'] },
   };
   // ---- END EDIT ZONE --------------------------------------------------------
 
@@ -53,7 +63,8 @@
     return 'incomplete';
   }
 
-  // inp: {product, qty, ink, colors, pallet, postType, inkChange?, strokes?, presses?, setupType?}
+  // inp: {product, qty, ink, colors, pallet, postType, inkChange?, strokes?, presses?, setupType?, station?}
+  //      station: the Printavo station text - anything containing "manual" switches print to the manual curve.
   function estimate(inp){
     const product=String(inp.product||'').trim();
     const qty=num(inp.qty);
@@ -89,8 +100,13 @@
     const setup=setupType==='Standard'?(C.setupStandardBase+C.setupStandardPerColor*colors):(C.setupSpecialtyPerColor*colors);
     const palletSec=C.palletAuto[palletKey(inp.pallet)]!==undefined?C.palletAuto[palletKey(inp.pallet)]:C.palletDefaultSec;
     const printPerUnit=(palletSec/60)*strokes*(C.productScaler[product]||C.productScaler.Apparel);
-    const PC=C.printCurve[product]||C.printCurve.Bandana;
+    const manual=/manual/i.test(String(inp.station||''));
+    const PC=manual?(C.manualCurve[product]||C.manualCurve.Apparel):(C.printCurve[product]||C.printCurve.Bandana);
     const printMin=PC.f+PC.v*qty, dry=((C.dry[ink]||0)/60)*qty;
+    // manual-press eligibility (rules above) - informational, never blocks the estimate
+    let manualIssue='';
+    if(manual){ if(colors>C.manualRules.maxColors)manualIssue=colors+' colors (max '+C.manualRules.maxColors+')';
+      else if(C.manualRules.inks.indexOf(ink)<0)manualIssue=ink+' ink'; }
     // #8/#10 double-dry model (Jean 2026-07-06): small jobs (≤ dryConcurrentMaxQty) dry CONCURRENT
     // with the next job on press — tracked as data but excluded from the blocking total.
     // Large jobs dry in a separate block (like a post-prod service) — added to the total.
@@ -99,14 +115,14 @@
     const total=setup+printMin+(dryConcurrent?0:dry)+teardown;
     return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,scaler:(C.productScaler[product]||C.productScaler.Apparel),
       setup:r1(setup),process:r1(printMin),dry:r1(dry),dryConcurrent,teardown:r1(teardown),total:r1(total),
-      recurve:C.recurve,
+      recurve:C.recurve, press:manual?'manual':'auto', manualIssue,
       derivation:('setup '+(setupType==='Standard'?(C.setupStandardBase+'+'+C.setupStandardPerColor+'x'+colors):(C.setupSpecialtyPerColor+'x'+colors))+'='+r1(setup)
-        +' | print '+PC.f+'+'+PC.v+'x'+qty+'='+r1(printMin)
+        +' | print '+(manual?'MANUAL (provisional) ':'')+PC.f+'+'+PC.v+'x'+qty+'='+r1(printMin)
         +' | dry '+(dryConcurrent?'concurrent':r1(dry))
         +' | teardown '+C.teardownBase+'+'+C.teardownPerColor+'x'+colors+'='+r1(teardown)
         +' | TOTAL '+r1(total)+' | recurve '+C.recurve),
       cost:money(total,C.rate.screen_print),
-      unitsPerHr:printMin>0?Math.round(qty/(printMin/60)):null,provisional:false,procLabel:'Print'},base);
+      unitsPerHr:printMin>0?Math.round(qty/(printMin/60)):null,provisional:manual,procLabel:'Print'},base);
   }
 
   /* ---- live rates: Jean's sheet is the source of truth for the curve ---- */
