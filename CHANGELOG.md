@@ -14,6 +14,13 @@ Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Disc
 - ⚠ Still open from 9/3: feed reports OT `capacity:600`; page recomputes off 525.
 - Build doc updated?  no — this entry is the record.
 
+## 2026-09-04 — Estimator: Section 3 "Formulas & Rates" REMOVED from the page — branch `jean/estimator-hide-formulas` → `frontdoor-gate`
+- Who:    Jean (via Claude, Fable). Jean's call: the panel displayed numbers that are not how time is computed — pallet seconds per unit (pallet time is no longer a factor) and a 25 s/unit "double drying" post-production service (known wrong) — and anyone reading the page took them as factors in project time. Until every displayed number is a measured, in-use one, the page shows no formulas.
+- What:   `estimator/index.html` only — the Section 3 heading, the "edit values in the Project Calculator" link, the `ratesPanel` div and the `renderRates()` function are gone (replaced by an HTML comment saying why). `loadRates()` still runs on load so the engine keeps pulling the live curve from the sheet; the LIVE / CACHED / BAKED source pill went with the section. No engine change; nothing computed differently.
+- Proof:  inline script parses; headless render of the real 87-row export unchanged (manual rows, pills, totals) with zero page errors; page now has two sections (Import, Quick Estimate).
+- ⚠ Side note, not changed: `estimate.js` still carries `palletAuto` and computes `printPerUnit` from it, but that value is unused by the v2 print curve — dead code, harmless, left for a later cleanup so the sheet feed's merge keys stay stable.
+- Build doc updated?  no — this entry is the record.
+
 ## 2026-09-04 — MANUAL PRESS print curve (provisional) in the shared engine; Station now routes it — branch `jean/manual-press-curve` → `frontdoor-gate`
 - Who:    Jean (via Claude, Fable). The manual press is being run in parallel with the auto to raise throughput, and every manual job was riding the auto-press estimate, which was ~2× too fast for it.
 - Data:   first timed manual runs, pulled from the Power Scheduler export (`Station = Manual Press`) + actuals written by Time Capture run 1582837 (today). Pooled min/piece = total minutes ÷ total pieces, never per-job averages (see calc-backtest rule). **Bandana 227 pcs / 140 min = 0.62 min/pc** (27519-1, 27557-1c). **Apparel 278 pcs / 204 min = 0.73 min/pc** (27769-1, 27769-27, 27766-1, 27762-1). n=6. No fixed term. Colors effect NOT modeled — the 3-color tee ran faster per pass than the 1- and 2-color tees, so a per-color multiplier would be invented, not measured.
