@@ -65,6 +65,26 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .cell.lead .st{color:#5b6570;}
 .cell.lead .st::after{content:' · lead';font-weight:700;}
 .cell.full.lead .st{color:#fff;}
+/* Jean mode: slack chips — wiggle (prod due later) + expedite (client due later) */
+:root{--wiggle:#2F6FED; --expedite:#8E44AD;}
+.cell .slk{display:none;gap:3px;flex-wrap:wrap;}
+.editable .cell .slk{display:flex;}
+.chip{font-size:.56rem;font-weight:900;letter-spacing:.04em;color:#fff;border-radius:3px;padding:.05rem .3rem;line-height:1.3;white-space:nowrap;}
+.chip.w{background:var(--wiggle);}
+.chip.x{background:var(--expedite);}
+.chip.l{background:#4b5563;}
+.legend .jean{display:none;}
+.editable .legend .jean{display:inline-flex;}
+.legend .jean .dot.w{background:var(--wiggle);}
+.legend .jean .dot.x{background:var(--expedite);}
+.jlegend{display:none;margin:-.4rem 0 .9rem;font-size:.76rem;color:var(--pa-tonal);line-height:1.4;}
+.editable .jlegend{display:block;}
+.jlegend b{color:#111;}
+.card .jobs{margin-top:.8rem;border-top:1px solid #111;padding-top:.5rem;}
+.card .jobs table{width:100%;border-collapse:collapse;font-size:.76rem;}
+.card .jobs th{text-align:left;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);padding:.15rem .25rem;}
+.card .jobs td{padding:.2rem .25rem;border-top:1px solid #eee;white-space:nowrap;}
+.card .jobs .sum{font-size:.78rem;font-weight:800;margin-bottom:.3rem;}
 .note{margin-top:1.3rem;background:#FFFBEC;border-left:5px solid var(--pa-yellow);padding:.7rem 1rem;font-size:.85rem;}
 .foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #000;margin-top:1.7rem;padding-top:.7rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);}
 /* editor modal */
@@ -138,6 +158,13 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <span><i class="dot" style="background:var(--full)"></i> Full 100%+ · not an opening</span>
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (525 min)</span>
+    <span class="jean"><i class="dot w"></i> Wiggle room</span>
+    <span class="jean"><i class="dot x"></i> Expedite to move</span>
+  </div>
+  <div class="jlegend" id="jlegend">
+    <b style="color:var(--wiggle)">Wiggle room</b> = minutes on jobs whose <b>production due date</b> is later than the print day (by at least <span id="jl-prod">1</span> business day). They can move later without touching the client. ·
+    <b style="color:var(--expedite)">Expedite to move</b> = production due is day-of, but the <b>client due date</b> leaves at least <span id="jl-cust">3</span> business days, so the job can move if we pay for expedited shipping. ·
+    Everything else on the day is <b>locked</b>. Tap a day to see the jobs. Slack is about dates only: blanks, screens and the changeover cap still have to be checked.
   </div>
 
   <div id="cal"></div>
@@ -183,6 +210,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <label>Adjust minutes (+ add / − remove)</label>
     <input id="ed-adj" type="number" step="10" value="0">
     <div class="eff" id="ed-eff">—</div>
+    <div class="jobs" id="ed-jobs"></div>
     <div class="row">
       <button class="save" id="ed-save">Save</button>
       <button class="clear" id="ed-clear">Clear</button>
@@ -199,6 +227,10 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <label>Minimum lead (business days)</label>
     <input id="nx-lead" type="number" min="0" max="60" step="1" value="15">
     <div class="eff" id="nx-floor">—</div>
+    <label>Wiggle room: production due at least (business days later)</label>
+    <input id="nx-sprod" type="number" min="1" max="30" step="1" value="1">
+    <label>Expedite: client due at least (business days later)</label>
+    <input id="nx-scust" type="number" min="1" max="30" step="1" value="3">
     <label>Show as next available</label>
     <select id="nx-sel"></select>
     <div class="eff" id="nx-auto">—</div>
@@ -220,6 +252,8 @@ const CAP={Standard:420,OT:525};
 const LEAD_DEFAULT=15;   // business days: nothing sooner is offered as "next open" (2026-09-03, Jean)
 const WEEKS=7;           // calendar depth; must reach past the lead floor with room to spare
 const OPEN_BELOW=70;     // pct under which a day counts as an opening (green)
+const SLACK_PROD_DEFAULT=1; // business days: prod due this far past the print day = wiggle room (Jean, 2026-09-04)
+const SLACK_CUST_DEFAULT=3; // business days: client due this far past the print day = movable with expedited shipping
 
 // JEAN mode: the front door loads this page in a same-origin iframe with a bare
 // src, so the iframe's own URL never carries ?mode=jean. Check the top window's
@@ -255,6 +289,7 @@ const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
 let LOAD={}, ASOF='', PULLEDAT='', OVERRIDES={}, selected=null;
 let MANUAL_NEXT=null, AUTO_NEXT=null, VISIBLE=[], MIN_LEAD=LEAD_DEFAULT, FLOOR=null;
+let SLACK_PROD=SLACK_PROD_DEFAULT, SLACK_CUST=SLACK_CUST_DEFAULT;
 
 function addDays(iso,n){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d+n)).toISOString().slice(0,10);}
 function fmt(iso){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
@@ -265,6 +300,24 @@ function bizAdd(iso,n){let d=iso,k=0;while(k<n){d=addDays(d,1);if(isBiz(d))k++;}
 // business days strictly after a, up to and including b
 function bizBetween(a,b){let d=a,k=0;while(d<b){d=addDays(d,1);if(isBiz(d))k++;}return k;}
 function plural(n,w){return n+' '+w+(n===1?'':'s');}
+// Slack per day, from the per-job due dates the feed carries (load[iso].jobs = [{id,m,pd,cd}]).
+// wiggle  = prod due >= SLACK_PROD business days after the print day (moves without touching the client)
+// expedite = NOT wiggle, but client due >= SLACK_CUST business days after (moves if we expedite shipping)
+// locked  = everything else. The three are disjoint and sum to the day's minutes.
+function slack(iso){
+  const jobs=(LOAD[iso]&&Array.isArray(LOAD[iso].jobs))?LOAD[iso].jobs:[];
+  const out={wiggle:0,expedite:0,locked:0,jobs:[],known:jobs.length>0};
+  for(const j of jobs){
+    const m=Number(j.m)||0;
+    const ps=(j.pd&&j.pd>iso)?bizBetween(iso,j.pd):0;
+    const cs=(j.cd&&j.cd>iso)?bizBetween(iso,j.cd):0;
+    const kind=ps>=SLACK_PROD?'w':(cs>=SLACK_CUST?'x':'l');
+    if(kind==='w')out.wiggle+=m;else if(kind==='x')out.expedite+=m;else out.locked+=m;
+    out.jobs.push({id:j.id,m,pd:j.pd||'',cd:j.cd||'',ps,cs,kind});
+  }
+  out.jobs.sort((a,b)=>({w:0,x:1,l:2})[a.kind]-({w:0,x:1,l:2})[b.kind]||b.m-a.m);
+  return out;
+}
 
 async function gaugeRead(){try{const r=await fetch(GAUGE_API);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function gaugeWrite(overrides){try{const r=await fetch(GAUGE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({overrides})});return r.ok;}catch(e){return false;}}
@@ -300,8 +353,12 @@ function render(){
       const dd=Number(iso.split('-')[2]);
       const pctTxt=f.cls==='empty'?'—':f.pct+'%';
       const adjTag=f.adj?`<span class="adj">${f.adj>0?'+':''}${f.adj}</span>`:'';
+      let chips='';
+      if(JEAN&&i<5&&iso>=TODAY){const s=slack(iso);
+        if(s.known){chips=(s.wiggle?`<span class="chip w" title="wiggle room">▲ ${s.wiggle}</span>`:'')+(s.expedite?`<span class="chip x" title="expedite to move">✈ ${s.expedite}</span>`:'')+((!s.wiggle&&!s.expedite)?'<span class="chip l" title="all locked to the day">locked</span>':'');}}
       c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>
         <div class="content"><div class="top"><span class="d">${dd}</span><span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span></div>
+        <div class="slk">${chips}</div>
         <div><div class="pct">${pctTxt}</div><div class="st">${f.st}</div></div></div>`;
       if(JEAN)c.onclick=()=>openEditor(iso);
       row.appendChild(c);
@@ -326,6 +383,8 @@ function render(){
   pin.classList.toggle('on',!!manual&&JEAN);
   pin.classList.toggle('warn',!!manual&&manual<FLOOR);
   pin.textContent=(manual&&manual<FLOOR)?'Manual · inside the lead':'Manual';
+  document.getElementById('jl-prod').textContent=SLACK_PROD;
+  document.getElementById('jl-cust').textContent=SLACK_CUST;
   renderStamp();
 }
 
@@ -354,6 +413,16 @@ function openEditor(iso){
   setSeg(f.station);
   document.getElementById('ed-adj').value=f.adj||0;
   updateEff();
+  const s=slack(iso),jb=document.getElementById('ed-jobs');
+  if(!s.known){jb.innerHTML=iso<TODAY?'':'<div class="sum">No press jobs on this day in the last pull.</div>';}
+  else{
+    const KIND={w:'<span class="chip w">▲ wiggle</span>',x:'<span class="chip x">✈ expedite</span>',l:'<span class="chip l">locked</span>'};
+    const md=d=>d?fmt(d).replace(/^\w+, /,''):'—';
+    jb.innerHTML=`<div class="sum"><span style="color:var(--wiggle)">▲ ${s.wiggle}</span> wiggle · <span style="color:var(--expedite)">✈ ${s.expedite}</span> expedite · ${s.locked} locked · ${f.base.minutes||0} total</div>`+
+      '<table><thead><tr><th>Job</th><th>Min</th><th>Prod due</th><th>Client due</th><th></th></tr></thead><tbody>'+
+      s.jobs.map(j=>`<tr><td>${j.id}</td><td>${j.m}</td><td>${md(j.pd)}${j.ps?' <small>+'+j.ps+'bd</small>':''}</td><td>${md(j.cd)}${j.cs?' <small>+'+j.cs+'bd</small>':''}</td><td>${KIND[j.kind]}</td></tr>`).join('')+
+      '</tbody></table>';
+  }
   document.getElementById('ov').classList.add('on');
 }
 let segMode='Standard';
@@ -380,6 +449,8 @@ function leadInput(){const v=Number(document.getElementById('nx-lead').value);re
 function updateFloorHint(){const L=leadInput();document.getElementById('nx-floor').textContent=`Earliest quotable day: ${fmt(bizAdd(TODAY,L))}`;}
 function openNextEditor(){
   document.getElementById('nx-lead').value=MIN_LEAD;
+  document.getElementById('nx-sprod').value=SLACK_PROD;
+  document.getElementById('nx-scust').value=SLACK_CUST;
   updateFloorHint();
   const sel=document.getElementById('nx-sel');sel.innerHTML='';
   const o0=document.createElement('option');o0.value='';o0.textContent='Auto — let the gauge decide';sel.appendChild(o0);
@@ -390,8 +461,11 @@ function openNextEditor(){
 }
 document.getElementById('nx-lead').oninput=updateFloorHint;
 document.getElementById('nx-cancel').onclick=()=>document.getElementById('ovn').classList.remove('on');
+function slackInput(id,def){const v=Math.round(Number(document.getElementById(id).value));return (isFinite(v)&&v>=1)?Math.min(30,v):def;}
 document.getElementById('nx-save').onclick=async()=>{
   MIN_LEAD=leadInput();
+  SLACK_PROD=slackInput('nx-sprod',SLACK_PROD_DEFAULT);
+  SLACK_CUST=slackInput('nx-scust',SLACK_CUST_DEFAULT);
   MANUAL_NEXT=document.getElementById('nx-sel').value||null;
   await persist();document.getElementById('ovn').classList.remove('on');render();
 };
@@ -406,9 +480,11 @@ document.getElementById('jeanexit').onclick=()=>{
 async function persist(){
   if(MANUAL_NEXT)OVERRIDES.__nextOpen=MANUAL_NEXT;else delete OVERRIDES.__nextOpen;
   if(MIN_LEAD!==LEAD_DEFAULT)OVERRIDES.__minLead=MIN_LEAD;else delete OVERRIDES.__minLead;
+  if(SLACK_PROD!==SLACK_PROD_DEFAULT)OVERRIDES.__slackProd=SLACK_PROD;else delete OVERRIDES.__slackProd;
+  if(SLACK_CUST!==SLACK_CUST_DEFAULT)OVERRIDES.__slackCust=SLACK_CUST;else delete OVERRIDES.__slackCust;
   try{localStorage.setItem('gauge_overrides',JSON.stringify(OVERRIDES));localStorage.setItem('gauge_nextopen',MANUAL_NEXT||'');}catch(e){}
   const ok=await gaugeWrite(OVERRIDES);
-  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead; // keep the in-memory per-day map clean (transport-only keys)
+  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;delete OVERRIDES.__slackProd;delete OVERRIDES.__slackCust; // keep the in-memory per-day map clean (transport-only keys)
   if(!ok)console.warn('Override saved locally; n8n gauge webhook not live yet.');
 }
 
@@ -460,9 +536,10 @@ function recommend(){
       html+=`<div class="rec">Does not fit in this window, even split across the two roomiest days (${cover} min free between them). Widen the dates, open OT, or move the conversation to the client date.</div>`;
     }
   }
-  html+='<table><thead><tr><th>Day</th><th>Now</th><th>Free</th><th>After</th><th>Verdict</th></tr></thead><tbody>';
+  html+='<table><thead><tr><th>Day</th><th>Now</th><th>Free</th><th>Movable</th><th>After</th><th>Verdict</th></tr></thead><tbody>';
   const show=(ranked.length?ranked:days.slice().sort((a,b)=>b.room-a.room)).slice(0,8);
-  show.forEach((d,i)=>{html+=`<tr class="${i===0&&ranked.length?'best':''}"><td>${fmt(d.iso)}${d.f.ot?' <span class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900">OT</span>':''}${d.iso<FLOOR?' <small>(lead)</small>':''}</td><td>${d.f.pct}% · ${d.f.minutes} min</td><td>${d.room} min</td><td>${d.pctAfter}%</td><td>${d.fits?`<span class="tier ${d.tierAfter}">${d.tierAfter==='open'?'stays green':d.tierAfter}</span>`:'<span class="tier full">does not fit</span>'}</td></tr>`;});
+  show.forEach((d,i)=>{const s=slack(d.iso);const mv=s.known?((s.wiggle?`<span class="chip w">▲ ${s.wiggle}</span> `:'')+(s.expedite?`<span class="chip x">✈ ${s.expedite}</span>`:'')||'<span class="chip l">locked</span>'):'—';
+    html+=`<tr class="${i===0&&ranked.length?'best':''}"><td>${fmt(d.iso)}${d.f.ot?' <span class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900">OT</span>':''}${d.iso<FLOOR?' <small>(lead)</small>':''}</td><td>${d.f.pct}% · ${d.f.minutes} min</td><td>${d.room} min</td><td>${mv}</td><td>${d.pctAfter}%</td><td>${d.fits?`<span class="tier ${d.tierAfter}">${d.tierAfter==='open'?'stays green':d.tierAfter}</span>`:'<span class="tier full">does not fit</span>'}</td></tr>`;});
   html+='</tbody></table>';
   out.innerHTML=html;
 }
@@ -483,7 +560,10 @@ document.getElementById('f-go').onclick=recommend;
   let ls='';try{ls=localStorage.getItem('gauge_nextopen')||'';}catch(e){}
   MANUAL_NEXT=(typeof OVERRIDES.__nextOpen==='string'?OVERRIDES.__nextOpen:'')||ls||null;
   const ml=Number(OVERRIDES.__minLead);MIN_LEAD=(OVERRIDES.__minLead!==undefined&&isFinite(ml)&&ml>=0)?Math.min(60,Math.round(ml)):LEAD_DEFAULT;
-  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;
+  const sp=Math.round(Number(OVERRIDES.__slackProd)),sc=Math.round(Number(OVERRIDES.__slackCust));
+  SLACK_PROD=(isFinite(sp)&&sp>=1)?Math.min(30,sp):SLACK_PROD_DEFAULT;
+  SLACK_CUST=(isFinite(sc)&&sc>=1)?Math.min(30,sc):SLACK_CUST_DEFAULT;
+  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;delete OVERRIDES.__slackProd;delete OVERRIDES.__slackCust;
   if(MANUAL_NEXT&&MANUAL_NEXT<=TODAY)MANUAL_NEXT=null;
   render();
   setInterval(renderStamp,60000); // keep "X ago" + fresh/stale current if the page stays open
