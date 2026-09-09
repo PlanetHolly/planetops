@@ -3,6 +3,13 @@
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
 
+## 2026-09-09 — Availability gauge: "why are near days shaded" explainer + per-browser lead-shading on/off switch — PR #55
+- Who:    Jean (via Claude, Fable). Jean asked why the near days are shaded, then asked for the explanation to live in the tool with a view switch.
+- What:   `capacity/index.html` only. A `leadwhy` line under the legend (all viewers) explains the minimum-lead hatching in plain English, with the live lead number; a **Show lead shading** checkbox (default ON, per browser via `localStorage.gauge_leadshade`) hides the hatching. The lead-cell CSS is now scoped under `body:not(.noshade)`.
+- 🔑 View only: the switch changes the look, never the math — the lead floor still gates next-open and the fit recommender, verified: next open stayed Wed Sep 30 with shading on, off, after reload, and on again. Zero console errors.
+- Build doc updated?  no — this entry is the record.
+
+
 ## 2026-09-04 — Jean-mode SLACK view: which minutes on a day can move (wiggle / expedite / locked) — feed LIVE, page in PR #52
 - Who:    Jean (via Claude, Fable). Ask: "at a glance, which days have projects that could move when I need to fit a rush." Decision: show BOTH measures, two colors, with a legend.
 - Feed (`Utw3VU0cu8aKLTcf`, **LIVE** — published via MCP `update_workflow` + `publish_workflow`, activeVersionId `4945f5a0`): the "Aggregate press load" code node now also emits `load[date].jobs = [{id, m, pd, cd}]` (job number, minutes, Prod. Due, Cust. Due) for every Auto Press row. Job number only, no nickname (the gauge webhook is open). Minutes/station/capacity/pct unchanged; guard + publish path untouched (`payload.load` passes through). Offline test against `power_scheduler_2026-09-04_1940.csv` matched the live gauge on all 21 days; live run after export `_2051.csv` → `pulledAt` advanced, jobs present on 21/21 days, JSON ~6 KB. Credentials survived (Dropbox + state-api nodes ran).
