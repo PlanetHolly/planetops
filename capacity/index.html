@@ -60,10 +60,15 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .cell.today{outline:3px solid #000;outline-offset:1px;}
 .cell.nextopen{box-shadow:0 0 0 3px var(--pa-yellow);}
 /* days inside the minimum lead: never quotable, whatever the color */
-.cell.lead .fill{opacity:.45;}
-.cell.lead .content{background:repeating-linear-gradient(135deg,rgba(0,0,0,.05) 0 6px,transparent 6px 12px);}
-.cell.lead .st{color:#5b6570;}
-.cell.lead .st::after{content:' · lead';font-weight:700;}
+body:not(.noshade) .cell.lead .fill{opacity:.45;}
+body:not(.noshade) .cell.lead .content{background:repeating-linear-gradient(135deg,rgba(0,0,0,.05) 0 6px,transparent 6px 12px);}
+body:not(.noshade) .cell.lead .st{color:#5b6570;}
+body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
+.leadwhy{display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;font-size:.76rem;color:var(--pa-tonal);margin:-.4rem 0 .9rem;line-height:1.4;}
+.leadwhy .txt{flex:1 1 420px;}
+.leadwhy .txt b{color:#111;}
+.leadwhy label{display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;font-weight:800;color:#111;cursor:pointer;margin:0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;}
+.leadwhy input{accent-color:#111;width:auto;margin:0;}
 .cell.full.lead .st{color:#fff;}
 /* Jean mode: slack chips — wiggle (prod due later) + expedite (client due later) */
 :root{--wiggle:#2F6FED; --expedite:#8E44AD;}
@@ -160,6 +165,10 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (525 min)</span>
     <span class="jean"><i class="dot w"></i> Wiggle room</span>
     <span class="jean"><i class="dot x"></i> Expedite to move</span>
+  </div>
+  <div class="leadwhy" id="leadwhy">
+    <div class="txt"><b>Why are the near days shaded?</b> They sit inside the minimum lead (<span id="lw-n">15</span> business days). Before the lead existed, the next open day was simply the first green day, and a green day next week would get promised and then fill past cap with work already in motion. Shaded days are not quotable to a client, whatever their color. They can still be printed on. Hiding the shading changes only the look; the next open day is computed the same way.</div>
+    <label><input type="checkbox" id="lw-toggle" checked> Show lead shading</label>
   </div>
   <div class="jlegend" id="jlegend">
     <b style="color:var(--wiggle)">Wiggle room</b> = minutes on jobs whose <b>production due date</b> is later than the print day (by at least <span id="jl-prod">1</span> business day). They can move later without touching the client. ·
@@ -269,6 +278,12 @@ function jeanMode(){
   }catch(e){return m==='jean';}
 }
 const JEAN=jeanMode();
+// Lead shading is a per-browser VIEW preference. Off hides the hatching only;
+// the next-open computation and the lead floor are untouched.
+function shadeOn(){try{return localStorage.getItem('gauge_leadshade')!=='0';}catch(e){return true;}}
+function applyShade(on){document.body.classList.toggle('noshade',!on);const cb=document.getElementById('lw-toggle');if(cb)cb.checked=on;try{if(on)localStorage.removeItem('gauge_leadshade');else localStorage.setItem('gauge_leadshade','0');}catch(e){}}
+document.getElementById('lw-toggle').onchange=e=>applyShade(e.target.checked);
+applyShade(shadeOn());
 
 // ── sample fallback (used only until the n8n feed populates gauge_load) ──
 const SAMPLE={
@@ -383,6 +398,7 @@ function render(){
   pin.classList.toggle('on',!!manual&&JEAN);
   pin.classList.toggle('warn',!!manual&&manual<FLOOR);
   pin.textContent=(manual&&manual<FLOOR)?'Manual · inside the lead':'Manual';
+  document.getElementById('lw-n').textContent=MIN_LEAD;
   document.getElementById('jl-prod').textContent=SLACK_PROD;
   document.getElementById('jl-cust').textContent=SLACK_CUST;
   renderStamp();
