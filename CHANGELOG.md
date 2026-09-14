@@ -3,6 +3,10 @@
 Shared, append-only. Newest at top. Per the Planet Apparel Build Change Log Discipline (`~/Dropbox/PlanetApparel/CLAUDE.md`).
 
 
+## 2026-09-14 — Press rate $140→$240 in estimator, PlanetIQ hub, discovery, datalayer
+- Press rate $140→$240 in estimator baked fallback, estimator label, PlanetIQ hub Q6 card, pricing discovery, datalayer. Locked 2026-08-25 (Production_Rate.md); Rates!B2 already 240; live cutover 9/14.
+
+
 ## 2026-09-09 — Availability gauge: "why are near days shaded" explainer + per-browser lead-shading on/off switch — PR #55
 - Who:    Jean (via Claude, Fable). Jean asked why the near days are shaded, then asked for the explanation to live in the tool with a view switch.
 - What:   `capacity/index.html` only. A `leadwhy` line under the legend (all viewers) explains the minimum-lead hatching in plain English, with the live lead number; a **Show lead shading** checkbox (default ON, per browser via `localStorage.gauge_leadshade`) hides the hatching. The lead-cell CSS is now scoped under `body:not(.noshade)`.

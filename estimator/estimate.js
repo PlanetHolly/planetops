@@ -7,11 +7,12 @@
    pulls the live values from Jean's Project Calculator sheet (n8n
    /webhook/estimator-rates) and deep-merges them — the Sheet is the source
    of truth for the curve; this file only carries the formulas + defaults.
+   2026-09-14: baked screen_print rate 140→240 (locked 2026-08-25, Production_Rate.md). Sheet feed (Rates!B2) is already 240.
    ========================================================================== */
 (function(g){
   // ---- EDIT FORMULAS HERE ---------------------------------------------------
   const EST_CONFIG = {
-    rate:        { screen_print:140, heat_press:34, post_prod:26 }, // $/hr (cost only)
+    rate:        { screen_print:240, heat_press:34, post_prod:26 }, // $/hr (cost only)
     palletAuto:  {'8':7,'10':8,'16':10,'22':12,'4':6},   // screen-print sec/unit by pallet size
     palletDefaultSec: 12,                                 // fallback if pallet unknown
     dry:         { plastisol:0, waterbase:6, discharge:6 }, // sec/unit DOUBLE-DRY — Jean's stopwatch 7/6: 100 units/10 min = 6 s/u; blanket rule: ALL waterbase + discharge double-dry (#8/#10)

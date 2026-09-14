@@ -2781,7 +2781,7 @@
     [
       "pricing",
       "Master Curve formula",
-      "JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty; cost/unit = (JobTime÷60)×$140÷qty",
+      "JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty; cost/unit = (JobTime÷60)×$240÷qty",
       "2025 (current)",
       "n/a",
       "current",
@@ -2846,7 +2846,7 @@
     [
       "pricing",
       "Priority/rush fee target burdened rate",
-      "~$130/hr burdened crew OT rate; standard price already covers $140/hr loaded rate (rush fee = pure incremental contribution)",
+      "~$130/hr burdened crew OT rate; standard price already covers $240/hr loaded rate (rush fee = pure incremental contribution)",
       "live 2026-06-03",
       "mixed",
       "current",
@@ -2854,13 +2854,13 @@
     ],
     [
       "pricing",
-      "Production cost rate ($140/hr)",
-      "$140/hr",
+      "Production cost rate ($240/hr)",
+      "$240/hr",
       "2026 (current, Mar-May-derived)",
       "mixed",
       "current",
       "Analysis_06 §Cost floor audit; TL;DR — $284K production pool ÷ ~2,050 winter-adjusted hrs",
-      "QB-verified numerator; winter-adjustment inferred, true range $130-150/hr | $140/hr current production rate; QB-verified numerator / winter-adj hours (X5 supersedes $225,$415) | provisional ruling 7/2 | also cited: L319 Part 1.B, line 62; L320 _AUDIT_findings_2026-05-27.md, ground-truth line + Production/Production_Rate.md (locked 2026-05-25, corrected 2026-05-27)"
+      "$240/hr LOCKED 2026-08-25 (12-month, boardroom; measured Jun $220 / Jul $313 / Aug ~$219–266). Prior: QB-verified numerator; winter-adjustment inferred, true range $130-150/hr | $140/hr current production rate; QB-verified numerator / winter-adj hours (X5 supersedes $225,$415) | provisional ruling 7/2 | also cited: L319 Part 1.B, line 62; L320 _AUDIT_findings_2026-05-27.md, ground-truth line + Production/Production_Rate.md (locked 2026-05-25, corrected 2026-05-27)"
     ],
     [
       "pricing",
@@ -4830,7 +4830,7 @@
       "QB-accrual",
       "current",
       "Ruled by Holly 2026-07-02 (definition B); derivation: $226K fixed-when-idle production costs / 1,920 staffed hrs",
-      "Companion note: $140/hr running rate already recovers the pool over busy hours — never add idle cost into quotes"
+      "Companion note: $240/hr running rate already recovers the pool over busy hours — never add idle cost into quotes"
     ],
     [
       "margin",
