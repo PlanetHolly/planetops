@@ -48,6 +48,20 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .editable .cell{cursor:pointer;height:98px;} /* room for OT + two stacked chips + status */
 .editable .cell:hover{outline:2px solid #111;outline-offset:1px;}
 .cell .fill{position:absolute;left:0;right:0;bottom:0;}
+/* placeholder: a project under discussion holding room on the day — held, not booked (Jean, 2026-09-16) */
+:root{--hold:#0EA5E9;}
+.cell .hfill{position:absolute;left:0;right:0;background:var(--hold);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.28) 0 5px,transparent 5px 10px);}
+.cell .hold{font-size:.56rem;font-weight:900;letter-spacing:.04em;background:var(--hold);color:#fff;border-radius:3px;padding:.05rem .3rem;line-height:1.3;white-space:nowrap;}
+.legend .dot.h{background:var(--hold);}
+.card .holds{margin-top:.8rem;border-top:1px solid #111;padding-top:.5rem;}
+.card .holds .hl{display:flex;align-items:center;gap:.4rem;font-size:.8rem;padding:.2rem 0;border-bottom:1px solid #eee;}
+.card .holds .hl b{flex:1;}
+.card .holds .hl button{border:0;background:none;cursor:pointer;font-weight:900;color:#b91c1c;font-size:.9rem;padding:0 .2rem;}
+.card .holds .hg{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .5rem;}
+.card .holds .hg label{margin:.4rem 0 .15rem;}
+.card .holds .hg .full{grid-column:1/-1;}
+.card .holds .hadd{margin-top:.6rem;width:100%;padding:.5rem;border-radius:7px;border:1px solid var(--hold);background:var(--hold);color:#fff;font-family:inherit;font-weight:800;cursor:pointer;font-size:.85rem;}
+.card .holds .hneed{font-size:.78rem;margin-top:.4rem;font-weight:700;}
 .cell .content{position:relative;z-index:2;height:100%;box-sizing:border-box;padding:.4rem .5rem;display:flex;flex-direction:column;justify-content:space-between;}
 .cell .top{display:flex;align-items:flex-start;justify-content:space-between;}
 .cell .tr{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
@@ -91,7 +105,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 /* editor modal */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem;}
 .ov.on{display:flex;}
-.card{background:#fff;border-radius:12px;max-width:360px;width:100%;padding:1.2rem 1.3rem;}
+.card{background:#fff;border-radius:12px;max-width:360px;width:100%;padding:1.2rem 1.3rem;max-height:92vh;overflow:auto;}
 .card h3{margin:0 0 .2em;font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:1.1rem;}
 .card .ro{font-size:.82rem;color:var(--pa-tonal);margin:.2rem 0 .9rem;}
 .card label,.fit label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--pa-tonal);margin:.7rem 0 .25rem;}
@@ -159,6 +173,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <span><i class="dot" style="background:var(--full)"></i> Full 100%+ · not an opening</span>
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (525 min)</span>
+    <span><i class="dot h"></i> Placeholder · held, not booked</span>
     <span class="jean"><i class="dot w"></i> Wiggle room</span>
     <span class="jean"><i class="dot x"></i> Expedite to move</span>
   </div>
@@ -192,7 +207,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
   </div>
 
   <div class="note" id="note">
-    A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. To place or move a job, talk to Jean.
+    A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. A <b style="color:var(--hold)">blue band</b> is a placeholder: a project still in conversation that is holding room on that day. It is not booked, and it is not a promise that the job lands there. To place or move a job, talk to Jean.
   </div>
 
   <div class="foot">
@@ -211,6 +226,21 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
     <label>Adjust minutes (+ add / − remove)</label>
     <input id="ed-adj" type="number" step="10" value="0">
     <div class="eff" id="ed-eff">—</div>
+    <div class="holds">
+      <label style="margin-top:0">Placeholders (held, not booked)</label>
+      <div id="ed-holds"></div>
+      <div class="hg">
+        <div class="full"><label>Label (client / project)</label><input id="h-label" type="text" placeholder="e.g. Acme fall run"></div>
+        <div><label>Product</label><select id="h-product"><option>Bandana</option><option>Apparel</option></select></div>
+        <div><label>Quantity</label><input id="h-qty" type="number" min="1" step="1" placeholder="500"></div>
+        <div><label>Colors</label><input id="h-colors" type="number" min="1" step="1" value="1"></div>
+        <div><label>Ink</label><select id="h-ink"><option>Plastisol</option><option>Waterbase</option><option>Discharge</option></select></div>
+        <div><label>Imprints</label><input id="h-imprints" type="number" min="1" step="1" value="1"></div>
+        <div><label>Minutes (override)</label><input id="h-min" type="number" min="0" step="5" placeholder="from Estimator"></div>
+      </div>
+      <div class="hneed" id="h-need">—</div>
+      <button class="hadd" id="h-add">Add placeholder</button>
+    </div>
     <div class="jobs" id="ed-jobs"></div>
     <div class="row">
       <button class="save" id="ed-save">Save</button>
@@ -327,12 +357,16 @@ function eff(iso){
   const base=LOAD[iso]||{minutes:0,station:'Standard'};
   const ov=OVERRIDES[iso]||{};
   const station=ov.mode||base.station||'Standard';
-  const minutes=Math.max(0,(base.minutes||0)+(ov.add||0));
+  const holds=Array.isArray(ov.holds)?ov.holds:[];
+  const hold=holds.reduce((t,h)=>t+(Number(h.min)||0),0);
+  const real=Math.max(0,(base.minutes||0)+(ov.add||0));
+  const minutes=real+hold;
   const cap=CAP[station]||420;
   const pct=minutes>0?Math.round(minutes/cap*100):0;
   let cls='empty',st='Open';
   if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=OPEN_BELOW){cls='limited';st='Limited';} else {cls='open';st='Open';} }
-  return {station,minutes,cap,pct,cls,st,fill:Math.min(pct,100),open:pct<OPEN_BELOW,ot:station==='OT',adj:ov.add||0,base};
+  const realFill=Math.min(Math.round(real/cap*100),100);
+  return {station,minutes,cap,pct,cls,st,fill:realFill,holdFill:Math.min(Math.round(hold/cap*100),100-realFill),hold,holds,open:pct<OPEN_BELOW,ot:station==='OT',adj:ov.add||0,base};
 }
 
 function render(){
@@ -357,8 +391,10 @@ function render(){
       let chips='';
       if(JEAN&&i<5&&iso>=TODAY){const s=slack(iso);
         if(s.known){chips=(s.wiggle?`<span class="chip w" title="wiggle room">▲ ${s.wiggle}</span>`:'')+(s.expedite?`<span class="chip x" title="expedite to move">✈ ${s.expedite}</span>`:'')+((!s.wiggle&&!s.expedite)?'<span class="chip l" title="all locked to the day">locked</span>':'');}}
-      c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>
-        <div class="content"><div class="top"><span class="d">${dd}</span><span class="tr">${(f.ot||f.adj)?`<span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span>`:''}<div class="slk">${chips}</div></span></div>
+      const holdBand=f.hold?`<div class="hfill" style="bottom:${f.fill}%;height:${f.holdFill}%"></div>`:'';
+      const holdTag=f.hold?`<span class="hold" title="${f.holds.map(h=>(h.label||'placeholder')+' · '+h.min+' min').join(' | ').replace(/"/g,'&quot;')}">HOLD ${f.hold}</span>`:'';
+      c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>${holdBand}
+        <div class="content"><div class="top"><span class="d">${dd}</span><span class="tr">${(f.ot||f.adj)?`<span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span>`:''}${holdTag}<div class="slk">${chips}</div></span></div>
         <div><div class="pct">${pctTxt}</div><div class="st">${f.st}</div></div></div>`;
       if(JEAN)c.onclick=()=>openEditor(iso);
       row.appendChild(c);
@@ -412,7 +448,9 @@ function openEditor(iso){
   document.getElementById('ed-load').textContent=`Scheduled: ${f.base.minutes||0} min (${f.base.station||'Standard'})`;
   setSeg(f.station);
   document.getElementById('ed-adj').value=f.adj||0;
-  updateEff();
+  edHolds=f.holds.map(h=>Object.assign({},h));
+  ['h-label','h-qty','h-min'].forEach(id=>document.getElementById(id).value='');
+  renderHolds();updateEff();holdNeed();
   const s=slack(iso),jb=document.getElementById('ed-jobs');
   if(!s.known){jb.innerHTML=iso<TODAY?'':'<div class="sum">No press jobs on this day in the last pull.</div>';}
   else{
@@ -429,9 +467,37 @@ let segMode='Standard';
 function setSeg(m){segMode=m;document.getElementById('seg-std').classList.toggle('sel',m==='Standard');document.getElementById('seg-ot').classList.toggle('sel',m==='OT');updateEff();}
 function updateEff(){
   const base=LOAD[selected]||{minutes:0};const add=Number(document.getElementById('ed-adj').value||0);
-  const mins=Math.max(0,(base.minutes||0)+add);const cap=CAP[segMode];const pct=mins>0?Math.round(mins/cap*100):0;
-  document.getElementById('ed-eff').textContent=`Result: ${mins} min ÷ ${cap} = ${pct}%`;
+  const real=Math.max(0,(base.minutes||0)+add);const held=edHolds.reduce((t,h)=>t+(Number(h.min)||0),0);
+  const mins=real+held;const cap=CAP[segMode];const pct=mins>0?Math.round(mins/cap*100):0;
+  document.getElementById('ed-eff').textContent=held?`Result: ${real} min + ${held} held = ${mins} ÷ ${cap} = ${pct}%`:`Result: ${mins} min ÷ ${cap} = ${pct}%`;
 }
+// ── placeholders: a project under discussion that holds room on the day; held, not booked ──
+let edHolds=[];
+function renderHolds(){
+  const el=document.getElementById('ed-holds');
+  el.innerHTML=edHolds.length?edHolds.map((h,i)=>`<div class="hl"><b>${String(h.label||'placeholder').replace(/</g,'&lt;')}</b><span>${h.qty?h.qty+' × '+(h.product||'')+' · ':''}${h.min} min</span><button title="remove" data-i="${i}">✕</button></div>`).join('')
+    :'<div class="ro" style="margin:.2rem 0 .4rem">None on this day.</div>';
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{edHolds.splice(Number(b.dataset.i),1);renderHolds();updateEff();});
+}
+function holdSize(){
+  const ov=Number(document.getElementById('h-min').value);
+  const imprints=Math.max(1,Math.round(Number(document.getElementById('h-imprints').value)||1));
+  if(ov>0)return {min:Math.round(ov),src:'minutes entered'};
+  if(!window.PA_ESTIMATE)return {min:0,src:'estimator formula not loaded'};
+  const e=PA_ESTIMATE.estimate({product:document.getElementById('h-product').value,qty:document.getElementById('h-qty').value,
+    colors:document.getElementById('h-colors').value,ink:document.getElementById('h-ink').value,pallet:''});
+  if(e.status!=='OK')return {min:0,src:e.reason||'incomplete (need quantity + colors)'};
+  return {min:Math.round(e.total*imprints),src:`${e.total} min per imprint × ${imprints}`};
+}
+function holdNeed(){const h=holdSize();document.getElementById('h-need').innerHTML=h.min?`Holds <b>${h.min} min</b> <small>· ${h.src}</small>`:`<small>${h.src}</small>`;}
+['h-product','h-qty','h-colors','h-ink','h-imprints','h-min'].forEach(id=>{const el=document.getElementById(id);el.oninput=holdNeed;el.onchange=holdNeed;});
+document.getElementById('h-add').onclick=()=>{
+  const h=holdSize();if(!h.min){holdNeed();return;}
+  const g=id=>document.getElementById(id).value;
+  edHolds.push({label:g('h-label').trim()||'placeholder',min:h.min,product:g('h-product'),qty:Math.round(Number(g('h-qty'))||0)||undefined,colors:Math.round(Number(g('h-colors'))||0)||undefined,ink:g('h-ink'),imprints:Math.max(1,Math.round(Number(g('h-imprints'))||1)),added:TODAY});
+  ['h-label','h-qty','h-min'].forEach(id=>document.getElementById(id).value='');
+  renderHolds();updateEff();holdNeed();
+};
 document.getElementById('seg-std').onclick=()=>setSeg('Standard');
 document.getElementById('seg-ot').onclick=()=>setSeg('OT');
 document.getElementById('ed-adj').oninput=updateEff;
@@ -440,7 +506,7 @@ document.getElementById('ed-clear').onclick=async()=>{delete OVERRIDES[selected]
 document.getElementById('ed-save').onclick=async()=>{
   const base=LOAD[selected]||{minutes:0,station:'Standard'};
   const add=Number(document.getElementById('ed-adj').value||0);
-  const o={};if(segMode!==(base.station||'Standard'))o.mode=segMode;if(add)o.add=add;
+  const o={};if(segMode!==(base.station||'Standard'))o.mode=segMode;if(add)o.add=add;if(edHolds.length)o.holds=edHolds;
   if(Object.keys(o).length)OVERRIDES[selected]=o;else delete OVERRIDES[selected];
   await persist();document.getElementById('ov').classList.remove('on');render();
 };
