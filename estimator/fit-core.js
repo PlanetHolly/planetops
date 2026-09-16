@@ -9,9 +9,23 @@
    its private copies of eff()/slack()/the date math is a follow-up PR.
 
    RULES, and where they come from (Nov_Leave_Prep_2026/Scheduling_Rules.md):
-     - Standard day 420 min, PLAN TO 400. OT day 525 cap, PLAN TO 500.
-       The held-back minutes are for teardown + changeover, which are not in
-       any project estimate. Room is measured against the PLAN, never the cap.
+     - Standard day: PLAN 400, HOLDS 420. OT day: PLAN 500, HOLDS 525.
+       🔑 Neither number is wrong - they answer different questions (Jean,
+       2026-09-16). 420 is what the day actually holds; 400 is what you plan to;
+       the twenty between them are a DELIBERATE BUFFER for work running long and
+       for downtime. So a day at 405 is neither full nor free - it is SPENDING
+       BUFFER, which is a real third state and the honest one. Three bands:
+         under/at PLAN  -> plan freely, cushion intact
+         PLAN..CAP      -> it holds, and it SAYS SO. Allowed, never silent.
+         over CAP       -> refused.
+       Same pattern as the readiness horizon: state the cost, do not block. It
+       matters most in the case this tool exists for - a jam is exactly when
+       spending buffer is the right call, because that is what it is reserved
+       for. A tool that silently refused the 400-420 band would be wrong in the
+       one situation it was built for.
+       ⚠ This does NOT change the gauge. capacity/index.html measures against
+       420 and is correct to; it answers "how full is the day". Only the Advisor
+       needs to know the last twenty minutes are cushion rather than capacity.
      - 4-5 imprints a day = the changeover cap. Counts IMPRINTS, not invoices
        (Jean 2026-09-16): front/back/sleeve on one invoice is three setups,
        three registrations, three teardowns. v1 SURFACES at/over-cap days, it
@@ -128,7 +142,9 @@
       reservedImprints: rsv ? rsv.imprints : 0,
       imprints: jobs.length + (rsv ? rsv.imprints : 0),   // RULING: imprints, not invoices
       invoices: uniq(jobs.map(function (j) { return String(j.id); })).length,
-      room: Math.max(0, plan - minutes),           // room against the PLAN (400/500)
+      room: Math.max(0, plan - minutes),           // room before the buffer is touched
+      roomToCap: Math.max(0, cap - minutes),       // room before the day is refused
+      buffer: Math.max(0, cap - plan),             // the deliberate cushion, 20 std / 25 OT
       pct: cap ? Math.round(minutes / cap * 100) : 0,
       onBoard: !!base,
       beyondBoard: !!(board.lastLoadedDay && iso > board.lastLoadedDay)
@@ -240,8 +256,9 @@
     out.costedMoves = found.free.length ? [] : found.costed.slice(0, 2);
     if (!out.moves.length) {
       var best = scanned.slice().sort(function (a, b) { return b.room - a.room; })[0];
-      out.refusal = 'Nothing between now and ' + fmt(horizonEnd) + ' has ' + need +
-        ' minutes free. The roomiest day is ' + fmt(best.iso) + ' with ' + best.room + '.';
+      out.refusal = 'No day between now and ' + fmt(horizonEnd) + ' can hold ' + need +
+        ' minutes, even into its buffer. The roomiest day is ' + fmt(best.iso) + ' with ' +
+        best.day.roomToCap + ' before it would be over cap.';
     }
     return out;
   }
@@ -259,15 +276,32 @@
     return hits.sort(function (a, b) { return a.iso < b.iso ? -1 : 1; });
   }
 
+  /* Which of the three bands does `need` land this day in?
+     at-or-under plan = 'plan' · plan..cap = 'buffer' (allowed, must be said out
+     loud) · past cap = 'over' (refused). Boundaries are inclusive downward, so
+     exactly 400 is still 'plan' and exactly 420 is still 'buffer'. */
+  function bandFor(d, need) {
+    var after = d.minutes + (Number(need) || 0);
+    if (after <= d.plan) return 'plan';
+    if (after <= d.cap) return 'buffer';
+    return 'over';
+  }
+
   function evaluateDay(board, iso, need, custDue, today) {
     var d = dayInfo(board, iso);
     var cs = capState(d, 1);
     var readyDays = bizBetween(today, iso);
     var headroom = custDue ? bizBetween(iso, custDue) : null;
+    var after = d.minutes + need;
+    var band = bandFor(d, need);
     return {
       iso: iso, day: d, room: d.room, need: need,
-      fits: d.room >= need,
-      after: d.minutes + need,
+      band: band,                                   // plan | buffer | over
+      // minutes of the day's cushion this placement would spend, and what is left
+      bufferUsed: band === 'buffer' ? after - d.plan : 0,
+      bufferLeft: Math.max(0, d.cap - Math.max(after, d.plan)),
+      fits: band !== 'over',                        // the HARD limit is the cap
+      after: after,
       pctAfter: d.cap ? Math.round((d.minutes + need) / d.cap * 100) : 0,
       capState: cs,                                   // ok | at | over  (surfaced, never blocking in v1)
       ot: d.ot,
@@ -286,6 +320,8 @@
      nobody anything), then the changeover cap, then earliest. */
   function rankTail(a, b) {
     if (a.beyondBoard !== b.beyondBoard) return a.beyondBoard ? -1 : 1;
+    var bw = { plan: 0, buffer: 1, over: 2 };
+    if (bw[a.band] !== bw[b.band]) return bw[a.band] - bw[b.band];
     var w = { ok: 0, at: 1, over: 2 };
     if (w[a.capState] !== w[b.capState]) return w[a.capState] - w[b.capState];
     if (a.tight !== b.tight) return a.tight ? 1 : -1;
@@ -294,6 +330,9 @@
 
   function rank(a, b) {
     if (a.tight !== b.tight) return a.tight ? 1 : -1;
+    // a day whose cushion survives beats one that spends it, every time
+    var bw = { plan: 0, buffer: 1, over: 2 };
+    if (bw[a.band] !== bw[b.band]) return bw[a.band] - bw[b.band];
     var w = { ok: 0, at: 1, over: 2 };
     if (w[a.capState] !== w[b.capState]) return w[a.capState] - w[b.capState];
     if (a.shipHeadroom != null && b.shipHeadroom != null && a.shipHeadroom !== b.shipHeadroom) {
@@ -379,7 +418,7 @@
     RULES: RULES, BLIND_SPOTS: BLIND_SPOTS,
     isoLA: isoLA, addDays: addDays, isBiz: isBiz, bizAdd: bizAdd, bizSub: bizSub,
     bizBetween: bizBetween, fmt: fmt, invoiceOf: invoiceOf, normImprint: normImprint,
-    buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve,
+    buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve, bandFor: bandFor,
     evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding
   };
 })(typeof window !== 'undefined' ? window : this);

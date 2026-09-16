@@ -33,70 +33,27 @@
     });
   }
 
-  /* ---------- our own CSV parser (the page's parseCSV is off limits) ---------- */
-  function parseCsvOwn(text) {
-    text = String(text || '').replace(/^﻿/, '');
-    var rows = [], row = [], cur = '', q = false;
-    for (var i = 0; i < text.length; i++) {
-      var c = text[i];
-      if (q) {
-        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
-        else cur += c;
-      } else if (c === '"') q = true;
-      else if (c === ',') { row.push(cur); cur = ''; }
-      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
-      else if (c !== '\r') cur += c;
-    }
-    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
-    if (!rows.length) return [];
-    var head = rows[0].map(function (h) { return h.trim(); });
-    return rows.slice(1)
-      .filter(function (r) { return r.some(function (c) { return c.trim() !== ''; }); })
-      .map(function (r) {
-        var o = {};
-        head.forEach(function (h, i) { o[h] = r[i] !== undefined ? r[i] : ''; });
-        return o;
-      });
-  }
-  function col(o, names) {
-    for (var n = 0; n < names.length; n++) {
-      var want = names[n].toLowerCase().replace(/[\s.]/g, '');
-      for (var k in o) {
-        if (k.toLowerCase().replace(/[\s.]/g, '') === want) return String(o[k] || '').trim();
-      }
-    }
-    return '';
-  }
+  /* ---------- Queue CSV: the SHARED reader (estimator/queue-csv.js) ----------
+     Lifted out of this file 2026-09-16 so capacity/plan/ reads the same export
+     exactly the same way. There must never be a second parser. The page's own
+     parseCSV stays untouched and unused — it lives in the inline block that
+     owns the Google Sheets writeback. */
   function ingestCsvText(text) {
-    var rows = parseCsvOwn(text), map = {};
-    rows.forEach(function (o) {
-      var imp = PA_FIT.normImprint(col(o, ['Imprint']));
-      if (!imp) return;
-      map[imp] = {
-        imprint: imp,
-        prodDue: col(o, ['Prod. Due', 'Prod Due']),
-        custDue: col(o, ['Cust. Due', 'Cust Due', 'Customer Due']),
-        prodDate: col(o, ['Prod. Date', 'Prod Date']),
-        station: col(o, ['Station']),
-        blanks: col(o, ['Blanks']),
-        nickname: col(o, ['Nickname'])
-      };
-    });
+    var map = PA_QUEUE_CSV.byImprint(text);
+    var n = Object.keys(map).length;
     CSV_BY_IMPRINT = map;
     CSV_STAMP = Date.now();
     var el = $('adv-csv');
     if (el) {
-      el.textContent = rows.length
-        ? 'Due dates read from the CSV for ' + Object.keys(map).length + ' imprint(s).'
+      el.textContent = n
+        ? 'Due dates read from the CSV for ' + n + ' imprint(s).'
         : 'No rows found in that CSV.';
     }
   }
   function readFileForAdvisor(f) {
-    try {
-      var rd = new FileReader();
-      rd.onload = function () { try { ingestCsvText(rd.result); } catch (e) { advWarn(e); } };
-      rd.readAsText(f);
-    } catch (e) { advWarn(e); }
+    PA_QUEUE_CSV.readFile(f)
+      .then(function (t) { try { ingestCsvText(t); } catch (e) { advWarn(e); } })
+      .catch(advWarn);
   }
   function advWarn(e) {
     try { console.warn('[advisor]', e && e.message ? e.message : e); } catch (_) {}
@@ -134,6 +91,7 @@
     var bits = [];
     bits.push('<b>' + esc(F.fmt(c.iso)) + '</b>');
     if (c.beyondBoard && !d.reserved) bits.push('nothing scheduled there yet');
+    else if (c.band === 'buffer') bits.push('into the day\'s buffer — ' + c.bufferUsed + ' of ' + d.buffer + ' cushion minutes');
     else bits.push(c.room + ' of ' + d.plan + ' min free' +
       (d.reserved ? ' (' + d.reserved + ' of it already given to rows above)' : ''));
     bits.push(d.imprints + (d.imprints === 1 ? ' imprint' : ' imprints') + ' on it'
@@ -144,6 +102,7 @@
     }
     var html = '<li>' + bits.join(' · ') + ' → <b>' + c.pctAfter + '%</b> after';
     var tags = [];
+    if (c.band === 'buffer') tags.push('<span class="adv-tag warn">spends the day\'s buffer</span>');
     if (c.ot) tags.push('<span class="adv-tag ot">OT DAY</span>');
     if (c.capState === 'over') tags.push('<span class="adv-tag bad">OVER the 4–5 changeover cap</span>');
     else if (c.capState === 'at') tags.push('<span class="adv-tag warn">at the changeover cap</span>');
@@ -156,6 +115,11 @@
     if (c.capState === 'over') {
       html += '<div class="adv-sub">That would be ' + (d.imprints + 1) + ' imprints on one day. The cap is 4–5. ' +
         'Shown, not blocked — Jean is looking at real days before this starts refusing.</div>';
+    }
+    if (c.band === 'buffer') {
+      html += '<div class="adv-sub tight">This puts the day into its buffer — ' + c.bufferUsed + ' of the ' +
+        d.buffer + ' minutes held back for work running long. It holds, and in a jam that is what the ' +
+        'cushion is for. Just do it knowingly.</div>';
     }
     if (c.tight) {
       html += '<div class="adv-sub tight">' + readinessSentence(c) + '</div>';

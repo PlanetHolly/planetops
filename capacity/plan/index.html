@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Planet Apparel — Scheduling Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+/* Colour language is the availability gauge's, deliberately. Rosa reads those
+   tiers on capacity/ already; a second vocabulary for one idea costs her
+   something and buys nothing. NOTE: the tier colours describe LOAD (percent of
+   the day's cap, exactly as the gauge computes it). A broken RULE is a red
+   outline, not a fill colour — load and legality are different questions. */
+:root{
+  --pa-yellow:#F7BE00; --pa-black:#000; --pa-tonal:#232323; --pa-white:#fff;
+  --pa-font:"Mr Eaves Mod OT","Montserrat","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --pa-line:#ddd; --pa-grey:#EFEFEF;
+  --full:#D64545; --limited:#F7BE00; --open:#3AAE5A; --empty:#E3E8ED;
+  --prop:#0EA5E9;              /* the gauge's "held, not booked" blue = a scratch placement */
+  --bad:#C0392B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;font-family:var(--pa-font);color:var(--pa-black);background:#F7F7F8;line-height:1.5;}
+.wrap{max-width:1500px;margin:0 auto;padding:1rem 1.25rem 3rem;}
+h1{font-size:1.15rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0;}
+.head{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--pa-black);padding-bottom:.6rem;}
+.head .sub{font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--pa-tonal);margin-top:2px;}
+.scratch{background:#FFFBEC;border-left:4px solid var(--pa-yellow);padding:.55rem .85rem;margin:.8rem 0;font-size:.85rem;}
+.bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.8rem 0;}
+.btn{font-family:var(--pa-font);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.74rem;border:2px solid var(--pa-black);background:var(--pa-yellow);color:var(--pa-black);padding:.42rem .9rem;border-radius:4px;cursor:pointer;}
+.btn.ghost{background:var(--pa-white);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.drop{border:2px dashed #bbb;border-radius:6px;padding:.7rem 1rem;text-align:center;cursor:pointer;background:#fff;font-size:.82rem;flex:1;min-width:15rem;}
+.drop.drag{border-color:var(--pa-yellow);background:#FFFBEC;}
+.muted{color:var(--pa-tonal);font-size:.8rem;}
+.stage{display:grid;grid-template-columns:270px 1fr;gap:1rem;align-items:start;}
+@media(max-width:1000px){.stage{grid-template-columns:1fr;}}
+
+/* ── the unplaced rail ── */
+.rail{background:#fff;border:1px solid var(--pa-line);border-radius:7px;padding:.7rem;position:sticky;top:.6rem;max-height:88vh;overflow:auto;}
+.rail h2{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin:0 0 .5rem;}
+.proj{border:1px solid var(--pa-line);border-left:4px solid var(--pa-tonal);border-radius:5px;padding:.42rem .55rem;margin-bottom:.4rem;cursor:grab;background:#fff;}
+.proj:active{cursor:grabbing;}
+.proj.sel{border-color:var(--prop);border-left-color:var(--prop);box-shadow:0 0 0 2px rgba(14,165,233,.28);}
+.proj.stuck{border-left-color:var(--bad);background:#FDF3F3;}
+.proj .pid{font-weight:900;font-size:.8rem;}
+.proj .pnick{font-size:.72rem;color:var(--pa-tonal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.proj .pmeta{font-size:.68rem;color:var(--pa-tonal);margin-top:2px;}
+.proj .pwarn{font-size:.66rem;color:var(--bad);font-weight:700;margin-top:2px;}
+.railnote{font-size:.7rem;color:var(--pa-tonal);margin-top:.5rem;line-height:1.45;}
+
+/* ── the week ── */
+.week{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;align-items:stretch;}
+.day{flex:0 0 172px;background:#fff;border:1px solid var(--pa-line);border-radius:7px;display:flex;flex-direction:column;min-height:270px;}
+.day.lead{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 6px,transparent 6px 12px);}
+.day.drop-ok{outline:3px solid var(--open);outline-offset:-1px;}
+.day.drop-bad{outline:3px solid var(--bad);outline-offset:-1px;}
+.day.cand{box-shadow:inset 0 0 0 2px rgba(58,174,90,.55);}
+.day.broken{border:2px solid var(--bad);}
+.day.buffered{border:2px solid var(--limited);}
+.nums b.buf{color:#8a6100;}
+.nums i{font-style:normal;opacity:.65;}
+.cond.buf{background:#FFF6DF;border-top:1px solid #EBCF7E;}
+.day .dh{padding:.4rem .5rem;border-bottom:1px solid var(--pa-line);}
+.day.broken .dh{background:#FDF3F3;}
+.day .dd{font-size:.74rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
+.day .tags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:2px;}
+.tag{font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:8px;}
+.tag.ot{background:#000;color:#fff;}
+.tag.lead{background:#EEE;color:#555;}
+.tag.tail{background:#EAF2FF;color:#2A4E8A;}
+.meter{height:7px;background:var(--empty);border-radius:4px;overflow:hidden;margin:.35rem 0 .2rem;display:flex;position:relative;}
+.meter u.planline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--pa-black);opacity:.55;}
+.meter i{display:block;height:100%;}
+.meter i.load{background:var(--open);}
+.meter i.load.limited{background:var(--limited);}
+.meter i.load.full{background:var(--full);}
+.meter i.prop{background:var(--prop);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.4) 0 4px,transparent 4px 8px);}
+.nums{font-size:.64rem;color:var(--pa-tonal);display:flex;justify-content:space-between;}
+.nums b.over{color:var(--bad);}
+.day .body{padding:.35rem .4rem;flex:1;display:flex;flex-direction:column;gap:.25rem;}
+.job{font-size:.66rem;border-radius:4px;padding:.22rem .4rem;background:var(--pa-grey);color:var(--pa-tonal);}
+.job.mine{background:#E1F3FC;color:#0B4F6C;border:1px solid var(--prop);cursor:grab;}
+.job.mine.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
+.job .jx{float:right;font-weight:900;cursor:pointer;padding:0 .15rem;}
+.broke{font-size:.66rem;color:var(--bad);font-weight:700;padding:.3rem .45rem;border-top:1px dotted #E0B4B4;line-height:1.4;}
+.cond{font-size:.65rem;padding:.3rem .45rem;background:#FFFBEC;border-top:1px solid #F0DFA8;line-height:1.45;}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.7rem;color:var(--pa-tonal);margin:.7rem 0 0;align-items:center;}
+.legend i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.3rem;vertical-align:-1px;}
+.blind{font-size:.74rem;color:var(--pa-tonal);background:#fff;border:1px solid var(--pa-line);border-radius:6px;padding:.55rem .8rem;margin-top:.9rem;line-height:1.55;}
+.foot{display:flex;justify-content:space-between;font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);border-top:1px solid var(--pa-black);margin-top:1.6rem;padding-top:.6rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div><h1>Scheduling Advisor</h1><div class="sub">Planet Apparel · the interactive week</div></div>
+    <a class="btn ghost" href="../" style="text-decoration:none;">← Availability gauge</a>
+  </div>
+
+  <div class="scratch">
+    <strong>This is a scratchpad.</strong> Nothing here is booked. Printavo is still the schedule and you still
+    place the work there by hand. Move things around, watch the rules react, then go and do it for real.
+    It will never suggest overtime — that is Holly's call.
+  </div>
+
+  <div class="bar">
+    <div class="drop" id="drop">Drop the <b>Power Scheduler Queue CSV</b> here, or click to choose
+      <input type="file" id="file" accept=".csv,text/csv" style="display:none" /></div>
+    <button class="btn ghost" id="reload">Reload gauge</button>
+    <button class="btn ghost" id="clear">Clear placements</button>
+  </div>
+  <div class="muted" id="status">Loading the availability gauge…</div>
+
+  <div class="stage">
+    <div class="rail">
+      <h2>Not placed <span id="railn" class="muted"></span></h2>
+      <div id="rail"></div>
+      <div class="railnote" id="railnote">
+        Click a project then click a day, or drag it across. Click it again to deselect.
+      </div>
+    </div>
+    <div>
+      <div class="week" id="week"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--open)"></i>open</span>
+        <span><i class="sw" style="background:var(--limited)"></i>limited</span>
+        <span><i class="sw" style="background:var(--full)"></i>full</span>
+        <span><i class="sw" style="background:var(--prop)"></i>your placement — not booked</span>
+        <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>a rule is broken here</span>
+        <span>shaded = inside the minimum lead</span>
+      </div>
+      <div class="blind" id="blind"></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Planet Apparel · Scheduling Advisor</span><span id="stamp">—</span></div>
+</div>
+
+<!-- Shared, in this order: the estimating engine, the rules, the CSV reader, then this page. -->
+<script src="../../estimator/estimate.js"></script>
+<script src="../../estimator/fit-core.js"></script>
+<script src="../../estimator/queue-csv.js"></script>
+<script src="./plan.js"></script>
+</body>
+</html>
