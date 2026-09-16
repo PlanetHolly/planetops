@@ -45,11 +45,12 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .dow div{font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;color:var(--pa-tonal);text-align:center;font-weight:700;}
 .wk{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:7px;}
 .cell{position:relative;height:86px;border-radius:8px;overflow:hidden;background:var(--empty);border:1px solid rgba(0,0,0,.08);}
-.editable .cell{cursor:pointer;}
+.editable .cell{cursor:pointer;height:98px;} /* room for OT + two stacked chips + status */
 .editable .cell:hover{outline:2px solid #111;outline-offset:1px;}
 .cell .fill{position:absolute;left:0;right:0;bottom:0;}
 .cell .content{position:relative;z-index:2;height:100%;box-sizing:border-box;padding:.4rem .5rem;display:flex;flex-direction:column;justify-content:space-between;}
-.cell .top{display:flex;align-items:center;justify-content:space-between;}
+.cell .top{display:flex;align-items:flex-start;justify-content:space-between;}
+.cell .tr{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
 .cell .d{font-weight:900;font-size:1.05rem;text-shadow:0 1px 2px rgba(255,255,255,.55);}
 .cell .ot{font-size:.56rem;font-weight:900;letter-spacing:.06em;background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;}
 .cell .adj{font-size:.54rem;font-weight:900;color:#111;background:#fff;border:1px solid #111;border-radius:3px;padding:0 .25rem;margin-left:.2rem;}
@@ -67,7 +68,7 @@ h1{font-size:1.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.04
 .cell.full.lead .st{color:#fff;}
 /* Jean mode: slack chips — wiggle (prod due later) + expedite (client due later) */
 :root{--wiggle:#2F6FED; --expedite:#8E44AD;}
-.cell .slk{display:none;gap:3px;flex-wrap:wrap;}
+.cell .slk{display:none;flex-direction:column;align-items:flex-end;gap:2px;} /* top-right stack: wiggle over expedite (Jean, 2026-09-16) */
 .editable .cell .slk{display:flex;}
 .chip{font-size:.56rem;font-weight:900;letter-spacing:.04em;color:#fff;border-radius:3px;padding:.05rem .3rem;line-height:1.3;white-space:nowrap;}
 .chip.w{background:var(--wiggle);}
@@ -357,8 +358,7 @@ function render(){
       if(JEAN&&i<5&&iso>=TODAY){const s=slack(iso);
         if(s.known){chips=(s.wiggle?`<span class="chip w" title="wiggle room">▲ ${s.wiggle}</span>`:'')+(s.expedite?`<span class="chip x" title="expedite to move">✈ ${s.expedite}</span>`:'')+((!s.wiggle&&!s.expedite)?'<span class="chip l" title="all locked to the day">locked</span>':'');}}
       c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>
-        <div class="content"><div class="top"><span class="d">${dd}</span><span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span></div>
-        <div class="slk">${chips}</div>
+        <div class="content"><div class="top"><span class="d">${dd}</span><span class="tr">${(f.ot||f.adj)?`<span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span>`:''}<div class="slk">${chips}</div></span></div>
         <div><div class="pct">${pctTxt}</div><div class="st">${f.st}</div></div></div>`;
       if(JEAN)c.onclick=()=>openEditor(iso);
       row.appendChild(c);
