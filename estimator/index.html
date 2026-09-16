@@ -64,6 +64,34 @@ tr.totals td.tot{background:var(--pa-yellow);}
 .icon-svg{display:inline-block;vertical-align:middle;}
 .legend{font-size:.75rem;margin:.5rem 0;}
 .legend .pill{margin-right:.35rem;}
+/* ── Scheduling Advisor (advisor.js) ── */
+.adv-meta{font-size:.8rem;background:#FAFAFA;border:1px solid var(--pa-line);border-radius:5px;padding:.55rem .75rem;margin:.6rem 0;color:var(--pa-tonal);}
+.adv-card{border:1px solid var(--pa-line);border-left:4px solid var(--pa-black);border-radius:5px;padding:.7rem .9rem;margin:.7rem 0;}
+.adv-card.skip{border-left-color:#ccc;background:#fbfbfb;}
+.adv-head{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem;}
+.adv-id{font-weight:900;letter-spacing:.02em;}
+.adv-nick{font-size:.85rem;color:var(--pa-tonal);flex:1;min-width:8rem;}
+.adv-need{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pa-tonal);}
+.adv-lane{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.adv-lane.l1{background:#C6EFCE;color:#0a5a1e;}
+.adv-lane.l2{background:#FFE2B8;color:#7a4300;}
+.adv-lane.l3{background:#F7C9C9;color:#7a1414;}
+.adv-lane.l0{background:#eee;color:#777;}
+.adv-why{font-size:.85rem;margin:.3rem 0;}
+.adv-cands{margin:.4rem 0 .2rem;padding-left:1.3rem;font-size:.85rem;}
+.adv-cands li{margin:.35rem 0;}
+.adv-moves{margin:.4rem 0;padding-left:1.3rem;font-size:.85rem;}
+.adv-moves.costed li{color:#7a4300;}
+.adv-sub{font-size:.76rem;color:var(--pa-tonal);margin:.2rem 0 .1rem;line-height:1.5;}
+.adv-sub.tight{background:#FFFBEC;border-left:3px solid var(--pa-yellow);padding:.4rem .6rem;margin:.35rem 0;color:var(--pa-black);}
+.adv-tag{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:9px;}
+.adv-tag.ot{background:#000;color:#fff;}
+.adv-tag.warn{background:#FFE2B8;color:#7a4300;}
+.adv-tag.bad{background:#F7C9C9;color:#7a1414;}
+.adv-refuse{font-size:.88rem;background:#FDF3F3;border-left:3px solid #C24141;padding:.45rem .7rem;margin:.4rem 0;}
+.adv-order{font-size:.82rem;margin:.45rem 0 .2rem;}
+.adv-order ol{margin:.25rem 0;padding-left:1.3rem;}
+.adv-blind{font-size:.76rem;color:var(--pa-tonal);border-top:1px dotted #ccc;margin-top:.55rem;padding-top:.4rem;line-height:1.55;}
 .dragscroll{cursor:grab;}
 .dragscroll.dragging{cursor:grabbing;user-select:none;}
 .dragscroll.dragging *{cursor:grabbing;}
@@ -107,7 +135,20 @@ tr.totals td.tot{background:var(--pa-yellow);}
     <div id="saveLog" class="muted" style="font-size:.82rem;"></div>
   </div>
 
-  <h2>2 · Quick Estimate <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.8rem;">— one-off, no CSV</span></h2>
+  <!-- ══ Scheduling Advisor ══ Deliberately BELOW the results table and far from the
+       toolbar: no button of ours sits next to one that writes to a Google Sheet.
+       All behaviour lives in ./fit-core.js + ./advisor.js, loaded after the inline
+       script. Nothing here is wired by the inline block. -->
+  <h2>2 · Scheduling Advisor <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.8rem;">— where does this fit?</span></h2>
+  <p class="muted" style="margin:.25rem 0 .5rem;font-size:.9rem;">Reads the rows above and the live availability gauge. It <strong>recommends, it does not book</strong> — nothing is written to Printavo or to the schedule. It never suggests overtime.</p>
+  <div class="toolbar">
+    <button class="btn ghost" id="adv-go">Where do these fit?</button>
+    <span id="adv-status" class="muted" style="font-size:.85rem;"></span>
+  </div>
+  <div id="adv-csv" class="muted" style="font-size:.78rem;"></div>
+  <div id="adv-out"></div>
+
+  <h2>3 · Quick Estimate <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.8rem;">— one-off, no CSV</span></h2>
   <div class="grid">
     <div>
       <div class="field"><label>Work Type</label>
@@ -337,5 +378,11 @@ showType();
 
 window.PA_ESTIMATE.loadRates().then(()=>{buildFinishSel();quick();});
 </script>
+
+<!-- Scheduling Advisor — loaded LAST, on purpose. Separate files so a runtime error
+     in the Advisor cannot take down Quick Estimate, the save path or the page init,
+     all of which live in the inline block above. See advisor.js header. -->
+<script src="./fit-core.js"></script>
+<script src="./advisor.js"></script>
 </body>
 </html>
