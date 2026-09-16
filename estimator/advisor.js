@@ -186,29 +186,132 @@
       ', but it ' + esc(m.cost) + '. That is a cost, so it is not mine to spend.</li>';
   }
 
+  /* ---------- the day strip ----------
+     Fifteen text blocks have no shape, and the one thing that must be obvious is
+     FOUR PLACEMENTS PILED ONTO ONE DAY AND NOTHING ON THE NEXT. That reads wrong
+     instantly as a picture and is invisible in a list. It is also the visible proof
+     that reserve-as-you-go is working.
+     Colour language is the availability gauge's own — same green/amber/red tiers,
+     and the same striped sky blue the gauge uses for "held, not booked", which is
+     exactly what a proposal is. A second vocabulary for the same idea would cost
+     Rosa something and buy nothing. */
+  function tierOf(minutes, cap) {
+    if (!minutes) return 'empty';
+    var pct = Math.round(minutes / cap * 100);
+    return pct >= 100 ? 'full' : pct >= 70 ? 'limited' : 'open';
+  }
+  function dayStrip(board, proposals) {
+    var last = board.lastLoadedDay || F.addDays(board.today, 1);
+    Object.keys(proposals).forEach(function (k) { if (k > last) last = k; });
+    var days = [], iso = F.addDays(board.today, 1), guard = 0;
+    while (iso <= last && guard++ < 200) { if (F.isBiz(iso)) days.push(iso); iso = F.addDays(iso, 1); }
+    if (!days.length) return '';
+
+    var anyProposed = false;
+    var cells = days.map(function (d) {
+      var info = F.dayInfo(board, d);
+      var prop = proposals[d] || [];
+      if (prop.length) anyProposed = true;
+      var base = Math.max(0, info.minutes - info.reserved);
+      var plan = info.plan;
+      var baseH = Math.min(100, Math.round(base / plan * 100));
+      var propH = Math.min(100 - baseH, Math.round(info.reserved / plan * 100));
+      var over = (base + info.reserved) > plan;
+      var t = tierOf(base, info.cap);
+      var title = F.fmt(d) + ' — ' + base + ' min already scheduled' +
+        (info.reserved ? ', ' + info.reserved + ' min proposed here (' + prop.map(function (p) { return p.id; }).join(', ') + ')' : '') +
+        ' · plan ' + plan + ' · ' + info.imprints + ' imprint(s)';
+      return '<div class="ds-day' + (over ? ' over' : '') + (info.ot ? ' ot' : '') +
+        (F.isBiz(F.addDays(d, 1)) ? '' : ' weekend-next') + '" title="' + esc(title) + '">' +
+        '<div class="ds-bar">' +
+          '<div class="ds-fill t-' + t + '" style="height:' + baseH + '%"></div>' +
+          (propH > 0 ? '<div class="ds-prop" style="height:' + propH + '%"></div>' : '') +
+        '</div>' +
+        '<div class="ds-n">' + (prop.length ? '+' + prop.length : '') + '</div>' +
+        '<div class="ds-lab">' + esc(F.fmt(d).replace(/^(\w+), \w+ /, '$1 ')) + '</div>' +
+        (info.ot ? '<div class="ds-ot">OT</div>' : '') +
+      '</div>';
+    }).join('');
+
+    return '<div class="adv-strip">' +
+      '<div class="ds-title">The week you are building</div>' +
+      '<div class="ds-row">' + cells + '</div>' +
+      '<div class="ds-legend">' +
+        '<span><i class="sw t-open"></i> open</span>' +
+        '<span><i class="sw t-limited"></i> limited</span>' +
+        '<span><i class="sw t-full"></i> full</span>' +
+        '<span><i class="sw sw-prop"></i> proposed here — not placed</span>' +
+        '<span><i class="sw sw-over"></i> would go past the day\'s plan</span>' +
+        '<span>bars are measured against the day\'s plan (' + F.RULES.PLAN.Standard + ' / ' + F.RULES.PLAN.OT + ' on OT)</span>' +
+      '</div>' +
+      (anyProposed ? '' : '<div class="adv-sub">Nothing was proposed onto a day — every row either had no room or is not on the auto press.</div>') +
+    '</div>';
+  }
+
   function blindSpots() {
     return '<div class="adv-blind"><b>I could not check:</b> ' +
       F.BLIND_SPOTS.map(esc).join(' · ') + '.</div>';
   }
 
+  /* The two PRODUCTION dates. Jean's language, and it is also what stops the card
+     being misread: "must print by Oct 1" cannot be heard as an offer the way
+     "latest it can print is Oct 1" could. Prod. Due is what the job INTENDS to
+     print; the computed latest print is the physical limit before shipping has to
+     be expedited. When they disagree the computed one wins, and the gap between
+     them is the real slack - so both are shown. Client due is derivation, not lead. */
+  function prodDateLine(res) {
+    if (!res.latestPrint && !res.prodDue) return '';
+    var bits = [];
+    if (res.prodDue) bits.push('Wants <b>' + esc(F.fmt(res.prodDue)) + '</b>');
+    if (res.latestPrint) bits.push('must print by <b>' + esc(F.fmt(res.latestPrint)) + '</b>');
+    var h = '<div class="adv-dates">' + bits.join(' · ') + '</div>';
+    if (res.prodDue && res.latestPrint) {
+      var gap = F.bizBetween(res.prodDue, res.latestPrint);
+      if (gap > 0) h += '<div class="adv-sub">' + gap + ' business day' + (gap === 1 ? '' : 's') +
+        ' of slack between the date it intends to print and the last date it physically can.</div>';
+      else if (gap < 0) h += '<div class="adv-sub warnrow">Its production date is <b>' + (-gap) +
+        ' business day' + (gap === -1 ? '' : 's') + ' past</b> the last day it can print and still ship normally. ' +
+        'The computed limit wins.</div>';
+      else h += '<div class="adv-sub">No slack — the date it intends to print is the last one it can.</div>';
+    }
+    return h;
+  }
+
+  function verdict(res) {
+    if (res.lane === 3) {
+      return '<div class="adv-verdict no"><span class="vmark">✕</span><span class="vtext">No room</span>' +
+        '<span class="vsub">' + esc(shortRefusal(res)) + '</span></div>';
+    }
+    var c = res.candidates[0];
+    return '<div class="adv-verdict ok"><span class="vmark">✓</span>' +
+      '<span class="vtext">Print ' + esc(F.fmt(c.iso)) + '</span>' +
+      '<span class="vsub">' + (res.lane === 1 ? 'it can wait — placed at the end of the schedule'
+        : 'fitted into the built schedule') + '</span></div>';
+  }
+  function shortRefusal(res) {
+    if (res.moves.length) return 'but one free move would make room';
+    if (/already passed/.test(res.refusal)) return 'the client date has already passed';
+    if (/today or earlier/.test(res.refusal)) return 'it is already past the last day it could print';
+    return 'nothing in the window has the minutes';
+  }
+
   function projectCard(res, r) {
-    var h = '<div class="adv-card">';
+    var h = '<div class="adv-card' + (res.lane === 3 ? ' l3' : '') + '">';
     h += '<div class="adv-head"><span class="adv-id">' + esc(r.imprintId || '(no imprint)') + '</span> ' +
       '<span class="adv-nick">' + esc(r.jobName || '') + '</span>' +
       '<span class="adv-need">' + Math.ceil(r.total) + ' min · ' + esc(r.qty) + ' pcs</span>' +
       laneBadge(res.lane) + '</div>';
 
-    if (res.custDue) {
-      h += '<div class="adv-why">Client due ' + esc(F.fmt(res.custDue)) +
-        (res.latestPrint ? ' → latest it can print and still ship normally is <b>' + esc(F.fmt(res.latestPrint)) + '</b>' : '') +
-        '.</div>';
-    }
+    // VERDICT FIRST. The eye must land on placed-or-not before any reasoning.
+    h += verdict(res);
+    h += prodDateLine(res);
+
     res.notes.forEach(function (n) { h += '<div class="adv-why">' + esc(n) + '</div>'; });
 
     if (res.candidates.length) {
       if (res.lane === 1) {
-        h += '<div class="adv-why">There is no pressure on this one — the schedule does not reach its latest print day yet. ' +
-          'Put it at the end.</div>';
+        h += '<div class="adv-why">No pressure on this one — the schedule does not reach its latest print day yet, ' +
+          'so it goes at the end rather than eating slack someone else needs.</div>';
       } else {
         h += '<div class="adv-why">This has to land inside days that already have work on them. These have genuine room:</div>';
       }
@@ -228,8 +331,25 @@
         h += moveOrder();
       }
     }
+    h += workingOut(res);
     h += blindSpots();
     return h + '</div>';
+  }
+
+  /* Client due lives here, behind a disclosure — it is how the limit was derived,
+     not the thing to act on. Rosa acts on production dates. */
+  function workingOut(res) {
+    if (!res.custDue) return '';
+    var h = '<details class="adv-work"><summary>How that print date was worked out</summary><div>';
+    h += 'Client due <b>' + esc(F.fmt(res.custDue)) + '</b>. Normal shipping needs ' +
+      F.RULES.SHIP_DAYS + ' business days, so the last day it can go on press is <b>' +
+      esc(F.fmt(res.latestPrint)) + '</b>.';
+    if (res.prodDue) h += ' Printavo\'s production due date on this row is ' + esc(F.fmt(res.prodDue)) + '.';
+    h += ' Days are planned to ' + F.RULES.PLAN.Standard + ' of ' + F.RULES.CAP.Standard +
+      ' minutes (' + F.RULES.PLAN.OT + ' of ' + F.RULES.CAP.OT + ' on an overtime day); the rest is held ' +
+      'for teardown and changeover, which no estimate counts.';
+    h += '</div></details>';
+    return h;
   }
 
   function moveOrder() {
@@ -278,16 +398,16 @@
         (haveCsv ? '' : ' <b>⚠ No due dates loaded</b> — re-drop the CSV so the Advisor can read Cust. Due.') +
         '</div>';
 
-      var placed = 0, lane3 = 0;
+      var placed = 0, lane3 = 0, proposals = {}, cards = '';
       ok.forEach(function (r) {
         if (r.workType !== 'screen_print') {
-          html += skipped(r, r.workType === 'heat_press'
+          cards += skipped(r, r.workType === 'heat_press'
             ? 'Heat press. The availability feed carries auto-press load only, so there is no denominator to place this against.'
             : 'Post production. The availability feed carries auto-press load only, so there is no denominator to place this against.');
           return;
         }
         if (r.press === 'manual') {
-          html += skipped(r, 'Manual press. It runs in parallel with the auto press and has no capacity feed of its own.');
+          cards += skipped(r, 'Manual press. It runs in parallel with the auto press and has no capacity feed of its own.');
           return;
         }
         var key = F.normImprint(r.imprintId);
@@ -301,13 +421,16 @@
           placed++;
           // Spend the recommended day's minutes before the next row is answered, so
           // the batch cannot hand the same free hour to six different projects.
-          F.reserve(board, res.candidates[0].iso, res.need, 1);
+          var day = res.candidates[0].iso;
+          F.reserve(board, day, res.need, 1);
+          (proposals[day] || (proposals[day] = [])).push({ id: r.imprintId, min: res.need });
         }
-        html += projectCard(res, r);
+        cards += projectCard(res, r);
       });
 
       status.textContent = ok.length + ' projected row(s) · ' + placed + ' placed · ' + lane3 + ' with nowhere to go';
-      out.innerHTML = html;
+      // strip is built AFTER the loop so it shows the final shape of the batch
+      out.innerHTML = html + dayStrip(board, proposals) + cards;
       btn.disabled = false;
     }).catch(function (e) {
       status.textContent = 'Could not read the availability gauge (' + (e && e.message ? e.message : e) +

@@ -64,6 +64,48 @@ tr.totals td.tot{background:var(--pa-yellow);}
 .icon-svg{display:inline-block;vertical-align:middle;}
 .legend{font-size:.75rem;margin:.5rem 0;}
 .legend .pill{margin-right:.35rem;}
+/* ── Scheduling Advisor (advisor.js) ──
+   Colours are the availability gauge's own (capacity/index.html): a second visual
+   vocabulary for the same idea would cost Rosa something and buy nothing. */
+:root{--adv-full:#D64545;--adv-limited:#F7BE00;--adv-open:#3AAE5A;--adv-empty:#E3E8ED;--adv-prop:#0EA5E9;}
+.adv-verdict{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin:.1rem 0 .45rem;padding:.4rem .6rem;border-radius:5px;}
+.adv-verdict.ok{background:#EAF7EE;border-left:4px solid var(--adv-open);}
+.adv-verdict.no{background:#FDF3F3;border-left:4px solid var(--adv-full);}
+.adv-verdict .vmark{font-size:1.05rem;font-weight:900;}
+.adv-verdict.ok .vmark{color:var(--adv-open);}
+.adv-verdict.no .vmark{color:var(--adv-full);}
+.adv-verdict .vtext{font-size:1.02rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
+.adv-verdict .vsub{font-size:.78rem;color:var(--pa-tonal);}
+.adv-dates{font-size:.92rem;font-weight:700;margin:.25rem 0 .1rem;}
+.adv-sub.warnrow{background:#FDF3F3;border-left:3px solid var(--adv-full);padding:.35rem .6rem;color:var(--pa-black);}
+.adv-work{font-size:.78rem;color:var(--pa-tonal);margin:.45rem 0 .1rem;}
+.adv-work summary{cursor:pointer;font-weight:700;letter-spacing:.02em;}
+.adv-work div{padding:.35rem 0 0 .2rem;line-height:1.55;}
+.adv-card.l3{border-left-color:var(--adv-full);}
+/* day strip */
+.adv-strip{border:1px solid var(--pa-line);border-radius:6px;padding:.7rem .85rem;margin:.8rem 0 1rem;background:#fff;}
+.ds-title{font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;}
+.ds-row{display:flex;gap:4px;align-items:flex-end;overflow-x:auto;padding-bottom:.2rem;}
+.ds-day{flex:0 0 34px;display:flex;flex-direction:column;align-items:center;}
+.ds-day.weekend-next{margin-right:14px;}
+.ds-bar{width:100%;height:84px;background:var(--adv-empty);border:1px solid rgba(0,0,0,.12);border-radius:4px;display:flex;flex-direction:column-reverse;overflow:hidden;}
+.ds-day.over .ds-bar{border:2px solid var(--adv-full);}
+.ds-fill{width:100%;}
+.ds-fill.t-open{background:var(--adv-open);}
+.ds-fill.t-limited{background:var(--adv-limited);}
+.ds-fill.t-full{background:var(--adv-full);}
+.ds-fill.t-empty{background:transparent;}
+.ds-prop{width:100%;background:var(--adv-prop);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.35) 0 5px,transparent 5px 10px);}
+.ds-n{font-size:.6rem;font-weight:900;color:var(--adv-prop);height:.85rem;line-height:.85rem;}
+.ds-lab{font-size:.55rem;font-weight:700;color:var(--pa-tonal);text-align:center;letter-spacing:.01em;white-space:nowrap;}
+.ds-ot{font-size:.5rem;font-weight:900;background:#000;color:#fff;border-radius:2px;padding:0 3px;margin-top:1px;}
+.ds-legend{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.68rem;color:var(--pa-tonal);margin-top:.55rem;align-items:center;}
+.ds-legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.25rem;vertical-align:-1px;}
+.ds-legend .sw.t-open{background:var(--adv-open);}
+.ds-legend .sw.t-limited{background:var(--adv-limited);}
+.ds-legend .sw.t-full{background:var(--adv-full);}
+.ds-legend .sw.sw-prop{background:var(--adv-prop);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.35) 0 3px,transparent 3px 6px);}
+.ds-legend .sw.sw-over{background:#fff;border:2px solid var(--adv-full);}
 /* ── Scheduling Advisor (advisor.js) ── */
 .adv-meta{font-size:.8rem;background:#FAFAFA;border:1px solid var(--pa-line);border-radius:5px;padding:.55rem .75rem;margin:.6rem 0;color:var(--pa-tonal);}
 .adv-card{border:1px solid var(--pa-line);border-left:4px solid var(--pa-black);border-radius:5px;padding:.7rem .9rem;margin:.7rem 0;}
