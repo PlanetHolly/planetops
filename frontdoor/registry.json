@@ -91,7 +91,7 @@
             {
               "id": "estimator",
               "kind": "surface",
-              "name": "Calculator",
+              "name": "Project Estimator",
               "blurb": "Print-time & cost calculator",
               "type": "tool",
               "url": "../estimator/",
