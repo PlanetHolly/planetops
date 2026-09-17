@@ -15,7 +15,7 @@
     rate:        { screen_print:240, heat_press:34, post_prod:26 }, // $/hr (cost only)
     palletAuto:  {'8':7,'10':8,'16':10,'22':12,'4':6},   // screen-print sec/unit by pallet size
     palletDefaultSec: 12,                                 // fallback if pallet unknown
-    dry:         { plastisol:0, waterbase:6, discharge:6 }, // sec/unit DOUBLE-DRY — Jean's stopwatch 7/6: 100 units/10 min = 6 s/u; blanket rule: ALL waterbase + discharge double-dry (#8/#10)
+    dry:         { plastisol:0, waterbase:0, discharge:13 }, // sec/unit DOUBLE-DRY — waterbase does NOT second-pass (0); discharge 13 s/u (measured 8/11: 750u/161min≈12.9). MUST match n8n Estimator Engine DRY. Reflected in .dry + Double Drying col for DATA; NOT added to total (off-press coverage). Jean 2026-09-17
     dryConcurrentMaxQty: 100,                             // ≤100 pcs: dry rides ALONG SIDE the next job on press — tracked but NOT schedule-blocking; >100: separate dryer block (end of day)
     heatPalletSec: 70,                                    // heat = 70 sec/unit regardless of pallet
     heatInk:     {'heat applied - apparel':10, 'heat applied - hat':25}, // sec/unit
@@ -113,13 +113,13 @@
     // Large jobs dry in a separate block (like a post-prod service) — added to the total.
     const dryConcurrent=dry>0&&qty<=(C.dryConcurrentMaxQty||100);
     const teardown=C.teardownBase+C.teardownPerColor*colors;
-    const total=setup+printMin+(dryConcurrent?0:dry)+teardown;
+    const total=setup+printMin+teardown; // double-dry runs OFF-PRESS via coverage (Malia M/W/F, 2-person over 100u); reflected in .dry + Double Drying col, excluded from total & cost. Jean 2026-09-17
     return Object.assign({status:'OK',rate:C.rate.screen_print,setupType,strokes,scaler:(C.productScaler[product]||C.productScaler.Apparel),
       setup:r1(setup),process:r1(printMin),dry:r1(dry),dryConcurrent,teardown:r1(teardown),total:r1(total),
       recurve:C.recurve, press:manual?'manual':'auto', manualIssue,
       derivation:('setup '+(setupType==='Standard'?(C.setupStandardBase+'+'+C.setupStandardPerColor+'x'+colors):(C.setupSpecialtyPerColor+'x'+colors))+'='+r1(setup)
         +' | print '+(manual?'MANUAL (provisional) ':'')+PC.f+'+'+PC.v+'x'+qty+'='+r1(printMin)
-        +' | dry '+(dryConcurrent?'concurrent':r1(dry))
+        +' | dry '+r1(dry)+' off-press'
         +' | teardown '+C.teardownBase+'+'+C.teardownPerColor+'x'+colors+'='+r1(teardown)
         +' | TOTAL '+r1(total)+' | recurve '+C.recurve),
       cost:money(total,C.rate.screen_print),
