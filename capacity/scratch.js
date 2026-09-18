@@ -118,11 +118,9 @@
   function feedJobsOn(iso) {
     return (BOARD.load[iso] && Array.isArray(BOARD.load[iso].jobs)) ? BOARD.load[iso].jobs : [];
   }
-  // A scheduled job's print deadline is its OWN production due (j.pd). No
-  // shipping assumption — see fit-core moveKind (re-keyed 2026-09-18).
-  function feedDeadline(j) { return j && j.pd ? j.pd : null; }
   function feedMoved(j) { return j.__cur !== j.__origin; }
-  function feedLate(j) { var dl = feedDeadline(j); return !!(dl && j.__cur > dl); }
+  // A job's print-timing on a print day is GRADUATED (v3.3): F.printTiming
+  // returns ok / expedite / late — no binary "late" flag any more.
   function anyFeedMoved() {
     for (var k in FEED_BYKEY) if (feedMoved(FEED_BYKEY[k])) return true;
     return false;
@@ -134,19 +132,22 @@
     rebuildReserved(p.key);
     var ev = F.evaluateDay(BOARD, iso, p.need, p.custDue, BOARD.today);
     rebuildReserved();
-    var broken = [];
-    if (ev.band === 'over') {
-      broken.push('more than the day holds — ' + ev.after + ' of ' + ev.day.cap + ' minutes');
-    }
-    if (ev.capState === 'over') {
-      broken.push('over the changeover cap — ' + (ev.day.imprints + 1) + ' imprints, the cap is ' +
-        F.RULES.CHANGEOVER_MAX);
-    }
-    if (p.prodDue && iso > p.prodDue) {
-      broken.push('past its production due (' + F.fmt(p.prodDue) + ')');
-    }
-    ev.broken = broken;
-    ev.legal = broken.length === 0;
+    // capacity reds (unchanged, v3.3): over the day's hard cap, or over the changeover cap
+    var cap = [];
+    if (ev.band === 'over') cap.push('more than the day holds — ' + ev.after + ' of ' + ev.day.cap + ' minutes');
+    if (ev.capState === 'over') cap.push('over the changeover cap — ' + (ev.day.imprints + 1) + ' imprints, the cap is ' + F.RULES.CHANGEOVER_MAX);
+    ev.capBroken = cap;
+    // print-timing is GRADUATED now (v3.3): ok / expedite / late, from the two dates.
+    ev.timing = F.printTiming(iso, { pd: p.prodDue, cd: p.custDue });
+    var onOrBeforeDue = !p.prodDue || iso <= p.prodDue;
+    // "available" — rail earliest + all-available + candidate highlight: fits AND on/before prod due
+    ev.legal = cap.length === 0 && onOrBeforeDue;
+    // "placeable" — drop preview: fits AND not a TRUE date failure (expedite is allowed)
+    ev.placeable = cap.length === 0 && ev.timing.state !== 'late';
+    // "broken" — a placed box's RED: a capacity red, or a true date failure (past the client date)
+    ev.broken = cap.concat(ev.timing.state === 'late'
+      ? ['at or past its client date (' + (p.custDue ? F.fmt(p.custDue) : '—') + ') — will not make it even overnight']
+      : []);
     return ev;
   }
 
@@ -171,8 +172,7 @@
     var d = F.dayInfo(BOARD, iso);            // excludes j (j sits on its from-day)
     var over = (d.minutes + (Number(j.m) || 0)) > d.cap;
     var overCap = (d.imprints + 1) > F.RULES.CHANGEOVER_MAX;
-    var dl = feedDeadline(j);
-    var late = !!(dl && iso > dl);
+    var late = F.printTiming(iso, { pd: j.pd, cd: j.cd }).state === 'late'; // expedite is OK to drop onto
     return !over && !overCap && !late;
   }
 
@@ -221,8 +221,8 @@
     var inBuffer = d.minutes > d.plan && d.minutes <= d.cap;
     var overCap = d.minutes > d.cap;
     var overChangeover = d.imprints > F.RULES.CHANGEOVER_MAX;
-    var late = mine.filter(function (p) { return p.prodDue && iso > p.prodDue; });
-    var lateFeed = feedJobsOn(iso).filter(function (j) { return feedMoved(j) && feedLate(j); });
+    var late = mine.filter(function (p) { return F.printTiming(iso, { pd: p.prodDue, cd: p.custDue }).state === 'late'; });
+    var lateFeed = feedJobsOn(iso).filter(function (j) { return feedMoved(j) && F.printTiming(iso, { pd: j.pd, cd: j.cd }).state === 'late'; });
     var readyDays = F.bizBetween(BOARD.today, iso);
     return {
       iso: iso, d: d, mine: mine,
@@ -325,31 +325,39 @@
       if (d.beyondBoard) tags += '<span class="tag tail">past the board</span>';
 
       var jobs = '';
-      // what the schedule already carries — MOVABLE (Tier A). Colour = rule state
-      // (shared vocabulary): red = past its production due · yellow = has room to
-      // move (wiggle and/or expedite) · neutral = locked. The free-move DETAIL is
-      // in the hover tooltip, not on the calendar, to keep the week clean.
+      // what the schedule already carries — MOVABLE (Tier A). Colour = state:
+      // RED = a real failure (over cap/changeover, or at/past the client date) ·
+      // AMBER = prints after its production due but still shippable ("needs
+      // overnight / N-day") · YELLOW = on schedule with room to move · neutral =
+      // locked/fine. The DETAIL rides in the hover to keep the week clean.
       feedJobsOn(iso).forEach(function (j) {
-        var moved = feedMoved(j), late = feedLate(j);
+        var moved = feedMoved(j);
         var mv = F.moveKind(iso, { pd: j.pd, cd: j.cd });
-        var state = late ? ' bad' : (mv.movable ? ' movable' : '');
+        var pt = F.printTiming(iso, { pd: j.pd, cd: j.cd });
+        var state = pt.state === 'late' ? ' bad' : pt.state === 'expedite' ? ' exp' : (mv.movable ? ' movable' : '');
         var cls = 'job feed' + (SELFEED === j.__k ? ' sel' : '') + (moved ? ' moved' : '') + state;
-        jobs += '<div class="' + cls + '" draggable="true" data-feedkey="' + esc(j.__k) + '" title="' + esc(hoverFor(j, late, mv, moved)) + '">' +
+        var flag = pt.state === 'late' ? ' ⚠'
+          : pt.state === 'expedite' ? ' <span class="exp-b">needs ' + esc(F.expediteLabel(pt.level)) + '</span>' : '';
+        jobs += '<div class="' + cls + '" draggable="true" data-feedkey="' + esc(j.__k) + '" title="' + esc(hoverFor(j, pt, mv, moved)) + '">' +
           (moved ? '<span class="jx" data-reset="' + esc(j.__k) + '" title="put it back on ' + esc(F.fmt(j.__origin)) + '">↩</span>' : '') +
           esc(j.id) + ' · ' + j.m + 'm' +
           (moved ? ' <span class="mv">moved</span>' : '') +
-          (late ? ' ⚠' : '') + '</div>';
+          flag + '</div>';
       });
-      // the scratchpad's own rail placements — same colour vocabulary, + a green
-      // "placed" badge (mirrors the blue "moved" badge on a rescheduled feed job).
+      // the scratchpad's own rail placements — same vocabulary, + a green "placed"
+      // badge (mirrors the blue "moved" badge on a rescheduled feed job).
       s.mine.forEach(function (p) {
         var ev = evalFor(p, iso);
         var mv = F.moveKind(iso, { pd: p.prodDue, cd: p.custDue });
-        var state = !ev.legal ? ' bad' : (mv.movable ? ' movable' : '');
-        var title = !ev.legal ? ev.broken.join(' · ') : hoverFor({ pd: p.prodDue, cd: p.custDue }, false, mv, false);
+        var red = ev.broken.length > 0;
+        var amber = !red && ev.timing.state === 'expedite';
+        var state = red ? ' bad' : amber ? ' exp' : (mv.movable ? ' movable' : '');
+        var flag = red ? ' ⚠'
+          : amber ? ' <span class="exp-b">needs ' + esc(F.expediteLabel(ev.timing.level)) + '</span>' : '';
+        var title = red ? ev.broken.join(' · ') : hoverFor({ pd: p.prodDue, cd: p.custDue }, ev.timing, mv, false);
         jobs += '<div class="job mine' + (SEL === p.key ? ' sel' : '') + state + '" draggable="true" data-key="' +
           esc(p.key) + '" title="' + esc(title) + '"><span class="jx" data-eject="' + esc(p.key) + '" title="take it off this day">✕</span>' +
-          esc(p.imprintId) + ' · ' + p.need + 'm <span class="pl">placed</span>' + (ev.legal ? '' : ' ⚠') + '</div>';
+          esc(p.imprintId) + ' · ' + p.need + 'm <span class="pl">placed</span>' + flag + '</div>';
       });
 
       var broke = '';
@@ -358,10 +366,10 @@
         if (s.overCap) reasons.push('More than the day holds: ' + d.minutes + ' of ' + d.cap + ' minutes.');
         if (s.overChangeover) reasons.push('Over the changeover cap: ' + d.imprints + ' imprints, the cap is ' + F.RULES.CHANGEOVER_MAX + '.');
         s.late.forEach(function (p) {
-          reasons.push(esc(p.imprintId) + ' is past its production due (' + F.fmt(p.prodDue) + ').');
+          reasons.push(esc(p.imprintId) + ' is at or past its client date (' + (p.custDue ? F.fmt(p.custDue) : '—') + ') — will not make it even overnight.');
         });
         s.lateFeed.forEach(function (j) {
-          reasons.push(esc(j.id) + ' is now after its production due (' + F.fmt(feedDeadline(j)) + ').');
+          reasons.push(esc(j.id) + ' is at or past its client date (' + (j.cd ? F.fmt(j.cd) : '—') + ') — will not make it even overnight.');
         });
         broke = '<div class="broke">' + reasons.map(esc).join('<br>') + '</div>';
       }
@@ -396,19 +404,24 @@
     }).join('');
   }
 
-  /* The movability DETAIL for a job's hover tooltip (item 2): the two INDEPENDENT
-     date reads (wiggle + expedite), phrased as information, never an instruction
-     — show, don't solve. j = {pd, cd}; late/moved are booleans; mv from moveKind. */
-  function hoverFor(j, late, mv, moved) {
+  /* A job's hover DETAIL (item 2), phrased as information not instruction — show,
+     don't solve. pt = printTiming (ok/expedite/late). When the job is past its
+     production due the timing read leads (needs overnight / N-day, or a true
+     miss); when it is on schedule the movability reads lead (wiggle / expedite
+     room). j = {pd, cd}; mv from moveKind; moved bool. */
+  function hoverFor(j, pt, mv, moved) {
     var parts = [];
-    if (late) {
-      parts.push('Past its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + ' — no longer prints in time here.');
+    if (pt.state === 'late') {
+      parts.push('At or past its client date' + (j.cd ? ' (' + F.fmt(j.cd) + ')' : '') + ' — will not make it even overnight.');
+    } else if (pt.state === 'expedite') {
+      parts.push('Prints after its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') +
+        ' — needs ' + F.expediteLabel(pt.level) + ' shipping to hit the client date' + (j.cd ? ' (' + F.fmt(j.cd) + ')' : '') +
+        '. The PM and production manager coordinate.');
     } else {
       if (mv.wiggle) parts.push('Wiggle room: ' + mv.ps + ' business day' + (mv.ps === 1 ? '' : 's') +
         ' before its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + '.');
-      if (mv.expedite) parts.push('Room to expedite: client due is ' + mv.ship + ' business days after the production due — the PM and production manager would coordinate shipping.');
-      if (!mv.movable) parts.push('Locked to this day — no room before its production due' +
-        (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + (j.cd && mv.ship <= 1 ? ' and the dates leave no shipping room' : '') + '.');
+      if (mv.expedite) parts.push('Room to expedite: client due is ' + mv.ship + ' business days after the production due.');
+      if (!mv.movable) parts.push('Locked to this day — no room before its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + '.');
     }
     if (moved) parts.push('Moved from ' + F.fmt(j.__origin) + '.');
     return parts.join(' ');
@@ -535,7 +548,7 @@
       e.preventDefault();
       try { e.dataTransfer.dropEffect = 'move'; } catch (_) {}
       var ok = false;
-      if (SEL) { var p = byKey(SEL); ok = !!p && evalFor(p, day.dataset.iso).legal; }
+      if (SEL) { var p = byKey(SEL); ok = !!p && evalFor(p, day.dataset.iso).placeable; }
       else if (SELFEED) { var j = FEED_BYKEY[SELFEED]; ok = !!j && feedPreview(j, day.dataset.iso); }
       else return;
       day.classList.toggle('drop-ok', ok);

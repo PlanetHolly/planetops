@@ -238,6 +238,9 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
    "moved" is a separate marker (left accent + badge), not a colour. */
 #mgmt-scratch .job.feed{background:#EEF1F4;color:#31424F;border:1px solid #C7D1DA;cursor:grab;}
 #mgmt-scratch .job.feed.movable,#mgmt-scratch .job.mine.movable{background:#FFF6DF;border-color:#E4C24E;color:#6b5200;}
+/* amber = prints after its production due but still shippable (needs overnight / N-day) */
+#mgmt-scratch .job.feed.exp,#mgmt-scratch .job.mine.exp{background:#FFE8CC;border-color:#E8873A;color:#8a4b12;}
+#mgmt-scratch .job .exp-b{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:#E8873A;color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;white-space:nowrap;}
 #mgmt-scratch .job.feed.bad,#mgmt-scratch .job.mine.bad{background:#FDF3F3;border-color:var(--bad);color:#8f2f24;}
 #mgmt-scratch .job.feed.moved{border-left:3px solid var(--prop);}
 #mgmt-scratch .job.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
@@ -373,7 +376,8 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
       <span><i class="sw" style="background:var(--open)"></i>placed (dragged from the rail)</span>
       <span><i class="sw" style="background:var(--prop)"></i>moved (rescheduled)</span>
       <span><i class="sw" style="background:#FFF6DF;border:1px solid #E4C24E"></i>movable — room to move (hover for detail)</span>
-      <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>breaks a rule / won't fit</span>
+      <span><i class="sw" style="background:#FFE8CC;border:1px solid #E8873A"></i>prints late — needs expedited shipping</span>
+      <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>won't make it / over cap</span>
       <span><i class="sw" style="background:#EEF1F4;border:1px solid #C7D1DA"></i>scheduled — locked to its day</span>
       <span class="lh">Day load</span>
       <span><i class="sw" style="background:var(--open)"></i>open</span>

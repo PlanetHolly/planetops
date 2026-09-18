@@ -439,6 +439,27 @@
     return { kind: kind, wiggle: wiggle, expedite: expedite, movable: movable, ps: ps, cs: cs, ship: ship };
   }
 
+  /* Print-timing of a job on a given print day — GRADUATED (2026-09-18 v3.3),
+     read only from the PM's two dates, business days only, no shipping assumption:
+       'ok'       print day <= production due (on schedule)
+       'expedite' print day > production due BUT >= 1 business day still remains to
+                  the client due — it can still make it if shipped faster. level =
+                  bizBetween(printDay, clientDue) business days (1 = overnight,
+                  2 = 2-day, N = N-day). Information, not an instruction.
+       'late'     no shipping days left (bizBetween(printDay, clientDue) <= 0, or
+                  past prod due with no client due) — the ONLY true print-timing
+                  failure now. job = {pd, cd} ISO strings. */
+  function printTiming(printIso, job) {
+    job = job || {};
+    var pd = job.pd, cd = job.cd;
+    if (!pd || printIso <= pd) return { state: 'ok', level: 0 };
+    var cs = (cd && cd > printIso) ? bizBetween(printIso, cd) : 0;
+    if (cs >= 1) return { state: 'expedite', level: cs };
+    return { state: 'late', level: cs };
+  }
+  // "overnight" for 1 business day, else "N-day".
+  function expediteLabel(n) { return n === 1 ? 'overnight' : (n + '-day'); }
+
   /* The five blind spots. Same five, every time, on every answer. The tool
      naming what it cannot check is the product, not a disclaimer. */
   var BLIND_SPOTS = [
@@ -454,6 +475,7 @@
     isoLA: isoLA, addDays: addDays, isBiz: isBiz, bizAdd: bizAdd, bizSub: bizSub,
     bizBetween: bizBetween, fmt: fmt, invoiceOf: invoiceOf, normImprint: normImprint,
     buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve, bandFor: bandFor,
-    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding, moveKind: moveKind
+    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding, moveKind: moveKind,
+    printTiming: printTiming, expediteLabel: expediteLabel
   };
 })(typeof window !== 'undefined' ? window : this);
