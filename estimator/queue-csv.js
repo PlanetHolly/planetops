@@ -1,7 +1,9 @@
 /* ============================================================================
    PA QUEUE CSV — one reader for the Printavo Power Scheduler export.
-   Loaded by the Estimator's Advisor panel AND by capacity/plan/. There must
-   never be a second parser: the two surfaces have to agree on what a row says.
+   Loaded by the Estimator's Advisor panel AND by the availability tool's
+   management-mode planning scratchpad (capacity/scratch.js, re-homed from the
+   retired capacity/plan/ on 2026-09-18). There must never be a second parser:
+   the surfaces have to agree on what a row says.
 
    Deliberately its own parser rather than the Estimator page's `parseCSV` —
    that function is inside the inline block that owns the Google Sheets

@@ -146,6 +146,97 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 .tier.limited{background:var(--limited);}
 .tier.full{background:var(--full);color:#fff;}
 .fit .caveat{font-size:.74rem;color:var(--pa-tonal);margin-top:.7rem;line-height:1.4;}
+
+/* ── PIN entry (soft gate into management mode) ── */
+.pinbar{display:flex;align-items:center;gap:.5rem;margin:.7rem 0 0;font-size:.78rem;flex-wrap:wrap;}
+.pinbar input{width:6.5rem;padding:.3rem .5rem;border:1px solid #bbb;border-radius:5px;font-family:inherit;font-size:.85rem;background:#fff;}
+.pinbar button{background:#111;color:#fff;border:0;border-radius:5px;padding:.32rem .7rem;font-family:inherit;font-weight:800;font-size:.72rem;cursor:pointer;}
+.pinbar .msg{font-size:.72rem;color:var(--pa-tonal);}
+.pinbar .msg.err{color:var(--full);font-weight:700;}
+.jeanbar .swap{margin-left:0;background:var(--pa-yellow);color:#111;}
+.jeanbar .grp{display:flex;gap:.5rem;margin-left:auto;}
+.jeanbar .grp button{margin-left:0;}
+
+/* ── the flip: manager's screen only. A single-face rotateY that swaps content
+   edge-on at 90°, so no absolute positioning and no height juggling — the card's
+   height follows whichever view is shown, exactly as normal flow. At rest the
+   transform is none, so it never creates a containing block for the body-level
+   modals. In PM mode .flip-active is absent and this is inert. ── */
+.flipwrap{position:relative;}
+.flip-active{perspective:1800px;}
+.flip-active .flipcard{transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;}
+#mgmt-scratch{margin-top:.4rem;}
+
+/* ── the planning scratchpad (back face), scoped so nothing leaks to the gauge ── */
+#mgmt-scratch{--pa-line:#ddd;--pa-grey:#EFEFEF;--pa-white:#fff;--prop:#0EA5E9;--bad:#C0392B;}
+#mgmt-scratch .scratch{background:#FFFBEC;border-left:4px solid var(--pa-yellow);padding:.55rem .85rem;margin:.2rem 0 .8rem;font-size:.85rem;line-height:1.4;}
+#mgmt-scratch .bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.6rem 0;}
+#mgmt-scratch .btn{font-family:var(--pa-font);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem;border:2px solid var(--pa-black);background:var(--pa-yellow);color:var(--pa-black);padding:.4rem .85rem;border-radius:4px;cursor:pointer;}
+#mgmt-scratch .btn.ghost{background:var(--pa-white);}
+#mgmt-scratch .btn:disabled{opacity:.4;cursor:not-allowed;}
+#mgmt-scratch .drop{border:2px dashed #bbb;border-radius:6px;padding:.6rem 1rem;text-align:center;cursor:pointer;background:#fff;font-size:.8rem;flex:1;min-width:15rem;}
+#mgmt-scratch .drop.drag{border-color:var(--pa-yellow);background:#FFFBEC;}
+#mgmt-scratch .muted{color:var(--pa-tonal);font-size:.8rem;}
+#mgmt-scratch .weeknav{display:flex;align-items:center;justify-content:center;gap:.9rem;margin:.6rem 0 .3rem;}
+#mgmt-scratch .weeknav .wklabel{font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;min-width:16rem;text-align:center;}
+#mgmt-scratch .stage{display:grid;grid-template-columns:250px 1fr;gap:1rem;align-items:start;}
+@media(max-width:820px){#mgmt-scratch .stage{grid-template-columns:1fr;}}
+#mgmt-scratch .rail{background:#fff;border:1px solid var(--pa-line);border-radius:7px;padding:.7rem;position:sticky;top:.6rem;max-height:80vh;overflow:auto;}
+#mgmt-scratch .rail h2{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin:0 0 .5rem;}
+#mgmt-scratch .proj{border:1px solid var(--pa-line);border-left:4px solid var(--pa-tonal);border-radius:5px;padding:.42rem .55rem;margin-bottom:.4rem;cursor:grab;background:#fff;}
+#mgmt-scratch .proj:active{cursor:grabbing;}
+#mgmt-scratch .proj.sel{border-color:var(--prop);border-left-color:var(--prop);box-shadow:0 0 0 2px rgba(14,165,233,.28);}
+#mgmt-scratch .proj.stuck{border-left-color:var(--bad);background:#FDF3F3;}
+#mgmt-scratch .proj .pid{font-weight:900;font-size:.8rem;}
+#mgmt-scratch .proj .pnick{font-size:.72rem;color:var(--pa-tonal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#mgmt-scratch .proj .pmeta{font-size:.68rem;color:var(--pa-tonal);margin-top:2px;}
+#mgmt-scratch .proj .pwarn{font-size:.66rem;color:var(--bad);font-weight:700;margin-top:2px;}
+#mgmt-scratch .railnote{font-size:.7rem;color:var(--pa-tonal);margin-top:.5rem;line-height:1.45;}
+#mgmt-scratch .week{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem;align-items:stretch;}
+#mgmt-scratch .day{background:#fff;border:1px solid var(--pa-line);border-radius:7px;display:flex;flex-direction:column;min-height:250px;}
+#mgmt-scratch .day.lead{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 6px,transparent 6px 12px);}
+#mgmt-scratch .day.drop-ok{outline:3px solid var(--open);outline-offset:-1px;}
+#mgmt-scratch .day.drop-bad{outline:3px solid var(--bad);outline-offset:-1px;}
+#mgmt-scratch .day.cand{box-shadow:inset 0 0 0 2px rgba(58,174,90,.55);}
+#mgmt-scratch .day.broken{border:2px solid var(--bad);}
+#mgmt-scratch .day.buffered{border:2px solid var(--limited);}
+#mgmt-scratch .nums b.buf{color:#8a6100;}
+#mgmt-scratch .nums i{font-style:normal;opacity:.65;}
+#mgmt-scratch .cond.buf{background:#FFF6DF;border-top:1px solid #EBCF7E;}
+#mgmt-scratch .day .dh{padding:.4rem .5rem;border-bottom:1px solid var(--pa-line);}
+#mgmt-scratch .day.broken .dh{background:#FDF3F3;}
+#mgmt-scratch .day .dd{font-size:.74rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
+#mgmt-scratch .day .tags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:2px;}
+#mgmt-scratch .tag{font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:8px;}
+#mgmt-scratch .tag.ot{background:#000;color:#fff;}
+#mgmt-scratch .tag.lead{background:#EEE;color:#555;}
+#mgmt-scratch .tag.tail{background:#EAF2FF;color:#2A4E8A;}
+#mgmt-scratch .meter{height:7px;background:var(--empty);border-radius:4px;overflow:hidden;margin:.35rem 0 .2rem;display:flex;position:relative;}
+#mgmt-scratch .meter u.planline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--pa-black);opacity:.55;}
+#mgmt-scratch .meter i{display:block;height:100%;}
+#mgmt-scratch .meter i.load{background:var(--open);}
+#mgmt-scratch .meter i.load.limited{background:var(--limited);}
+#mgmt-scratch .meter i.load.full{background:var(--full);}
+#mgmt-scratch .meter i.prop{background:var(--prop);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.4) 0 4px,transparent 4px 8px);}
+#mgmt-scratch .nums{font-size:.64rem;color:var(--pa-tonal);display:flex;justify-content:space-between;}
+#mgmt-scratch .nums b.over{color:var(--bad);}
+#mgmt-scratch .day .body{padding:.35rem .4rem;flex:1;display:flex;flex-direction:column;gap:.25rem;}
+#mgmt-scratch .job{font-size:.66rem;border-radius:4px;padding:.22rem .4rem;background:var(--pa-grey);color:var(--pa-tonal);}
+#mgmt-scratch .job.feed{background:#EEF1F4;color:#31424F;border:1px solid #C7D1DA;cursor:grab;}
+#mgmt-scratch .job.feed.moved{background:#E1F3FC;color:#0B4F6C;border-color:var(--prop);}
+#mgmt-scratch .job.feed.late{background:#FDF3F3;border-color:var(--bad);color:#8f2f24;}
+#mgmt-scratch .job.feed.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
+#mgmt-scratch .job.feed .mv{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:var(--prop);color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;}
+#mgmt-scratch .job.mine{background:#E1F3FC;color:#0B4F6C;border:1px solid var(--prop);cursor:grab;}
+#mgmt-scratch .job.mine.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
+#mgmt-scratch .job .jx{float:right;font-weight:900;cursor:pointer;padding:0 .15rem;}
+#mgmt-scratch .broke{font-size:.66rem;color:var(--bad);font-weight:700;padding:.3rem .45rem;border-top:1px dotted #E0B4B4;line-height:1.4;}
+#mgmt-scratch .cond{font-size:.65rem;padding:.3rem .45rem;background:#FFFBEC;border-top:1px solid #F0DFA8;line-height:1.45;}
+#mgmt-scratch .sp-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.7rem;color:var(--pa-tonal);margin:.7rem 0 0;align-items:center;}
+#mgmt-scratch .sp-legend i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.3rem;vertical-align:-1px;}
+#mgmt-scratch .blind{font-size:.74rem;color:var(--pa-tonal);background:#fff;border:1px solid var(--pa-line);border-radius:6px;padding:.55rem .8rem;margin-top:.9rem;line-height:1.55;}
+#mgmt-scratch .sp-stamp{margin-top:.8rem;text-transform:uppercase;letter-spacing:.08em;font-size:.66rem;}
+@media(prefers-reduced-motion:reduce){.flip-active .flipcard{will-change:auto;}}
 </style>
 </head>
 <body>
@@ -158,7 +249,16 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
   <div class="sub">Press capacity, at a glance</div>
   <h1>Production Availability</h1>
   <div class="updated" id="updated">Loading…</div>
-  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date or change the minimum lead. PMs don't see this. <button id="jeanexit">Exit Jean mode</button></div>
+  <div class="pinbar" id="pinbar">
+    <input id="pinbox" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" aria-label="Management PIN">
+    <button id="pinenter">Enter</button>
+    <span class="msg" id="pinmsg"></span>
+  </div>
+  <div class="jeanbar" id="jeanbar"><b>MANAGEMENT MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date or change the minimum lead. PMs don't see this.
+    <span class="grp"><button id="scratchtoggle" class="swap">Planning scratchpad ›</button><button id="jeanexit">Exit</button></span></div>
+
+  <div class="flipwrap" id="flipwrap"><div class="flipcard" id="flipcard">
+  <div id="gauge-view">
 
   <div class="next" id="nextbar">
     <span class="lbl">Next open press day</span>
@@ -218,6 +318,55 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
   <div class="note" id="note">
     A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. A <b style="color:var(--hold)">blue band</b> is a placeholder: a project still in conversation that is holding room on that day. It is not booked, and it is not a promise that the job lands there. To place or move a job, talk to Jean.
   </div>
+
+  </div><!-- /#gauge-view -->
+
+  <!-- BACK FACE: the planning scratchpad. Populated only when management mode
+       lazy-loads capacity/scratch.js. Static skeleton only until then. -->
+  <div id="mgmt-scratch" hidden>
+    <div class="scratch">
+      <strong>This is a scratchpad.</strong> Nothing here is booked. Printavo is still the schedule and you still
+      place the work there by hand. Move things around — the unplaced projects <em>and</em> the jobs already on the
+      schedule — watch the rules react, then go and do it for real. It will never suggest overtime — that is Holly's call.
+    </div>
+    <div class="bar">
+      <div class="drop" id="sp-drop">Drop the <b>Power Scheduler Queue CSV</b> here, or click to choose
+        <input type="file" id="sp-file" accept=".csv,text/csv" style="display:none"></div>
+      <button class="btn ghost" id="sp-reload">Reload gauge</button>
+      <button class="btn ghost" id="sp-clear">Clear placements</button>
+      <button class="btn ghost" id="sp-resetfeed" disabled>Reset scheduled-job moves</button>
+    </div>
+    <div class="muted" id="sp-status">Loading the availability gauge…</div>
+    <div class="weeknav">
+      <button class="btn ghost" id="sp-prev">‹ Prev</button>
+      <div class="wklabel" id="sp-weeklabel">—</div>
+      <button class="btn ghost" id="sp-next">Next ›</button>
+    </div>
+    <div class="stage">
+      <div class="rail">
+        <h2>Not placed <span id="sp-railn" class="muted"></span></h2>
+        <div id="sp-rail"></div>
+        <div class="railnote">Click a project then click a day, or drag it across. The jobs already on the schedule
+          drag too — moving one is a proposal, nothing is booked.</div>
+      </div>
+      <div>
+        <div class="week" id="sp-week"></div>
+        <div class="sp-legend">
+          <span><i class="sw" style="background:var(--open)"></i>open</span>
+          <span><i class="sw" style="background:var(--limited)"></i>limited</span>
+          <span><i class="sw" style="background:var(--full)"></i>full</span>
+          <span><i class="sw" style="background:var(--prop)"></i>your placement — not booked</span>
+          <span><i class="sw" style="background:#EEF1F4;border:1px solid #C7D1DA"></i>scheduled job — draggable</span>
+          <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>a rule is broken here</span>
+          <span>shaded = inside the minimum lead</span>
+        </div>
+        <div class="blind" id="sp-blind"></div>
+      </div>
+    </div>
+    <div class="sp-stamp muted" id="sp-stamp">—</div>
+  </div>
+
+  </div></div><!-- /#flipcard /#flipwrap -->
 
   <div class="foot">
     <span>Planet Apparel · Production Availability</span>
@@ -295,20 +444,23 @@ const OPEN_BELOW=70;     // pct under which a day counts as an opening (green)
 const SLACK_PROD_DEFAULT=1; // business days: prod due this far past the print day = wiggle room (Jean, 2026-09-04)
 const SLACK_CUST_DEFAULT=3; // business days: client due this far past the print day = movable with expedited shipping
 
-// JEAN mode: the front door loads this page in a same-origin iframe with a bare
-// src, so the iframe's own URL never carries ?mode=jean. Check the top window's
-// URL too, and make the mode stick per-browser: ?mode=jean turns it on until
-// ?mode=view (or the Exit button) turns it off.
-function jeanMode(){
-  let m=new URLSearchParams(location.search).get('mode');
-  if(!m){try{if(window.top!==window)m=new URLSearchParams(window.top.location.search).get('mode');}catch(e){}}
-  try{
-    if(m==='jean'){localStorage.setItem('gauge_jeanmode','1');return true;}
-    if(m==='view'){localStorage.removeItem('gauge_jeanmode');return false;}
-    return localStorage.getItem('gauge_jeanmode')==='1';
-  }catch(e){return m==='jean';}
-}
-const JEAN=jeanMode();
+// ── MANAGEMENT MODE (formerly "Jean mode") ──
+// 🔴 SOFT GATE ONLY. This PIN is client-side and trivially bypassable (view
+// source, console, or just flip the localStorage flag). That is acceptable here
+// ONLY because everything behind it is READ-ONLY and NOTHING COMMITS — no write
+// to Printavo, no write to the gauge feed. The day management mode writes to a
+// system of record, it needs a real server-side sign-in instead. A shared PIN
+// grants access but cannot say WHO entered or revoke one person — fine for now.
+//
+// 🔑 Jean sets the PIN himself, right here. Leave it '' and management mode is
+// simply unavailable (an empty constant can never be unlocked). The PIN never
+// comes from the Builder, the brief, or Ava.
+const MGMT_PIN = '';
+// localStorage flag, no URL param — the front door strips query params behind
+// the auth gate, which is why the old ?mode=jean was always fiddly.
+const MGMT_KEY='gauge_mgmt';
+function mgmtActive(){try{return localStorage.getItem(MGMT_KEY)==='1';}catch(e){return false;}}
+const JEAN=mgmtActive();   // internal name kept; every visible label now reads "management mode"
 // Lead shading is a per-browser VIEW preference. Off hides the hatching only;
 // the next-open computation and the lead floor are untouched.
 function shadeOn(){try{return localStorage.getItem('gauge_leadshade')!=='0';}catch(e){return true;}}
@@ -551,13 +703,94 @@ document.getElementById('nx-save').onclick=async()=>{
   MANUAL_NEXT=document.getElementById('nx-sel').value||null;
   await persist();document.getElementById('ovn').classList.remove('on');render();
 };
-document.getElementById('jeanexit').onclick=()=>{
-  try{localStorage.removeItem('gauge_jeanmode');}catch(e){}
-  // strip ?mode=jean from whichever URL carried it so the reload does not re-arm
-  try{const u=new URL(location.href);u.searchParams.delete('mode');history.replaceState(null,'',u);}catch(e){}
-  try{if(window.top!==window){const u=new URL(window.top.location.href);u.searchParams.delete('mode');window.top.history.replaceState(null,'',u);}}catch(e){}
-  location.reload();
-};
+// ── management-mode entry (PIN) / exit ──
+function enterMgmt(){try{localStorage.setItem(MGMT_KEY,'1');}catch(e){}location.reload();}
+function exitMgmt(){try{localStorage.removeItem(MGMT_KEY);}catch(e){}location.reload();}
+(function(){
+  const box=document.getElementById('pinbox'),msg=document.getElementById('pinmsg'),btn=document.getElementById('pinenter');
+  if(!box||!btn)return;
+  function tryPin(){
+    const v=box.value||'';
+    if(!MGMT_PIN){msg.textContent='Management mode is not configured — set MGMT_PIN in the page source.';msg.className='msg err';return;}
+    if(v===MGMT_PIN){msg.textContent='';enterMgmt();}
+    else{msg.textContent='Incorrect PIN.';msg.className='msg err';box.value='';box.focus();}
+  }
+  btn.onclick=tryPin;
+  box.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
+})();
+const jx=document.getElementById('jeanexit');if(jx)jx.onclick=exitMgmt;
+
+// ── view swap: gauge ⇄ planning scratchpad (management mode only) ──
+// 🔴 ISOLATION: the advisor code (fit-core.js + queue-csv.js + scratch.js) is
+// LAZY-LOADED here and ONLY here, into #mgmt-scratch, wrapped so a throw in it
+// can NEVER reach the gauge — which has already rendered above and shares none
+// of its scope. estimate.js is already on the page.
+(function(){
+  const flipwrap=document.getElementById('flipwrap'),card=document.getElementById('flipcard');
+  const gaugeView=document.getElementById('gauge-view'),scratch=document.getElementById('mgmt-scratch');
+  const toggle=document.getElementById('scratchtoggle');
+  if(!flipwrap||!card||!gaugeView||!scratch||!toggle)return;
+  let view='gauge',loaded=false,animating=false;
+  const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches);
+
+  function loadScratch(){
+    return new Promise((res,rej)=>{
+      if(loaded||window.__SCRATCH){loaded=true;return res();}
+      const srcs=['../estimator/fit-core.js','../estimator/queue-csv.js','./scratch.js'];
+      (function next(i){
+        if(i>=srcs.length){loaded=true;return res();}
+        const s=document.createElement('script');s.src=srcs[i];
+        s.onload=()=>next(i+1);s.onerror=()=>rej(new Error('could not load '+srcs[i]));
+        document.body.appendChild(s);
+      })(0);
+    });
+  }
+  // The bulletproof, non-animated truth: which face is shown. Only one is ever
+  // displayed, so the card height follows it in normal flow (no absolute
+  // positioning, no height juggling).
+  function applyView(v){
+    view=v;const on=v==='scratch';
+    scratch.hidden=!on;gaugeView.style.display=on?'none':'';
+    toggle.textContent=on?'‹ Back to the gauge':'Planning scratchpad ›';
+    const fm=document.getElementById('footmode');if(fm)fm.textContent=on?'Management · planning':'Management mode';
+  }
+  // The flip is PURE POLISH. It swaps content edge-on at 90° so a face is never
+  // seen mirrored or half-built; the content swap (applyView) happens whether or
+  // not the animation fires. Degrades to a fade under reduced motion.
+  function flipTo(v){
+    if(reduce){return fadeTo(v);}
+    animating=true;flipwrap.classList.add('flip-active');
+    let done=false;
+    const rest=()=>{card.style.transition='';card.style.transform='';flipwrap.classList.remove('flip-active');animating=false;};
+    const mid=()=>{
+      if(done)return;done=true;card.removeEventListener('transitionend',mid);
+      try{applyView(v);}catch(e){}
+      card.style.transition='none';card.style.transform='rotateY(-90deg)';void card.offsetWidth;
+      card.style.transition='transform .32s ease-out';card.style.transform='rotateY(0deg)';
+      let ended=false;const end=()=>{if(ended)return;ended=true;card.removeEventListener('transitionend',end);rest();};
+      card.addEventListener('transitionend',end);setTimeout(end,520);
+    };
+    card.addEventListener('transitionend',mid);setTimeout(mid,420);
+    card.style.transition='transform .32s ease-in';void card.offsetWidth;card.style.transform='rotateY(90deg)';
+  }
+  function fadeTo(v){
+    animating=true;card.style.transition='opacity .18s';card.style.opacity='0';
+    setTimeout(()=>{try{applyView(v);}catch(e){}card.style.opacity='1';
+      setTimeout(()=>{card.style.transition='';card.style.opacity='';animating=false;},200);},180);
+  }
+  async function go(){
+    if(animating)return;
+    const target=view==='gauge'?'scratch':'gauge';
+    if(target==='scratch'){
+      try{await loadScratch();}
+      catch(e){try{console.warn('[scratch loader]',e);}catch(_){}
+        applyView('scratch');const st=document.getElementById('sp-status');
+        if(st)st.textContent='Could not load the planning tool. The gauge is unaffected — switch back any time.';return;}
+    }
+    try{flipTo(target);}catch(e){try{applyView(target);}catch(_){}}
+  }
+  toggle.onclick=go;
+})();
 
 async function persist(){
   if(MANUAL_NEXT)OVERRIDES.__nextOpen=MANUAL_NEXT;else delete OVERRIDES.__nextOpen;
@@ -632,7 +865,8 @@ document.getElementById('f-go').onclick=recommend;
 (async function(){
   if(JEAN){
     document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('fit').classList.add('on');
-    document.getElementById('footmode').textContent='Jean mode';document.getElementById('nextbar').onclick=openNextEditor;
+    document.getElementById('pinbar').style.display='none';
+    document.getElementById('footmode').textContent='Management mode';document.getElementById('nextbar').onclick=openNextEditor;
     document.getElementById('f-from').value=addDays(TODAY,1);
     if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().catch(()=>{});
   }

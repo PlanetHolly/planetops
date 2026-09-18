@@ -23,9 +23,12 @@
        spending buffer is the right call, because that is what it is reserved
        for. A tool that silently refused the 400-420 band would be wrong in the
        one situation it was built for.
-       ⚠ This does NOT change the gauge. capacity/index.html measures against
-       420 and is correct to; it answers "how full is the day". Only the Advisor
-       needs to know the last twenty minutes are cushion rather than capacity.
+       ⚠ As of 2026-09-18 (PR #60) the gauge, capacity/index.html, also caps the
+       day at 400 (500 OT) — it now measures against the PLAN, not the 420/525
+       ceiling. So the gauge and this file agree on the number; the extra thing
+       the Advisor knows is that the last twenty minutes (25 on OT) are a NAMED
+       buffer band rather than flat capacity, so spending them is surfaced out
+       loud instead of counted silently.
      - 4-5 imprints a day = the changeover cap. Counts IMPRINTS, not invoices
        (Jean 2026-09-16): front/back/sleeve on one invoice is three setups,
        three registrations, three teardowns. v1 SURFACES at/over-cap days, it
