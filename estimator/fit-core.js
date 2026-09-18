@@ -407,6 +407,26 @@
     return fallback;
   }
 
+  /* Job movability from its own dates — the ONE rule the availability gauge's
+     slack chips (capacity/index.html slack()) AND the Advisor's free-move colour
+     both read, so the two can never drift (the estimator-drift lesson):
+       wiggle   = production due >= slackProd biz days after the print day
+                  (can move later without touching the client)
+       expedite = not wiggle, but client due >= slackCust biz days after
+                  (can move if we pay for expedited shipping)
+       locked   = neither.
+     Defaults: prod 1, client SHIP_DAYS (3) — the gauge passes its own tunable
+     thresholds; the Advisor uses these defaults. job = {pd, cd} ISO strings. */
+  function moveKind(printIso, job, slackProd, slackCust) {
+    slackProd = (slackProd == null) ? 1 : slackProd;
+    slackCust = (slackCust == null) ? RULES.SHIP_DAYS : slackCust;
+    job = job || {};
+    var ps = (job.pd && job.pd > printIso) ? bizBetween(printIso, job.pd) : 0;
+    var cs = (job.cd && job.cd > printIso) ? bizBetween(printIso, job.cd) : 0;
+    var kind = ps >= slackProd ? 'wiggle' : (cs >= slackCust ? 'expedite' : 'locked');
+    return { kind: kind, ps: ps, cs: cs, movable: kind !== 'locked' };
+  }
+
   /* The five blind spots. Same five, every time, on every answer. The tool
      naming what it cannot check is the product, not a disclaimer. */
   var BLIND_SPOTS = [
@@ -422,6 +442,6 @@
     isoLA: isoLA, addDays: addDays, isBiz: isBiz, bizAdd: bizAdd, bizSub: bizSub,
     bizBetween: bizBetween, fmt: fmt, invoiceOf: invoiceOf, normImprint: normImprint,
     buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve, bandFor: bandFor,
-    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding
+    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding, moveKind: moveKind
   };
 })(typeof window !== 'undefined' ? window : this);

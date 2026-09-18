@@ -152,6 +152,14 @@
     for (var i = 0; i < DAYS.length; i++) if (evalFor(p, DAYS[i]).legal) return DAYS[i];
     return null;
   }
+  // Every day in range the project can ACTUALLY go: has room AND is inside its
+  // latest-print window AND under the changeover cap (evalFor's legal test).
+  // Live: it accounts for other placements + feed moves already made.
+  function allLegal(p) {
+    var out = [];
+    for (var i = 0; i < DAYS.length; i++) if (evalFor(p, DAYS[i]).legal) out.push(DAYS[i]);
+    return out;
+  }
 
   /* A hover preview for a feed-job drop: would the target day still hold it, and
      would the job still make its own client date. Approximate on purpose — the
@@ -246,19 +254,29 @@
     }
     if (!un.length) { rail.innerHTML = '<div class="muted">Everything is on a day.</div>'; return; }
     rail.innerHTML = un.map(function (p) {
-      var target = anywhereLegal(p);
-      var cls = 'proj' + (SEL === p.key ? ' sel' : '') + (target ? '' : ' stuck');
+      var legal = allLegal(p);
+      var earliest = legal.length ? legal[0] : null;
+      var cls = 'proj' + (SEL === p.key ? ' sel' : '') + (earliest ? '' : ' stuck');
       var meta = p.need + ' min · ' + esc(p.qty) + ' pcs';
-      var dates = (p.prodDue ? 'wants ' + F.fmt(p.prodDue) : '') +
-        (p.latestPrint ? (p.prodDue ? ' · ' : '') + 'must print by ' + F.fmt(p.latestPrint) : '');
+      // DUE dates are CONTEXT, never a recommendation. prodDue is the Power
+      // Scheduler "Prod. Due" — the date the job is aiming for, which can be a
+      // day the job cannot even fit. So it is labelled a due date, plainly, and
+      // the green "recommended" treatment lives on the fit-days below instead.
+      var due = p.prodDue ? '<div class="pdue">Production due: ' + esc(F.fmt(p.prodDue)) + '</div>' : '';
+      var mustP = p.latestPrint ? '<div class="pdue">Must print by: ' + esc(F.fmt(p.latestPrint)) + '</div>' : '';
+      var rec;
+      if (earliest) {
+        var days = legal.map(function (d) { return esc(F.fmt(d).replace(/^\w+,\s*/, '')); });
+        rec = '<div class="prec">Earliest day that holds it: ' + esc(F.fmt(earliest)) + '</div>' +
+          '<div class="pall">All available days: <b>' + days.join('</b>, <b>') + '</b></div>';
+      } else {
+        rec = '<div class="pwarn">Nowhere legal in this range — every day breaks a rule.</div>';
+      }
       return '<div class="' + cls + '" draggable="true" data-key="' + esc(p.key) + '">' +
         '<div class="pid">' + esc(p.imprintId) + '</div>' +
         '<div class="pnick" title="' + esc(p.jobName) + '">' + esc(p.jobName) + '</div>' +
         '<div class="pmeta">' + meta + '</div>' +
-        '<div class="pmeta">' + esc(dates) + '</div>' +
-        (target
-          ? '<div class="pmeta">earliest day that holds it: <b>' + esc(F.fmt(target)) + '</b></div>'
-          : '<div class="pwarn">Nowhere legal in this range — every day breaks a rule.</div>') +
+        due + mustP + rec +
         (p.alreadyOnBoard && p.alreadyOnBoard.length
           ? '<div class="pwarn">Invoice already on the board ' + esc(F.fmt(p.alreadyOnBoard[0].iso)) + '</div>' : '') +
         '</div>';
@@ -306,18 +324,26 @@
       // what the schedule already carries — NOW MOVABLE (v3, Tier A)
       feedJobsOn(iso).forEach(function (j) {
         var moved = feedMoved(j), late = feedLate(j);
-        var cls = 'job feed' + (SELFEED === j.__k ? ' sel' : '') + (moved ? ' moved' : '') + (late ? ' late' : '');
-        var title = moved ? ('moved from ' + F.fmt(j.__origin)) : 'on the schedule already';
+        // colour = rule state (shared vocabulary): red = won't ship in time from
+        // here; yellow = free-move headroom (options to shuffle); neutral = locked.
+        var mv = F.moveKind(iso, { pd: j.pd, cd: j.cd });
+        var state = late ? ' bad' : (mv.movable ? ' movable' : '');
+        var cls = 'job feed' + (SELFEED === j.__k ? ' sel' : '') + (moved ? ' moved' : '') + state;
+        var title = late ? 'can no longer ship in time from here'
+          : mv.movable ? (mv.kind === 'wiggle' ? 'wiggle room — can move later for free' : 'movable — client date leaves room to expedite')
+          : (moved ? 'moved from ' + F.fmt(j.__origin) : 'locked to this day');
         jobs += '<div class="' + cls + '" draggable="true" data-feedkey="' + esc(j.__k) + '" title="' + esc(title) + '">' +
           (moved ? '<span class="jx" data-reset="' + esc(j.__k) + '" title="put it back on ' + esc(F.fmt(j.__origin)) + '">↩</span>' : '') +
           esc(j.id) + ' · ' + j.m + 'm' +
           (moved ? ' <span class="mv">moved</span>' : '') +
           (late ? ' ⚠' : '') + '</div>';
       });
-      // the scratchpad's own rail placements — movable
+      // the scratchpad's own rail placements — same colour vocabulary
       s.mine.forEach(function (p) {
         var ev = evalFor(p, iso);
-        jobs += '<div class="job mine' + (SEL === p.key ? ' sel' : '') + '" draggable="true" data-key="' +
+        var mv = F.moveKind(iso, { pd: p.prodDue, cd: p.custDue });
+        var state = !ev.legal ? ' bad' : (mv.movable ? ' movable' : '');
+        jobs += '<div class="job mine' + (SEL === p.key ? ' sel' : '') + state + '" draggable="true" data-key="' +
           esc(p.key) + '"><span class="jx" data-eject="' + esc(p.key) + '" title="take it off this day">✕</span>' +
           esc(p.imprintId) + ' · ' + p.need + 'm' + (ev.legal ? '' : ' ⚠') + '</div>';
       });
