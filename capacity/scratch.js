@@ -325,16 +325,17 @@
       if (d.beyondBoard) tags += '<span class="tag tail">past the board</span>';
 
       var jobs = '';
-      // what the schedule already carries — MOVABLE (Tier A). Colour = state:
-      // RED = a real failure (over cap/changeover, or at/past the client date) ·
-      // AMBER = prints after its production due but still shippable ("needs
-      // overnight / N-day") · YELLOW = on schedule with room to move · neutral =
-      // locked/fine. The DETAIL rides in the hover to keep the week clean.
+      // what the schedule already carries — MOVABLE (Tier A). Box FILL is one
+      // shared vocabulary (v3.4): RED = real failure (over cap/changeover, or
+      // at/past the client date) · PURPLE = expedite (prints past prod due but
+      // ships → "needs N-day"; or on-schedule expedite headroom, no badge) ·
+      // BLUE = wiggle (on schedule, room to move) · neutral = locked. Detail in
+      // the hover. "moved" is a ring + pill, never a fill.
       feedJobsOn(iso).forEach(function (j) {
         var moved = feedMoved(j);
         var mv = F.moveKind(iso, { pd: j.pd, cd: j.cd });
         var pt = F.printTiming(iso, { pd: j.pd, cd: j.cd });
-        var state = pt.state === 'late' ? ' bad' : pt.state === 'expedite' ? ' exp' : (mv.movable ? ' movable' : '');
+        var state = boxState(pt.state === 'late', pt, mv);
         var cls = 'job feed' + (SELFEED === j.__k ? ' sel' : '') + (moved ? ' moved' : '') + state;
         var flag = pt.state === 'late' ? ' ⚠'
           : pt.state === 'expedite' ? ' <span class="exp-b">needs ' + esc(F.expediteLabel(pt.level)) + '</span>' : '';
@@ -345,17 +346,16 @@
           flag + '</div>';
       });
       // the scratchpad's own rail placements — same vocabulary, + a green "placed"
-      // badge (mirrors the blue "moved" badge on a rescheduled feed job).
+      // ring & pill (mirrors the indigo "moved" ring & pill on a rescheduled feed job).
       s.mine.forEach(function (p) {
         var ev = evalFor(p, iso);
         var mv = F.moveKind(iso, { pd: p.prodDue, cd: p.custDue });
         var red = ev.broken.length > 0;
-        var amber = !red && ev.timing.state === 'expedite';
-        var state = red ? ' bad' : amber ? ' exp' : (mv.movable ? ' movable' : '');
+        var state = boxState(red, ev.timing, mv);
         var flag = red ? ' ⚠'
-          : amber ? ' <span class="exp-b">needs ' + esc(F.expediteLabel(ev.timing.level)) + '</span>' : '';
+          : ev.timing.state === 'expedite' ? ' <span class="exp-b">needs ' + esc(F.expediteLabel(ev.timing.level)) + '</span>' : '';
         var title = red ? ev.broken.join(' · ') : hoverFor({ pd: p.prodDue, cd: p.custDue }, ev.timing, mv, false);
-        jobs += '<div class="job mine' + (SEL === p.key ? ' sel' : '') + state + '" draggable="true" data-key="' +
+        jobs += '<div class="job mine placed' + (SEL === p.key ? ' sel' : '') + state + '" draggable="true" data-key="' +
           esc(p.key) + '" title="' + esc(title) + '"><span class="jx" data-eject="' + esc(p.key) + '" title="take it off this day">✕</span>' +
           esc(p.imprintId) + ' · ' + p.need + 'm <span class="pl">placed</span>' + flag + '</div>';
       });
@@ -409,6 +409,20 @@
      production due the timing read leads (needs overnight / N-day, or a true
      miss); when it is on schedule the movability reads lead (wiggle / expedite
      room). j = {pd, cd}; mv from moveKind; moved bool. */
+  /* The box FILL class from the shared move/timing reads (v3.4):
+       red (a real failure) → bad
+       past prod due but ships → exp (purple, + a "needs N-day" badge elsewhere)
+       on schedule + wiggle → wiggle (blue)
+       on schedule + expedite headroom only → exp-room (purple, no badge)
+       else neutral. */
+  function boxState(red, pt, mv) {
+    if (red) return ' bad';
+    if (pt.state === 'expedite') return ' exp';
+    if (mv.wiggle) return ' wiggle';
+    if (mv.expedite) return ' exp-room';
+    return '';
+  }
+
   function hoverFor(j, pt, mv, moved) {
     var parts = [];
     if (pt.state === 'late') {
