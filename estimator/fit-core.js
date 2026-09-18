@@ -407,24 +407,36 @@
     return fallback;
   }
 
-  /* Job movability from its own dates — the ONE rule the availability gauge's
-     slack chips (capacity/index.html slack()) AND the Advisor's free-move colour
-     both read, so the two can never drift (the estimator-drift lesson):
-       wiggle   = production due >= slackProd biz days after the print day
-                  (can move later without touching the client)
-       expedite = not wiggle, but client due >= slackCust biz days after
-                  (can move if we pay for expedited shipping)
-       locked   = neither.
-     Defaults: prod 1, client SHIP_DAYS (3) — the gauge passes its own tunable
-     thresholds; the Advisor uses these defaults. job = {pd, cd} ISO strings. */
-  function moveKind(printIso, job, slackProd, slackCust) {
-    slackProd = (slackProd == null) ? 1 : slackProd;
-    slackCust = (slackCust == null) ? RULES.SHIP_DAYS : slackCust;
+  /* Job movability — the ONE shared rule (availability gauge chips + Advisor
+     colour), RE-KEYED 2026-09-18 off the PM's OWN two dates, with NO shipping
+     assumption (the flat 3-business-day SHIP_DAYS is dropped here). Shipping is
+     location-dependent (AZ ~1 day, FL ~5) and the PM sets prod due + client due
+     deliberately, so the tool only READS those dates, never second-guesses them.
+     Two INDEPENDENT reads (a job can be one, both, or neither):
+       WIGGLE   = room to move later and still print by its production due
+                  (ps >= prodSlack, default 1 business day of room)
+       EXPEDITE = client due is MORE THAN 1 business day after the production due
+                  (ship > 1) — the PM's dates leave shipping room. Pure date read,
+                  no assumed shipping duration; e.g. prod 21st/client 22nd = 1 bd
+                  = NO room, prod 21st/client 23rd = 2 bd = HAS room.
+       movable  = wiggle || expedite (yellow "has options")
+       ps  = biz days of room before the production due
+       cs  = biz days to the client due (context)
+       ship= client due − production due in biz days (the PM's shipping window)
+     kind = 'wiggle' | 'expedite' | 'locked' (wiggle wins) so the gauge's chip
+     bucketing keeps working; ✈ now fires on the date gap, not a flat ship time.
+     job = {pd, cd} ISO strings. */
+  function moveKind(printIso, job, prodSlack) {
+    prodSlack = (prodSlack == null) ? 1 : prodSlack;
     job = job || {};
     var ps = (job.pd && job.pd > printIso) ? bizBetween(printIso, job.pd) : 0;
     var cs = (job.cd && job.cd > printIso) ? bizBetween(printIso, job.cd) : 0;
-    var kind = ps >= slackProd ? 'wiggle' : (cs >= slackCust ? 'expedite' : 'locked');
-    return { kind: kind, ps: ps, cs: cs, movable: kind !== 'locked' };
+    var ship = (job.pd && job.cd && job.cd > job.pd) ? bizBetween(job.pd, job.cd) : 0;
+    var wiggle = ps >= prodSlack;
+    var expedite = ship > 1;
+    var movable = wiggle || expedite;
+    var kind = wiggle ? 'wiggle' : (expedite ? 'expedite' : 'locked');
+    return { kind: kind, wiggle: wiggle, expedite: expedite, movable: movable, ps: ps, cs: cs, ship: ship };
   }
 
   /* The five blind spots. Same five, every time, on every answer. The tool

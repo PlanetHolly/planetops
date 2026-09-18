@@ -242,13 +242,14 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 #mgmt-scratch .job.feed.moved{border-left:3px solid var(--prop);}
 #mgmt-scratch .job.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
 #mgmt-scratch .job.feed .mv{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:var(--prop);color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;}
+#mgmt-scratch .job .pl{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:var(--open);color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;}
 #mgmt-scratch .job.mine{background:#E1F3FC;color:#0B4F6C;border:1px solid var(--prop);cursor:grab;}
 #mgmt-scratch .job .jx{float:right;font-weight:900;cursor:pointer;padding:0 .15rem;}
 #mgmt-scratch .broke{font-size:.66rem;color:var(--bad);font-weight:700;padding:.3rem .45rem;border-top:1px dotted #E0B4B4;line-height:1.4;}
 #mgmt-scratch .cond{font-size:.65rem;padding:.3rem .45rem;background:#FFFBEC;border-top:1px solid #F0DFA8;line-height:1.45;}
 #mgmt-scratch .sp-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.7rem;color:var(--pa-tonal);margin:.7rem 0 0;align-items:center;}
 #mgmt-scratch .sp-legend i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.3rem;vertical-align:-1px;}
-#mgmt-scratch .blind{font-size:.74rem;color:var(--pa-tonal);background:#fff;border:1px solid var(--pa-line);border-radius:6px;padding:.55rem .8rem;margin-top:.9rem;line-height:1.55;}
+#mgmt-scratch .sp-legend .lh{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.6rem;color:var(--pa-black);}
 #mgmt-scratch .sp-stamp{margin-top:.8rem;text-transform:uppercase;letter-spacing:.08em;font-size:.66rem;}
 @media(prefers-reduced-motion:reduce){.flip-active .flipcard{will-change:auto;}}
 </style>
@@ -365,17 +366,21 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
       <button class="btn ghost" id="sp-next">Next ›</button>
     </div>
     <div class="week" id="sp-week"></div>
+    <!-- the Advisor's OWN legend — its job-state vocabulary, separate from the
+         gauge's. (Item 3, v3.2) -->
     <div class="sp-legend">
+      <span class="lh">Jobs</span>
+      <span><i class="sw" style="background:var(--open)"></i>placed (dragged from the rail)</span>
+      <span><i class="sw" style="background:var(--prop)"></i>moved (rescheduled)</span>
+      <span><i class="sw" style="background:#FFF6DF;border:1px solid #E4C24E"></i>movable — room to move (hover for detail)</span>
+      <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>breaks a rule / won't fit</span>
+      <span><i class="sw" style="background:#EEF1F4;border:1px solid #C7D1DA"></i>scheduled — locked to its day</span>
+      <span class="lh">Day load</span>
       <span><i class="sw" style="background:var(--open)"></i>open</span>
       <span><i class="sw" style="background:var(--limited)"></i>limited</span>
       <span><i class="sw" style="background:var(--full)"></i>full</span>
-      <span><i class="sw" style="background:var(--prop)"></i>your placement — not booked</span>
-      <span><i class="sw" style="background:#EEF1F4;border:1px solid #C7D1DA"></i>scheduled job — draggable</span>
-      <span><i class="sw" style="background:#FFF6DF;border:1px solid #E4C24E"></i>movable — has options</span>
-      <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>breaks a rule / won't fit</span>
       <span>shaded = inside the minimum lead</span>
     </div>
-    <div class="blind" id="sp-blind"></div>
     <div class="sp-stamp muted" id="sp-stamp">—</div>
   </div>
 

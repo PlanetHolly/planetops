@@ -118,9 +118,11 @@
   function feedJobsOn(iso) {
     return (BOARD.load[iso] && Array.isArray(BOARD.load[iso].jobs)) ? BOARD.load[iso].jobs : [];
   }
-  function latestPrintFor(j) { return j && j.cd ? F.bizSub(j.cd, F.RULES.SHIP_DAYS) : null; }
+  // A scheduled job's print deadline is its OWN production due (j.pd). No
+  // shipping assumption — see fit-core moveKind (re-keyed 2026-09-18).
+  function feedDeadline(j) { return j && j.pd ? j.pd : null; }
   function feedMoved(j) { return j.__cur !== j.__origin; }
-  function feedLate(j) { var lp = latestPrintFor(j); return !!(lp && j.__cur > lp); }
+  function feedLate(j) { var dl = feedDeadline(j); return !!(dl && j.__cur > dl); }
   function anyFeedMoved() {
     for (var k in FEED_BYKEY) if (feedMoved(FEED_BYKEY[k])) return true;
     return false;
@@ -140,8 +142,8 @@
       broken.push('over the changeover cap — ' + (ev.day.imprints + 1) + ' imprints, the cap is ' +
         F.RULES.CHANGEOVER_MAX);
     }
-    if (p.latestPrint && iso > p.latestPrint) {
-      broken.push('past its own latest print day (' + F.fmt(p.latestPrint) + ')');
+    if (p.prodDue && iso > p.prodDue) {
+      broken.push('past its production due (' + F.fmt(p.prodDue) + ')');
     }
     ev.broken = broken;
     ev.legal = broken.length === 0;
@@ -152,9 +154,9 @@
     for (var i = 0; i < DAYS.length; i++) if (evalFor(p, DAYS[i]).legal) return DAYS[i];
     return null;
   }
-  // Every day in range the project can ACTUALLY go: has room AND is inside its
-  // latest-print window AND under the changeover cap (evalFor's legal test).
-  // Live: it accounts for other placements + feed moves already made.
+  // Every day in range the project can ACTUALLY go: has room AND is on/before its
+  // PRODUCTION DUE AND under the changeover cap (evalFor's legal test). Live: it
+  // accounts for other placements + feed moves already made.
   function allLegal(p) {
     var out = [];
     for (var i = 0; i < DAYS.length; i++) if (evalFor(p, DAYS[i]).legal) out.push(DAYS[i]);
@@ -162,15 +164,15 @@
   }
 
   /* A hover preview for a feed-job drop: would the target day still hold it, and
-     would the job still make its own client date. Approximate on purpose — the
-     honest answer lands on the real render after the drop. */
+     would the job still print by its own production due. Approximate on purpose —
+     the honest answer lands on the real render after the drop. */
   function feedPreview(j, iso) {
     if (iso === j.__cur) return true;
     var d = F.dayInfo(BOARD, iso);            // excludes j (j sits on its from-day)
     var over = (d.minutes + (Number(j.m) || 0)) > d.cap;
     var overCap = (d.imprints + 1) > F.RULES.CHANGEOVER_MAX;
-    var lp = latestPrintFor(j);
-    var late = !!(lp && iso > lp);
+    var dl = feedDeadline(j);
+    var late = !!(dl && iso > dl);
     return !over && !overCap && !late;
   }
 
@@ -219,7 +221,7 @@
     var inBuffer = d.minutes > d.plan && d.minutes <= d.cap;
     var overCap = d.minutes > d.cap;
     var overChangeover = d.imprints > F.RULES.CHANGEOVER_MAX;
-    var late = mine.filter(function (p) { return p.latestPrint && iso > p.latestPrint; });
+    var late = mine.filter(function (p) { return p.prodDue && iso > p.prodDue; });
     var lateFeed = feedJobsOn(iso).filter(function (j) { return feedMoved(j) && feedLate(j); });
     var readyDays = F.bizBetween(BOARD.today, iso);
     return {
@@ -236,7 +238,7 @@
 
   /* ---------------- rendering ---------------- */
   function render() {
-    try { renderRail(); renderWeekNav(); renderWeek(); renderBlind(); renderFeedReset(); } catch (e) { warn(e); }
+    try { renderRail(); renderWeekNav(); renderWeek(); renderFeedReset(); } catch (e) { warn(e); }
   }
 
   function renderFeedReset() {
@@ -262,21 +264,23 @@
       // Scheduler "Prod. Due" — the date the job is aiming for, which can be a
       // day the job cannot even fit. So it is labelled a due date, plainly, and
       // the green "recommended" treatment lives on the fit-days below instead.
+      // Production due is the print deadline AND context; no derived "must print
+      // by" any more (the flat shipping assumption is gone — re-key 2026-09-18).
       var due = p.prodDue ? '<div class="pdue">Production due: ' + esc(F.fmt(p.prodDue)) + '</div>' : '';
-      var mustP = p.latestPrint ? '<div class="pdue">Must print by: ' + esc(F.fmt(p.latestPrint)) + '</div>' : '';
+      var cust = p.custDue ? '<div class="pdue">Client due: ' + esc(F.fmt(p.custDue)) + '</div>' : '';
       var rec;
       if (earliest) {
         var days = legal.map(function (d) { return esc(F.fmt(d).replace(/^\w+,\s*/, '')); });
         rec = '<div class="prec">Earliest day that holds it: ' + esc(F.fmt(earliest)) + '</div>' +
           '<div class="pall">All available days: <b>' + days.join('</b>, <b>') + '</b></div>';
       } else {
-        rec = '<div class="pwarn">Nowhere legal in this range — every day breaks a rule.</div>';
+        rec = '<div class="pwarn">Nowhere legal on or before its production due — every day breaks a rule.</div>';
       }
       return '<div class="' + cls + '" draggable="true" data-key="' + esc(p.key) + '">' +
         '<div class="pid">' + esc(p.imprintId) + '</div>' +
         '<div class="pnick" title="' + esc(p.jobName) + '">' + esc(p.jobName) + '</div>' +
         '<div class="pmeta">' + meta + '</div>' +
-        due + mustP + rec +
+        due + cust + rec +
         (p.alreadyOnBoard && p.alreadyOnBoard.length
           ? '<div class="pwarn">Invoice already on the board ' + esc(F.fmt(p.alreadyOnBoard[0].iso)) + '</div>' : '') +
         '</div>';
@@ -321,31 +325,31 @@
       if (d.beyondBoard) tags += '<span class="tag tail">past the board</span>';
 
       var jobs = '';
-      // what the schedule already carries — NOW MOVABLE (v3, Tier A)
+      // what the schedule already carries — MOVABLE (Tier A). Colour = rule state
+      // (shared vocabulary): red = past its production due · yellow = has room to
+      // move (wiggle and/or expedite) · neutral = locked. The free-move DETAIL is
+      // in the hover tooltip, not on the calendar, to keep the week clean.
       feedJobsOn(iso).forEach(function (j) {
         var moved = feedMoved(j), late = feedLate(j);
-        // colour = rule state (shared vocabulary): red = won't ship in time from
-        // here; yellow = free-move headroom (options to shuffle); neutral = locked.
         var mv = F.moveKind(iso, { pd: j.pd, cd: j.cd });
         var state = late ? ' bad' : (mv.movable ? ' movable' : '');
         var cls = 'job feed' + (SELFEED === j.__k ? ' sel' : '') + (moved ? ' moved' : '') + state;
-        var title = late ? 'can no longer ship in time from here'
-          : mv.movable ? (mv.kind === 'wiggle' ? 'wiggle room — can move later for free' : 'movable — client date leaves room to expedite')
-          : (moved ? 'moved from ' + F.fmt(j.__origin) : 'locked to this day');
-        jobs += '<div class="' + cls + '" draggable="true" data-feedkey="' + esc(j.__k) + '" title="' + esc(title) + '">' +
+        jobs += '<div class="' + cls + '" draggable="true" data-feedkey="' + esc(j.__k) + '" title="' + esc(hoverFor(j, late, mv, moved)) + '">' +
           (moved ? '<span class="jx" data-reset="' + esc(j.__k) + '" title="put it back on ' + esc(F.fmt(j.__origin)) + '">↩</span>' : '') +
           esc(j.id) + ' · ' + j.m + 'm' +
           (moved ? ' <span class="mv">moved</span>' : '') +
           (late ? ' ⚠' : '') + '</div>';
       });
-      // the scratchpad's own rail placements — same colour vocabulary
+      // the scratchpad's own rail placements — same colour vocabulary, + a green
+      // "placed" badge (mirrors the blue "moved" badge on a rescheduled feed job).
       s.mine.forEach(function (p) {
         var ev = evalFor(p, iso);
         var mv = F.moveKind(iso, { pd: p.prodDue, cd: p.custDue });
         var state = !ev.legal ? ' bad' : (mv.movable ? ' movable' : '');
+        var title = !ev.legal ? ev.broken.join(' · ') : hoverFor({ pd: p.prodDue, cd: p.custDue }, false, mv, false);
         jobs += '<div class="job mine' + (SEL === p.key ? ' sel' : '') + state + '" draggable="true" data-key="' +
-          esc(p.key) + '"><span class="jx" data-eject="' + esc(p.key) + '" title="take it off this day">✕</span>' +
-          esc(p.imprintId) + ' · ' + p.need + 'm' + (ev.legal ? '' : ' ⚠') + '</div>';
+          esc(p.key) + '" title="' + esc(title) + '"><span class="jx" data-eject="' + esc(p.key) + '" title="take it off this day">✕</span>' +
+          esc(p.imprintId) + ' · ' + p.need + 'm <span class="pl">placed</span>' + (ev.legal ? '' : ' ⚠') + '</div>';
       });
 
       var broke = '';
@@ -354,12 +358,12 @@
         if (s.overCap) reasons.push('More than the day holds: ' + d.minutes + ' of ' + d.cap + ' minutes.');
         if (s.overChangeover) reasons.push('Over the changeover cap: ' + d.imprints + ' imprints, the cap is ' + F.RULES.CHANGEOVER_MAX + '.');
         s.late.forEach(function (p) {
-          reasons.push(esc(p.imprintId) + ' is past its own latest print day (' + F.fmt(p.latestPrint) + ').');
+          reasons.push(esc(p.imprintId) + ' is past its production due (' + F.fmt(p.prodDue) + ').');
         });
         s.lateFeed.forEach(function (j) {
-          reasons.push(esc(j.id) + ' can no longer make its client date here — must print by ' + F.fmt(latestPrintFor(j)) + ' to ship on time.');
+          reasons.push(esc(j.id) + ' is now after its production due (' + F.fmt(feedDeadline(j)) + ').');
         });
-        broke = '<div class="broke">' + reasons.map(esc).join('<br>') + costHint(s) + '</div>';
+        broke = '<div class="broke">' + reasons.map(esc).join('<br>') + '</div>';
       }
 
       var cond = '';
@@ -392,27 +396,22 @@
     }).join('');
   }
 
-  /* When a day is over, show what is on it and what each job would cost to move.
-     We do NOT pick. Which tier yields is a human decision. */
-  function costHint(s) {
-    var feed = feedJobsOn(s.iso);
-    if (!feed.length && !s.mine.length) return '';
-    var lines = feed.slice(0, 4).map(function (j) {
-      var slack = j.cd ? F.bizBetween(s.iso, j.cd) : null;
-      var cost = slack == null ? 'no client date on it'
-        : slack >= F.RULES.SHIP_DAYS ? 'could move later for free (' + slack + ' bd of headroom)'
-        : slack > 0 ? 'only ' + slack + ' bd of headroom — moving it means expedited shipping'
-        : 'already at or past its client date — moving it costs the date';
-      return esc(j.id) + ': ' + cost;
-    });
-    if (!lines.length) return '';
-    return '<div style="font-weight:400;color:var(--pa-tonal);margin-top:.3rem">' +
-      'On this day already:<br>' + lines.join('<br>') +
-      '<br><i>Pick what comes off. When every move costs something, that is not mine to decide.</i></div>';
-  }
-
-  function renderBlind() {
-    var el = $('sp-blind'); if (el) el.innerHTML = '<b>I could not check:</b> ' + F.BLIND_SPOTS.map(esc).join(' · ') + '.';
+  /* The movability DETAIL for a job's hover tooltip (item 2): the two INDEPENDENT
+     date reads (wiggle + expedite), phrased as information, never an instruction
+     — show, don't solve. j = {pd, cd}; late/moved are booleans; mv from moveKind. */
+  function hoverFor(j, late, mv, moved) {
+    var parts = [];
+    if (late) {
+      parts.push('Past its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + ' — no longer prints in time here.');
+    } else {
+      if (mv.wiggle) parts.push('Wiggle room: ' + mv.ps + ' business day' + (mv.ps === 1 ? '' : 's') +
+        ' before its production due' + (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + '.');
+      if (mv.expedite) parts.push('Room to expedite: client due is ' + mv.ship + ' business days after the production due — the PM and production manager would coordinate shipping.');
+      if (!mv.movable) parts.push('Locked to this day — no room before its production due' +
+        (j.pd ? ' (' + F.fmt(j.pd) + ')' : '') + (j.cd && mv.ship <= 1 ? ' and the dates leave no shipping room' : '') + '.');
+    }
+    if (moved) parts.push('Moved from ' + F.fmt(j.__origin) + '.');
+    return parts.join(' ');
   }
 
   /* ---------------- loading ---------------- */
@@ -480,9 +479,9 @@
       made.push({
         key: r.imprint + '#' + i,
         imprintId: r.imprint, jobName: r.nickname, qty: r.qty,
+        // prodDue is the print deadline (re-key 2026-09-18); custDue is context.
         need: Math.ceil(e.total), prodDue: r.prodDue, custDue: r.custDue,
-        latestPrint: meta.latestPrint, lane: meta.lane,
-        alreadyOnBoard: meta.alreadyOnBoard || null
+        lane: meta.lane, alreadyOnBoard: meta.alreadyOnBoard || null
       });
     });
     PROJECTS = made; PLACED = {}; SEL = null; SELFEED = null;
