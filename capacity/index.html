@@ -177,7 +177,7 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
     <span><i class="dot" style="background:var(--limited)"></i> Limited 70%+ · not an opening</span>
     <span><i class="dot" style="background:var(--full)"></i> Full 100%+ · not an opening</span>
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
-    <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (525 min)</span>
+    <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (500 min)</span>
     <span><i class="dot h"></i> Placeholder · held, not booked</span>
     <span class="jean"><i class="dot w"></i> Wiggle room</span>
     <span class="jean"><i class="dot x"></i> Expedite to move</span>
@@ -231,7 +231,7 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
     <h3 id="ed-date">—</h3>
     <div class="ro" id="ed-load">—</div>
     <label>Press day</label>
-    <div class="seg"><button id="seg-std">Standard · 420</button><button id="seg-ot">OT · 525</button></div>
+    <div class="seg"><button id="seg-std">Standard · 400</button><button id="seg-ot">OT · 500</button></div>
     <label>Adjust minutes (+ add / − remove)</label>
     <input id="ed-adj" type="number" step="10" value="0">
     <div class="eff" id="ed-eff">—</div>
@@ -288,7 +288,7 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 // n8n holds the state-api key server-side. Until the webhook is live, the page
 // falls back to sample data + localStorage, so it never looks broken.
 const GAUGE_API='https://primary-production-079f9.up.railway.app/webhook/gauge';
-const CAP={Standard:420,OT:525};
+const CAP={Standard:400,OT:500}; // day PLAN, not the physical ceiling (420/525). The top 20 min (25 on OT) is deliberate margin for setup + print slop — 20 min can start a job but never finish one, so it is never scheduled routinely; only a large single project with zero changeover, printing to the minute and continuing next day, ever uses it. Jean 2026-09-18.
 const LEAD_DEFAULT=15;   // business days: nothing sooner is offered as "next open" (2026-09-03, Jean)
 const WEEKS=7;           // calendar depth; must reach past the lead floor with room to spare
 const OPEN_BELOW=70;     // pct under which a day counts as an opening (green)
@@ -376,7 +376,7 @@ function eff(iso){
   const hold=holds.reduce((t,h)=>t+(Number(h.min)||0),0);
   const real=Math.max(0,(base.minutes||0)+(ov.add||0));
   const minutes=real+hold;
-  const cap=CAP[station]||420;
+  const cap=CAP[station]||400;
   const pct=minutes>0?Math.round(minutes/cap*100):0;
   let cls='empty',st='Open';
   if(minutes>0){ if(pct>=100){cls='full';st='Full';} else if(pct>=OPEN_BELOW){cls='limited';st='Limited';} else {cls='open';st='Open';} }
