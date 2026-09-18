@@ -85,26 +85,9 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 .leadwhy label{display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;font-weight:800;color:#111;cursor:pointer;margin:0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;}
 .leadwhy input{accent-color:#111;width:auto;margin:0;}
 .cell.full.lead .st{color:#fff;}
-/* Jean mode: slack chips — wiggle (prod due later) + expedite (client due later) */
-:root{--wiggle:#2F6FED; --expedite:#8E44AD;}
-.cell .slk{display:none;flex-direction:column;align-items:flex-end;gap:2px;} /* top-right stack: wiggle over expedite (Jean, 2026-09-16) */
-.editable .cell .slk{display:flex;}
-.chip{font-size:.56rem;font-weight:900;letter-spacing:.04em;color:#fff;border-radius:3px;padding:.05rem .3rem;line-height:1.3;white-space:nowrap;}
-.chip.w{background:var(--wiggle);}
-.chip.x{background:var(--expedite);}
-.chip.l{background:#4b5563;}
-.legend .jean{display:none;}
-.editable .legend .jean{display:inline-flex;}
-.legend .jean .dot.w{background:var(--wiggle);}
-.legend .jean .dot.x{background:var(--expedite);}
-.jlegend{display:none;margin:-.4rem 0 .9rem;font-size:.76rem;color:var(--pa-tonal);line-height:1.4;}
-.editable .jlegend{display:block;}
-.jlegend b{color:#111;}
-.card .jobs{margin-top:.8rem;border-top:1px solid #111;padding-top:.5rem;}
-.card .jobs table{width:100%;border-collapse:collapse;font-size:.76rem;}
-.card .jobs th{text-align:left;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pa-tonal);padding:.15rem .25rem;}
-.card .jobs td{padding:.2rem .25rem;border-top:1px solid #eee;white-space:nowrap;}
-.card .jobs .sum{font-size:.78rem;font-weight:800;margin-bottom:.3rem;}
+/* wiggle/expedite chips + the day-editor #ed-jobs breakdown REMOVED (v3.4.1) —
+   the concept lives in the Advisor's box colours; nothing else used the .chip /
+   --wiggle / --expedite palette or the .card .jobs table, so they are gone. */
 .note{margin-top:1.3rem;background:#FFFBEC;border-left:5px solid var(--pa-yellow);padding:.7rem 1rem;font-size:.85rem;}
 .foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #000;margin-top:1.7rem;padding-top:.7rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);}
 /* editor modal */
@@ -124,28 +107,122 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 .row .clear{background:#fff;}
 .row .cancel{background:#fff;color:var(--pa-tonal);}
 .eff{font-size:.8rem;margin-top:.6rem;font-weight:700;}
-/* ── Where does it fit? (Jean mode) ── */
-.fit{display:none;margin-top:1.4rem;border:2px solid #111;border-radius:10px;padding:1rem 1.2rem 1.2rem;}
-.fit.on{display:block;}
-.fit h2{margin:0;font-size:1.05rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
-.fit .why{font-size:.8rem;color:var(--pa-tonal);margin:.2rem 0 .4rem;}
-.fit .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.35rem .7rem;}
-.fit label{margin-top:.5rem;}
-.fit .go{margin-top:1rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;}
-.fit .go button{padding:.6rem 1.2rem;border-radius:7px;border:1px solid #111;background:var(--pa-yellow);font-family:inherit;font-weight:900;cursor:pointer;font-size:.85rem;}
-.fit .need{font-size:.85rem;font-weight:700;}
-.fit .need small{font-weight:400;color:var(--pa-tonal);}
-.fit .rec{margin-top:.9rem;background:#111;color:#fff;border-radius:8px;padding:.7rem 1rem;font-size:.9rem;line-height:1.4;}
-.fit .rec b{color:var(--pa-yellow);}
-.fit table{width:100%;border-collapse:collapse;margin-top:.7rem;font-size:.82rem;}
-.fit th{text-align:left;font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pa-tonal);border-bottom:1px solid #111;padding:.3rem .4rem;}
-.fit td{padding:.35rem .4rem;border-bottom:1px solid #eee;}
-.fit tr.best td{font-weight:900;}
-.tier{display:inline-block;font-size:.62rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:.1rem .4rem;color:#111;}
-.tier.open{background:var(--open);color:#fff;}
-.tier.limited{background:var(--limited);}
-.tier.full{background:var(--full);color:#fff;}
-.fit .caveat{font-size:.74rem;color:var(--pa-tonal);margin-top:.7rem;line-height:1.4;}
+/* "Where does it fit?" recommender REMOVED (v3.4 step 2) — superseded by the Advisor. */
+
+/* ── PIN entry (soft gate into management mode) ── */
+.pinbar{display:flex;align-items:center;gap:.5rem;margin:.7rem 0 0;font-size:.78rem;flex-wrap:wrap;}
+.pinbar input{width:6.5rem;padding:.3rem .5rem;border:1px solid #bbb;border-radius:5px;font-family:inherit;font-size:.85rem;background:#fff;}
+.pinbar button{background:#111;color:#fff;border:0;border-radius:5px;padding:.32rem .7rem;font-family:inherit;font-weight:800;font-size:.72rem;cursor:pointer;}
+.pinbar .msg{font-size:.72rem;color:var(--pa-tonal);}
+.pinbar .msg.err{color:var(--full);font-weight:700;}
+.jeanbar .swap{margin-left:0;background:var(--pa-yellow);color:#111;}
+.jeanbar .grp{display:flex;gap:.5rem;margin-left:auto;}
+.jeanbar .grp button{margin-left:0;}
+
+/* ── the flip: manager's screen only. A single-face rotateY that swaps content
+   edge-on at 90°, so no absolute positioning and no height juggling — the card's
+   height follows whichever view is shown, exactly as normal flow. At rest the
+   transform is none, so it never creates a containing block for the body-level
+   modals. In PM mode .flip-active is absent and this is inert. ── */
+.flipwrap{position:relative;}
+.flip-active{perspective:1800px;}
+.flip-active .flipcard{transform-style:preserve-3d;backface-visibility:hidden;will-change:transform;}
+#mgmt-scratch{margin-top:.4rem;}
+
+/* ── the planning scratchpad (back face), scoped so nothing leaks to the gauge ── */
+#mgmt-scratch{--pa-line:#ddd;--pa-grey:#EFEFEF;--pa-white:#fff;--prop:#0EA5E9;--bad:#C0392B;}
+#mgmt-scratch .scratch{background:#FFFBEC;border-left:4px solid var(--pa-yellow);padding:.55rem .85rem;margin:.2rem 0 .8rem;font-size:.85rem;line-height:1.4;}
+#mgmt-scratch .bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.6rem 0;}
+#mgmt-scratch .btn{font-family:var(--pa-font);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem;border:2px solid var(--pa-black);background:var(--pa-yellow);color:var(--pa-black);padding:.4rem .85rem;border-radius:4px;cursor:pointer;}
+#mgmt-scratch .btn.ghost{background:var(--pa-white);}
+#mgmt-scratch .btn:disabled{opacity:.4;cursor:not-allowed;}
+#mgmt-scratch .drop{border:2px dashed #bbb;border-radius:6px;padding:.6rem 1rem;text-align:center;cursor:pointer;background:#fff;font-size:.8rem;flex:1;min-width:15rem;}
+#mgmt-scratch .drop.drag{border-color:var(--pa-yellow);background:#FFFBEC;}
+#mgmt-scratch .muted{color:var(--pa-tonal);font-size:.8rem;}
+#mgmt-scratch .weeknav{display:flex;align-items:center;justify-content:center;gap:.9rem;margin:.6rem 0 .3rem;}
+#mgmt-scratch .weeknav .wklabel{font-size:.9rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;min-width:16rem;text-align:center;}
+#mgmt-scratch .sp-head{font-size:1.15rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin:.2rem 0 .1rem;}
+/* the unplaced rail is a HORIZONTAL, scrollable strip ABOVE the week — so it
+   holds many invoices without eating the width the week needs for one row */
+#mgmt-scratch .railwrap{background:#fff;border:1px solid var(--pa-line);border-radius:7px;padding:.55rem .7rem;margin:.4rem 0 .2rem;}
+#mgmt-scratch .railwrap h2{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin:0 0 .45rem;}
+#mgmt-scratch .rail{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.35rem;align-items:stretch;}
+#mgmt-scratch .rail .muted{align-self:center;}
+#mgmt-scratch .proj{flex:0 0 210px;border:1px solid var(--pa-line);border-left:4px solid var(--pa-tonal);border-radius:5px;padding:.42rem .55rem;cursor:grab;background:#fff;}
+#mgmt-scratch .proj .pdue{font-size:.68rem;color:var(--pa-tonal);margin-top:3px;}
+#mgmt-scratch .proj .prec{font-size:.72rem;font-weight:900;color:var(--open);margin-top:3px;}
+#mgmt-scratch .proj .pall{font-size:.66rem;color:#2b7a44;margin-top:2px;line-height:1.4;}
+#mgmt-scratch .proj .pall b{color:var(--open);}
+#mgmt-scratch .proj:active{cursor:grabbing;}
+#mgmt-scratch .proj.sel{border-color:var(--prop);border-left-color:var(--prop);box-shadow:0 0 0 2px rgba(14,165,233,.28);}
+#mgmt-scratch .proj.stuck{border-left-color:var(--bad);background:#FDF3F3;}
+#mgmt-scratch .proj .pid{font-weight:900;font-size:.8rem;}
+#mgmt-scratch .proj .pnick{font-size:.72rem;color:var(--pa-tonal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#mgmt-scratch .proj .pmeta{font-size:.68rem;color:var(--pa-tonal);margin-top:2px;}
+#mgmt-scratch .proj .pwarn{font-size:.66rem;color:var(--bad);font-weight:700;margin-top:2px;}
+#mgmt-scratch .railnote{font-size:.7rem;color:var(--pa-tonal);margin-top:.5rem;line-height:1.45;}
+/* single row, Monday–Friday (weekends never scheduled). Full width now the rail
+   is a strip on top, so Fri no longer wraps below. */
+#mgmt-scratch .week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem;align-items:stretch;}
+@media(max-width:700px){#mgmt-scratch .week{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:80%;overflow-x:auto;}}
+#mgmt-scratch .day{background:#fff;border:1px solid var(--pa-line);border-radius:7px;display:flex;flex-direction:column;min-height:250px;}
+#mgmt-scratch .day.lead{background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 6px,transparent 6px 12px);}
+#mgmt-scratch .day.drop-ok{outline:3px solid var(--open);outline-offset:-1px;}
+#mgmt-scratch .day.drop-bad{outline:3px solid var(--bad);outline-offset:-1px;}
+#mgmt-scratch .day.cand{box-shadow:inset 0 0 0 2px rgba(58,174,90,.55);}
+#mgmt-scratch .day.broken{border:2px solid var(--bad);}
+#mgmt-scratch .day.buffered{border:2px solid var(--limited);}
+#mgmt-scratch .nums b.buf{color:#8a6100;}
+#mgmt-scratch .nums i{font-style:normal;opacity:.65;}
+#mgmt-scratch .cond.buf{background:#FFF6DF;border-top:1px solid #EBCF7E;}
+#mgmt-scratch .day .dh{padding:.4rem .5rem;border-bottom:1px solid var(--pa-line);}
+#mgmt-scratch .day.broken .dh{background:#FDF3F3;}
+#mgmt-scratch .day .dd{font-size:.74rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
+#mgmt-scratch .day .tags{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:2px;}
+#mgmt-scratch .tag{font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:8px;}
+#mgmt-scratch .tag.ot{background:#000;color:#fff;}
+#mgmt-scratch .tag.lead{background:#EEE;color:#555;}
+#mgmt-scratch .tag.tail{background:#EAF2FF;color:#2A4E8A;}
+#mgmt-scratch .meter{height:7px;background:var(--empty);border-radius:4px;overflow:hidden;margin:.35rem 0 .2rem;display:flex;position:relative;}
+#mgmt-scratch .meter u.planline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--pa-black);opacity:.55;}
+#mgmt-scratch .meter i{display:block;height:100%;}
+#mgmt-scratch .meter i.load{background:var(--open);}
+#mgmt-scratch .meter i.load.limited{background:var(--limited);}
+#mgmt-scratch .meter i.load.full{background:var(--full);}
+#mgmt-scratch .meter i.prop{background:var(--prop);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.4) 0 4px,transparent 4px 8px);}
+#mgmt-scratch .nums{font-size:.64rem;color:var(--pa-tonal);display:flex;justify-content:space-between;}
+#mgmt-scratch .nums b.over{color:var(--bad);}
+#mgmt-scratch .day .body{padding:.35rem .4rem;flex:1;display:flex;flex-direction:column;gap:.25rem;}
+#mgmt-scratch .job{font-size:.66rem;border-radius:4px;padding:.22rem .4rem;background:var(--pa-grey);color:var(--pa-tonal);}
+/* Job-box FILL = one shared move/timing vocabulary (v3.4, show don't solve):
+     RED   (bad)      capacity broken, or at/past the client date — a real failure
+     PURPLE(exp)      prints past its production due but still ships — "needs N-day"
+     PURPLE(exp-room) on schedule, has expedite headroom but no wiggle (no badge)
+     BLUE  (wiggle)   on schedule, room to move later and still hit production due
+     neutral          locked / nothing to flag
+   A blue FILL always means wiggle. "moved" and "placed" are shown by their pill
+   PLUS a ring (outline), never a blue fill, so the two never collide. */
+#mgmt-scratch .job.feed{background:#EEF1F4;color:#31424F;border:1px solid #C7D1DA;cursor:grab;}
+#mgmt-scratch .job.mine{background:#EEF1F4;color:#31424F;border:1px solid #C7D1DA;cursor:grab;}
+#mgmt-scratch .job.feed.wiggle,#mgmt-scratch .job.mine.wiggle{background:#E1F3FC;border-color:#0EA5E9;color:#0B4F6C;}
+#mgmt-scratch .job.feed.exp,#mgmt-scratch .job.mine.exp,
+#mgmt-scratch .job.feed.exp-room,#mgmt-scratch .job.mine.exp-room{background:#F3E8FB;border-color:#8E44AD;color:#5B2C82;}
+#mgmt-scratch .job .exp-b{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:#8E44AD;color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;white-space:nowrap;}
+#mgmt-scratch .job.feed.bad,#mgmt-scratch .job.mine.bad{background:#FDF3F3;border-color:var(--bad);color:#8f2f24;}
+/* identity rings (fill-independent) — indigo = moved, green = placed */
+#mgmt-scratch .job.moved{outline:2px solid #3B5BDB;outline-offset:-2px;}
+#mgmt-scratch .job.placed{outline:2px solid var(--open);outline-offset:-2px;}
+#mgmt-scratch .job.sel{box-shadow:0 0 0 2px rgba(14,165,233,.45);}
+#mgmt-scratch .job.feed .mv{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:#3B5BDB;color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;}
+#mgmt-scratch .job .pl{font-size:.54rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:var(--open);color:#fff;border-radius:6px;padding:0 4px;margin-left:2px;}
+#mgmt-scratch .job .jx{float:right;font-weight:900;cursor:pointer;padding:0 .15rem;}
+#mgmt-scratch .broke{font-size:.66rem;color:var(--bad);font-weight:700;padding:.3rem .45rem;border-top:1px dotted #E0B4B4;line-height:1.4;}
+#mgmt-scratch .cond{font-size:.65rem;padding:.3rem .45rem;background:#FFFBEC;border-top:1px solid #F0DFA8;line-height:1.45;}
+#mgmt-scratch .sp-legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.7rem;color:var(--pa-tonal);margin:.7rem 0 0;align-items:center;}
+#mgmt-scratch .sp-legend i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.3rem;vertical-align:-1px;}
+#mgmt-scratch .sp-legend .lh{font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:.6rem;color:var(--pa-black);}
+#mgmt-scratch .sp-stamp{margin-top:.8rem;text-transform:uppercase;letter-spacing:.08em;font-size:.66rem;}
+@media(prefers-reduced-motion:reduce){.flip-active .flipcard{will-change:auto;}}
 </style>
 </head>
 <body>
@@ -158,7 +235,16 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
   <div class="sub">Press capacity, at a glance</div>
   <h1>Production Availability</h1>
   <div class="updated" id="updated">Loading…</div>
-  <div class="jeanbar" id="jeanbar"><b>JEAN MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date or change the minimum lead. PMs don't see this. <button id="jeanexit">Exit Jean mode</button></div>
+  <div class="pinbar" id="pinbar">
+    <input id="pinbox" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" aria-label="Management PIN">
+    <button id="pinenter">Enter</button>
+    <span class="msg" id="pinmsg"></span>
+  </div>
+  <div class="jeanbar" id="jeanbar"><b>MANAGEMENT MODE</b> · tap any day to set OT or adjust minutes, or tap the black bar to pin the next open date or change the minimum lead. PMs don't see this.
+    <span class="grp"><button id="scratchtoggle" class="swap">Scheduling Advisor ›</button><button id="jeanexit">Exit</button></span></div>
+
+  <div class="flipwrap" id="flipwrap"><div class="flipcard" id="flipcard">
+  <div id="gauge-view">
 
   <div class="next" id="nextbar">
     <span class="lbl">Next open press day</span>
@@ -179,45 +265,71 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
     <span><i class="dot" style="background:var(--empty)"></i> Empty</span>
     <span><i class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900;">OT</i> Overtime day (500 min)</span>
     <span><i class="dot h"></i> Placeholder · held, not booked</span>
-    <span class="jean"><i class="dot w"></i> Wiggle room</span>
-    <span class="jean"><i class="dot x"></i> Expedite to move</span>
   </div>
   <div class="leadwhy" id="leadwhy">
     <div class="txt"><b>Why are the near days shaded?</b> They sit inside the minimum lead (<span id="lw-n">15</span> business days). Before the lead existed, the next open day was simply the first green day, and a green day next week would get promised and then fill past cap with work already in motion. Shaded days are not quotable to a client, whatever their color. They can still be printed on. Hiding the shading changes only the look; the next open day is computed the same way.</div>
     <label><input type="checkbox" id="lw-toggle" checked> Show lead shading</label>
   </div>
-  <div class="jlegend" id="jlegend">
-    <b style="color:var(--wiggle)">Wiggle room</b> = minutes on jobs whose <b>production due date</b> is later than the print day (by at least <span id="jl-prod">1</span> business day). They can move later without touching the client. ·
-    <b style="color:var(--expedite)">Expedite to move</b> = production due is day-of, but the <b>client due date</b> leaves at least <span id="jl-cust">3</span> business days, so the job can move if we pay for expedited shipping. ·
-    Everything else on the day is <b>locked</b>. Tap a day to see the jobs. Slack is about dates only: blanks, screens and the changeover cap still have to be checked.
-  </div>
-
   <div id="cal"></div>
 
-  <!-- Jean's allocation recommender -->
-  <div class="fit" id="fit">
-    <h2>Where does it fit?</h2>
-    <div class="why">Enter the project. The tool sizes it with the same Recurve formula as the Estimator, then ranks the press days by how much room is left after it lands. It recommends, it does not book.</div>
-    <div class="grid">
-      <div><label>Product</label><select id="f-product"><option>Bandana</option><option>Apparel</option></select></div>
-      <div><label>Quantity</label><input id="f-qty" type="number" min="1" step="1" placeholder="500"></div>
-      <div><label>Colors (per imprint)</label><input id="f-colors" type="number" min="1" step="1" value="1"></div>
-      <div><label>Ink</label><select id="f-ink"><option>Plastisol</option><option>Waterbase</option><option>Discharge</option></select></div>
-      <div><label>Pallet</label><select id="f-pallet"><option value="">Unknown</option><option>8</option><option>10</option><option>16</option><option>22</option></select></div>
-      <div><label>Imprints</label><input id="f-imprints" type="number" min="1" step="1" value="1"></div>
-      <div><label>Minutes (override)</label><input id="f-min" type="number" min="0" step="5" placeholder="from Estimator"></div>
-      <div><label>Earliest day</label><input id="f-from" type="date"></div>
-      <div><label>Must print before</label><input id="f-due" type="date"></div>
-      <div><label>Rank by</label><select id="f-mode"><option value="room">Most room left (keeps days green)</option><option value="fill">Fill the day (closest to full, no overflow)</option></select></div>
-    </div>
-    <div class="go"><button id="f-go">Recommend</button><span class="need" id="f-need"></span></div>
-    <div id="f-out"></div>
-    <div class="caveat">Not checked here: the 4–5 projects per day changeover cap, the 1,800-unit single-stroke wall, screen readiness, and the client's ship date. The gauge only carries minutes. Confirm those on the board before placing.</div>
-  </div>
+  <!-- "Where does it fit?" recommender REMOVED (v3.4 step 2) — superseded by the Scheduling Advisor. -->
 
   <div class="note" id="note">
     A fuel gauge for the press, not the schedule. Each day fills up as it books. It shows how full we are and the next open day, nothing about which jobs are scheduled. A <b style="color:var(--hold)">blue band</b> is a placeholder: a project still in conversation that is holding room on that day. It is not booked, and it is not a promise that the job lands there. To place or move a job, talk to Jean.
   </div>
+
+  </div><!-- /#gauge-view -->
+
+  <!-- BACK FACE: the planning scratchpad. Populated only when management mode
+       lazy-loads capacity/scratch.js. Static skeleton only until then. -->
+  <div id="mgmt-scratch" hidden>
+    <div class="sp-head">Scheduling Advisor</div>
+    <div class="scratch">
+      <strong>Scheduling Advisor.</strong> Nothing here is booked — Printavo is still the schedule and you still
+      place the work there by hand. Move things around — the unplaced projects <em>and</em> the jobs already on the
+      schedule — watch the rules react, then go do it for real. It will never suggest overtime — that is Holly's call.
+    </div>
+    <div class="bar">
+      <div class="drop" id="sp-drop">Drop the <b>Power Scheduler Queue CSV</b> here, or click to choose
+        <input type="file" id="sp-file" accept=".csv,text/csv" style="display:none"></div>
+      <button class="btn ghost" id="sp-reload">Reload gauge</button>
+      <button class="btn ghost" id="sp-clear">Clear placements</button>
+      <button class="btn ghost" id="sp-resetfeed" disabled>Reset scheduled-job moves</button>
+    </div>
+    <div class="muted" id="sp-status">Loading the availability gauge…</div>
+    <!-- unplaced projects: a HORIZONTAL, scrollable strip above the week -->
+    <div class="railwrap">
+      <h2>Not placed <span id="sp-railn" class="muted"></span></h2>
+      <div class="rail" id="sp-rail"></div>
+      <div class="railnote">Click a project then click a day, or drag it across. The jobs already on the schedule
+        drag too — moving one is a proposal, nothing is booked.</div>
+    </div>
+    <div class="weeknav">
+      <button class="btn ghost" id="sp-prev">‹ Prev</button>
+      <div class="wklabel" id="sp-weeklabel">—</div>
+      <button class="btn ghost" id="sp-next">Next ›</button>
+    </div>
+    <div class="week" id="sp-week"></div>
+    <!-- the Advisor's OWN legend — its job-state vocabulary, separate from the
+         gauge's. (Item 3, v3.2) -->
+    <div class="sp-legend">
+      <span class="lh">Jobs</span>
+      <span><i class="sw" style="outline:2px solid var(--open);outline-offset:-2px;background:#EEF1F4"></i>placed (dragged from the rail)</span>
+      <span><i class="sw" style="outline:2px solid #3B5BDB;outline-offset:-2px;background:#EEF1F4"></i>moved (rescheduled)</span>
+      <span><i class="sw" style="background:#E1F3FC;border:1px solid #0EA5E9"></i>wiggle — room to move and still hit production due</span>
+      <span><i class="sw" style="background:#F3E8FB;border:1px solid #8E44AD"></i>expedite — needs overnight/N-day if moved past production due</span>
+      <span><i class="sw" style="border:2px solid var(--bad);background:#fff"></i>won't make the client date / over cap</span>
+      <span><i class="sw" style="background:#EEF1F4;border:1px solid #C7D1DA"></i>scheduled — locked to its day</span>
+      <span class="lh">Day load</span>
+      <span><i class="sw" style="background:var(--open)"></i>open</span>
+      <span><i class="sw" style="background:var(--limited)"></i>limited</span>
+      <span><i class="sw" style="background:var(--full)"></i>full</span>
+      <span>shaded = inside the minimum lead</span>
+    </div>
+    <div class="sp-stamp muted" id="sp-stamp">—</div>
+  </div>
+
+  </div></div><!-- /#flipcard /#flipwrap -->
 
   <div class="foot">
     <span>Planet Apparel · Production Availability</span>
@@ -250,7 +362,6 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
       <div class="hneed" id="h-need">—</div>
       <button class="hadd" id="h-add">Add placeholder</button>
     </div>
-    <div class="jobs" id="ed-jobs"></div>
     <div class="row">
       <button class="save" id="ed-save">Save</button>
       <button class="clear" id="ed-clear">Clear</button>
@@ -267,10 +378,6 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
     <label>Minimum lead (business days)</label>
     <input id="nx-lead" type="number" min="0" max="60" step="1" value="15">
     <div class="eff" id="nx-floor">—</div>
-    <label>Wiggle room: production due at least (business days later)</label>
-    <input id="nx-sprod" type="number" min="1" max="30" step="1" value="1">
-    <label>Expedite: client due at least (business days later)</label>
-    <input id="nx-scust" type="number" min="1" max="30" step="1" value="3">
     <label>Show as next available</label>
     <select id="nx-sel"></select>
     <div class="eff" id="nx-auto">—</div>
@@ -282,6 +389,11 @@ body:not(.noshade) .cell.lead .st::after{content:' · lead';font-weight:700;}
 </div>
 
 <script src="../estimator/estimate.js"></script>
+<!-- fit-core is the SHARED rules engine (pure, DOM-free, no side effects on load).
+     The gauge itself no longer calls it (the wiggle/expedite slack() was removed
+     in v3.4.1); it is loaded eagerly so the Advisor's lazy code (queue-csv.js +
+     scratch.js) has PA_FIT ready the moment management mode swaps in. -->
+<script src="../estimator/fit-core.js"></script>
 <script>
 // ── config ──
 // Data flows through an n8n webhook (NO API key in this public page).
@@ -292,23 +404,25 @@ const CAP={Standard:400,OT:500}; // day PLAN, not the physical ceiling (420/525)
 const LEAD_DEFAULT=15;   // business days: nothing sooner is offered as "next open" (2026-09-03, Jean)
 const WEEKS=7;           // calendar depth; must reach past the lead floor with room to spare
 const OPEN_BELOW=70;     // pct under which a day counts as an opening (green)
-const SLACK_PROD_DEFAULT=1; // business days: prod due this far past the print day = wiggle room (Jean, 2026-09-04)
-const SLACK_CUST_DEFAULT=3; // business days: client due this far past the print day = movable with expedited shipping
+// SLACK_PROD/CUST thresholds REMOVED (v3.4.1) — wiggle/expedite lives in the Advisor now.
 
-// JEAN mode: the front door loads this page in a same-origin iframe with a bare
-// src, so the iframe's own URL never carries ?mode=jean. Check the top window's
-// URL too, and make the mode stick per-browser: ?mode=jean turns it on until
-// ?mode=view (or the Exit button) turns it off.
-function jeanMode(){
-  let m=new URLSearchParams(location.search).get('mode');
-  if(!m){try{if(window.top!==window)m=new URLSearchParams(window.top.location.search).get('mode');}catch(e){}}
-  try{
-    if(m==='jean'){localStorage.setItem('gauge_jeanmode','1');return true;}
-    if(m==='view'){localStorage.removeItem('gauge_jeanmode');return false;}
-    return localStorage.getItem('gauge_jeanmode')==='1';
-  }catch(e){return m==='jean';}
-}
-const JEAN=jeanMode();
+// ── MANAGEMENT MODE (formerly "Jean mode") ──
+// 🔴 SOFT GATE ONLY. This PIN is client-side and trivially bypassable (view
+// source, console, or just flip the localStorage flag). That is acceptable here
+// ONLY because everything behind it is READ-ONLY and NOTHING COMMITS — no write
+// to Printavo, no write to the gauge feed. The day management mode writes to a
+// system of record, it needs a real server-side sign-in instead. A shared PIN
+// grants access but cannot say WHO entered or revoke one person — fine for now.
+//
+// 🔑 Jean sets the PIN himself, right here. Leave it '' and management mode is
+// simply unavailable (an empty constant can never be unlocked). The PIN never
+// comes from the Builder, the brief, or Ava.
+const MGMT_PIN = '6316';
+// localStorage flag, no URL param — the front door strips query params behind
+// the auth gate, which is why the old ?mode=jean was always fiddly.
+const MGMT_KEY='gauge_mgmt';
+function mgmtActive(){try{return localStorage.getItem(MGMT_KEY)==='1';}catch(e){return false;}}
+const JEAN=mgmtActive();   // internal name kept; every visible label now reads "management mode"
 // Lead shading is a per-browser VIEW preference. Off hides the hatching only;
 // the next-open computation and the lead floor are untouched.
 function shadeOn(){try{return localStorage.getItem('gauge_leadshade')!=='0';}catch(e){return true;}}
@@ -335,7 +449,6 @@ const DOW=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
 let LOAD={}, ASOF='', PULLEDAT='', OVERRIDES={}, selected=null;
 let MANUAL_NEXT=null, AUTO_NEXT=null, VISIBLE=[], MIN_LEAD=LEAD_DEFAULT, FLOOR=null;
-let SLACK_PROD=SLACK_PROD_DEFAULT, SLACK_CUST=SLACK_CUST_DEFAULT;
 
 function addDays(iso,n){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d+n)).toISOString().slice(0,10);}
 function fmt(iso){const[y,mo,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,mo-1,d)).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});}
@@ -346,24 +459,9 @@ function bizAdd(iso,n){let d=iso,k=0;while(k<n){d=addDays(d,1);if(isBiz(d))k++;}
 // business days strictly after a, up to and including b
 function bizBetween(a,b){let d=a,k=0;while(d<b){d=addDays(d,1);if(isBiz(d))k++;}return k;}
 function plural(n,w){return n+' '+w+(n===1?'':'s');}
-// Slack per day, from the per-job due dates the feed carries (load[iso].jobs = [{id,m,pd,cd}]).
-// wiggle  = prod due >= SLACK_PROD business days after the print day (moves without touching the client)
-// expedite = NOT wiggle, but client due >= SLACK_CUST business days after (moves if we expedite shipping)
-// locked  = everything else. The three are disjoint and sum to the day's minutes.
-function slack(iso){
-  const jobs=(LOAD[iso]&&Array.isArray(LOAD[iso].jobs))?LOAD[iso].jobs:[];
-  const out={wiggle:0,expedite:0,locked:0,jobs:[],known:jobs.length>0};
-  for(const j of jobs){
-    const m=Number(j.m)||0;
-    const ps=(j.pd&&j.pd>iso)?bizBetween(iso,j.pd):0;
-    const cs=(j.cd&&j.cd>iso)?bizBetween(iso,j.cd):0;
-    const kind=ps>=SLACK_PROD?'w':(cs>=SLACK_CUST?'x':'l');
-    if(kind==='w')out.wiggle+=m;else if(kind==='x')out.expedite+=m;else out.locked+=m;
-    out.jobs.push({id:j.id,m,pd:j.pd||'',cd:j.cd||'',ps,cs,kind});
-  }
-  out.jobs.sort((a,b)=>({w:0,x:1,l:2})[a.kind]-({w:0,x:1,l:2})[b.kind]||b.m-a.m);
-  return out;
-}
+// Per-day wiggle/expedite slack() REMOVED (v3.4.1) — its last consumer, the day
+// editor's #ed-jobs breakdown, is gone; the concept lives in the Advisor's box
+// colours (which read PA_FIT.moveKind directly).
 
 async function gaugeRead(){try{const r=await fetch(GAUGE_API);if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function gaugeWrite(overrides){try{const r=await fetch(GAUGE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({overrides})});return r.ok;}catch(e){return false;}}
@@ -403,13 +501,10 @@ function render(){
       const dd=Number(iso.split('-')[2]);
       const pctTxt=f.cls==='empty'?'—':f.pct+'%';
       const adjTag=f.adj?`<span class="adj">${f.adj>0?'+':''}${f.adj}</span>`:'';
-      let chips='';
-      if(JEAN&&i<5&&iso>=TODAY){const s=slack(iso);
-        if(s.known){chips=(s.wiggle?`<span class="chip w" title="wiggle room">▲ ${s.wiggle}</span>`:'')+(s.expedite?`<span class="chip x" title="expedite to move">✈ ${s.expedite}</span>`:'')+((!s.wiggle&&!s.expedite)?'<span class="chip l" title="all locked to the day">locked</span>':'');}}
       const holdBand=f.hold?`<div class="hfill" style="bottom:${f.fill}%;height:${f.holdFill}%"></div>`:'';
       const holdTag=f.hold?`<span class="hold" title="${f.holds.map(h=>(h.label||'placeholder')+' · '+h.min+' min').join(' | ').replace(/"/g,'&quot;')}">HOLD ${f.hold}</span>`:'';
       c.innerHTML=`<div class="fill" style="height:${f.fill}%;background:${tier[f.cls]}"></div>${holdBand}
-        <div class="content"><div class="top"><span class="d">${dd}</span><span class="tr">${(f.ot||f.adj)?`<span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span>`:''}${holdTag}<div class="slk">${chips}</div></span></div>
+        <div class="content"><div class="top"><span class="d">${dd}</span><span class="tr">${(f.ot||f.adj)?`<span>${f.ot?'<span class="ot">OT</span>':''}${adjTag}</span>`:''}${holdTag}</span></div>
         <div><div class="pct">${pctTxt}</div><div class="st">${f.st}</div></div></div>`;
       if(JEAN)c.onclick=()=>openEditor(iso);
       row.appendChild(c);
@@ -435,8 +530,6 @@ function render(){
   pin.classList.toggle('warn',!!manual&&manual<FLOOR);
   pin.textContent=(manual&&manual<FLOOR)?'Manual · inside the lead':'Manual';
   document.getElementById('lw-n').textContent=MIN_LEAD;
-  document.getElementById('jl-prod').textContent=SLACK_PROD;
-  document.getElementById('jl-cust').textContent=SLACK_CUST;
   renderStamp();
 }
 
@@ -467,16 +560,6 @@ function openEditor(iso){
   edHolds=f.holds.map(h=>Object.assign({},h));
   ['h-label','h-qty','h-min'].forEach(id=>document.getElementById(id).value='');
   renderHolds();updateEff();holdNeed();
-  const s=slack(iso),jb=document.getElementById('ed-jobs');
-  if(!s.known){jb.innerHTML=iso<TODAY?'':'<div class="sum">No press jobs on this day in the last pull.</div>';}
-  else{
-    const KIND={w:'<span class="chip w">▲ wiggle</span>',x:'<span class="chip x">✈ expedite</span>',l:'<span class="chip l">locked</span>'};
-    const md=d=>d?fmt(d).replace(/^\w+, /,''):'—';
-    jb.innerHTML=`<div class="sum"><span style="color:var(--wiggle)">▲ ${s.wiggle}</span> wiggle · <span style="color:var(--expedite)">✈ ${s.expedite}</span> expedite · ${s.locked} locked · ${f.base.minutes||0} total</div>`+
-      '<table><thead><tr><th>Job</th><th>Min</th><th>Prod due</th><th>Client due</th><th></th></tr></thead><tbody>'+
-      s.jobs.map(j=>`<tr><td>${j.id}</td><td>${j.m}</td><td>${md(j.pd)}${j.ps?' <small>+'+j.ps+'bd</small>':''}</td><td>${md(j.cd)}${j.cs?' <small>+'+j.cs+'bd</small>':''}</td><td>${KIND[j.kind]}</td></tr>`).join('')+
-      '</tbody></table>';
-  }
   document.getElementById('ov').classList.add('on');
 }
 let segMode='Standard';
@@ -531,8 +614,6 @@ function leadInput(){const v=Number(document.getElementById('nx-lead').value);re
 function updateFloorHint(){const L=leadInput();document.getElementById('nx-floor').textContent=`Earliest quotable day: ${fmt(bizAdd(TODAY,L))}`;}
 function openNextEditor(){
   document.getElementById('nx-lead').value=MIN_LEAD;
-  document.getElementById('nx-sprod').value=SLACK_PROD;
-  document.getElementById('nx-scust').value=SLACK_CUST;
   updateFloorHint();
   const sel=document.getElementById('nx-sel');sel.innerHTML='';
   const o0=document.createElement('option');o0.value='';o0.textContent='Auto — let the gauge decide';sel.appendChild(o0);
@@ -543,97 +624,119 @@ function openNextEditor(){
 }
 document.getElementById('nx-lead').oninput=updateFloorHint;
 document.getElementById('nx-cancel').onclick=()=>document.getElementById('ovn').classList.remove('on');
-function slackInput(id,def){const v=Math.round(Number(document.getElementById(id).value));return (isFinite(v)&&v>=1)?Math.min(30,v):def;}
 document.getElementById('nx-save').onclick=async()=>{
   MIN_LEAD=leadInput();
-  SLACK_PROD=slackInput('nx-sprod',SLACK_PROD_DEFAULT);
-  SLACK_CUST=slackInput('nx-scust',SLACK_CUST_DEFAULT);
   MANUAL_NEXT=document.getElementById('nx-sel').value||null;
   await persist();document.getElementById('ovn').classList.remove('on');render();
 };
-document.getElementById('jeanexit').onclick=()=>{
-  try{localStorage.removeItem('gauge_jeanmode');}catch(e){}
-  // strip ?mode=jean from whichever URL carried it so the reload does not re-arm
-  try{const u=new URL(location.href);u.searchParams.delete('mode');history.replaceState(null,'',u);}catch(e){}
-  try{if(window.top!==window){const u=new URL(window.top.location.href);u.searchParams.delete('mode');window.top.history.replaceState(null,'',u);}}catch(e){}
-  location.reload();
-};
+// ── management-mode entry (PIN) / exit ──
+function enterMgmt(){try{localStorage.setItem(MGMT_KEY,'1');}catch(e){}location.reload();}
+function exitMgmt(){try{localStorage.removeItem(MGMT_KEY);}catch(e){}location.reload();}
+(function(){
+  const box=document.getElementById('pinbox'),msg=document.getElementById('pinmsg'),btn=document.getElementById('pinenter');
+  if(!box||!btn)return;
+  function tryPin(){
+    const v=box.value||'';
+    if(!MGMT_PIN){msg.textContent='Management mode is not configured — set MGMT_PIN in the page source.';msg.className='msg err';return;}
+    if(v===MGMT_PIN){msg.textContent='';enterMgmt();}
+    else{msg.textContent='Incorrect PIN.';msg.className='msg err';box.value='';box.focus();}
+  }
+  btn.onclick=tryPin;
+  box.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
+})();
+const jx=document.getElementById('jeanexit');if(jx)jx.onclick=exitMgmt;
+
+// ── view swap: gauge ⇄ planning scratchpad (management mode only) ──
+// 🔴 ISOLATION: the advisor code (fit-core.js + queue-csv.js + scratch.js) is
+// LAZY-LOADED here and ONLY here, into #mgmt-scratch, wrapped so a throw in it
+// can NEVER reach the gauge — which has already rendered above and shares none
+// of its scope. estimate.js is already on the page.
+(function(){
+  const flipwrap=document.getElementById('flipwrap'),card=document.getElementById('flipcard');
+  const gaugeView=document.getElementById('gauge-view'),scratch=document.getElementById('mgmt-scratch');
+  const toggle=document.getElementById('scratchtoggle');
+  if(!flipwrap||!card||!gaugeView||!scratch||!toggle)return;
+  let view='gauge',loaded=false,animating=false;
+  const reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches);
+
+  function loadScratch(){
+    return new Promise((res,rej)=>{
+      if(loaded||window.__SCRATCH){loaded=true;return res();}
+      // fit-core is already loaded eagerly (the gauge chips use it); only the
+      // advisor-specific code is lazy here.
+      const srcs=['../estimator/queue-csv.js','./scratch.js'];
+      (function next(i){
+        if(i>=srcs.length){loaded=true;return res();}
+        const s=document.createElement('script');s.src=srcs[i];
+        s.onload=()=>next(i+1);s.onerror=()=>rej(new Error('could not load '+srcs[i]));
+        document.body.appendChild(s);
+      })(0);
+    });
+  }
+  // The bulletproof, non-animated truth: which face is shown. Only one is ever
+  // displayed, so the card height follows it in normal flow (no absolute
+  // positioning, no height juggling).
+  function applyView(v){
+    view=v;const on=v==='scratch';
+    scratch.hidden=!on;gaugeView.style.display=on?'none':'';
+    toggle.textContent=on?'‹ Back to the gauge':'Scheduling Advisor ›';
+    const fm=document.getElementById('footmode');if(fm)fm.textContent=on?'Management · advisor':'Management mode';
+  }
+  // The flip is PURE POLISH. It swaps content edge-on at 90° so a face is never
+  // seen mirrored or half-built; the content swap (applyView) happens whether or
+  // not the animation fires. Degrades to a fade under reduced motion.
+  function flipTo(v){
+    if(reduce){return fadeTo(v);}
+    animating=true;flipwrap.classList.add('flip-active');
+    let done=false;
+    const rest=()=>{card.style.transition='';card.style.transform='';flipwrap.classList.remove('flip-active');animating=false;};
+    const mid=()=>{
+      if(done)return;done=true;card.removeEventListener('transitionend',mid);
+      try{applyView(v);}catch(e){}
+      card.style.transition='none';card.style.transform='rotateY(-90deg)';void card.offsetWidth;
+      card.style.transition='transform .32s ease-out';card.style.transform='rotateY(0deg)';
+      let ended=false;const end=()=>{if(ended)return;ended=true;card.removeEventListener('transitionend',end);rest();};
+      card.addEventListener('transitionend',end);setTimeout(end,520);
+    };
+    card.addEventListener('transitionend',mid);setTimeout(mid,420);
+    card.style.transition='transform .32s ease-in';void card.offsetWidth;card.style.transform='rotateY(90deg)';
+  }
+  function fadeTo(v){
+    animating=true;card.style.transition='opacity .18s';card.style.opacity='0';
+    setTimeout(()=>{try{applyView(v);}catch(e){}card.style.opacity='1';
+      setTimeout(()=>{card.style.transition='';card.style.opacity='';animating=false;},200);},180);
+  }
+  async function go(){
+    if(animating)return;
+    const target=view==='gauge'?'scratch':'gauge';
+    if(target==='scratch'){
+      try{await loadScratch();}
+      catch(e){try{console.warn('[scratch loader]',e);}catch(_){}
+        applyView('scratch');const st=document.getElementById('sp-status');
+        if(st)st.textContent='Could not load the planning tool. The gauge is unaffected — switch back any time.';return;}
+    }
+    try{flipTo(target);}catch(e){try{applyView(target);}catch(_){}}
+  }
+  toggle.onclick=go;
+})();
 
 async function persist(){
   if(MANUAL_NEXT)OVERRIDES.__nextOpen=MANUAL_NEXT;else delete OVERRIDES.__nextOpen;
   if(MIN_LEAD!==LEAD_DEFAULT)OVERRIDES.__minLead=MIN_LEAD;else delete OVERRIDES.__minLead;
-  if(SLACK_PROD!==SLACK_PROD_DEFAULT)OVERRIDES.__slackProd=SLACK_PROD;else delete OVERRIDES.__slackProd;
-  if(SLACK_CUST!==SLACK_CUST_DEFAULT)OVERRIDES.__slackCust=SLACK_CUST;else delete OVERRIDES.__slackCust;
   try{localStorage.setItem('gauge_overrides',JSON.stringify(OVERRIDES));localStorage.setItem('gauge_nextopen',MANUAL_NEXT||'');}catch(e){}
   const ok=await gaugeWrite(OVERRIDES);
-  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;delete OVERRIDES.__slackProd;delete OVERRIDES.__slackCust; // keep the in-memory per-day map clean (transport-only keys)
+  delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead; // keep the in-memory per-day map clean (transport-only keys)
   if(!ok)console.warn('Override saved locally; n8n gauge webhook not live yet.');
 }
 
-// ── Where does it fit? (Jean mode) ──
-function fitNeed(){
-  const ov=Number(document.getElementById('f-min').value);
-  const imprints=Math.max(1,Math.round(Number(document.getElementById('f-imprints').value)||1));
-  if(ov>0)return {need:Math.round(ov),src:'minutes entered',imprints};
-  if(!window.PA_ESTIMATE)return {need:0,src:'estimator formula not loaded',imprints};
-  const e=PA_ESTIMATE.estimate({product:document.getElementById('f-product').value,qty:document.getElementById('f-qty').value,
-    colors:document.getElementById('f-colors').value,ink:document.getElementById('f-ink').value,pallet:document.getElementById('f-pallet').value});
-  if(e.status!=='OK')return {need:0,src:e.reason||'incomplete (need quantity + colors)',imprints};
-  return {need:Math.round(e.total*imprints),src:`${e.total} min per imprint × ${imprints} · ${e.derivation}`,imprints,est:e};
-}
-function recommend(){
-  const {need,src}=fitNeed();
-  const needEl=document.getElementById('f-need'),out=document.getElementById('f-out');
-  if(!need){needEl.innerHTML=`<small>${src}</small>`;out.innerHTML='';return;}
-  needEl.innerHTML=`Needs <b>${need} min</b> <small>· ${src}</small>`;
-  const from=document.getElementById('f-from').value||addDays(TODAY,1);
-  const due=document.getElementById('f-due').value||'';
-  const mode=document.getElementById('f-mode').value;
-  const days=[];
-  for(let k=0;k<WEEKS*7;k++){const iso=addDays(START,k);if(!isBiz(iso)||iso<=TODAY||iso<from||(due&&iso>=due))continue;
-    const f=eff(iso);const room=f.cap-f.minutes;const after=f.minutes+need;const pctAfter=Math.round(after/f.cap*100);
-    days.push({iso,f,room,pctAfter,fits:need<=room,tierAfter:pctAfter>=100?'full':pctAfter>=OPEN_BELOW?'limited':'open'});}
-  if(!days.length){out.innerHTML='<div class="rec">No press days in that window. Widen the dates.</div>';return;}
-  const fits=days.filter(d=>d.fits);
-  let ranked=fits.slice();
-  if(mode==='fill')ranked.sort((a,b)=>b.pctAfter-a.pctAfter||a.iso.localeCompare(b.iso));
-  else ranked.sort((a,b)=>a.pctAfter-b.pctAfter||a.iso.localeCompare(b.iso));
-  const greenFirst=fits.filter(d=>d.tierAfter==='open').sort((a,b)=>a.iso.localeCompare(b.iso))[0];
-  let html='';
-  if(ranked.length){
-    const b=ranked[0];
-    html+=`<div class="rec">Recommend <b>${fmt(b.iso)}</b> — ${b.f.pct}% now → ${b.pctAfter}% after (${b.tierAfter==='open'?'stays green':b.tierAfter==='limited'?'goes Limited':'goes Full'}), ${b.room-need} min still free.`;
-    if(greenFirst&&greenFirst.iso!==b.iso)html+=`<br>Earliest day that stays green: <b>${fmt(greenFirst.iso)}</b> (${greenFirst.f.pct}% → ${greenFirst.pctAfter}%).`;
-    if(!greenFirst)html+=`<br>No single day stays green after this lands.`;
-    if(b.iso<FLOOR)html+=`<br>⚠ Inside the ${MIN_LEAD}-day lead. Fine for a promised or rush job, not for a new quote.`;
-    html+='</div>';
-  } else {
-    // no single day: split across the two roomiest days in the window, earliest first
-    const top=days.slice().sort((a,b)=>b.room-a.room).slice(0,2).sort((a,b)=>a.iso.localeCompare(b.iso));
-    const cover=top.reduce((s,d)=>s+Math.max(0,d.room),0);
-    if(top.length===2&&cover>=need){
-      const a=Math.min(top[0].room,need),c=need-a;
-      html+=`<div class="rec">No single day has ${need} min free. <b>Split it:</b> ${a} min on <b>${fmt(top[0].iso)}</b> (${top[0].f.pct}% → ${Math.round((top[0].f.minutes+a)/top[0].f.cap*100)}%) + ${c} min on <b>${fmt(top[1].iso)}</b> (${top[1].f.pct}% → ${Math.round((top[1].f.minutes+c)/top[1].f.cap*100)}%). Schedule it as one imprint at full quantity and let production split.</div>`;
-    } else {
-      html+=`<div class="rec">Does not fit in this window, even split across the two roomiest days (${cover} min free between them). Widen the dates, open OT, or move the conversation to the client date.</div>`;
-    }
-  }
-  html+='<table><thead><tr><th>Day</th><th>Now</th><th>Free</th><th>Movable</th><th>After</th><th>Verdict</th></tr></thead><tbody>';
-  const show=(ranked.length?ranked:days.slice().sort((a,b)=>b.room-a.room)).slice(0,8);
-  show.forEach((d,i)=>{const s=slack(d.iso);const mv=s.known?((s.wiggle?`<span class="chip w">▲ ${s.wiggle}</span> `:'')+(s.expedite?`<span class="chip x">✈ ${s.expedite}</span>`:'')||'<span class="chip l">locked</span>'):'—';
-    html+=`<tr class="${i===0&&ranked.length?'best':''}"><td>${fmt(d.iso)}${d.f.ot?' <span class="ot" style="background:#000;color:#fff;border-radius:3px;padding:.05rem .3rem;font-size:.58rem;font-weight:900">OT</span>':''}${d.iso<FLOOR?' <small>(lead)</small>':''}</td><td>${d.f.pct}% · ${d.f.minutes} min</td><td>${d.room} min</td><td>${mv}</td><td>${d.pctAfter}%</td><td>${d.fits?`<span class="tier ${d.tierAfter}">${d.tierAfter==='open'?'stays green':d.tierAfter}</span>`:'<span class="tier full">does not fit</span>'}</td></tr>`;});
-  html+='</tbody></table>';
-  out.innerHTML=html;
-}
-document.getElementById('f-go').onclick=recommend;
-['f-qty','f-colors','f-imprints','f-min'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')recommend();}));
+// "Where does it fit?" recommender REMOVED (v3.4 step 2) — superseded by the Scheduling Advisor.
 
 // ── boot ──
 (async function(){
   if(JEAN){
-    document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');document.getElementById('fit').classList.add('on');
-    document.getElementById('footmode').textContent='Jean mode';document.getElementById('nextbar').onclick=openNextEditor;
-    document.getElementById('f-from').value=addDays(TODAY,1);
+    document.body.classList.add('editable');document.getElementById('jeanbar').classList.add('on');
+    document.getElementById('pinbar').style.display='none';
+    document.getElementById('footmode').textContent='Management mode';document.getElementById('nextbar').onclick=openNextEditor;
     if(window.PA_ESTIMATE&&PA_ESTIMATE.loadRates)PA_ESTIMATE.loadRates().catch(()=>{});
   }
   const data=await gaugeRead();
@@ -642,9 +745,7 @@ document.getElementById('f-go').onclick=recommend;
   let ls='';try{ls=localStorage.getItem('gauge_nextopen')||'';}catch(e){}
   MANUAL_NEXT=(typeof OVERRIDES.__nextOpen==='string'?OVERRIDES.__nextOpen:'')||ls||null;
   const ml=Number(OVERRIDES.__minLead);MIN_LEAD=(OVERRIDES.__minLead!==undefined&&isFinite(ml)&&ml>=0)?Math.min(60,Math.round(ml)):LEAD_DEFAULT;
-  const sp=Math.round(Number(OVERRIDES.__slackProd)),sc=Math.round(Number(OVERRIDES.__slackCust));
-  SLACK_PROD=(isFinite(sp)&&sp>=1)?Math.min(30,sp):SLACK_PROD_DEFAULT;
-  SLACK_CUST=(isFinite(sc)&&sc>=1)?Math.min(30,sc):SLACK_CUST_DEFAULT;
+  // __slackProd/__slackCust are legacy transport keys (feature removed v3.4.1) — purge if present.
   delete OVERRIDES.__nextOpen;delete OVERRIDES.__minLead;delete OVERRIDES.__slackProd;delete OVERRIDES.__slackCust;
   if(MANUAL_NEXT&&MANUAL_NEXT<=TODAY)MANUAL_NEXT=null;
   render();

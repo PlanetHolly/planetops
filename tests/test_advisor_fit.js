@@ -232,6 +232,48 @@ console.log('\n── NEVER OVERSUBSCRIBE: a batch cannot spend the same minutes
     naive.filter(p => p === '2026-09-17').length === 6);
 }
 
+console.log('\n-- THE THREE BANDS: plan / buffer / over-cap --');
+{
+  // A standard day PLANS to 400 and HOLDS 420. The 20 between them are a
+  // deliberate buffer, so a day at 405 is neither full nor free.
+  const mk = (min, station) => F.buildBoard({ load: { '2026-09-17': { minutes: min, station: station || 'Standard', jobs: [] } }, overrides: {} }, TODAY);
+  const band = (min, need, station) => F.evaluateDay(mk(min, station), '2026-09-17', need, '', TODAY);
+
+  t('Q1. under the plan is band plan', band(300, 50).band === 'plan');
+  t('Q2. EXACTLY 400 is still plan - 400 spends no buffer', band(350, 50).band === 'plan');
+  t('Q3. 401 crosses into the buffer', band(350, 51).band === 'buffer');
+  t('Q4. EXACTLY 420 is still buffer, not refused', band(370, 50).band === 'buffer');
+  t('Q5. 421 is over the cap and refused', band(370, 51).band === 'over');
+  t('Q6. the buffer band FITS - allowed, never blocked', band(350, 51).fits === true);
+  t('Q7. over the cap does not fit', band(370, 51).fits === false);
+  t('Q8. it says how much cushion it spends', band(350, 51).bufferUsed === 1 && band(370, 50).bufferUsed === 20);
+  t('Q9. and how much cushion is left', band(350, 51).bufferLeft === 19 && band(370, 50).bufferLeft === 0);
+  t('Q10. a plan-band placement spends no buffer', band(300, 50).bufferUsed === 0 && band(300, 50).bufferLeft === 20);
+
+  t('Q11. OT: exactly 500 is plan', band(450, 50, 'OT').band === 'plan');
+  t('Q12. OT: 501 is buffer', band(450, 51, 'OT').band === 'buffer');
+  t('Q13. OT: exactly 525 is still buffer', band(475, 50, 'OT').band === 'buffer');
+  t('Q14. OT: 526 is over', band(475, 51, 'OT').band === 'over');
+  t('Q15. OT cushion is 25 minutes', F.dayInfo(mk(0, 'OT'), '2026-09-17').buffer === 25);
+  t('Q16. standard cushion is 20 minutes', F.dayInfo(mk(0), '2026-09-17').buffer === 20);
+  t('Q17. room stops at the plan, roomToCap stops at refusal',
+    F.dayInfo(mk(405), '2026-09-17').room === 0 && F.dayInfo(mk(405), '2026-09-17').roomToCap === 15);
+}
+
+console.log('\n-- ranking prefers the day whose cushion survives --');
+{
+  const B6 = F.buildBoard({ load: {
+    '2026-09-17': { minutes: 360, station: 'Standard', jobs: [] },
+    '2026-09-18': { minutes: 300, station: 'Standard', jobs: [] }
+  }, overrides: {} }, TODAY);
+  const r = F.placeProject(B6, { imprintId: 'band - 1', need: 50, custDue: '2026-09-23' });
+  t('R1. the plan-band day is offered first, over the buffer day with more headroom',
+    r.candidates[0].iso === '2026-09-18' && r.candidates[0].band === 'plan');
+  t('R2. the buffer day is still offered, not hidden',
+    r.candidates.some(c => c.iso === '2026-09-17' && c.band === 'buffer'));
+}
+
+
 console.log('\n-- already on the board: a note, never a refusal --');
 {
   // 27993 sits on 9/23 in the feed AND in the queue CSV (seen live 2026-09-16).

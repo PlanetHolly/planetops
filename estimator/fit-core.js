@@ -9,9 +9,26 @@
    its private copies of eff()/slack()/the date math is a follow-up PR.
 
    RULES, and where they come from (Nov_Leave_Prep_2026/Scheduling_Rules.md):
-     - Standard day 420 min, PLAN TO 400. OT day 525 cap, PLAN TO 500.
-       The held-back minutes are for teardown + changeover, which are not in
-       any project estimate. Room is measured against the PLAN, never the cap.
+     - Standard day: PLAN 400, HOLDS 420. OT day: PLAN 500, HOLDS 525.
+       🔑 Neither number is wrong - they answer different questions (Jean,
+       2026-09-16). 420 is what the day actually holds; 400 is what you plan to;
+       the twenty between them are a DELIBERATE BUFFER for work running long and
+       for downtime. So a day at 405 is neither full nor free - it is SPENDING
+       BUFFER, which is a real third state and the honest one. Three bands:
+         under/at PLAN  -> plan freely, cushion intact
+         PLAN..CAP      -> it holds, and it SAYS SO. Allowed, never silent.
+         over CAP       -> refused.
+       Same pattern as the readiness horizon: state the cost, do not block. It
+       matters most in the case this tool exists for - a jam is exactly when
+       spending buffer is the right call, because that is what it is reserved
+       for. A tool that silently refused the 400-420 band would be wrong in the
+       one situation it was built for.
+       ⚠ As of 2026-09-18 (PR #60) the gauge, capacity/index.html, also caps the
+       day at 400 (500 OT) — it now measures against the PLAN, not the 420/525
+       ceiling. So the gauge and this file agree on the number; the extra thing
+       the Advisor knows is that the last twenty minutes (25 on OT) are a NAMED
+       buffer band rather than flat capacity, so spending them is surfaced out
+       loud instead of counted silently.
      - 4-5 imprints a day = the changeover cap. Counts IMPRINTS, not invoices
        (Jean 2026-09-16): front/back/sleeve on one invoice is three setups,
        three registrations, three teardowns. v1 SURFACES at/over-cap days, it
@@ -128,7 +145,9 @@
       reservedImprints: rsv ? rsv.imprints : 0,
       imprints: jobs.length + (rsv ? rsv.imprints : 0),   // RULING: imprints, not invoices
       invoices: uniq(jobs.map(function (j) { return String(j.id); })).length,
-      room: Math.max(0, plan - minutes),           // room against the PLAN (400/500)
+      room: Math.max(0, plan - minutes),           // room before the buffer is touched
+      roomToCap: Math.max(0, cap - minutes),       // room before the day is refused
+      buffer: Math.max(0, cap - plan),             // the deliberate cushion, 20 std / 25 OT
       pct: cap ? Math.round(minutes / cap * 100) : 0,
       onBoard: !!base,
       beyondBoard: !!(board.lastLoadedDay && iso > board.lastLoadedDay)
@@ -240,8 +259,9 @@
     out.costedMoves = found.free.length ? [] : found.costed.slice(0, 2);
     if (!out.moves.length) {
       var best = scanned.slice().sort(function (a, b) { return b.room - a.room; })[0];
-      out.refusal = 'Nothing between now and ' + fmt(horizonEnd) + ' has ' + need +
-        ' minutes free. The roomiest day is ' + fmt(best.iso) + ' with ' + best.room + '.';
+      out.refusal = 'No day between now and ' + fmt(horizonEnd) + ' can hold ' + need +
+        ' minutes, even into its buffer. The roomiest day is ' + fmt(best.iso) + ' with ' +
+        best.day.roomToCap + ' before it would be over cap.';
     }
     return out;
   }
@@ -259,15 +279,32 @@
     return hits.sort(function (a, b) { return a.iso < b.iso ? -1 : 1; });
   }
 
+  /* Which of the three bands does `need` land this day in?
+     at-or-under plan = 'plan' · plan..cap = 'buffer' (allowed, must be said out
+     loud) · past cap = 'over' (refused). Boundaries are inclusive downward, so
+     exactly 400 is still 'plan' and exactly 420 is still 'buffer'. */
+  function bandFor(d, need) {
+    var after = d.minutes + (Number(need) || 0);
+    if (after <= d.plan) return 'plan';
+    if (after <= d.cap) return 'buffer';
+    return 'over';
+  }
+
   function evaluateDay(board, iso, need, custDue, today) {
     var d = dayInfo(board, iso);
     var cs = capState(d, 1);
     var readyDays = bizBetween(today, iso);
     var headroom = custDue ? bizBetween(iso, custDue) : null;
+    var after = d.minutes + need;
+    var band = bandFor(d, need);
     return {
       iso: iso, day: d, room: d.room, need: need,
-      fits: d.room >= need,
-      after: d.minutes + need,
+      band: band,                                   // plan | buffer | over
+      // minutes of the day's cushion this placement would spend, and what is left
+      bufferUsed: band === 'buffer' ? after - d.plan : 0,
+      bufferLeft: Math.max(0, d.cap - Math.max(after, d.plan)),
+      fits: band !== 'over',                        // the HARD limit is the cap
+      after: after,
       pctAfter: d.cap ? Math.round((d.minutes + need) / d.cap * 100) : 0,
       capState: cs,                                   // ok | at | over  (surfaced, never blocking in v1)
       ot: d.ot,
@@ -286,6 +323,8 @@
      nobody anything), then the changeover cap, then earliest. */
   function rankTail(a, b) {
     if (a.beyondBoard !== b.beyondBoard) return a.beyondBoard ? -1 : 1;
+    var bw = { plan: 0, buffer: 1, over: 2 };
+    if (bw[a.band] !== bw[b.band]) return bw[a.band] - bw[b.band];
     var w = { ok: 0, at: 1, over: 2 };
     if (w[a.capState] !== w[b.capState]) return w[a.capState] - w[b.capState];
     if (a.tight !== b.tight) return a.tight ? 1 : -1;
@@ -294,6 +333,9 @@
 
   function rank(a, b) {
     if (a.tight !== b.tight) return a.tight ? 1 : -1;
+    // a day whose cushion survives beats one that spends it, every time
+    var bw = { plan: 0, buffer: 1, over: 2 };
+    if (bw[a.band] !== bw[b.band]) return bw[a.band] - bw[b.band];
     var w = { ok: 0, at: 1, over: 2 };
     if (w[a.capState] !== w[b.capState]) return w[a.capState] - w[b.capState];
     if (a.shipHeadroom != null && b.shipHeadroom != null && a.shipHeadroom !== b.shipHeadroom) {
@@ -365,6 +407,59 @@
     return fallback;
   }
 
+  /* Job movability — the ONE shared rule (availability gauge chips + Advisor
+     colour), RE-KEYED 2026-09-18 off the PM's OWN two dates, with NO shipping
+     assumption (the flat 3-business-day SHIP_DAYS is dropped here). Shipping is
+     location-dependent (AZ ~1 day, FL ~5) and the PM sets prod due + client due
+     deliberately, so the tool only READS those dates, never second-guesses them.
+     Two INDEPENDENT reads (a job can be one, both, or neither):
+       WIGGLE   = room to move later and still print by its production due
+                  (ps >= prodSlack, default 1 business day of room)
+       EXPEDITE = client due is MORE THAN 1 business day after the production due
+                  (ship > 1) — the PM's dates leave shipping room. Pure date read,
+                  no assumed shipping duration; e.g. prod 21st/client 22nd = 1 bd
+                  = NO room, prod 21st/client 23rd = 2 bd = HAS room.
+       movable  = wiggle || expedite (yellow "has options")
+       ps  = biz days of room before the production due
+       cs  = biz days to the client due (context)
+       ship= client due − production due in biz days (the PM's shipping window)
+     kind = 'wiggle' | 'expedite' | 'locked' (wiggle wins) so the gauge's chip
+     bucketing keeps working; ✈ now fires on the date gap, not a flat ship time.
+     job = {pd, cd} ISO strings. */
+  function moveKind(printIso, job, prodSlack) {
+    prodSlack = (prodSlack == null) ? 1 : prodSlack;
+    job = job || {};
+    var ps = (job.pd && job.pd > printIso) ? bizBetween(printIso, job.pd) : 0;
+    var cs = (job.cd && job.cd > printIso) ? bizBetween(printIso, job.cd) : 0;
+    var ship = (job.pd && job.cd && job.cd > job.pd) ? bizBetween(job.pd, job.cd) : 0;
+    var wiggle = ps >= prodSlack;
+    var expedite = ship > 1;
+    var movable = wiggle || expedite;
+    var kind = wiggle ? 'wiggle' : (expedite ? 'expedite' : 'locked');
+    return { kind: kind, wiggle: wiggle, expedite: expedite, movable: movable, ps: ps, cs: cs, ship: ship };
+  }
+
+  /* Print-timing of a job on a given print day — GRADUATED (2026-09-18 v3.3),
+     read only from the PM's two dates, business days only, no shipping assumption:
+       'ok'       print day <= production due (on schedule)
+       'expedite' print day > production due BUT >= 1 business day still remains to
+                  the client due — it can still make it if shipped faster. level =
+                  bizBetween(printDay, clientDue) business days (1 = overnight,
+                  2 = 2-day, N = N-day). Information, not an instruction.
+       'late'     no shipping days left (bizBetween(printDay, clientDue) <= 0, or
+                  past prod due with no client due) — the ONLY true print-timing
+                  failure now. job = {pd, cd} ISO strings. */
+  function printTiming(printIso, job) {
+    job = job || {};
+    var pd = job.pd, cd = job.cd;
+    if (!pd || printIso <= pd) return { state: 'ok', level: 0 };
+    var cs = (cd && cd > printIso) ? bizBetween(printIso, cd) : 0;
+    if (cs >= 1) return { state: 'expedite', level: cs };
+    return { state: 'late', level: cs };
+  }
+  // "overnight" for 1 business day, else "N-day".
+  function expediteLabel(n) { return n === 1 ? 'overnight' : (n + '-day'); }
+
   /* The five blind spots. Same five, every time, on every answer. The tool
      naming what it cannot check is the product, not a disclaimer. */
   var BLIND_SPOTS = [
@@ -379,7 +474,8 @@
     RULES: RULES, BLIND_SPOTS: BLIND_SPOTS,
     isoLA: isoLA, addDays: addDays, isBiz: isBiz, bizAdd: bizAdd, bizSub: bizSub,
     bizBetween: bizBetween, fmt: fmt, invoiceOf: invoiceOf, normImprint: normImprint,
-    buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve,
-    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding
+    buildBoard: buildBoard, dayInfo: dayInfo, capState: capState, reserve: reserve, bandFor: bandFor,
+    evaluateDay: evaluateDay, placeProject: placeProject, findLanding: findLanding, moveKind: moveKind,
+    printTiming: printTiming, expediteLabel: expediteLabel
   };
 })(typeof window !== 'undefined' ? window : this);
