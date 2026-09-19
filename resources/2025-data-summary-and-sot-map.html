@@ -140,10 +140,11 @@ th { background: #E8E8E8; font-weight: 700; text-transform: uppercase; letter-sp
 </div>
 
 <h3>B. Production Cost → the Master Curve</h3>
+<p class="stamp" style="background:#FFF4CC;border-left:4px solid #F7BE00;padding:10px 12px;margin:12px 0;">SUPERSEDED 2026-08-25: shop rate is $240 / productive press hour (12-month lock). The $140 figures below are the 2025 derivation, kept for history. Source: PlanetIQ/Production/Production_Rate.md</p>
 <ul>
   <li><strong>Rate: $140 / productive press hour</strong> (winter-idle-adjusted; supersedes old $225). = $284K production pool ÷ ~2,050 winter-adjusted annual press-busy hrs.</li>
   <li><strong>$284K production pool (2025):</strong> labor $179K + consumables $42K + energy $15K + equipment $2K + production rent share $45K.</li>
-  <li><strong>Master Curve formula:</strong> <code>JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty</code> → <code>cost/unit = (JobTime ÷ 60) × $140 ÷ qty</code>.</li>
+  <li><strong>Master Curve formula:</strong> <code>JobTime(min) = (8 + 12×colors) + print_rate[colors]×qty</code> → <code>cost/unit = (JobTime ÷ 60) × $240 ÷ qty</code> (was $140 until 2026-08-25).</li>
   <li><strong>Print rates (min/unit):</strong> apparel color-dependent (1c .34 · 2c .51 · 3c .58 · 4c .76 · 5c 1.24 — driven by press <em>passes</em>); bandana flat single-pass (1c .33 · 2c .35 · 3c .40 · 4c .42).</li>
   <li class="pa-pending">⏳ Pending: fold the <strong>2026 +5% crew raise</strong> (+$9,334/yr) and the <strong>off-books Venmo production support</strong> into the rate numerator.</li>
 </ul>
